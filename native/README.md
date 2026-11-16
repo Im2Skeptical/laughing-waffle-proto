@@ -137,6 +137,49 @@ not measured achievements. Smooth scrubbing takes priority over forecast reveal
 speed or horizon. The existing full-opening-forecast requirement remains in
 force; the long-horizon near-instant forecast goal is aspirational.
 
+## Performance handoff between runtimes
+
+Browser performance work and the native rebuild share workloads, behavioral
+contracts and engineering findings. Keep implementation choices and timing
+claims specific to the runtime being measured.
+
+Before browser performance work, including a hillclimb, read the native scope
+above and the relevant item in [WORKPLAN.md](WORKPLAN.md). Before native
+simulation, time-inspection or performance work, consult the relevant browser
+performance reports and task issues. Start timegraph investigations with the
+[guardrails](../docs/timegraph-optimisation-guardrails.md), which link the
+existing measurements; follow only references relevant to the bounded task.
+
+For each substantial finding, add a short **Cross-runtime handoff** to the
+existing performance report, hillclimb final pack or task issue. Include:
+
+- Evidence: source revision, reproducible workload/commands and correctness
+  checks. Link existing harness/proof artifacts for seed, captured configuration,
+  actions, horizon, device/build and measurement details instead of duplicating them.
+- Applicability: the algorithm or contract the other runtime can use, a
+  runtime-specific result, or an explicitly untested hypothesis. Explain the
+  relevant ownership, invalidation, ordering or replay constraint.
+- Next use: the affected native work item or browser subsystem and the smallest
+  validation needed there. Link a reusable fixture or regression when available.
+
+One paragraph with links is enough for a small finding. Keep this handoff in the
+existing evidence/task record; WORKPLAN remains the native status index and
+GitHub issues own task scope. Browser-only improvements remain worthwhile and
+can finish independently of native work.
+
+When consuming a finding, link it from the native task/session record and state
+whether it is adopted, needs a fresh measurement, or is inapplicable, with a
+reason. Feed native discoveries relevant to the browser back into the shared
+report or a linked browser issue. This is a handoff of evidence, not a requirement
+to preserve JavaScript architecture or share implementation code.
+
+Preserve the source revision of behavioral fixtures and separate observed bugs
+from intended rules. A performance-only change must retain the expected semantic
+state, RNG and replay results. Record intentional rule changes separately before
+refreshing expectations. Browser timings, prepared-start gains and desktop CPU
+throttling do not establish native or physical Pixel 6 performance; validate
+native gains with optimized native builds on the stated hardware.
+
 ## Authority and evidence
 
 This page records the selected direction. The [work plan](WORKPLAN.md) owns

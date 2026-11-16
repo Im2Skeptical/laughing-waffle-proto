@@ -26,6 +26,9 @@ import { createTimelineAudio } from './timeline-audio.js';
 const BOOT_SETUP_ID = "devPlaytesting01";
 
 import { createSimRunner } from "../controllers/sim-runner.js";
+import { attachPlayerActionTrace } from '../controllers/player-action-trace.js';
+import { installAgentTestLinkSession } from './ui-root/agent-test-link-session.js';
+import { getGraphicsOptions, setGraphicsOptions } from './graphics-options.js';
 import { createVassalDebugPresetController } from "../controllers/vassal-debug-preset-controller.js";
 import { createSettlementForecastController } from "../controllers/settlement-forecast-controller.js";
 import { createTimegraphForecastWorkerService } from "../controllers/timegraph-forecast-worker-service.js";
@@ -732,7 +735,7 @@ function getSettlementViewedEdgeTransferBatch() {
   return batch;
 }
 
-const runner = createSimRunner({
+const runner = attachPlayerActionTrace(createSimRunner({
   setupId: BOOT_SETUP_ID,
   onInvalidate: (reason) => {
     if (reason === "vassalDecisionStaged") return;
@@ -760,11 +763,12 @@ const runner = createSimRunner({
     prototypeView?.refresh?.();
     settlementDebugMenu?.refresh?.();
   },
-});
+}));
 
 lifeDecisionController = createLifeDecisionController({
   getRunner: () => runner,
   getState: () => getSettlementFrontierState(),
+  onDraftAction: (kind,payload,result)=>runner.recordPlayerDraftAction(kind,payload,result),
   onChange: () => vassalNodeDecisionModalView?.update?.(),
   onChunk: chunk => {
     const timeline = runner.getTimeline();
@@ -1811,6 +1815,7 @@ const gameSession = createGameSessionController({
   getForecastDiagnostics: () => forecastWorkerService.getDiagnostics(),
 });
 gameMenu = createGameMenuDom({
+  onOpenTestCaptureFile:text=>agentTestLinks.openFile(text),
   loadingLifecycle,
   cardReviews,
   newGameSettings,
@@ -1847,7 +1852,44 @@ const timelineAudio = createTimelineAudio({
   parent:document.querySelector('[data-testid="utility-controls"]'),
 });
 
-if (location.hash.startsWith('#/dev/play')) {
+const agentTestLinks=installAgentTestLinkSession({
+  runner,session:gameSession,menu:gameMenu,getState:()=>getSettlementViewedState(),
+  source:()=>JSON.parse(document.getElementById('game-build-info').textContent),
+  getNavigation:()=>({mode:worldViewMode,regionId:selectedWorldRegionId,regionSelectionActive:worldMapRegionSelectionActive,graphScope:getSettlementGraphScope()}),
+  setNavigation:saved=>{
+    selectedWorldRegionId=saved.regionId;setWorldViewMode(saved.mode);
+    worldMapRegionSelectionActive=saved.regionSelectionActive===true;
+    setSettlementGraphContext(saved.graphScope,selectedWorldRegionId);
+    worldMapView.refresh();prototypeView.refresh();
+    requestPauseBeforeDrag();
+  },
+  panels:{
+    decisionDraft:lifeDecisionController,
+    appearance:{capturePanelState:()=>getGraphicsOptions(),restorePanelState:saved=>setGraphicsOptions(saved,{persist:false})},
+    vassalFlow:settlementVassalFlow,
+    map:worldMapView,
+    settlement:prototypeView,
+    lifeMap:vassalLifeMapView,
+    nodeDecision:vassalNodeDecisionModalView,
+    levelUp:vassalLevelUpModalView,
+    heirlooms:vassalHeirloomFlowView,
+    commission:{capturePanelState:()=>({open:vassalCommissionPicker.getSnapshot().open}),restorePanelState:()=>vassalCommissionPicker.update()},
+    recap:{capturePanelState:()=>({open:vassalResolutionRecapView.isOpen()}),restorePanelState:()=>vassalResolutionRecapView.refresh()},
+    runComplete:{capturePanelState:()=>runCompleteView.capturePanelState(),restorePanelState:saved=>{syncSettlementRunCompletePresentation();runCompleteView.restorePanelState(saved);}},
+    phaseReference:sunMoonDisksView,
+    graphSeries:settlementGraphSeriesMenu,
+    research:researchLibrary,
+    workshop:settlementDebugMenu,
+    tooltip:tooltipView,
+    menu:gameMenu,
+  },
+  ready:()=>researchLibrary.whenPanelReady(),
+  prepare:async report=>{report('artwork');await prepareChronicleArt(app.renderer);report('map');await worldMapView.prepare(app.renderer);report('decision-map');await vassalNodeDecisionModalView.prepare(app.renderer);},
+  isBusy:()=>opening.isRevealing()||isSettlementScrubDragging(),
+  hold:()=>{runner.clearPreviewState();requestPauseBeforeDrag();},
+});
+
+if (location.hash.startsWith('#/dev/play')&&!/[?&]test(?:File)?=/.test(location.hash)) {
   try {
     const state = readLabHandoff();
     if (!state) throw new Error('No Gym state was supplied.');

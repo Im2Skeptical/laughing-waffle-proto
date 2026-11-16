@@ -166,6 +166,8 @@ export function createRunCompleteView({ app, layer, onOpen, onNewGame, getSpotli
     reset() { presentation.reset(); clock = null; render(); },
     reopen() { presentation.reopen(); clockStartedAt = performance.now(); onOpen?.(); render(); return { ok: !!presentation.getSnapshot().info }; },
     isOpen: () => presentation.getSnapshot().open,
+    capturePanelState:()=>({open:presentation.getSnapshot().open}),
+    restorePanelState(saved){if(saved?.open)presentation.reopen();else presentation.minimize();render();},
     getSemanticSnapshot: () => ({ ...presentation.getSnapshot(), spotlightRects, panelRect, clock: clockView?.getSnapshot() ?? null,
       emphasis: emphasisView?.getSnapshot() ?? null,
       copyRects: copyNodes.map(node => node.getBounds()) }),

@@ -141,7 +141,7 @@ export function attachInspectionKeywords(root,{face,rect,rules,glossary,rulesVie
     });
     viewport.on('readingScroll',updateAccessible);
   }
-  root.getReferenceState=()=>({path:[...path],anchor:anchor?{...anchor}:null,
+  root.getReferenceState=()=>({path:[...path],anchor:anchor?{...anchor}:null,scroll:referenceViewport?.getScroll()??0,
     originTerm:origin?.keywordTerm??null,originGroup:baseTargets.find(target=>target.node===origin)?.group??null,
     keyboardFocus:[...baseTargets,...referenceTargets].some(target=>target.node.accessibleTitle===document.activeElement?.title)});
   root.releaseKeywordFocus=()=>{
@@ -152,6 +152,7 @@ export function attachInspectionKeywords(root,{face,rect,rules,glossary,rulesVie
     path=(state?.path??[]).filter(term=>terms[term]);anchor=state?.anchor??null;
     origin=baseTargets.find(target=>target.node.keywordTerm===state?.originTerm&&target.group===state?.originGroup)?.node??null;
     draw();
+    referenceViewport?.setScroll(state?.scroll??0);
   };
   root.handleReferenceKey=event=>{
     if(event.key!=='Escape'||!path.length)return false;

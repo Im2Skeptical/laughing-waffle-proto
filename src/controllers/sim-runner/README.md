@@ -3,6 +3,11 @@
 Public factory stays on `src/controllers/sim-runner.js`. Do not add new
 detailed-settlement gameplay here.
 
+The game UI decorates that public runner with `../player-action-trace.js` for
+the isolated test-link prototype. Its command journal and replay baselines are
+runtime diagnostics, exported separately; they never enter GameState or the
+runner-save envelope. The undecorated runner and deterministic replay are unchanged.
+
 ## Files
 
 - `save-slots.js` — save meta, timeline payload

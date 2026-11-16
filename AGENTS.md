@@ -6,6 +6,9 @@ Local instructions for agents working in this repo.
 - Always read `ai/ai-context.md` (invariants and schema numbers).
 - Native successor work (C++/SDL3/RmlUi): read [native/AGENTS.md](native/AGENTS.md)
   and its start/resume sequence. Keep the browser game independently runnable.
+- Performance work, including hillclimbs: follow the shared
+  [browser/native handoff](native/README.md#performance-handoff-between-runtimes)
+  so findings inform both runtimes.
 - New card proposals or playable Practices/Structures use
   [add-gamepiece](.agents/skills/add-gamepiece/SKILL.md), which routes design,
   implementation and artwork through the shared workflow.
@@ -76,6 +79,11 @@ Local instructions for agents working in this repo.
   Prepare and verify locally first; only dispatch deployment after confirmation.
   Committing or pushing source is not permission to publish Pages.
 - Commit only verified task changes; leave unrelated user changes out.
+- Reports of browser-game behavior or UI changes must include a verified test
+  link when a captured game situation can demonstrate the change. Read the
+  [test-link reporting requirement](docs/agent-test-links-prototype.md#reporting-requirement)
+  for the capture recipe, exceptions and file fallback. Include relevant
+  screenshots as well, with before/after images for visual changes.
 
 1. Every PR includes the next version bump in `package.json`, both package-lock
    version fields, and `ai/ai-context.md`, per [development workflow](docs/development-workflow.md).

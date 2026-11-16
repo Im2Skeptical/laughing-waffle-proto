@@ -1120,6 +1120,19 @@ export function createVassalNodeDecisionModalView({
     },
     refresh: () => render(true), resize: () => render(true),
     open, close, isOpen: () => logicalOpen, getOpenNodeId: () => openNodeId,
+    capturePanelState(){
+      if(dragged||root.pendingInteractionCount>0)throw Error('Finish the current drag or press before capturing.');
+      return logicalOpen?{nodeId:openNodeId,offerPage,replacementOfferId,pinnedInspectionId,quickInspectionId,acquirePicker,
+        reference:inspectionRoot?.getReferenceState?.()??null,scroll:inspectionRoot?.getScroll?.()??0,
+        glossaryScroll:inspectionRoot?.getGlossaryScroll?.()??0,world:worldScreen.capturePanelState()}:null;
+    },
+    restorePanelState(saved){
+      close();if(!saved)return;open(saved.nodeId);
+      offerPage=saved.offerPage??0;replacementOfferId=saved.replacementOfferId??null;
+      pinnedInspectionId=saved.pinnedInspectionId??null;quickInspectionId=saved.quickInspectionId??null;acquirePicker=saved.acquirePicker??null;
+      render(true);worldScreen.restorePanelState(saved.world);
+      inspectionRoot?.setReferenceState?.(saved.reference);inspectionRoot?.setScroll?.(saved.scroll??0);inspectionRoot?.setGlossaryScroll?.(saved.glossaryScroll??0);
+    },
     getWorldDecisionPoint: (kind,id) => worldScreen.getPoint(kind,id),
     getEnterNodeClickPoint: () => logicalOpen && enterRoot?.toGlobal
       ? enterRoot.toGlobal(new PIXI.Point(enterRoot.hitArea.width / 2, enterRoot.hitArea.height / 2)) : null,

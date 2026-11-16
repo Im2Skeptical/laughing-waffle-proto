@@ -202,6 +202,8 @@ export function createSettlementDebugMenuDom({
     // window resize. Sample its final visible bounds, after layout has settled.
     update: positionUtility,
     refresh: positionUtility,
+    capturePanelState:()=>panel.style.display==='none'?null:{page:activePage,scroll:panel.scrollTop,vassalDraft:vassalDebugPresetController.getSnapshot().currentDraft},
+    restorePanelState(saved){close();if(saved){if(Object.hasOwn(saved,'vassalDraft'))vassalDebugPresetController.restoreTransientDraft(saved.vassalDraft);setActivePage(saved.page);open();panel.scrollTop=saved.scroll??0;}},
     close,
     destroy() {
       vassalLab.destroy();

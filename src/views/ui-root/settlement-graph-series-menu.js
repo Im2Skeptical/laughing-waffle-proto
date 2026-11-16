@@ -553,6 +553,13 @@ export function createSettlementGraphSeriesMenu({
       return true;
     },
     getContext: () => contextId,
+    capturePanelState:()=>({open,contextId,visibleSeriesIds:[...visibleSeriesIds]}),
+    restorePanelState(saved){
+      if(!saved)return;
+      if(saved.contextId!==contextId)throw Error('Graph series context does not match the restored view.');
+      visibleSeriesIds=[...saved.visibleSeriesIds];visibleSeriesIdsByContext.set(contextId,[...visibleSeriesIds]);
+      open=saved.open===true;signature='';applySelection();render();
+    },
     getDebugState: () => ({ open, togglePoints: Object.fromEntries(togglePoints) }),
     render,
     syncSelection,

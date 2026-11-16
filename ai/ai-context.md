@@ -1,6 +1,6 @@
 # Current Project Context
 
-Game build version: `1.1.68`.
+Game build version: `1.1.71`.
 The accepted [regional population UX](../docs/regional-population-ux-integration.md)
 uses floating 70% map readouts, visual demographics, Warrior baseline Force and
 carried proportional newborn allegiance. It preserves the degraded starter
@@ -99,6 +99,9 @@ identifiers remain stable; see [the mapping and authoring contract](../docs/cree
 Authoritative numbers:
 
 - Game state v51; runner saves v33. Older saves are rejected.
+- Isolated agent test links use transport/view envelopes v1 and a separate v1
+  Dev action journal; none change GameState or runner-save schemas. See the
+  [local prototype](../docs/agent-test-links-prototype.md).
 - Browser save slots use IndexedDB database v1; the runner-save envelope is unchanged.
 - New Game retains one disposable opening-forecast checkpoint in the same
   database's settings store, independent of player slots. Exact loaded-build
