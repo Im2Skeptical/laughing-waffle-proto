@@ -161,7 +161,7 @@ pool.local.structureSlots[0].construction={completedCycles:0};
 expect(stockCapacity(pool.state,pool.local,pool.local.practiceSlots[0]),15,'unfinished-source-excluded');
 pool.local.structureSlots=pool.local.structureSlots.map(()=>null);
 expect(stockCapacity(pool.state,pool.local,pool.local.practiceSlots[0]),5,'empty-pool-is-times-one');
-const gatedPower = prepared({population:0, slots:[{id:'anatomicalStudy'}],structures:[{id:'archive',origin:0,qualityBonus:0}]});
+const gatedPower = prepared({population:0, slots:[{id:'plagueLedger'}],structures:[{id:'archive',origin:0,qualityBonus:0}]});
 expect(stockCapacity(gatedPower.state,gatedPower.local,gatedPower.local.practiceSlots[0]),5,'specialist-gate-excludes-power');
 const duplicatePower = prepared({population:4,scholars:4,slots:[{id:'toolmaking'}],structures:[{id:'academy',origin:0,qualityBonus:0},{id:'academy',origin:3,qualityBonus:0}]});
 expect(stockCapacity(duplicatePower.state,duplicatePower.local,duplicatePower.local.practiceSlots[0],true),28,'every-academy-contributes-to-one-pool');
@@ -176,9 +176,9 @@ for (const [index, tier] of TIERS.entries()) {
   pinCapacity(`carpentry-${tier}`, { population: 0, slots: [{ id: "carpentry", tier }], structures }, 0, (5 + index) * 6);
   pinCapacity(`carpentry-bare-${tier}`, { population: 0, slots: [{ id: "carpentry", tier }] }, 0, 5 + index);
   pinCapacity(`forage-ignores-construction-${tier}`, { population: 0, slots: [{ id: "forage", tier }], structures }, 0, 2 + index);
-  pinCapacity(`anatomical-record-${tier}`, {
+  pinCapacity(`plague-record-${tier}`, {
     population: 2, scholars: 2,
-    slots: [{ id: "anatomicalStudy", tier }],
+    slots: [{ id: "plagueLedger", tier }],
     structures: [{ id: "blackArchive", origin: 0, qualityBonus: 1 }, { id: "library", origin: 2, qualityBonus: 1 }],
   }, 0, (5 + index) * 8);
 }
@@ -272,8 +272,8 @@ const anatomical = chargeProbe({
 expect(sockets(assignDetailedSettlementWorkers(anatomical.state, anatomical.regionId)[0]), { scholars: 1, tokens: 2, effective: 2 }, "archive-plus-worker-assignment");
 expect(anatomical.evaluation.chargeThreshold, 2, "anatomical-threshold-stays-authored");
 expect(anatomical.evaluation.chargeGain, 6, "anatomical-worker-and-archive-gain");
-expect(anatomical.evaluation.effects.map(effect => effect.scaledValue.effectiveValue), [2, 2], "anatomical-discharge-not-worker-scaled");
-expect(anatomical.evaluation.stockCapacity, 48, "anatomical-silver-record-capacity");
+expect(anatomical.evaluation.effects.map(effect => effect.scaledValue.effectiveValue), [4], "anatomical-discharge-not-worker-scaled");
+expect(anatomical.evaluation.stockCapacity, 0, "research-has-no-stock-capacity");
 
 const before = serializeGameState(anatomical.state);
 const timeline = createTimelineFromInitialState(anatomical.state);
@@ -293,8 +293,8 @@ const after = serializeGameState(anatomical.state);
 expect(serializeGameState(continued), after, "pending-continuation-full-state");
 expect(serializeGameState(deserializeGameState(JSON.parse(JSON.stringify(after)))), after, "post-flush-json-roundtrip");
 expect(anatomical.local.practiceSlots[0].charge, 0, "anatomical-meter-reset");
-expect(anatomical.local.practiceSlots[0].stock, 2, "anatomical-discharge-stock");
-expect(anatomical.state.civilization.research.total, beforeResearch(before) + 2, "anatomical-research");
+expect(anatomical.local.practiceSlots[0].stock, 0, "anatomical-discharge-has-no-stock");
+expect(anatomical.state.civilization.research.total, beforeResearch(before) + 4, "anatomical-research");
 expect(anatomical.state.rng, before.rng, "rng-unchanged");
 } catch (error) {
   failures.push({ name: "unexpected", path: "$", actual: preview(error?.stack ?? String(error)), expected: "no throw", repro: REPRO });

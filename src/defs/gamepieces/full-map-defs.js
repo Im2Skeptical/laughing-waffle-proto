@@ -3646,6 +3646,7 @@ export const FULL_MAP_MAINLINE_PRACTICES = Object.freeze([
   'fieldStudy', 'floodAlmanacs', 'marginalia', 'measuredRations', 'patternCarving',
   'beastRendering', 'scarredShields', 'trailProvisioning', 'trophyRubbings',
   'copyingTexts', 'monsterHunting', 'irrigating',
+  'anatomicalStudy', 'heresiography', 'doomsdayChronicle',
 ]);
 // Inherited neutral starting cards and enemy/remnant institutions belong on the
 // map, never in acquisition pools. Use authored IDs so edited class/quality/lock

@@ -13,7 +13,9 @@ as further design tasks reveal what works.
 
 2. Give each information layer a purpose. Cards provide a compact symbolic
    overview; quick reads explain what a piece does in plain language; inspection
-   supports deeper learning and linked definitions. Emphasise mechanical
+   supports deeper learning and linked definitions. Place Research yields at the
+   top right of cards without Stock, sharing the output position used for Stock
+   and allegiance. Keep timing and inputs below. Emphasise mechanical
    differences when comparing choices. Keep flavour brief and distinct from
    rules. Use recognisable symbols for repeated compact readings and explain them
    on inspection. Contribution ledgers should keep source identities legible:

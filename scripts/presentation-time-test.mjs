@@ -171,14 +171,14 @@ assert.deepEqual(loggingReading.reading.effects,[
 assert.equal(loggingReading.reading.type,'Cycle');
 assert.equal(loggingReading.reading.trigger,null,'Season timing belongs in the Activation block');
 const anatomicalReading=getGamepieceFace(faceClock,'practice','anatomicalStudy');
-assert.deepEqual(anatomicalReading.reading.effects,[{timing:'',text:'Produce 2 Stock'},{timing:'',text:'Gain 2 Research'}]);
+assert.deepEqual(anatomicalReading.reading.effects,[{timing:'',text:'Gain 4 Research'}]);
 assert.equal(anatomicalReading.reading.trigger,'Charge on Population death in this settlement or Stock production in this settlement (Stock with Bone).');
 assert.ok(anatomicalReading.reading.requirements.includes('Requires a Scholar worker.'),'The hard staffing gate remains readable');
 assert.ok(getPracticeSymbols(anatomicalReading).some(entry=>entry.name==='Charge'));
 assert.ok(!getPracticeSymbols(loggingReading).some(entry=>entry.name==='Charge'),'Glossary includes only symbols on the selected face');
 assert.ok(!getPracticeSymbols(anatomicalReading).some(entry=>/Cycle/.test(entry.name)));
 assert.ok(getPracticeSymbols(anatomicalReading).some(entry=>entry.name==='Bone'),'Trigger traits are included, even when not hosted here');
-assert.deepEqual(getPracticeSymbols(anatomicalReading).slice(0,3).map(entry=>entry.name),['Medicine','Record','Bone'],'Stock tags lead the symbol key');
+assert.equal(getPracticeSymbols(anatomicalReading)[0].name,'Bone','Only trigger traits remain on the Research card');
 const recipeReading=getGamepieceFace(faceClock,'practice','cropRotation').reading;
 assert.ok(recipeReading.requirements.includes('Require 1 Record Stock (kept).'),'Requires is distinct from Consume');
 const mixedReading=getGamepieceFace(faceClock,'practice','selectiveBreeding').reading;

@@ -282,7 +282,8 @@ human playtest work.
   Threshold, passive rate, Crisis diversion and Life Map risk costs are editable in Game Settings;
   individual Practice amounts are editable in the card reviewer.
   Campaign Monster victories award 12 + 4×Defense Prestige and 3×Defense Research;
-  automatic hunts award stronger capacity-limited Loot/Record/Currency trophies and 6 Research.
+  automatic hunts award capacity-limited Loot/Record/Currency trophies. Research
+  comes from dedicated Practices and personal Campaign victories.
   Successful defense and diversion grant Defense Research, and diversion also
   grants 6 Prestige. Monster-facing Research and candidate engines are strengthened.
 - Trade is a connected-stocked-neutral bonus to Barter, not a rival buying strategy.

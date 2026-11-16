@@ -23,7 +23,7 @@ export function describeMechanicEffect(effect, amount) {
     bankSupport: `Bank ${amount} ${title(effect.bank)} ${mechanic.name} for a future martial action (up to 10)`,
   }[effect.op];
   const history = { losses: 'lost settlements', deaths: 'local deaths', deathsSinceSpring: 'local deaths since Spring' };
-  return (text ?? `${amount} ${mechanicEffect(effect.op)?.label ?? 'Unsupported effect'}`) + (effect.historyScale ? `; increased by ${history[effect.historyScale] ?? effect.historyScale}` : '');
+  return (text ?? `${amount} ${mechanicEffect(effect.op)?.label ?? 'Unsupported effect'}`) + (effect.historyScale==='losses' ? '; +1 per lost settlement (up to +4)' : effect.historyScale ? `; increased by ${history[effect.historyScale] ?? effect.historyScale}` : '');
 }
 
 
