@@ -1,0 +1,4 @@
+# Local toolchain, fetched dependency sources, and build trees.
+# A clean checkout does not contain these. See tools/bootstrap-windows.ps1.
+.tools/
+build/

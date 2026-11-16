@@ -8,6 +8,19 @@ body {
   height: 100%;
 }
 
+.test-link-display { position:fixed; inset:0; z-index:3001; display:grid; place-items:center;
+  overflow:auto; box-sizing:border-box; padding:max(20px, env(safe-area-inset-top)) max(20px, env(safe-area-inset-right)) max(20px, env(safe-area-inset-bottom)) max(20px, env(safe-area-inset-left));
+  color:#e2d0a4; background:#101719; font:16px/1.5 Georgia,serif; }
+.test-link-display-card { width:min(100%, 440px); box-sizing:border-box; }
+.test-link-display h1 { font-size:28px; line-height:1.15; text-decoration:none; margin:0 0 16px; }
+.test-link-display p { color:#b1b5a7; margin:12px 0; }
+.test-link-display button { display:block; width:100%; box-sizing:border-box; min-height:48px; margin:14px 0;
+  padding:12px 16px; border:1px solid #a08855; background:linear-gradient(#343b2d,#1c2622); color:#e2d0a4; font:600 16px/1.35 Georgia,serif; cursor:pointer; }
+.test-link-display button[hidden] { display:none; }
+.test-link-display button small { display:block; font:14px/1.4 Georgia,serif; color:#b1b5a7; margin-top:6px; }
+.test-link-display button:disabled { opacity:.6; cursor:wait; }
+.test-link-display button:focus-visible { outline:2px solid #e2d0a4; outline-offset:4px; }
+
 canvas {
   touch-action: none;
 }

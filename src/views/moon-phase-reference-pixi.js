@@ -174,6 +174,8 @@ export function createMoonPhaseReferenceView({ app, layer, getState }) {
   return {
     open: () => { selectedId = getMoonPhaseAtSecond(getState()).id; signature = ''; root.visible = true; render(); },
     close, update: render,
+    capturePanelState:()=>root.visible?{phaseId:selectedId}:null,
+    restorePanelState(saved){close();if(saved){if(!MOON_PHASE_DEFS.some(phase=>phase.id===saved.phaseId))throw Error('Unknown moon phase panel.');selectedId=saved.phaseId;signature='';root.visible=true;render();}},
     getSnapshot: () => ({ open: root.visible, phaseId: selectedId, report: root.visible ? report : null, rect }),
     getClickPoint: id => {
       const target = id === 'close' ? closeButton : tabs[MOON_PHASE_DEFS.findIndex(p => p.id === id)];

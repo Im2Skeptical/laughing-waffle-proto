@@ -814,6 +814,23 @@ export function createTooltipView({ layer, interaction, app, layout = null, onRe
     getAnchorRectForDisplayObject,
     getRelativeDisplayScale,
     getActiveSpec: () => activeSpec,
+    capturePanelState: () => container.visible ? {
+      spec:JSON.parse(JSON.stringify(activeSpec,(_key,value)=>typeof value==='function'?undefined:value)),
+      anchor:resolveAnchor(activeAnchor),pinned:pinnedKey!==null,dismissOnExit:dismissOnPointerExit,
+      quick:quickPinned,key:typeof pinnedKey==='string'?pinnedKey:activeSpec?.inspectionKey??null,
+      scroll:pieceInspection?.getScroll?.()??0,glossaryScroll:pieceInspection?.getGlossaryScroll?.()??0,
+      reference:pieceInspection?.getReferenceState?.()??null,sourceKey:sourceEntry?.key??null,
+      sourceScroll:sourceSize?.rows.getScroll()??0,
+    } : null,
+    restorePanelState(saved) {
+      hide({force:true});if(!saved)return;
+      const anchor=saved.anchor??{x:1200,y:300,width:0,height:0};
+      if(saved.pinned)pin(saved.spec,anchor,saved.key??'test-link-inspection',{quick:saved.quick});
+      else show(saved.spec,anchor,{dismissOnExit:saved.dismissOnExit===true,quick:saved.quick});
+      pieceInspection?.setScroll?.(saved.scroll??0);pieceInspection?.setGlossaryScroll?.(saved.glossaryScroll??0);
+      pieceInspection?.setReferenceState?.(saved.reference);
+      if(saved.sourceKey){const entry=poolReading?.rows.controls.find(row=>row.entry.key===saved.sourceKey)?.entry;if(entry){showSources(entry);sourceSize?.rows.setScroll(saved.sourceScroll??0);}}
+    },
     getDebugState: () => ({
       visible: container.visible === true,
       pinned: pinnedKey !== null,

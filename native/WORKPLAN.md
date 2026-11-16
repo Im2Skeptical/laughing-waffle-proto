@@ -2,12 +2,18 @@
 
 ## Handoff
 
-- State: workspace setup complete; native implementation has not started.
-- Active owner: none.
-- Next ready item: N01, reproducible native bootstrap.
-- Accepted choices: [README](README.md). C++/SDL3/RmlUi selection is settled;
-  graphics backend and exact dependency/toolchain versions are still to prove.
-- No native performance results or physical Android results yet.
+- State: N01 implementation is complete, pending PR integration. Windows dev and
+  optimized builds, both headless cases per profile and rendered input smoke
+  checks pass. The merged source builds an arm64 Android debug APK.
+  No physical-device run or performance result is claimed.
+- Active owner: none; the Nov14 campaign releases ownership at this handoff.
+  Bootstrap scope is tracked by issue #95. A worktree copy is not a lock.
+- Next ready items: N02 representative presentation/device viability and N03
+  a separately owned native simulation slice. The browser reference corpus is
+  available, but no C++ gameplay or cross-language parity exists yet.
+- Accepted choices: [README](README.md) and [THIRD_PARTY.md](THIRD_PARTY.md).
+  C++/SDL3/RmlUi stays the stack. The bootstrap renderer is SDL3's default 2D
+  renderer, not RmlUi's SDL_GPU/SDL_GL3 samples.
 
 Use `pending`, `ready`, `active`, `blocked`, `done` for item status. Split an oversized item
 into bounded tasks with their own completion criteria. Before implementation
@@ -15,21 +21,52 @@ begins, create/link its GitHub issue following the repository issue workflow;
 use that issue for detailed scope and discussion, and this file for resumable
 status and evidence. Keep one active owner per item.
 
-## N01 - Reproducible native bootstrap (ready)
+## N01 - Reproducible native bootstrap (done, pending integration)
 
-Inventory the Windows C++/CMake and Android SDK/NDK/JDK tools available. Pin
-supported dependencies and toolchain versions with licenses/notices. Establish
-independent CMake build/test entry points, development/optimized build presets,
-and a documented Android build path.
-Add a minimal SDL window with RmlUi text and an input response, plus a headless
-native test target. Keep the application-specific code under this directory.
+Issue: #95. Commands: [README](README.md), [AGENTS](AGENTS.md).
+Pins and licenses: [THIRD_PARTY](THIRD_PARTY.md).
 
-Done when a clean checkout can follow documented commands to build/run on
-Windows, compile an Android package, and run the headless test. Record actual
-toolchain versions and missing physical-device access separately. Ignore native
-outputs locally. No placeholder game simulation is needed for this item.
+The independent native demo has no gameplay simulation, GameState, RNG or
+replay implementation. Browser schemas stay GameState 51, GameConfig 31 and
+runner saves 33 (game 1.1.68). The separate browser checkpoint fix is covered
+by the browser verification suite.
 
-## N02 - Representative presentation and device viability (pending N01)
+Windows evidence, 14 Nov 2026, independently repeated after Android integration:
+
+- MSVC 19.50.35730.0, toolset 14.50.35717, Windows SDK 10.0.26100.0,
+  CMake 4.5.0, Ninja 1.13.2. Tool environment changes are process-local.
+- Development and optimized configure/build commands exit 0.
+- Both profiles pass 2/2 CTests: headless text/input and UTF-8 asset paths.
+- Both rendered smoke checks exit 0: Direct3D 11, 16912 varying pixels,
+  one texture, eight draws and one click. Readback is not visual inspection.
+- Dependency objects live under each binary tree's _deps. Returning to dev
+  after optimized requires no rebuild. No shared Debug/Release object cache.
+- Listener lifetime extends through RmlUi shutdown; UTF-8 file reads use
+  wide paths on Windows. Two negative controls detect the old failures.
+
+Android evidence, same day:
+
+- Temurin JDK 17.0.21+9, SDK platform/build-tools 35, NDK r30
+  (30.0.16248370), Gradle 8.12 and AGP 8.7.3.
+- The worker built a debug APK; the parent then rebuilt the merged source
+  in the primary checkout with its spaces in the path, reusing the worker's
+  project-local tool/download cache. Cold downloads were not repeated.
+- bootstrap-android.ps1 now downloads pinned missing archives itself and
+  validates hashes, confines extraction/removal to local tools/output, and
+  supports an explicit native workspace ToolsRoot. No machine install occurs.
+- The package contains arm64 libmain.so with SDL_main, libSDL3.so, the RML
+  document, font and font license. minSdk 31, target/compileSdk 35.
+- Output: native/android/app/build/outputs/apk/debug/app-debug.apk; copied to
+  artifacts/grok-nov14-spend/android-bootstrap/app-debug.apk with inspection.
+  Signing is a local debug key. No device install, run, lifecycle or phone
+  performance evidence exists. llvm-mingw was not used.
+
+The renderer implements the demo's geometry, textures and scissor needs;
+layers, filters and clip masks remain outside this bootstrap. It is not the
+final graphics-backend decision. N02 owns representative effects and Pixel 6
+proof. N03 owns arithmetic/serialization contracts and native simulation.
+
+## N02 - Representative presentation and device viability (ready after N01 integration)
 
 Render existing map/card artwork and a representative inspector using RmlUi.
 Exercise layering, clipping, scrolling, glyphs/numbers, touch and window sizing.
@@ -43,7 +80,7 @@ are reproducible. Set explicit provisional frame-tail, scrub-latency and memory
 budgets for the later playable slice from this evidence. Synthetic UI timings
 are not full-game performance measurements.
 
-## N03 - Simulation contract and headless native slice (pending N01)
+## N03 - Simulation contract and headless native slice (ready after N01 integration)
 
 This may proceed before N02 finishes in a separately owned task. Capture a
 versioned behavioral reference from the browser game: revision, seed, config,

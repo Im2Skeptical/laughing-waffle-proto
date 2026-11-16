@@ -1,0 +1,63 @@
+{
+  "corpusKind": "browser-regression-reference",
+  "crossLanguageParity": false,
+  "n03": "preparatory capture only. This corpus does not implement or complete N03.",
+  "issue": "https://github.com/Im2Skeptical/laughing-waffle-proto/issues/96",
+  "baselineCommit": "f0b1b1f720c19a1cbeda558da430a1ff636e6507",
+  "gates": {
+    "packageVersion": false,
+    "gitHead": false,
+    "silentRewrite": false
+  },
+  "schemasCaptured": {
+    "gameState": 51,
+    "gameConfig": 31,
+    "runnerSaveSourceConstant": 33,
+    "runnerSaveIsEqualityGate": false
+  },
+  "seeds": [
+    1,
+    42,
+    1867
+  ],
+  "checkpoints": [
+    {
+      "id": "initial",
+      "tSec": 0
+    },
+    {
+      "id": "phases",
+      "tSec": 6
+    },
+    {
+      "id": "action",
+      "tSec": 7
+    }
+  ],
+  "gameConfigSha256": "fc636beab8a53278229a99e052339ec59044adca4d9208a69ed5d9f8c16d2761",
+  "numericTreatment": "JSON numbers copied from serializeGameState. No corpus rounding. Object-key order is not significant in the semantic files. Array order is significant. The full-state pin sorts object keys only so its hash is stable; it removes no fields.",
+  "ordering": "Regions follow world.regions. Joint cohorts keep the stored joint-array order inside classId sorted A to Z. Practice slots keep slot index, including empty slots. Pending candidates keep pool order. Birth-credit keys and allegiance ids are sorted in the semantic projection only.",
+  "covered": [
+    "ordinary New Game seeds 1, 42 and 1867",
+    "initial serialized state",
+    "official 60-tick advance through tSec 6 and tSec 7",
+    "moon phase boundaries reached by that advance",
+    "settlementSelectVassal of opening candidate 0 at tSec 7",
+    "joint cohort identity, birth-credit ledgers, practice instance order, stock, charge and work",
+    "region controller, Unrest field, claimant and claim checks",
+    "civilization prestige, treasury and the six serialized RNG streams"
+  ],
+  "excluded": [
+    "C++ and Android parity",
+    "Unrest episode entry, yearly Chaos and expiry",
+    "node Prestige income and its per-node rounding",
+    "garrison support assignment",
+    "shop, life-node confirm, and practice install or removal",
+    "season rollover and any year after the opening year",
+    "Life Map graph, portraits and signature nodes in the semantic projection",
+    "derived population summary caches in the semantic projection",
+    "map polygons and the road list in the semantic projection",
+    "the gameConfig document body, aside from its canonical hash",
+    "IndexedDB save slots and forecast workers"
+  ]
+}

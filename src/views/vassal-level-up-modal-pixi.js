@@ -332,6 +332,8 @@ export function createVassalLevelUpModalView({
     refresh: () => render(),
     resize: () => render(true),
     isOpen: () => open,
+    capturePanelState:()=>({selectedStatId,tipStatId}),
+    restorePanelState(saved){render(true);selectedStatId=saved?.selectedStatId??null;render(true);tipStatId=saved?.tipStatId??null;},
     getChoiceClickPoint(index = 0) {
       if (!open) return null;
       const target = tablets[index];

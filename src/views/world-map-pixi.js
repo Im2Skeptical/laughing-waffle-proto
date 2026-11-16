@@ -1177,6 +1177,8 @@ export function createWorldMapView({
         stockTransferIcons.beginFrame();
       }
     },
+    capturePanelState:()=>({chaosExpanded}),
+    restorePanelState(saved){chaosExpanded=saved?.chaosExpanded===true;render(true);},
     getSemanticSnapshot: () => {
       const state = getState?.();
       const regionId = getSelectedRegionId?.();
