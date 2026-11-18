@@ -444,4 +444,6 @@ std::string canonical_json(const Value& value)
 
 std::string sha256_value(const Value& value) { return sha256_text(canonical_json(value)); }
 
+std::u16string utf16_sort_key(std::string_view key) { return utf16_key(key); }
+
 }

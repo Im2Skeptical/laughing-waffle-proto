@@ -50,5 +50,7 @@ Value parse(std::string_view text);
 std::string stringify(const Value& value);
 std::string canonical_json(const Value& value);
 std::string sha256_value(const Value& value);
+// ECMAScript lexical key order compares UTF-16 code units.
+std::u16string utf16_sort_key(std::string_view key);
 
 }
