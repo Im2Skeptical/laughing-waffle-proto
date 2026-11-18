@@ -49,6 +49,7 @@ using TransferId = Id<struct TransferDomain>;
 using VassalId = Id<struct VassalDomain>;
 using NodeId = Id<struct NodeDomain>;
 using SymbolId = Id<struct SymbolDomain>;
+using HistoryTextId = Id<struct HistoryTextDomain>;
 
 template<class T>
 struct Range {
@@ -80,6 +81,7 @@ struct Table {
 
 template<class... Ts>
 struct Tables : Table<Ts>... {
+    template<class T> static constexpr bool contains = (std::is_same_v<T, Ts> || ...);
     template<class T> auto& table() { return static_cast<Table<T>&>(*this); }
     template<class T> const auto& table() const { return static_cast<const Table<T>&>(*this); }
     template<class T> auto& rows() { return table<T>().values; }
@@ -95,6 +97,12 @@ struct Tables : Table<Ts>... {
         return (std::size_t{0} + ... + (rows<Ts>().size() * sizeof(Ts)));
     }
 
+    template<class Visit>
+    void for_each_table(Visit visit) const
+    {
+        (visit(rows<Ts>()), ...);
+    }
+
 private:
     template<class Vector, class T>
     static auto slice(Vector& vector, Range<T> range)
@@ -102,11 +110,6 @@ private:
         if (range.end < range.begin || range.end > vector.size()) throw std::out_of_range("runtime table range");
         return std::span(vector).subspan(range.begin, range.size());
     }
-};
-
-template<class T>
-struct ColdRef {
-    Index<T> row;
 };
 
 struct PracticeSlot;

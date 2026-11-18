@@ -57,12 +57,12 @@ value formatting. Export emits record fields in schema declaration order.
   spans. Queued Practice events use FIFO headers and a separate typed payload
   column at the same row index. Current Commission and pending Life Map
   resolution fields are available in typed Vassal rows.
-- `cold` holds descriptive strings and exact typed mirror subtrees, including
-  Life Map graphs and node histories, candidate offers, journals, traces and
-  transfer receipts. A cold field keeps its own key presence at the reference
-  to that subtree. The [field map](state/field-coverage.txt) lists these
-  boundaries. Copies own all mutable buffers, including cold subtrees and ID
-  additions. The immutable captured content is shared.
+- `histories` holds typed cursors into immutable pages of Practice traces,
+  transfer receipts, retirement and Vassal events, completed node IDs and the
+  legacy feed. `cold` holds immutable versions of descriptive strings and
+  infrequently edited mirror values, including Life Map graphs and node states.
+  References preserve optional-key presence. The
+  [field map](state/field-coverage.txt) lists these boundaries.
 
 Each captured content object retains the browser `GameConfig` and a SHA-256
 over its schema-ordered JSON with dictionary order preserved. Ordinal
@@ -82,6 +82,86 @@ by the world-definition port. The mirror contains live roads and the world ID.
 Workforce, recipe provider eligibility, compiled content and dispatch
 scratch belong to the systems that use them.
 
+## Cold history and retention
+
+[History](state/history.hpp) stores ordered POD rows in 16-record pages.
+Rows reference page-local typed spans for providers, Traits, tags and source
+regions. Free-form history strings and generated receipt IDs are interned
+within the page, so discarded rings and transfer batches release those
+strings along with their records. Identity columns such as Region, Practice
+and Vassal use the run dictionaries. A cursor supports constant-time size
+and indexing. Export walks each retained page in order and reconstructs the
+mirror, including absent, null and empty values.
+
+Copies own their mutable tables, ID additions and cursors. Shared directories,
+pages and replacement values are reachable only through const pointers.
+Append publishes a fresh tail page and directory. Replacement publishes a
+fresh value. A preview or restored anchor can therefore publish its own
+version without changing what any other state reads. An expired ring page
+is released when the last cursor referencing it goes away. Only a partial
+front page can retain entries older than the visible ring. Import preserves
+the captured list in full and the first append applies browser retention.
+The Stock transfer cursor belongs to the latest second with a remote transfer.
+The recipe port can reuse that cursor slot and assign an empty history when
+the first transfer at a new second starts a new batch.
+
+The inventory below gives retained live bytes for the optimized build at
+`seed-1` second 1600 (year 50) and `seed-2026-late` second 3200 (year 100).
+The last size column exercises rare Vassal state at `seed-42-shops` second 132.
+Cold table timings in `runtime-stats` were 0–0.3 µs per field in these samples.
+Sizes and record counts follow actual presence, including empty retained
+versions. Source readers here are browser readers.
+
+| Cold field | Year 50 B | Late B | Shops B | Growth, retention and rule readers |
+| --- | ---: | ---: | ---: | --- |
+| `DetailedSettlement.practiceActivationTrace` | 882,075 | 888,771 | 883,366 | Append, most recent 100 per site. Settlement and Practice inspection. |
+| `PracticeEventJournal.trace` | 45,854 | 46,082 | 45,950 | Append, most recent 100 globally. Diagnostic. Rules drain the separate pending queue. |
+| `PracticeEventJournal.stockTransfers` | 968 | 1,450 | 379 | Append within the latest transfer second, replace on the first remote transfer of a new second. Replay edge visualization reads it. The timestamp is hot. |
+| `GameState.gameEventFeed` | 16 | 16 | 16 | Legacy feed, initialized empty. No active writer or retention cap in the full-map model. Deserialize scans IDs and navigation reads it. |
+| `Civilization.retiredVassals` | 16 | 16 | 16 | Append on retirement, retained for the run, whose normal lineage starts with ten tenures. Candidate and Stock burden rules read typed rows. |
+| `Vassal.lifeEvents` | 0 | 0 | 1,536 | Append, retained per Vassal. End-event IDs use the log length. Timeline and dossier readers inspect entries. |
+| `LifeMap.completedNodeIds` | 0 | 0 | 244 | Append unique completed nodes, bounded by topology. Commission and node rules read it. |
+| `LifeMap.availableNodeIds` | 0 | 0 | 40 | Replace with current entries or outgoing neighbors. Node admission reads it. |
+| `LifeMap.nodeStates` | 0 | 0 | 11,125 | Insert on visiting nodes, update on action and resolution. Retained by node for the tenure record. Shop, Campaign and resolution rules read it. |
+| `LifeMap.graph` | 0 | 0 | 38,154 | Created for each selected Vassal and retained with that tenure. Reachability, options and Commission rules read it. Its shops cursor copied in 0.1 µs. |
+| `Vassal.portrait` | 0 | 0 | 240 | One per tenure. Presentation and lineage validation. |
+| `Vassal.signatureNode` | 0 | 0 | 354 | One descriptor per tenure. Life Map generation uses it. |
+| `Vassal.developmentChoiceQueue` | 0 | 0 | 40 | Append offers and remove the head when resolved. Reads gate node entry and resolve stat choices. |
+| `Vassal.heirlooms` | 0 | 0 | 496 | Replace equipped and carried items in two three-slot arrays. Loadout, effects and inheritance read them. |
+| `Civilization.heirloomVault` | 496 | 496 | 496 | Replace contents of six slots. Loadout and inheritance rules read it. |
+| `Lineage.pendingCandidates` | 1,633 | 1,674 | 40 | Replace on reroll and clear on selection. Two founder offers or up to three successor offers. Selection reads it. |
+| `Lineage.pendingVaultOverflow` | 0 | 0 | 0 | Replace or clear at inheritance and overflow resolution. Blocks subsequent selection until resolved. |
+| `Lineage.lastInheritanceReport` | 0 | 0 | 0 | One receipt, replaced per inheritance and updated when overflow is resolved. Presentation reads it. |
+| `CommissionOffer` and `ActiveCommission` text fields | 0 each | 0 each | 0 each | `label`, `description`, `statLabel`, `locationLabel` and `nodeLabel` belong to their owner record. Offer validation checks them. Live Commission rules use typed goal fields. |
+| `World.definitionId` | 48 | 65 | 48 | One ID per world. Adjacency, scope and terrain rules resolve it. |
+| `Region.colour` | 960 | 960 | 960 | One value per region. Scope eligibility reads it. |
+| `Site.name` | 1,256 | 1,258 | 1,252 | One name per site, replaced on site transitions. Site selection and presentation labels. |
+| `NeutralMarket.template` | 1,152 | 1,056 | 960 | One label per market incarnation. World setup and inspection. |
+| `NeutralStock.label` | 2,592 | 2,304 | 2,112 | One label per Stock row. Provider construction carries it for receipt and inspection display. |
+| `StockProvider.label` | 0 | 0 | 0 | Optional label per provider. Now an interned ID. The samples have no pending providers, and logged providers are charged to the enclosing trace pages. |
+| `GameState.skillProgressionDefs` | 0 | 0 | 0 | Nullable legacy setup data. No live reader in the full-map model. |
+| `SkillModifiers.pawnById` | 40 | 40 | 40 | Keyed updates per pawn. Legacy skill queries and runtime normalization read it. |
+| `SkillRuntime.unlocks` | 160 | 160 | 160 | Add unique unlocks or remove on revoke. Skill projection reads the modifiable sets. |
+| `GameState.persistentKnowledge` | 56 | 56 | 56 | Merge unique dropped kinds per pool and update a survival maximum. Timeline boundaries read and merge it. |
+
+On the i9-10900K and MSVC optimized build, full value copies measured a median
+of 101 samples per state. Before is `bb35741b` on the same captures.
+
+| Trace state | Before µs | After µs |
+| --- | ---: | ---: |
+| `seed-1`, second 0 | 3.8 | 3.6 |
+| `seed-1`, second 1600 | 560.3 | 5.6 |
+| `seed-2026-late`, second 3200 | 614.2 | 5.4 |
+| `seed-2026-late`, second 3332 | 589.4 | 5.4 |
+| `seed-42-shops`, second 132 | 594.9 | 8.6 |
+
+The browser's [trace writer](../../../src/model/detailed-settlements/practice-events.js)
+is the retention oracle. The CTest fills the global and two site rings
+through that writer and compares their native append results by canonical
+hash. Anchor copy timings are native-only. When the recipe port writes
+traces each second, include page publication and retained forecast bytes
+in the per-second and forecast budgets.
+
 ## Field coverage and schema changes
 
 The [field map](state/field-coverage.txt) drives row declarations and their
@@ -92,8 +172,12 @@ a storage policy followed by the mirror fields it covers.
   arena. `indexed` stores a record in its own arena, accessed through an
   index. `u32` and `u64` check integer narrowing. An `Id` type interns a string
   or ordered dictionary key. Slash-separated ID policies handle nested keys.
-- `cold` preserves the whole field as its original mirror type, including
-  descendants. `config` preserves the entire captured content object.
+- `cold` preserves the whole field as an immutable version of its original
+  mirror type. `history` selects an ordered typed log, `history:100` limits
+  appends to the last 100 records, and `history:NodeId` stores node ordinals.
+  `history_range` selects a page-local arena for variable-length payloads.
+  `HistoryTextId` interns text inside that page. `config` preserves the entire
+  captured content object.
 - `practice_board` and `structure_board` preserve authored strips through
   row indices. `stock`, `charge`, `joint_count` and `payload:…` select a
   row-indexed column. `joint` selects a ledger span. `region_def`,
@@ -103,7 +187,8 @@ a storage policy followed by the mirror fields it covers.
 When changing the schema, classify each added field on a mapped record,
 choose the ID domain or column when relevant, and regenerate both adapters.
 The coverage CTest rejects missing and stale field entries and stale generated
-files. A change inside an explicitly cold subtree uses the refreshed mirror.
+files. A change inside an explicitly cold subtree uses the refreshed mirror
+and updates the generated size walker.
 
 ```powershell
 node native/schema/codegen.mjs
@@ -131,15 +216,20 @@ number of differing leaves, with exit code 1 for a difference and 2 for an
 input error. `runtime-roundtrip` uses the same JSON output convention as
 `roundtrip`. `runtime-stats` reports the live bytes of the hot scalar block,
 table rows, lookup indexes and added IDs. Capacity, container headers,
-immutable content and cold data are excluded from that byte count. Copy time
-is the median of 101 warmed-up full value copies, including the cold data and
+immutable content and cold data are excluded from that byte count.
+`coldSubtrees` reports cursor and record counts, live bytes, and the cost of
+copying each field's cursor column. Its bytes include the immutable payload
+reachable from the state and exclude spare capacity, allocator overhead,
+shared ownership control blocks and IDs already held in run dictionaries.
+Shared pages across different states are counted once per reported state.
+Full and per-field copy times are the medians of 101 warmed-up copies,
 excluding destruction. Use the optimized preset for timings.
 
 ## L0 corpus check
 
 CTest verifies the two checked-in openings through both adapters against
 the trace hash, strict import controls, dictionary order, copy independence,
-and the CLI. To run the larger check from
+browser ring retention and the CLI. To run the larger check from
 the repo root after building `optimized`:
 
 ```powershell
@@ -157,6 +247,10 @@ The batch checks every full state in the supplied directories. It compares
 input and export canonical hashes and checks retained trace states against
 their `hashes.tsv` row. Manifests sit outside the schema snapshot directories
 or beside the trace hash files. A failing file is reported by path.
+
+N03d-3 passed 22/22 trace states and 2,949/2,949 capture snapshots through
+each adapter. The captures include 2,942 standard, five sustained and two
+queued-event snapshots.
 
 L0 establishes sorted-key canonical equality for the exercised states, with
 dictionary enumeration order tested separately. Original record text order,

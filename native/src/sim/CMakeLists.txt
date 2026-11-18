@@ -6,6 +6,9 @@ add_library(waffle_sim STATIC
 )
 target_compile_features(waffle_sim PUBLIC cxx_std_20)
 target_link_libraries(waffle_sim PUBLIC waffle_core)
+if(MSVC)
+	target_compile_options(waffle_sim PRIVATE /bigobj)
+endif()
 
 if(NOT ANDROID)
 	add_executable(waffle_parity ../tools/parity.cpp)
@@ -44,6 +47,10 @@ if(NOT ANDROID)
 			COMMAND "${WAFFLE_NODE_EXECUTABLE}" "${native_dir}/schema/codegen.mjs" --check)
 		add_test(NAME runtime_field_coverage
 			COMMAND "${WAFFLE_NODE_EXECUTABLE}" "${native_dir}/schema/runtime-codegen.mjs" --check)
-		set_tests_properties(browser_schema_codegen runtime_field_coverage PROPERTIES TIMEOUT 60)
+		add_test(NAME runtime_history_retention
+			COMMAND "${WAFFLE_NODE_EXECUTABLE}" "${native_dir}/src/tests/history-retention.mjs"
+				$<TARGET_FILE:waffle_browser_tests> "${native_dir}/reference/fixtures/seed-1/state-0.json"
+				"${CMAKE_CURRENT_BINARY_DIR}/history-retention.json")
+		set_tests_properties(browser_schema_codegen runtime_field_coverage runtime_history_retention PROPERTIES TIMEOUT 60)
 	endif()
 endif()
