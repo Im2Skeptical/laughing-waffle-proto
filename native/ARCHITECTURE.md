@@ -110,7 +110,7 @@ is recorded as an intentional divergence:
 L0–L3 are porting tools. L4 and native self-consistency (live play, restore and
 replay agree) are permanent requirements.
 
-Reference traces come from browser tooling in `native/reference/`. A scenario
+Run step parity with `waffle_parity step` (see [sim README](src/sim/README.md)). Reference traces come from browser tooling in `native/reference/`. A scenario
 records the baseline revision, the start (seed, prepared start or saved
 state), an action journal and a horizon. The dumper writes per-second hashes
 and full states at chosen seconds. Large traces stay in ignored `artifacts/`.

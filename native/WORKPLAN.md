@@ -271,7 +271,7 @@ for saturated cases. L0 through runtime: 22/22 and 2,949/2,949. The
 supervisor's merged optimized build passed 16/16 CTests. Append cost and
 forecast memory get measured once recipes write traces (N03e-3).
 
-## N03e - Tick systems with step parity (N03e-0 and N03e-1 active)
+## N03e - Tick systems with step parity (N03e-0, N03e-2 active; N03e-1 done)
 
 Cuts follow [the tick pipeline](spec/tick-pipeline.md#proposed-n03e-cuts).
 N03e-0 is the captured-content compiler (typed decoded definitions and DSL
@@ -281,6 +281,23 @@ dispatch plus the step-parity harness and mask file.
 Port tick systems in pipeline order, one bounded item per subsystem group.
 Each item removes its parity masks, passes L1 on the trace set (or records an
 approved divergence), and reports optimized sim-s/s.
+
+N03e-1 result, 19 Nov 2026 (merged from `t3/native-clock-stage-parity`
+1d10f648): `advance_one_second` covers the pause/terminal gate, AP, and the
+second and season clocks with the browser's 60 binary64 additions (first
+season change at second 9, first year at 33). Ordered lunar dispatch runs
+through named empty stage seams. No RNG, no steady-state allocation.
+`waffle_parity step` compares masked canonical states per second against
+trace windows (`trace.mjs` windows, `step-windows.mjs`).
+[parity-masks.json](reference/parity-masks.json) has 119 owner-tagged masks.
+Masked L1: 9 windows, 107 comparisons, all pass. Optimized cost
+0.159 µs/sim-s. The supervisor's merged optimized build passed 19/19 CTests.
+The season latch is kept in native copies; import mirrors the browser's
+mid-second restore behavior.
+
+Stage probes (N03b-2, active) give each stage its own parity test using
+browser states captured between stages, so N03e-3 to N03e-8 can be ported in
+parallel once N03e-2 lands.
 
 ## N03f - Actions, replay and new game (pending N03e)
 
