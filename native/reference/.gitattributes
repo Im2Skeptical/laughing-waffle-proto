@@ -1,0 +1,2 @@
+fixtures/**/hashes.tsv text eol=lf
+fixtures/**/state-*.json text eol=lf
