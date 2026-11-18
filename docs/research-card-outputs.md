@@ -9,7 +9,9 @@ The six former Research/Stock recipes now have one primary output. Existing
 saved runs retain their captured recipes; start a new run for these defaults.
 No schema, RNG, resolver or replay changes are required.
 The three dedicated Research engines are admitted to ordinary Scholar offers
-at their existing minimum tiers; none is a Stock Supply candidate.
+at their existing minimum tiers. Each definition carries its offer eligibility
+into new runs. Existing saves retain their original Scholar shop pools and
+recipes. These three engines do not supply Stock.
 
 | Practice | Pool / minimum tier | Exact recipe and engine role |
 | --- | --- | --- |

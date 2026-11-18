@@ -3724,7 +3724,6 @@ export const FULL_MAP_MAINLINE_PRACTICES = Object.freeze([
   'fieldStudy', 'floodAlmanacs', 'marginalia', 'measuredRations', 'patternCarving',
   'beastRendering', 'scarredShields', 'trailProvisioning', 'trophyRubbings',
   'copyingTexts', 'monsterHunting', 'irrigating',
-  'anatomicalStudy', 'heresiography', 'doomsdayChronicle',
 ]);
 // Inherited neutral starting cards and enemy/remnant institutions belong on the
 // map, never in acquisition pools. Use authored IDs so edited class/quality/lock
@@ -3736,5 +3735,6 @@ export const FULL_MAP_SEED_CARD_IDS = Object.freeze(
 );
 export function isFullMapOfferDefinition(def) {
   return !!def && !FULL_MAP_SEED_CARD_IDS.includes(def.id) && !!(fullMapPractices[def.id] || fullMapStructures[def.id]
-    || FULL_MAP_SUPPLY_DEPENDENCIES.includes(def.id) || FULL_MAP_MAINLINE_PRACTICES.includes(def.id));
+    || FULL_MAP_SUPPLY_DEPENDENCIES.includes(def.id) || FULL_MAP_MAINLINE_PRACTICES.includes(def.id)
+    || def.fullMapOffer === true);
 }

@@ -318,6 +318,9 @@ export function canonicalizeGamepiecesDraft(value) {
   for(const [id,def] of Object.entries(practices)) {
     const source=value?.practices?.[id];
     if(!source)continue;
+    // Missing means the captured run did not opt this Practice into ordinary offers.
+    if (typeof source.fullMapOffer === 'boolean') def.fullMapOffer = source.fullMapOffer;
+    else delete def.fullMapOffer;
     for(const field of ['keywordOutputScale','keywordCapacityScale']) {
     const scale=source[field];
     if(scale && Object.hasOwn(PRACTICE_KEYWORDS,scale.keyword) && Number.isInteger(scale.per) && scale.per>0
@@ -451,6 +454,9 @@ export function validateGamepiecesDraft(value) {
       }
     }
     if (kind==='practices') for (const [id,def] of Object.entries(value.practices)) {
+      if (def.fullMapOffer !== undefined && typeof def.fullMapOffer !== 'boolean') {
+        errors.push('practices.' + id + '.fullMapOffer: expected a boolean');
+      }
       for(const field of ['keywordOutputScale','keywordCapacityScale']) {
       const scale=def[field];
       if(scale!==undefined&&(!scale||!Object.hasOwn(PRACTICE_KEYWORDS,scale.keyword)

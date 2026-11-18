@@ -164,6 +164,8 @@ Authoritative numbers:
   Optional boolean card-definition `locked` flags default to unlocked and are
   captured through the same review/profile path. They exclude shop offers and
   Stock Supply generation candidates while preserving installed-card behavior.
+  Newly admitted legacy Practices can capture optional fullMapOffer flags so
+  expanding the authored shop pool does not change existing runs.
 - Fresh runs do not migrate obsolete saves or presets.
 
 ## Current prototype setup
