@@ -107,6 +107,10 @@ const bake=getGamepieceFace(null,'structure','fm_publicBakehouse').reading.effec
 assert.match(bake,/Fuel/,'printed Bakehouse condition is visible');
 const archive=getGamepieceFace(null,'structure','fm_openArchive').reading.effects.map(e=>e.text).join(' ');
 assert.match(archive,/Output Multiplier/);assert.match(archive,/Paper/);
+const hunt=getGamepieceFace(null,'practice','monsterHunting').reading.effects.map(e=>e.text).join(' ');
+assert.match(hunt,/Produce 3 Stock, plus Stock equal to the defeated Monster's Strength/);
+assert.match(hunt,/added after Output Multiplier and worker bonuses/);
+assert.match(practices.monsterHunting.ui.rule,/plus Stock equal to the defeated Monster's Strength/);
 
 const before=JSON.stringify(serializeGameState(state));
 getGamepieceFace(state,'practice','quarrying','bronze',{settlement:mountain,slot:mountain.practiceSlots[0]});

@@ -28,7 +28,8 @@ export function getPracticeReading(def, {workerGates=true}={}) {
     type === 'season' ? (activation.seasonKeys?.length ? activation.seasonKeys : ['spring', 'summer', 'autumn', 'winter']).map(title)
       : [type === 'passive' ? 'While active' : type === 'crisis' ? 'During a Crisis' : `${title(type)} phase${type===activation.type&&activation.stage==='preRouting'?', before meals':type===activation.type&&activation.stage==='afterMeals'?', after meals':''}`]);
   const effects = times.flatMap(timing => (def.effects ?? []).filter(effect=>!['addChaos','addMonsterPressure'].includes(effect.op)).map(effect => ({
-    timing, text: describeMechanicEffect(effect, effect.seasonAmounts?.[timing.toLowerCase()] ?? effect.amount ?? 0),
+    timing, text: describeMechanicEffect(effect, effect.seasonAmounts?.[timing.toLowerCase()] ?? effect.amount ?? 0)
+      + (def.externalAction==='hunt' && effect.op==='generateStock' ? ", plus Stock equal to the defeated Monster's Strength (added after Output Multiplier and worker bonuses)" : ''),
   })));
   for (const mod of def.stockMultipliers ?? []) effects.push({timing:'',passive:true,text:describePracticeMultiplier(mod)});
   // Some supplied martial Practices contribute continuously rather than via
