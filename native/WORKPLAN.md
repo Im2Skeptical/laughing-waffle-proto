@@ -2,18 +2,14 @@
 
 ## Handoff
 
-- State: N01 implementation is complete, pending PR integration. Windows dev and
-  optimized builds, both headless cases per profile and rendered input smoke
-  checks pass. The merged source builds an arm64 Android debug APK.
-  No physical-device run or performance result is claimed.
-- Active owner: none; the Nov14 campaign releases ownership at this handoff.
-  Bootstrap scope is tracked by issue #95. A worktree copy is not a lock.
-- Next ready items: N02 representative presentation/device viability and N03
-  a separately owned native simulation slice. The browser reference corpus is
-  available, but no C++ gameplay or cross-language parity exists yet.
-- Accepted choices: [README](README.md) and [THIRD_PARTY.md](THIRD_PARTY.md).
-  C++/SDL3/RmlUi stays the stack. The bootstrap renderer is SDL3's default 2D
-  renderer, not RmlUi's SDL_GPU/SDL_GL3 samples.
+- State: planning revised 18 Nov 2026; see [ARCHITECTURE](ARCHITECTURE.md).
+  N01 is done. N02 and N03 are split into bounded items below. No C++
+  gameplay or cross-language parity exists yet.
+- Coordination: one supervising session sets design and reviews and integrates
+  delegated items on its branch. Each item has one owner at a time.
+- Accepted choices: [README](README.md), [ARCHITECTURE](ARCHITECTURE.md) and
+  [THIRD_PARTY.md](THIRD_PARTY.md). C++/SDL3/RmlUi stays the stack. The
+  bootstrap renderer is SDL3's default 2D renderer, not RmlUi's SDL_GPU/SDL_GL3 samples.
 
 Use `pending`, `ready`, `active`, `blocked`, `done` for item status. Split an oversized item
 into bounded tasks with their own completion criteria. Before implementation
@@ -21,7 +17,7 @@ begins, create/link its GitHub issue following the repository issue workflow;
 use that issue for detailed scope and discussion, and this file for resumable
 status and evidence. Keep one active owner per item.
 
-## N01 - Reproducible native bootstrap (done, pending integration)
+## N01 - Reproducible native bootstrap (done)
 
 Issue: #95. Commands: [README](README.md), [AGENTS](AGENTS.md).
 Pins and licenses: [THIRD_PARTY](THIRD_PARTY.md).
@@ -66,35 +62,88 @@ layers, filters and clip masks remain outside this bootstrap. It is not the
 final graphics-backend decision. N02 owns representative effects and Pixel 6
 proof. N03 owns arithmetic/serialization contracts and native simulation.
 
-## N02 - Representative presentation and device viability (ready after N01 integration)
+## N02a - Representative presentation slice on Windows (ready)
 
-Render existing map/card artwork and a representative inspector using RmlUi.
-Exercise layering, clipping, scrolling, glyphs/numbers, touch and window sizing.
-Compare candidate graphics backends only as needed to satisfy this slice.
-Exercise Android pause/resume and surface/resource recreation on a physical
-Pixel 6; document any broader Android compatibility restrictions.
+Render existing map and card artwork and a representative inspector using
+RmlUi. Exercise layering, clipping, scrolling, long text, changing numbers,
+mouse and emulated touch input, and window resizing. Choose the graphics
+backend from evidence: SDL_Renderer or SDL_GPU behind RmlUi's render
+interface, with the clip masks and filters the slice needs. Add a frame-time
+harness that records p50/p95/p99 frame times and memory from optimized builds.
 
-Done when the slice is usable on Windows and Pixel 6, the chosen backend and
-required effects are documented, and build/startup/frame-time/memory baselines
-are reproducible. Set explicit provisional frame-tail, scrub-latency and memory
-budgets for the later playable slice from this evidence. Synthetic UI timings
-are not full-game performance measurements.
+Done when the slice runs on Windows from the documented commands, with
+reproducible startup/frame-time/memory baselines, and the backend decision and
+required effects are documented. Synthetic UI timings are not full-game
+performance measurements.
 
-## N03 - Simulation contract and headless native slice (ready after N01 integration)
+## N02b - Pixel 6 device validation (blocked: needs Cam and the device)
 
-This may proceed before N02 finishes in a separately owned task. Capture a
-versioned behavioral reference from the browser game: revision, seed, config,
-actions and expected semantic state/RNG at checkpoints. Define numeric types,
-rounding, ordering and JSON serialization before implementing a bounded set of
-representative settlement rules and generalized content operations in C++.
+Install and run the N02a slice on a physical Pixel 6. Exercise touch,
+pause/resume and surface/resource recreation. Record frame tails, memory,
+startup and thermal behavior, and set provisional frame-tail, scrub-latency and
+memory budgets for N04. An emulator result does not satisfy this item. A
+scripted adb install/run/log-capture helper may be prepared beforehand.
 
-Done when native headless advance, save/load and authoritative reconstruction
-agree for the covered rules; supported fixtures agree with the browser reference
-and between Windows/Android native builds. List every unsupported rule and any
-intentional difference. A partial fixture must not be described as full-game
-parity. Test independence of mutable reconstructed states.
+## N03a - Core foundations (ready)
+
+Build `waffle_core` per the [determinism contract](ARCHITECTURE.md#determinism-contract):
+JS-compatible numerics, RNG streams, an ordered JSON value with JS key order,
+a parser, a canonical writer and SHA-256. Split CMake into libraries with
+enforced layering and set the floating-point flags on every toolchain.
+
+Done when unit tests cover JS edge cases, with expected values produced by
+Node. Cases include `Number::toString` across exponent boundaries,
+`Math.round` halves and -0, ToInt32 wraparound, key order, RNG sequences per
+stream, and sorted-key hashes equal to the corpus hashes for corpus states.
+Dev and optimized CTest pass.
+
+## N03b - Reference traces and divergence tooling (ready)
+
+JavaScript tooling in `native/reference/`. Pin `BASELINE`. Write a trace
+dumper for scenarios (seed or prepared start, action journal, horizon). It
+emits per-second sorted-key hashes and canonical full states at chosen seconds
+into ignored artifacts, plus small checked-in fixtures. Write a differ that
+reports the first divergent second and JSON path between two states or traces.
+
+Done when traces regenerate deterministically, include several seeds, at least
+one multi-year horizon and an action-bearing scenario, and pass the browser's
+own replay/JSON-continuation checks. The differ must be shown to catch
+injected changes. Browser runtime behavior is unchanged.
+
+## N03c - State inventory and tick specification (ready)
+
+Read-only analysis of the pinned baseline. Produce a draft
+`native/schema/gamestate.v<N>.json` describing every serialized field, checked
+against real states from many seeds and horizons. Document the per-tick and
+per-second pipeline from `updateGame` in call order: which modules run, when,
+and which state they read and write. List the determinism hazards with file and
+line: key-order dependence, sort comparators, transcendental math, `|0`/`>>>`,
+`Math.round`, and NaN/undefined/null handling.
+
+Done when the schema accepts every captured state, and the pipeline document is
+detailed enough to cut the N03e items.
+
+## N03d - Generated codec and L0 round-trip (pending N03a-c)
+
+Generate structs and codec from the schema. Every reference state round-trips
+to byte-identical canonical JSON. `waffle_parity` can load, re-emit and diff
+states.
+
+## N03e - Tick systems with step parity (pending N03d; split by pipeline)
+
+Port tick systems in pipeline order, one bounded item per subsystem group.
+Each item removes its parity masks and passes L1 on the trace set.
+
+## N03f - Actions, replay and new game (pending N03e)
+
+Action application and `rebuildStateAtSecond` (L2), then new game and world
+generation (L3). Windows/Android hash agreement (L4) is required before N04
+completes.
 
 ## N04 - Connected playable slice (pending N02 and N03)
+
+This includes the native forecast/timegraph: worker threads, anchors, restore,
+summaries and cancellation, measured against the browser handoff evidence.
 
 Connect regional map -> settlement -> inspect/change a Practice -> forecast ->
 scrub. Include enough representative world/simulation load to avoid a misleading

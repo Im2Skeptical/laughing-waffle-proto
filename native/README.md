@@ -13,6 +13,8 @@ implementation afresh: the JavaScript/Pixi implementation is a behavioral
 reference, not a required architecture or a dependency of the native executable.
 Differences between intended rules and observed bugs must be recorded explicitly.
 
+Port design and verification: [ARCHITECTURE](ARCHITECTURE.md).
+
 **Current state:** Windows development/optimized builds, both headless tests,
 and rendered input smoke checks pass. An arm64 Android debug APK compiles;
 it has not been installed or run on a device. Exact commands and results are in

@@ -5,7 +5,8 @@ with the accepted stack and scope in [README.md](README.md).
 
 ## Start or resume
 
-1. Read the root invariants sheet, this file, README and [WORKPLAN.md](WORKPLAN.md).
+1. Read the root invariants sheet, this file, README, [ARCHITECTURE.md](ARCHITECTURE.md)
+   and [WORKPLAN.md](WORKPLAN.md).
    Check the current branch, working changes and any linked task before editing.
 2. Select the next ready work item. Record ownership and the bounded objective
    in WORKPLAN; resolve a stale claim against the owning session before taking it.
