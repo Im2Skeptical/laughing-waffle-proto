@@ -6,6 +6,7 @@
 #include <compare>
 #include <cstdint>
 #include <limits>
+#include <memory_resource>
 #include <span>
 #include <stdexcept>
 #include <string_view>
@@ -65,9 +66,9 @@ struct Entry {
 
 std::uint32_t checked_index(std::size_t value, std::string_view path);
 
-template<class T>
+template<class T, class Allocator = std::allocator<T>>
 struct Table {
-    std::vector<T> values;
+    std::vector<T, Allocator> values;
 
     Range<T> append(std::size_t count, std::string_view path)
     {
@@ -79,11 +80,17 @@ struct Table {
     }
 };
 
-template<class... Ts>
-struct Tables : Table<Ts>... {
+template<template<class> class Allocator, class... Ts>
+struct BasicTables : Table<Ts, Allocator<Ts>>... {
+    BasicTables() = default;
+    explicit BasicTables(std::pmr::memory_resource* memory)
+        : Table<Ts, Allocator<Ts>>{std::vector<Ts, Allocator<Ts>>(memory)}... {}
+    BasicTables(const BasicTables& source, std::pmr::memory_resource* memory)
+        : Table<Ts, Allocator<Ts>>{std::vector<Ts, Allocator<Ts>>(source.template rows<Ts>(), memory)}... {}
+
     template<class T> static constexpr bool contains = (std::is_same_v<T, Ts> || ...);
-    template<class T> auto& table() { return static_cast<Table<T>&>(*this); }
-    template<class T> const auto& table() const { return static_cast<const Table<T>&>(*this); }
+    template<class T> auto& table() { return static_cast<Table<T, Allocator<T>>&>(*this); }
+    template<class T> const auto& table() const { return static_cast<const Table<T, Allocator<T>>&>(*this); }
     template<class T> auto& rows() { return table<T>().values; }
     template<class T> const auto& rows() const { return table<T>().values; }
 
@@ -112,6 +119,23 @@ private:
     }
 };
 
+template<class... Ts>
+using Tables = BasicTables<std::allocator, Ts...>;
+
+template<class... Ts>
+struct ArenaTables : BasicTables<std::pmr::polymorphic_allocator, Ts...> {
+    using Base = BasicTables<std::pmr::polymorphic_allocator, Ts...>;
+    using Base::Base;
+    using Sizes = std::array<std::size_t, sizeof...(Ts)>;
+
+    Sizes checkpoint() const { return {this->template rows<Ts>().size()...}; }
+    void rollback(const Sizes& sizes)
+    {
+        std::size_t index = 0;
+        (this->template rows<Ts>().resize(sizes[index++]), ...);
+    }
+};
+
 struct PracticeSlot;
 struct StructureCell;
 
@@ -127,15 +151,24 @@ struct StructureBoard {
 
 // A per-domain insertion-ordered dictionary. Both strings and their offsets
 // occupy flat buffers, including for identities created after admission.
-struct Strings {
-    std::vector<char> bytes;
-    std::vector<Range<char>> offsets;
+template<template<class> class Allocator>
+struct BasicStrings {
+    std::vector<char, Allocator<char>> bytes;
+    std::vector<Range<char>, Allocator<Range<char>>> offsets;
+
+    BasicStrings() = default;
+    explicit BasicStrings(std::pmr::memory_resource* memory) : bytes(memory), offsets(memory) {}
+    BasicStrings(const BasicStrings& source, std::pmr::memory_resource* memory)
+        : bytes(source.bytes, memory), offsets(source.offsets, memory) {}
 
     std::optional<std::uint32_t> find(std::string_view name) const;
     std::string_view at(std::uint32_t ordinal) const;
     void append(std::string_view name, std::string_view path);
     std::size_t live_bytes() const { return bytes.size() + offsets.size() * sizeof(Range<char>); }
 };
+
+using Strings = BasicStrings<std::allocator>;
+using ArenaStrings = BasicStrings<std::pmr::polymorphic_allocator>;
 
 template<class Key>
 struct Dictionary : Strings {};
