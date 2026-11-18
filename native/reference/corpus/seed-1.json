@@ -14,13 +14,13 @@
     "gameConfigSchemaVersion": 31,
     "rulesetId": "full-map-redesign-v1",
     "worldDefinitionId": "regional-v2:1",
-    "gameConfigSha256": "23c2c0aeeb42c3099b62cf1c2efe722cb34b714151d39eb53700cc354c51cc83"
+    "gameConfigSha256": "a267e14e7c18710b7eedf04331884fdc42b263c00d6df370ee3285b29e83d8c9"
   },
   "checkpoints": [
     {
       "id": "initial",
       "tSec": 0,
-      "fullStateSha256": "b38990e99288e4a26f451373ecf2c5645ea172d217790182c49841fa2a406d59",
+      "fullStateSha256": "ec9adc982f3273509b625495a54824f1bf0e22a7d3557cf25461aa5ae0ebb6e5",
       "semantic": {
         "time": {
           "tSec": 0,
@@ -2328,7 +2328,7 @@
     {
       "id": "phases",
       "tSec": 6,
-      "fullStateSha256": "d86657d6f79ce6e238183d5b95af9bb0f7418061e3f6436eeebf4f29f342b7b0",
+      "fullStateSha256": "0e07143e057bfd1e1ad2d1ad278b023e7cf95aeaaf10c9b126c82f72dc379b28",
       "semantic": {
         "time": {
           "tSec": 6,
@@ -4761,7 +4761,7 @@
     {
       "id": "action",
       "tSec": 7,
-      "fullStateSha256": "e9f0256e5ebf4edff8745ea96e5d4d11237b6e81a3ef1fcb43bbb157309a157f",
+      "fullStateSha256": "674471429e82a5a4175db36a19d2a0e19580d32d1b15bff4bc6b11f4af7bf051",
       "semantic": {
         "time": {
           "tSec": 7,

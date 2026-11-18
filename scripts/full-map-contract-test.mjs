@@ -337,7 +337,7 @@ test('military opening stays serializable through migration and terminal control
 test('finite offers have executable cadence and complete Stock dependency vocabulary',()=>{
  const s=fresh(),defs=s.gameConfig.gamepieces;
  const all=[...Object.values(defs.practices),...Object.values(defs.structures)].filter(isFullMapOfferDefinition);
- assert.equal(all.length,56,'class-specific Muster joins acquisitions while new map-only content stays excluded');
+ assert.equal(all.length,59,'Muster and dedicated Research engines join acquisitions while map-only content stays excluded');
  const traits=new Set(all.flatMap(d=>d.stockTraits??[]));
  for(const d of all){
    for(const cost of [...(d.consume??[]),...(d.require??[]),...(d.construction?.consume??[])])
@@ -487,7 +487,7 @@ test('automatic Monster Hunting uses the local faction army and keeps foreign re
  assert(resolveExternalPractice(s,site,def,false).ok);
  const research=s.civilization.research.total,trophies=s.civilization.history.monsterTrophies;
  runPracticeActivation(s,'death');assert.equal(getRegionState(s,targetId).monster,undefined);
- assert.equal(s.civilization.research.total,research);assert.equal(s.civilization.history.monsterTrophies,trophies);assert.equal(d.research,6);assert(d.practiceSlots[0].stock>0);
+ assert.equal(s.civilization.research.total,research);assert.equal(s.civilization.history.monsterTrophies,trophies);assert.equal(d.research??0,0);assert(d.practiceSlots[0].stock>0);
  v.locationRegionId=site.regionId;getRegionState(s,targetId).monster={defense:1};
  for(const id of getAdjacentRegionIds(s,site.regionId))getRegionState(s,id).controller='external-a';
  assert(classActionOptions(s,v,'campaign').every(o=>o.classAction.kind==='prepare'),'a visiting Vassal cannot buy a Hunt with foreign Food');

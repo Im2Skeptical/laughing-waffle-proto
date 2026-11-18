@@ -260,8 +260,10 @@ if(surviving) {
  assert.equal(displacedVassal.locationRegionId,surviving.regionId);
  assert.equal(displacedVassal.lifeEvents.at(-1).kind,'evacuation');
  surviving.detailedState.practiceSlots=[slot('papermaking',3),slot('doomsdayChronicle'),...Array(3).fill(null)];
+ const beforeChronicle=defense.civilization.research.total;
  runPracticeActivation(defense,'birth');
- assert.ok(surviving.detailedState.practiceSlots[1].stock>=2,'loss history changes later content');
+ assert.ok(defense.civilization.research.total>=beforeChronicle+4,'loss history increases Chronicle Research');
+ assert.equal(surviving.detailedState.practiceSlots[1].stock,0,'Chronicle produces no Stock');
 }
 
 // Shared Crisis reads live shortages/Monsters. Prowess cannot resist a relief expedition.

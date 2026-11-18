@@ -242,7 +242,7 @@ getRegionState(costs,huntId).monster={defense:2};
 const autoResearch=costs.civilization.research.total;
 runPracticeActivation(costs,'death');
 assert.equal(getRegionState(costs,huntId).monster,undefined);
-assert.equal(costs.civilization.research.total-autoResearch,6);
+assert.equal(costs.civilization.research.total-autoResearch,0,'automatic hunts produce trophy Stock only');
 assert.ok(home.detailedState.practiceSlots[2].stock>=5,'trophy yield grows with target Defense');
 assert.ok(getGamepieceFace(costs,'practice','monsterHunting').stockTraits.includes('Currency'));
 costs.civilization.chaos.monsterPressure=80;

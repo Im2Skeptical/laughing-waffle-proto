@@ -21,6 +21,11 @@ regenerate this corpus explicitly. Do not treat a golden mismatch as a native
 implementation requirement until someone separates an intended change from a
 defect.
 
+The v1.1.76 Research-card redesign explicitly regenerated the corpus because
+the complete captured gameConfig changed. Opening semantic projections are
+unchanged for all three seeds; only gameConfig and full-state hashes differ.
+`generate.mjs --write` checks live/replay/JSON equality before updating them.
+
 ## Impact
 
 - Determinism: captures use `createNewGameState` and `state.rng` through the

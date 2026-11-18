@@ -9,13 +9,12 @@ import { flushPracticeEvents } from '../src/model/detailed-settlements/practices
 import { serializeGameState, deserializeGameState } from '../src/model/state.js';
 
 // Pin documented quantities independently of the executable effects.
-const STOCK = 2;
 const SIDE = {
   alchemy: { research: 0, progress: 10, chaos: 0, preview: 0, warriorBank: 0 },
-  anatomicalStudy: { research: 2, chaos: 0, preview: 0, warriorBank: 0 },
+  anatomicalStudy: { research: 4, chaos: 0, preview: 0, warriorBank: 0 },
   plagueLedger: { research: 0, chaos: 0, preview: 1, warriorBank: 0 },
-  heresiography: { research: 3, chaos: 0, preview: 0, warriorBank: 0 },
-  charnelAlchemy: { research: 2, progress: 15, chaos: 0, preview: 0, warriorBank: 0 },
+  heresiography: { research: 5, chaos: 0, preview: 0, warriorBank: 0 },
+  charnelAlchemy: { research: 0, progress: 15, chaos: 0, preview: 0, warriorBank: 0 },
   watchkeeping: { research: 0, chaos: 0, preview: 1, warriorBank: 0 },
   sagaKeeping: { research: 0, chaos: 0, preview: 0, warriorBank: 2 },
   caravanGuarding: { research: 0, chaos: 0, preview: 0, warriorBank: 0 },
@@ -126,6 +125,7 @@ function expectSides(errors, before, after, expected, field) {
 }
 
 function runCard(id) {
+  const STOCK=['anatomicalStudy','heresiography'].includes(id)?0:2;
   const def = practices[id];
   const errors = [];
   const record = {
@@ -135,8 +135,8 @@ function runCard(id) {
     effectStock: def.effects.find((effect) => effect.op === 'generateStock')?.amount ?? null,
     effects: def.effects, gate: GATE[id] ?? null, errors,
   };
-  expectEqual(errors, record.proseStock, STOCK, 'dischargeText Generate Stock');
-  expectEqual(errors, record.ruleStock, STOCK, 'ui.rule Generate Stock');
+  expectEqual(errors, record.proseStock, STOCK||null, 'dischargeText Generate Stock');
+  expectEqual(errors, record.ruleStock, STOCK||null, 'ui.rule Generate Stock');
   expectEqual(errors, def.consume.length, 0, 'consume.length');
   expectEqual(errors, def.require.length, 0, 'require.length');
   const spec = events(id, board(id));
