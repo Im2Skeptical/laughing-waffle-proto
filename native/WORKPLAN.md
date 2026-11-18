@@ -126,16 +126,30 @@ line: key-order dependence, sort comparators, transcendental math, `|0`/`>>>`,
 Done when the schema accepts every captured state, and the pipeline document is
 detailed enough to cut the N03e items.
 
-## N03d - Generated codec and L0 round-trip (pending N03a-c)
+## N03p - Performance architecture (pending N03c)
 
-Generate structs and codec from the schema. Every reference state round-trips
-to byte-identical canonical JSON. `waffle_parity` can load, re-emit and diff
-states.
+Cam's priority, 18 Nov 2026: performance outranks exact JS matching. See
+[Priorities](ARCHITECTURE.md#priorities). Using the N03c pipeline, frequency
+and profile data, design the runtime state layout, per-tick work elimination,
+compiled content, the summary path and the anchor/restore scheme against the
+31 µs-per-sim-second budget (about 1000 years per second). Prototype the
+riskiest parts as micro-benchmarks in optimized builds before committing the
+layout.
+
+Done when a design note with budgets per step exists, micro-benchmarks support
+it, and every proposed divergence from JS behavior is listed for review.
+
+## N03d - Browser-schema adapter and L0 round-trip (pending N03a-c, N03p)
+
+Generate mirror types and JSON I/O from the schema. Map them to and from
+runtime state. Every reference state round-trips to byte-identical canonical
+JSON. `waffle_parity` can import, export and diff states.
 
 ## N03e - Tick systems with step parity (pending N03d; split by pipeline)
 
 Port tick systems in pipeline order, one bounded item per subsystem group.
-Each item removes its parity masks and passes L1 on the trace set.
+Each item removes its parity masks, passes L1 on the trace set (or records an
+approved divergence), and reports optimized sim-s/s.
 
 ## N03f - Actions, replay and new game (pending N03e)
 
