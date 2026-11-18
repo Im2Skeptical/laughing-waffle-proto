@@ -200,6 +200,7 @@ check('captured per and cap ledger', () => {
   const host = board(state, HOME, [piece('floodAlmanacs'), piece('irrigating', { stock: 1 }), piece('marginalia', { charge: 0 }), piece('copyingTexts', { charge: 0 }), piece('recordKeeping')]);
   const definition = state.gameConfig.gamepieces.practices.floodAlmanacs;
   const slot = host.detailedState.practiceSlots[0];
+  delete definition.keywordCapacityScale;
   definition.keywordOutputScale = { keyword: 'synthesis', per: 2, amount: 3, cap: 1 };
   assert.equal(bonus(state, HOME, definition.keywordOutputScale, definition.id), 3);
   assert.deepEqual(watch(state, () => keywordOutputSources(state, HOME, definition).map(source => source.label)), ['Irrigating, Marginalia']);

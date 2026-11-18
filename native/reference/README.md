@@ -83,6 +83,15 @@ the semantic file; map polygons and roads in the semantic file; the gameConfig
 body except its canonical hash; save slots; forecast workers. The full-state
 hash still changes if those excluded serialized fields drift.
 
+## Card content refresh
+
+The v1.1.74 card pass intentionally refreshes the browser reference to GameState
+52: terrain bonuses are printed card data, starter cards have no implicit biome
+bonus, and keyword scaling can target Output or Capacity. The original baseline
+commit below records the corpus's origin; current config and full-state hashes
+are regenerated explicitly for this intentional rules change. No C++ parity is
+claimed. See [content rules and coverage](../../docs/card-content-pass.md).
+
 ## Provenance
 
 Pinned to baseline `f0b1b1f720c19a1cbeda558da430a1ff636e6507` and the canonical

@@ -34,7 +34,7 @@ export const fullMapPractices = {
     "vassalPrestigeCost": 10,
     "vassalPhaseCost": 12,
     "ui": {
-      "rule": "Consume 2 Edible. Convert up to 2 × workers multiplier adults warrior opposing residents to this institution’s allegiance; local. Zero workers activates at base output."
+      "rule": "Consume 2 Edible Stock. Faith phase: Convert up to 2 eligible adults warrior opposing residents to this institution's allegiance; local"
     },
     "category": "influence",
     "mode": "scheduled",
@@ -50,7 +50,8 @@ export const fullMapPractices = {
     "workerBonus": 1,
     "stockTraits": [],
     "stockCapacity": 0,
-    "costs": []
+    "costs": [],
+    "flavor": "Bread is shared before the oath is spoken."
   },
   "fm_shieldEscorts": {
     "id": "fm_shieldEscorts",
@@ -90,7 +91,7 @@ export const fullMapPractices = {
     "vassalPrestigeCost": 10,
     "vassalPhaseCost": 12,
     "ui": {
-      "rule": "Consume 1 Arms. Consume 1 Edible. Convert up to 2 × workers multiplier adults opposing residents to this institution’s allegiance; first eligible adjacent road-connected region (authored order). Zero workers activates at base output."
+      "rule": "Consume 1 Arms Stock. Consume 1 Edible Stock. Migration phase: Convert up to 2 eligible adults opposing residents to this institution's allegiance; first eligible adjacent road-connected region"
     },
     "category": "influence",
     "mode": "scheduled",
@@ -106,7 +107,8 @@ export const fullMapPractices = {
     "workerBonus": 1,
     "stockTraits": [],
     "stockCapacity": 0,
-    "costs": []
+    "costs": [],
+    "flavor": "A shield on the road can win a household at its end."
   },
   "fm_veteransTestimony": {
     "id": "fm_veteransTestimony",
@@ -133,7 +135,7 @@ export const fullMapPractices = {
     "vassalPrestigeCost": 10,
     "vassalPhaseCost": 12,
     "ui": {
-      "rule": "Convert up to 3 × workers multiplier adults opposing residents to this institution’s allegiance; local."
+      "rule": "Charge on Successful Defense in this settlement. Gain 1 base Charge. At 2 Charge, Discharge: Convert up to 3 eligible adults opposing residents to this institution's allegiance; local."
     },
     "category": "influence",
     "mode": "charge",
@@ -162,7 +164,8 @@ export const fullMapPractices = {
         ]
       },
       "dischargeText": "Discharge: convert up to 3 opposing local adults to this piece’s faction."
-    }
+    },
+    "flavor": "Those who held the wall have earned a hearing."
   },
   "fm_publicDrills": {
     "id": "fm_publicDrills",
@@ -198,7 +201,7 @@ export const fullMapPractices = {
     "vassalPrestigeCost": 10,
     "vassalPhaseCost": 12,
     "ui": {
-      "rule": "Require 1 Arms (kept). Train and convert up to 1 × workers multiplier adults ordinary opposing residents to this institution’s allegiance; local."
+      "rule": "Require 1 Arms Stock (kept). Birth phase: Train as Warrior and convert up to 1 eligible adults non-specialist opposing residents to this institution's allegiance; local"
     },
     "category": "influence",
     "mode": "scheduled",
@@ -214,7 +217,8 @@ export const fullMapPractices = {
     "workerBonus": 1,
     "stockTraits": [],
     "stockCapacity": 0,
-    "costs": []
+    "costs": [],
+    "flavor": "The village learns to stand together."
   },
   "fm_frontierRelief": {
     "id": "fm_frontierRelief",
@@ -248,7 +252,7 @@ export const fullMapPractices = {
     "vassalPrestigeCost": 10,
     "vassalPhaseCost": 12,
     "ui": {
-      "rule": "Consume 3 Edible. Convert up to 4 × workers multiplier adults opposing residents to this institution’s allegiance; local."
+      "rule": "Consume 3 Edible Stock. After local shortage: this allegiance must actually supply the civilian meal this Food phase. Food phase, after meals: Convert up to 4 eligible adults opposing residents to this institution's allegiance; local"
     },
     "category": "influence",
     "mode": "scheduled",
@@ -266,7 +270,8 @@ export const fullMapPractices = {
     "stockTraits": [],
     "stockCapacity": 0,
     "costs": [],
-    "populationCondition": "relief"
+    "populationCondition": "relief",
+    "flavor": "A full bowl carries the promise of protection."
   },
   "fm_ransomedKin": {
     "id": "fm_ransomedKin",
@@ -301,7 +306,7 @@ export const fullMapPractices = {
     "vassalPrestigeCost": 10,
     "vassalPhaseCost": 12,
     "ui": {
-      "rule": "Consume 2 Loot. Convert up to 2 × workers multiplier adults stranger opposing residents to this institution’s allegiance; local."
+      "rule": "Consume 2 Loot Stock. Migration phase: Convert up to 2 eligible stranger adults opposing residents to this institution's allegiance; local"
     },
     "category": "influence",
     "mode": "scheduled",
@@ -317,7 +322,8 @@ export const fullMapPractices = {
     "workerBonus": 1,
     "stockTraits": [],
     "stockCapacity": 0,
-    "costs": []
+    "costs": [],
+    "flavor": "The spoils of war bring the missing home."
   },
   "fm_swornPatrols": {
     "id": "fm_swornPatrols",
@@ -363,7 +369,7 @@ export const fullMapPractices = {
     "vassalPrestigeCost": 10,
     "vassalPhaseCost": 12,
     "ui": {
-      "rule": "Consume 1 Arms. Consume 1 Edible. Convert up to 1 × workers multiplier adults opposing residents to this institution’s allegiance; local. +1 supplied occupation Force until next moon. Zero workers activates at base output."
+      "rule": "Consume 1 Arms Stock. Consume 1 Edible Stock. Death phase: Convert up to 1 eligible adults opposing residents to this institution's allegiance; local Death phase: +1 supplied occupation Force until next moon (refreshes)"
     },
     "category": "influence",
     "mode": "scheduled",
@@ -379,7 +385,8 @@ export const fullMapPractices = {
     "workerBonus": 1,
     "stockTraits": [],
     "stockCapacity": 0,
-    "costs": []
+    "costs": [],
+    "flavor": "The oath walks the streets after dark."
   },
   "fm_openLessons": {
     "id": "fm_openLessons",
@@ -414,7 +421,7 @@ export const fullMapPractices = {
     "vassalPrestigeCost": 10,
     "vassalPhaseCost": 12,
     "ui": {
-      "rule": "Require 1 Record (kept). Convert up to 2 × workers multiplier children opposing residents to this institution’s allegiance; local. Zero workers activates at base output."
+      "rule": "Require 1 Record Stock (kept). Birth phase: Convert up to 2 eligible children opposing residents to this institution's allegiance; local"
     },
     "category": "influence",
     "mode": "scheduled",
@@ -430,7 +437,8 @@ export const fullMapPractices = {
     "workerBonus": 1,
     "stockTraits": [],
     "stockCapacity": 0,
-    "costs": []
+    "costs": [],
+    "flavor": "The doors open before the children learn to knock."
   },
   "fm_civicRegisters": {
     "id": "fm_civicRegisters",
@@ -465,7 +473,7 @@ export const fullMapPractices = {
     "vassalPrestigeCost": 10,
     "vassalPhaseCost": 12,
     "ui": {
-      "rule": "Consume 1 Record. Convert up to 2 × workers multiplier adults opposing residents to this institution’s allegiance; local."
+      "rule": "Consume 1 Record Stock. Housing must cover every local resident. Housing phase: Convert up to 2 eligible adults opposing residents to this institution's allegiance; local"
     },
     "category": "influence",
     "mode": "scheduled",
@@ -482,7 +490,8 @@ export const fullMapPractices = {
     "stockTraits": [],
     "stockCapacity": 0,
     "costs": [],
-    "populationCondition": "housed"
+    "populationCondition": "housed",
+    "flavor": "A name in the register becomes a place in the realm."
   },
   "fm_publicDisputation": {
     "id": "fm_publicDisputation",
@@ -521,7 +530,7 @@ export const fullMapPractices = {
     "vassalPrestigeCost": 10,
     "vassalPhaseCost": 12,
     "ui": {
-      "rule": "Consume 1 Record. 2 research. Convert up to 1 × workers multiplier scholar opposing residents to this institution’s allegiance; local. Zero workers activates at base output."
+      "rule": "Consume 1 Record Stock. Faith phase: Gain 2 Research Faith phase: Convert up to 1 eligible scholar opposing residents to this institution's allegiance; local"
     },
     "category": "influence",
     "mode": "scheduled",
@@ -537,7 +546,8 @@ export const fullMapPractices = {
     "workerBonus": 1,
     "stockTraits": [],
     "stockCapacity": 0,
-    "costs": []
+    "costs": [],
+    "flavor": "A crowded hall can change the mind of a city."
   },
   "fm_travellingTutors": {
     "id": "fm_travellingTutors",
@@ -578,7 +588,7 @@ export const fullMapPractices = {
     "vassalPrestigeCost": 10,
     "vassalPhaseCost": 12,
     "ui": {
-      "rule": "Consume 1 Paper. Consume 1 Edible. Convert up to 2 × workers multiplier children opposing residents to this institution’s allegiance; first eligible adjacent road-connected region (authored order). Zero workers activates at base output."
+      "rule": "Consume 1 Paper Stock. Consume 1 Edible Stock. Migration phase: Convert up to 2 eligible children opposing residents to this institution's allegiance; first eligible adjacent road-connected region"
     },
     "category": "influence",
     "mode": "scheduled",
@@ -594,7 +604,8 @@ export const fullMapPractices = {
     "workerBonus": 1,
     "stockTraits": [],
     "stockCapacity": 0,
-    "costs": []
+    "costs": [],
+    "flavor": "Lessons follow the road beyond the city walls."
   },
   "fm_commonMeasures": {
     "id": "fm_commonMeasures",
@@ -624,7 +635,7 @@ export const fullMapPractices = {
     "vassalPrestigeCost": 10,
     "vassalPhaseCost": 12,
     "ui": {
-      "rule": "Consume 1 Tool. Generate 2 hosted Stock. Removed political clause: Resource Practice produces only its visible Stock and authored nonpolitical effects."
+      "rule": "Consume 1 Tool Stock. Birth phase: Produce 2 Stock"
     },
     "category": "resource",
     "mode": "scheduled",
@@ -642,7 +653,8 @@ export const fullMapPractices = {
       "Currency"
     ],
     "stockCapacity": 4,
-    "costs": []
+    "costs": [],
+    "flavor": "A trusted measure makes a market possible."
   },
   "fm_copiedCharters": {
     "id": "fm_copiedCharters",
@@ -670,7 +682,7 @@ export const fullMapPractices = {
     "vassalPrestigeCost": 10,
     "vassalPhaseCost": 12,
     "ui": {
-      "rule": "Convert up to 2 × workers multiplier adults opposing residents to this institution’s allegiance; local."
+      "rule": "Charge on Stock production in this settlement (Stock with Record); another Practice only. Gain 1 base Charge. At 3 Charge, Discharge: Convert up to 2 eligible adults opposing residents to this institution's allegiance; local."
     },
     "category": "influence",
     "mode": "charge",
@@ -703,7 +715,8 @@ export const fullMapPractices = {
         "anotherPractice": true
       },
       "dischargeText": "Discharge: convert up to 2 opposing local adults to this piece’s faction."
-    }
+    },
+    "flavor": "One charter becomes a hundred promises."
   },
   "fm_sharedWorkshops": {
     "id": "fm_sharedWorkshops",
@@ -740,7 +753,7 @@ export const fullMapPractices = {
     "vassalPrestigeCost": 10,
     "vassalPhaseCost": 12,
     "ui": {
-      "rule": "Consume 1 Tool. Train and convert up to 1 × workers multiplier adults ordinary opposing residents to this institution’s allegiance; local."
+      "rule": "Consume 1 Tool Stock. Housing phase: Train as Scholar and convert up to 1 eligible adults non-specialist opposing residents to this institution's allegiance; local"
     },
     "category": "influence",
     "mode": "scheduled",
@@ -756,7 +769,8 @@ export const fullMapPractices = {
     "workerBonus": 1,
     "stockTraits": [],
     "stockCapacity": 0,
-    "costs": []
+    "costs": [],
+    "flavor": "At the same bench, strangers learn the same craft."
   },
   "fm_fallowFields": {
     "id": "fm_fallowFields",
@@ -779,7 +793,7 @@ export const fullMapPractices = {
     "vassalPrestigeCost": 10,
     "vassalPhaseCost": 12,
     "ui": {
-      "rule": "Generate 2 hosted Stock."
+      "rule": "Autumn: Produce 2 Stock"
     },
     "category": "resource",
     "mode": "scheduled",
@@ -801,7 +815,8 @@ export const fullMapPractices = {
       "Edible"
     ],
     "stockCapacity": 4,
-    "costs": []
+    "costs": [],
+    "flavor": "The old furrows still yield a little grain."
   },
   "fm_handQuern": {
     "id": "fm_handQuern",
@@ -831,7 +846,7 @@ export const fullMapPractices = {
     "vassalPrestigeCost": 10,
     "vassalPhaseCost": 12,
     "ui": {
-      "rule": "Consume 1 Grain. Generate 2 hosted Stock."
+      "rule": "Consume 1 Grain Stock. Food phase, before meals: Produce 2 Stock"
     },
     "category": "resource",
     "mode": "scheduled",
@@ -850,7 +865,8 @@ export const fullMapPractices = {
       "Edible"
     ],
     "stockCapacity": 4,
-    "costs": []
+    "costs": [],
+    "flavor": "The stone turns by hand, one meal at a time."
   },
   "fm_woodlotRights": {
     "id": "fm_woodlotRights",
@@ -872,7 +888,7 @@ export const fullMapPractices = {
     "vassalPrestigeCost": 10,
     "vassalPhaseCost": 12,
     "ui": {
-      "rule": "Spring, Summer and Autumn: generate 1 Timber / Construction Stock. Capacity 3."
+      "rule": "Spring: Produce 1 Stock Summer: Produce 1 Stock Autumn: Produce 1 Stock"
     },
     "category": "resource",
     "mode": "scheduled",
@@ -896,7 +912,8 @@ export const fullMapPractices = {
       "Construction"
     ],
     "stockCapacity": 3,
-    "costs": []
+    "costs": [],
+    "flavor": "The village takes what the old grant still allows."
   },
   "fm_rubblePicking": {
     "id": "fm_rubblePicking",
@@ -918,7 +935,7 @@ export const fullMapPractices = {
     "vassalPrestigeCost": 10,
     "vassalPhaseCost": 12,
     "ui": {
-      "rule": "Summer and Autumn: generate 1 Stone / Construction Stock. Capacity 2."
+      "rule": "Summer: Produce 1 Stock Autumn: Produce 1 Stock"
     },
     "category": "resource",
     "mode": "scheduled",
@@ -941,7 +958,8 @@ export const fullMapPractices = {
       "Construction"
     ],
     "stockCapacity": 2,
-    "costs": []
+    "costs": [],
+    "flavor": "Yesterday's wall becomes tomorrow's foundation."
   },
   "fm_villageWell": {
     "id": "fm_villageWell",
@@ -963,7 +981,7 @@ export const fullMapPractices = {
     "vassalPrestigeCost": 10,
     "vassalPhaseCost": 12,
     "ui": {
-      "rule": "Spring, Summer and Autumn: generate 1 Water Stock. Capacity 2."
+      "rule": "Spring: Produce 1 Stock Summer: Produce 1 Stock Autumn: Produce 1 Stock"
     },
     "category": "resource",
     "mode": "scheduled",
@@ -986,7 +1004,8 @@ export const fullMapPractices = {
       "Water"
     ],
     "stockCapacity": 2,
-    "costs": []
+    "costs": [],
+    "flavor": "A worn rope still brings water into the light."
   },
   "fm_patchworkSmithy": {
     "id": "fm_patchworkSmithy",
@@ -1021,7 +1040,7 @@ export const fullMapPractices = {
     "vassalPrestigeCost": 10,
     "vassalPhaseCost": 12,
     "ui": {
-      "rule": "Consume 1 Ore. Consume 1 Fuel. Generate 1 hosted Stock."
+      "rule": "Consume 1 Ore Stock. Consume 1 Fuel Stock. Summer: Produce 1 Stock"
     },
     "category": "resource",
     "mode": "scheduled",
@@ -1043,7 +1062,8 @@ export const fullMapPractices = {
       "Metal"
     ],
     "stockCapacity": 2,
-    "costs": []
+    "costs": [],
+    "flavor": "The forge survives on repairs to its own repairs."
   },
   "fm_scrapGathering": {
     "id": "fm_scrapGathering",
@@ -1065,7 +1085,7 @@ export const fullMapPractices = {
     "vassalPrestigeCost": 10,
     "vassalPhaseCost": 12,
     "ui": {
-      "rule": "Generate 1 hosted Stock."
+      "rule": "Death phase: Produce 1 Stock"
     },
     "category": "resource",
     "mode": "scheduled",
@@ -1083,7 +1103,8 @@ export const fullMapPractices = {
       "Metal"
     ],
     "stockCapacity": 2,
-    "costs": []
+    "costs": [],
+    "flavor": "What the old city discarded still has a use."
   },
   "fm_peatCutting": {
     "id": "fm_peatCutting",
@@ -1105,7 +1126,7 @@ export const fullMapPractices = {
     "vassalPrestigeCost": 10,
     "vassalPhaseCost": 12,
     "ui": {
-      "rule": "Generate 2 hosted Stock."
+      "rule": "Autumn: Produce 2 Stock"
     },
     "category": "resource",
     "mode": "scheduled",
@@ -1127,7 +1148,8 @@ export const fullMapPractices = {
       "Plant"
     ],
     "stockCapacity": 3,
-    "costs": []
+    "costs": [],
+    "flavor": "The wet ground keeps a poor hearth burning."
   },
   "fm_ragPulping": {
     "id": "fm_ragPulping",
@@ -1156,7 +1178,7 @@ export const fullMapPractices = {
     "vassalPrestigeCost": 10,
     "vassalPhaseCost": 12,
     "ui": {
-      "rule": "Consume 1 Cloth. Generate 2 hosted Stock."
+      "rule": "Consume 1 Cloth Stock. Birth phase: Produce 2 Stock"
     },
     "category": "resource",
     "mode": "scheduled",
@@ -1174,7 +1196,8 @@ export const fullMapPractices = {
       "Paper"
     ],
     "stockCapacity": 4,
-    "costs": []
+    "costs": [],
+    "flavor": "Worn cloth finds one last service in the vat."
   },
   "fm_hearthBarter": {
     "id": "fm_hearthBarter",
@@ -1197,7 +1220,7 @@ export const fullMapPractices = {
     "vassalPrestigeCost": 10,
     "vassalPhaseCost": 12,
     "ui": {
-      "rule": "Before meals: with at least two stocked Practices of different Stock Traits, generate 1 Currency Stock. Capacity 1."
+      "rule": "Requires two stocked Practices with different Stock traits in the supply network. Food phase, before meals: Produce 1 Stock"
     },
     "category": "resource",
     "mode": "scheduled",
@@ -1216,7 +1239,8 @@ export const fullMapPractices = {
       "Currency"
     ],
     "stockCapacity": 1,
-    "costs": []
+    "costs": [],
+    "flavor": "A little changes hands beside the common fire."
   },
   "fm_debtService": {
     "id": "fm_debtService",
@@ -1250,7 +1274,7 @@ export const fullMapPractices = {
     "vassalPrestigeCost": 10,
     "vassalPhaseCost": 12,
     "ui": {
-      "rule": "Consume 2 Currency. Convert up to 2 × workers multiplier adults opposing residents to this institution’s allegiance; local."
+      "rule": "Consume 2 Currency Stock. Birth phase: Convert up to 2 eligible adults opposing residents to this institution's allegiance; local"
     },
     "category": "influence",
     "mode": "scheduled",
@@ -1266,7 +1290,8 @@ export const fullMapPractices = {
     "workerBonus": 1,
     "stockTraits": [],
     "stockCapacity": 0,
-    "costs": []
+    "costs": [],
+    "flavor": "The creditor remembers what the village would forget."
   },
   "fm_forcedPageantry": {
     "id": "fm_forcedPageantry",
@@ -1300,7 +1325,7 @@ export const fullMapPractices = {
     "vassalPrestigeCost": 10,
     "vassalPhaseCost": 12,
     "ui": {
-      "rule": "Consume 1 Edible. Convert up to 1 × workers multiplier children opposing residents to this institution’s allegiance; local."
+      "rule": "Consume 1 Edible Stock. Faith phase: Convert up to 1 eligible children opposing residents to this institution's allegiance; local"
     },
     "category": "influence",
     "mode": "scheduled",
@@ -1316,7 +1341,8 @@ export const fullMapPractices = {
     "workerBonus": 1,
     "stockTraits": [],
     "stockCapacity": 0,
-    "costs": []
+    "costs": [],
+    "flavor": "The children learn the song before they learn its meaning."
   },
   "fm_taxFarming": {
     "id": "fm_taxFarming",
@@ -1345,7 +1371,7 @@ export const fullMapPractices = {
     "vassalPrestigeCost": 10,
     "vassalPhaseCost": 12,
     "ui": {
-      "rule": "Consume 2 Edible. Generate 1 hosted Stock. Removed political clause: Resource Practice produces only its visible Stock and authored nonpolitical effects."
+      "rule": "Consume 2 Edible Stock. Autumn: Produce 1 Stock"
     },
     "category": "resource",
     "mode": "scheduled",
@@ -1366,7 +1392,8 @@ export const fullMapPractices = {
       "Currency"
     ],
     "stockCapacity": 3,
-    "costs": []
+    "costs": [],
+    "flavor": "The collector's table fills before the village stores."
   },
   "fm_grainTithe": {
     "id": "fm_grainTithe",
@@ -1400,7 +1427,7 @@ export const fullMapPractices = {
     "vassalPrestigeCost": 10,
     "vassalPhaseCost": 12,
     "ui": {
-      "rule": "Consume 2 Grain. Convert up to 1 × workers multiplier adults opposing residents to this institution’s allegiance; local."
+      "rule": "Consume 2 Grain Stock. Autumn: Convert up to 1 eligible adults opposing residents to this institution's allegiance; local"
     },
     "category": "influence",
     "mode": "scheduled",
@@ -1419,7 +1446,8 @@ export const fullMapPractices = {
     "workerBonus": 1,
     "stockTraits": [],
     "stockCapacity": 0,
-    "costs": []
+    "costs": [],
+    "flavor": "The last sack still belongs to the lord."
   },
   "fm_seigneurialMuster": {
     "id": "fm_seigneurialMuster",
@@ -1455,7 +1483,7 @@ export const fullMapPractices = {
     "vassalPrestigeCost": 10,
     "vassalPhaseCost": 12,
     "ui": {
-      "rule": "Require 1 Arms (kept). Train and convert up to 1 × workers multiplier adults ordinary opposing residents to this institution’s allegiance; local."
+      "rule": "Require 1 Arms Stock (kept). Birth phase: Train as Warrior and convert up to 1 eligible adults non-specialist opposing residents to this institution's allegiance; local"
     },
     "category": "influence",
     "mode": "scheduled",
@@ -1471,7 +1499,8 @@ export const fullMapPractices = {
     "workerBonus": 1,
     "stockTraits": [],
     "stockCapacity": 0,
-    "costs": []
+    "costs": [],
+    "flavor": "The lord calls; the village takes up arms."
   },
   "fm_closedSchool": {
     "id": "fm_closedSchool",
@@ -1509,7 +1538,7 @@ export const fullMapPractices = {
     "vassalPrestigeCost": 10,
     "vassalPhaseCost": 12,
     "ui": {
-      "rule": "Consume 1 Record. 1 research. Convert up to 1 × workers multiplier children opposing residents to this institution’s allegiance; local."
+      "rule": "Consume 1 Record Stock. Birth phase: Gain 1 Research Birth phase: Convert up to 1 eligible children opposing residents to this institution's allegiance; local"
     },
     "category": "influence",
     "mode": "scheduled",
@@ -1525,7 +1554,8 @@ export const fullMapPractices = {
     "workerBonus": 1,
     "stockTraits": [],
     "stockCapacity": 0,
-    "costs": []
+    "costs": [],
+    "flavor": "The shutters open only for a favoured few."
   },
   "fm_guildFees": {
     "id": "fm_guildFees",
@@ -1554,7 +1584,7 @@ export const fullMapPractices = {
     "vassalPrestigeCost": 10,
     "vassalPhaseCost": 12,
     "ui": {
-      "rule": "Consume 1 Tool. Generate 1 hosted Stock."
+      "rule": "Consume 1 Tool Stock. Housing phase: Produce 1 Stock"
     },
     "category": "resource",
     "mode": "scheduled",
@@ -1572,7 +1602,8 @@ export const fullMapPractices = {
       "Currency"
     ],
     "stockCapacity": 2,
-    "costs": []
+    "costs": [],
+    "flavor": "The bench is shared only after the fee is paid."
   },
   "fm_spoiledStores": {
     "id": "fm_spoiledStores",
@@ -1596,7 +1627,7 @@ export const fullMapPractices = {
     "vassalPrestigeCost": 10,
     "vassalPhaseCost": 12,
     "ui": {
-      "rule": "Consume 1 Edible."
+      "rule": "Consume 1 Edible Stock. Death phase: Lose 1 Edible Stock"
     },
     "category": "resource",
     "mode": "scheduled",
@@ -1612,7 +1643,8 @@ export const fullMapPractices = {
     "workerBonus": 1,
     "stockTraits": [],
     "stockCapacity": 0,
-    "costs": []
+    "costs": [],
+    "flavor": "Another meal is lost behind the locked door."
   },
   "fm_courtGossip": {
     "id": "fm_courtGossip",
@@ -1646,7 +1678,7 @@ export const fullMapPractices = {
     "vassalPrestigeCost": 10,
     "vassalPhaseCost": 12,
     "ui": {
-      "rule": "Consume 1 Currency. Convert up to 1 × workers multiplier adults opposing residents to this institution’s allegiance; local."
+      "rule": "Consume 1 Currency Stock. Faith phase: Convert up to 1 eligible adults opposing residents to this institution's allegiance; local"
     },
     "category": "influence",
     "mode": "scheduled",
@@ -1662,7 +1694,8 @@ export const fullMapPractices = {
     "workerBonus": 1,
     "stockTraits": [],
     "stockCapacity": 0,
-    "costs": []
+    "costs": [],
+    "flavor": "A paid whisper travels farther than a public promise."
   },
   "fm_roadsideAlms": {
     "id": "fm_roadsideAlms",
@@ -1697,7 +1730,7 @@ export const fullMapPractices = {
     "vassalPrestigeCost": 10,
     "vassalPhaseCost": 12,
     "ui": {
-      "rule": "Consume 1 Edible. Convert up to 1 × workers multiplier adults stranger opposing residents to this institution’s allegiance; local."
+      "rule": "Consume 1 Edible Stock. Migration phase: Convert up to 1 eligible stranger adults opposing residents to this institution's allegiance; local"
     },
     "category": "influence",
     "mode": "scheduled",
@@ -1713,7 +1746,8 @@ export const fullMapPractices = {
     "workerBonus": 1,
     "stockTraits": [],
     "stockCapacity": 0,
-    "costs": []
+    "costs": [],
+    "flavor": "A stranger remembers the hand that offered bread."
   },
   "fe_rationRoll": {
     "id": "fe_rationRoll",
@@ -1748,7 +1782,7 @@ export const fullMapPractices = {
     "vassalPrestigeCost": 10,
     "vassalPhaseCost": 12,
     "ui": {
-      "rule": "Consume 1 Edible. Convert up to 1 × workers multiplier adults warrior opposing residents to this institution’s allegiance; local."
+      "rule": "Consume 1 Edible Stock. Food phase, before meals: Convert up to 1 eligible adults warrior opposing residents to this institution's allegiance; local"
     },
     "category": "influence",
     "mode": "scheduled",
@@ -1765,7 +1799,8 @@ export const fullMapPractices = {
     "workerBonus": 1,
     "stockTraits": [],
     "stockCapacity": 0,
-    "costs": []
+    "costs": [],
+    "flavor": "The soldier's name is called before the bowl is filled."
   },
   "fe_barrackLevy": {
     "id": "fe_barrackLevy",
@@ -1801,7 +1836,7 @@ export const fullMapPractices = {
     "vassalPrestigeCost": 10,
     "vassalPhaseCost": 12,
     "ui": {
-      "rule": "Require 1 Arms (kept). Train and convert up to 1 × workers multiplier adults ordinary opposing residents to this institution’s allegiance; local."
+      "rule": "Require 1 Arms Stock (kept). Birth phase: Train as Warrior and convert up to 1 eligible adults non-specialist opposing residents to this institution's allegiance; local"
     },
     "category": "influence",
     "mode": "scheduled",
@@ -1817,7 +1852,8 @@ export const fullMapPractices = {
     "workerBonus": 1,
     "stockTraits": [],
     "stockCapacity": 0,
-    "costs": []
+    "costs": [],
+    "flavor": "Every empty bunk waits for another recruit."
   },
   "fe_roadRequisition": {
     "id": "fe_roadRequisition",
@@ -1846,7 +1882,7 @@ export const fullMapPractices = {
     "vassalPrestigeCost": 10,
     "vassalPhaseCost": 12,
     "ui": {
-      "rule": "Consume 2 Edible. Generate 1 hosted Stock. Zero workers activates at base output."
+      "rule": "Consume 2 Edible Stock. Migration phase: Produce 1 Stock"
     },
     "category": "resource",
     "mode": "scheduled",
@@ -1864,7 +1900,8 @@ export const fullMapPractices = {
       "Arms"
     ],
     "stockCapacity": 3,
-    "costs": []
+    "costs": [],
+    "flavor": "The road feeds the garrison before it feeds the town."
   },
   "fe_salvageDetail": {
     "id": "fe_salvageDetail",
@@ -1893,7 +1930,7 @@ export const fullMapPractices = {
     "vassalPrestigeCost": 10,
     "vassalPhaseCost": 12,
     "ui": {
-      "rule": "Require 1 Arms (kept). Generate 2 hosted Stock."
+      "rule": "Require 1 Arms Stock (kept). Death phase: Produce 2 Stock"
     },
     "category": "resource",
     "mode": "scheduled",
@@ -1911,7 +1948,8 @@ export const fullMapPractices = {
       "Metal"
     ],
     "stockCapacity": 3,
-    "costs": []
+    "costs": [],
+    "flavor": "The armed detail takes what the ruins still hold."
   },
   "fe_curfewRounds": {
     "id": "fe_curfewRounds",
@@ -1949,7 +1987,7 @@ export const fullMapPractices = {
     "vassalPrestigeCost": 10,
     "vassalPhaseCost": 12,
     "ui": {
-      "rule": "Consume 1 Edible. Require 1 Arms (kept). +1 supplied occupation Force until next moon. Zero workers activates at base output."
+      "rule": "Consume 1 Edible Stock. Require 1 Arms Stock (kept). Death phase: +1 supplied occupation Force until next moon (refreshes)"
     },
     "category": "influence",
     "mode": "scheduled",
@@ -1965,7 +2003,8 @@ export const fullMapPractices = {
     "workerBonus": 1,
     "stockTraits": [],
     "stockCapacity": 0,
-    "costs": []
+    "costs": [],
+    "flavor": "The streets belong to the patrol after dusk."
   },
   "fe_arsenalQuotas": {
     "id": "fe_arsenalQuotas",
@@ -2000,7 +2039,7 @@ export const fullMapPractices = {
     "vassalPrestigeCost": 10,
     "vassalPhaseCost": 12,
     "ui": {
-      "rule": "Consume 1 Metal. Consume 2 Fuel. Generate 3 hosted Stock."
+      "rule": "Consume 1 Metal Stock. Consume 2 Fuel Stock. Summer: Produce 3 Stock"
     },
     "category": "resource",
     "mode": "scheduled",
@@ -2021,7 +2060,8 @@ export const fullMapPractices = {
       "Arms"
     ],
     "stockCapacity": 6,
-    "costs": []
+    "costs": [],
+    "flavor": "The furnace must meet its count before the workers rest."
   },
   "fe_billetingOrders": {
     "id": "fe_billetingOrders",
@@ -2055,7 +2095,7 @@ export const fullMapPractices = {
     "vassalPrestigeCost": 10,
     "vassalPhaseCost": 12,
     "ui": {
-      "rule": "Consume 2 Edible. Convert up to 2 × workers multiplier adults opposing residents to this institution’s allegiance; local. Zero workers activates at base output."
+      "rule": "Consume 2 Edible Stock. Housing phase: Convert up to 2 eligible adults opposing residents to this institution's allegiance; local"
     },
     "category": "influence",
     "mode": "scheduled",
@@ -2071,7 +2111,8 @@ export const fullMapPractices = {
     "workerBonus": 1,
     "stockTraits": [],
     "stockCapacity": 0,
-    "costs": []
+    "costs": [],
+    "flavor": "The garrison makes its home at another household's table."
   },
   "fe_victoryProcession": {
     "id": "fe_victoryProcession",
@@ -2111,7 +2152,7 @@ export const fullMapPractices = {
     "vassalPrestigeCost": 10,
     "vassalPhaseCost": 12,
     "ui": {
-      "rule": "Consume 1 Loot. Consume 1 Edible. Convert up to 3 × workers multiplier adults opposing residents to this institution’s allegiance; local. Zero workers activates at base output."
+      "rule": "Consume 1 Loot Stock. Consume 1 Edible Stock. Faith phase: Convert up to 3 eligible adults opposing residents to this institution's allegiance; local"
     },
     "category": "influence",
     "mode": "scheduled",
@@ -2127,7 +2168,8 @@ export const fullMapPractices = {
     "workerBonus": 1,
     "stockTraits": [],
     "stockCapacity": 0,
-    "costs": []
+    "costs": [],
+    "flavor": "The spoils are paraded before they are divided."
   },
   "fe_borderOaths": {
     "id": "fe_borderOaths",
@@ -2168,7 +2210,7 @@ export const fullMapPractices = {
     "vassalPrestigeCost": 10,
     "vassalPhaseCost": 12,
     "ui": {
-      "rule": "Consume 1 Arms. Consume 1 Record. Convert up to 2 × workers multiplier adults warrior opposing residents to this institution’s allegiance; first eligible adjacent road-connected region (authored order). Zero workers activates at base output."
+      "rule": "Consume 1 Arms Stock. Consume 1 Record Stock. Migration phase: Convert up to 2 eligible adults warrior opposing residents to this institution's allegiance; first eligible adjacent road-connected region"
     },
     "category": "influence",
     "mode": "scheduled",
@@ -2184,7 +2226,8 @@ export const fullMapPractices = {
     "workerBonus": 1,
     "stockTraits": [],
     "stockCapacity": 0,
-    "costs": []
+    "costs": [],
+    "flavor": "The oath crosses the border under armed escort."
   },
   "fe_capitalDole": {
     "id": "fe_capitalDole",
@@ -2218,7 +2261,7 @@ export const fullMapPractices = {
     "vassalPrestigeCost": 10,
     "vassalPhaseCost": 12,
     "ui": {
-      "rule": "Consume 4 Edible. Convert up to 5 × workers multiplier adults opposing residents to this institution’s allegiance; local. Zero workers activates at base output."
+      "rule": "Consume 4 Edible Stock. Housing must cover every local resident. Food phase, before meals: Convert up to 5 eligible adults opposing residents to this institution's allegiance; local"
     },
     "category": "influence",
     "mode": "scheduled",
@@ -2236,7 +2279,8 @@ export const fullMapPractices = {
     "stockTraits": [],
     "stockCapacity": 0,
     "costs": [],
-    "populationCondition": "housed"
+    "populationCondition": "housed",
+    "flavor": "The capital measures loyalty by the bread it gives."
   },
   "fe_officersFeast": {
     "id": "fe_officersFeast",
@@ -2276,7 +2320,7 @@ export const fullMapPractices = {
     "vassalPrestigeCost": 10,
     "vassalPhaseCost": 12,
     "ui": {
-      "rule": "Consume 3 Edible. Consume 2 Currency. Convert up to 3 × workers multiplier warrior opposing residents to this institution’s allegiance; local. Zero workers activates at base output."
+      "rule": "Consume 3 Edible Stock. Consume 2 Currency Stock. Faith phase: Convert up to 3 eligible warrior opposing residents to this institution's allegiance; local"
     },
     "category": "influence",
     "mode": "scheduled",
@@ -2292,7 +2336,8 @@ export const fullMapPractices = {
     "workerBonus": 1,
     "stockTraits": [],
     "stockCapacity": 0,
-    "costs": []
+    "costs": [],
+    "flavor": "The officers renew their promises over a costly table."
   },
   "fe_siegeRehearsals": {
     "id": "fe_siegeRehearsals",
@@ -2329,7 +2374,7 @@ export const fullMapPractices = {
     "vassalPrestigeCost": 10,
     "vassalPhaseCost": 12,
     "ui": {
-      "rule": "Consume 2 Arms. Consume 2 Edible. +4 supplied defence Force until next year. Zero workers activates at base output."
+      "rule": "Consume 2 Arms Stock. Consume 2 Edible Stock. Summer: +4 supplied monster defence Force until next year (refreshes)"
     },
     "category": "influence",
     "mode": "scheduled",
@@ -2348,7 +2393,8 @@ export const fullMapPractices = {
     "workerBonus": 1,
     "stockTraits": [],
     "stockCapacity": 0,
-    "costs": []
+    "costs": [],
+    "flavor": "The walls are defended long before the siege arrives."
   },
   "cp_ironCommunion": {
     "id": "cp_ironCommunion",
@@ -2377,7 +2423,7 @@ export const fullMapPractices = {
     "vassalPrestigeCost": 10,
     "vassalPhaseCost": 12,
     "ui": {
-      "rule": "Require 2 Arms (kept). Generate 4 hosted Stock. Victim and six other adult Warrior reserves are local, any allegiance. One real death per Summer; full base Arms yield must fit."
+      "rule": "Require 2 Arms Stock (kept). Sacrifice 1 local adults warrior; any allegiance. One real death, never multiplied. Keep 6 other local adults warrior. Complete base Stock output must fit before activation. Summer: Produce 4 Stock"
     },
     "category": "resource",
     "mode": "scheduled",
@@ -2418,7 +2464,8 @@ export const fullMapPractices = {
         "other": true
       }
     ],
-    "requireBaseHeadroom": true
+    "requireBaseHeadroom": true,
+    "flavor": "The forge receives what the living will not name."
   }
 };
 export const fullMapStructures = {
@@ -2437,7 +2484,7 @@ export const fullMapStructures = {
     "vassalPrestigeCost": 10,
     "vassalPhaseCost": 12,
     "ui": {
-      "rule": "Each successful  warrior Influence activation  converts up to 1 additional eligible  opposing residents, using that Practice’s allegiance. Copies do not stack. No independent conversion or stored allegiance."
+      "rule": "Successful local Warrior Influence Practices convert 1 additional eligible opposing residents to that Practice's allegiance. Copies do not stack."
     },
     "footprint": 1,
     "housing": 0,
@@ -2462,7 +2509,8 @@ export const fullMapStructures = {
       "query": {
         "pool": "warrior"
       }
-    }
+    },
+    "flavor": "An oath spoken here is heard beyond the speaker."
   },
   "fm_frontierWatch": {
     "id": "fm_frontierWatch",
@@ -2479,7 +2527,7 @@ export const fullMapStructures = {
     "vassalPrestigeCost": 10,
     "vassalPhaseCost": 12,
     "ui": {
-      "rule": "With a supplied local loyal armed Warrior, +2 occupation Force here or in one adjacent road-connected allied region. The assigned Warrior and Force cannot also hold here."
+      "rule": "+2 supplied occupation Force with 1 loyal adult Warriors and 1 local Arms; may be assigned to one adjacent road-connected allied holding"
     },
     "footprint": 1,
     "housing": 0,
@@ -2511,7 +2559,8 @@ export const fullMapStructures = {
         }
       ]
     },
-    "localCurrencyCost": 0
+    "localCurrencyCost": 0,
+    "flavor": "One watchfire cannot guard two frontiers at once."
   },
   "fm_veteransHearth": {
     "id": "fm_veteransHearth",
@@ -2529,7 +2578,7 @@ export const fullMapStructures = {
     "vassalPrestigeCost": 10,
     "vassalPhaseCost": 12,
     "ui": {
-      "rule": "+30 Housing. Each successful  warrior Influence activation  converts up to 1 additional eligible  opposing residents, using that Practice’s allegiance. Copies do not stack. No independent conversion or stored allegiance. Revision: replaces independent retirement conversion with ongoing Warlord Influence support."
+      "rule": "+30 Housing Capacity Successful local Warrior Influence Practices convert 1 additional eligible warrior opposing residents to that Practice's allegiance. Copies do not stack."
     },
     "footprint": 1,
     "housing": 30,
@@ -2553,8 +2602,12 @@ export const fullMapStructures = {
       "amount": 1,
       "query": {
         "pool": "warrior"
+      },
+      "filter": {
+        "specialty": "warrior"
       }
-    }
+    },
+    "flavor": "The old guard makes room beside its fire."
   },
   "fm_villageSchool": {
     "id": "fm_villageSchool",
@@ -2572,7 +2625,7 @@ export const fullMapStructures = {
     "vassalPrestigeCost": 10,
     "vassalPhaseCost": 12,
     "ui": {
-      "rule": "Each successful   Influence activation  converts up to 1 additional eligible children opposing residents, using that Practice’s allegiance. Support requires 1 Record (kept). Copies do not stack. No independent conversion or stored allegiance."
+      "rule": "Successful local Influence Practices convert 1 additional eligible children opposing residents to that Practice's allegiance; Require 1 Record Stock (kept). Copies do not stack."
     },
     "footprint": 1,
     "housing": 0,
@@ -2611,7 +2664,8 @@ export const fullMapStructures = {
           "amount": 1
         }
       ]
-    }
+    },
+    "flavor": "The youngest voices learn the words of the realm."
   },
   "fm_openArchive": {
     "id": "fm_openArchive",
@@ -2629,17 +2683,20 @@ export const fullMapStructures = {
     "vassalPrestigeCost": 10,
     "vassalPhaseCost": 12,
     "ui": {
-      "rule": "+1 capacity Record. Each successful   Influence activation  consuming Record converts up to 1 additional eligible  opposing residents, using that Practice’s allegiance. Copies do not stack. No independent conversion or stored allegiance."
+      "rule": "+1 Output Multiplier for local Practices with Record Stock; while a local Practice holds Paper Stock Successful local Influence consuming Record Practices convert 1 additional eligible opposing residents to that Practice's allegiance. Copies do not stack."
     },
     "footprint": 1,
     "housing": 0,
     "modifiers": [
       {
-        "kind": "capacity",
+        "kind": "outputMultiplier",
         "amount": 1,
         "query": {
           "traitsAny": [
             "Record"
+          ],
+          "stockedTraitsAny": [
+            "Paper"
           ]
         }
       }
@@ -2668,7 +2725,8 @@ export const fullMapStructures = {
     "conversionSupport": {
       "amount": 1,
       "consumeTrait": "Record"
-    }
+    },
+    "flavor": "Knowledge travels further when the shelves are open."
   },
   "fm_roadsideLectureHall": {
     "id": "fm_roadsideLectureHall",
@@ -2686,7 +2744,7 @@ export const fullMapStructures = {
     "vassalPrestigeCost": 10,
     "vassalPhaseCost": 12,
     "ui": {
-      "rule": "Qualifying Influence Practices may reach the first eligible adjacent road-connected region after local targets are exhausted. Copies do not stack. No independent conversion or stored allegiance."
+      "rule": "Local Influence Practices may convert in the first eligible adjacent road-connected region after local targets are exhausted. Copies do not stack."
     },
     "footprint": 1,
     "housing": 0,
@@ -2714,7 +2772,8 @@ export const fullMapStructures = {
     "localCurrencyCost": 0,
     "conversionSupport": {
       "reach": "connectedAdjacent"
-    }
+    },
+    "flavor": "A lesson can reach further than its walls."
   },
   "fm_leakingGranary": {
     "id": "fm_leakingGranary",
@@ -2731,7 +2790,7 @@ export const fullMapStructures = {
     "vassalPrestigeCost": 10,
     "vassalPhaseCost": 12,
     "ui": {
-      "rule": "Edible Stock Practices have +0.5 Capacity Multiplier."
+      "rule": "+0.5 Capacity Multiplier for Edible Death: Consume 1 Edible Stock; bonuses remain active after missed payment."
     },
     "footprint": 1,
     "housing": 0,
@@ -2772,7 +2831,8 @@ export const fullMapStructures = {
         }
       ],
       "disables": false
-    }
+    },
+    "flavor": "The harvest shelters beneath a roof that no longer holds."
   },
   "fm_crowdedTenement": {
     "id": "fm_crowdedTenement",
@@ -2790,7 +2850,7 @@ export const fullMapStructures = {
     "vassalPrestigeCost": 10,
     "vassalPhaseCost": 12,
     "ui": {
-      "rule": "+60 Housing. Civilian meals cost 1 additional Edible."
+      "rule": "+60 Housing Capacity Civilian meals consume 1 additional Edible Stock."
     },
     "footprint": 2,
     "housing": 60,
@@ -2810,7 +2870,8 @@ export const fullMapStructures = {
       ]
     },
     "localCurrencyCost": 0,
-    "mealExtra": 1
+    "mealExtra": 1,
+    "flavor": "There is room for another family, if there is another meal."
   },
   "fm_villagePalisade": {
     "id": "fm_villagePalisade",
@@ -2827,7 +2888,7 @@ export const fullMapStructures = {
     "vassalPrestigeCost": 10,
     "vassalPhaseCost": 12,
     "ui": {
-      "rule": "+1 localDefense . Local supplied garrison contribution; no global Force sharing."
+      "rule": "+1 supplied local monster defence with an armed loyal Warrior"
     },
     "footprint": 1,
     "housing": 0,
@@ -2852,7 +2913,8 @@ export const fullMapStructures = {
         }
       ]
     },
-    "localCurrencyCost": 0
+    "localCurrencyCost": 0,
+    "flavor": "Rough timber gives the watch somewhere to stand."
   },
   "fm_tollGate": {
     "id": "fm_tollGate",
@@ -2869,7 +2931,7 @@ export const fullMapStructures = {
     "vassalPrestigeCost": 10,
     "vassalPhaseCost": 12,
     "ui": {
-      "rule": "Each successful   Influence activation  converts up to 1 additional eligible  opposing residents, using that Practice’s allegiance. Support consumes 1 Currency. Copies do not stack. No independent conversion or stored allegiance."
+      "rule": "Successful local Influence Practices convert 1 additional eligible opposing residents to that Practice's allegiance; Consume 1 Currency Stock. Copies do not stack."
     },
     "footprint": 1,
     "housing": 0,
@@ -2899,7 +2961,8 @@ export const fullMapStructures = {
           "amount": 1
         }
       ]
-    }
+    },
+    "flavor": "The gate opens after the keeper has counted the coin."
   },
   "fm_patronsHall": {
     "id": "fm_patronsHall",
@@ -2916,7 +2979,7 @@ export const fullMapStructures = {
     "vassalPrestigeCost": 10,
     "vassalPhaseCost": 12,
     "ui": {
-      "rule": "Each successful   Influence activation  converts up to 1 additional eligible  opposing residents, using that Practice’s allegiance. Support requires 1 Currency (kept). Copies do not stack. No independent conversion or stored allegiance."
+      "rule": "Successful local Influence Practices convert 1 additional eligible opposing residents to that Practice's allegiance; Require 1 Currency Stock (kept). Copies do not stack."
     },
     "footprint": 2,
     "housing": 0,
@@ -2946,7 +3009,8 @@ export const fullMapStructures = {
           "amount": 1
         }
       ]
-    }
+    },
+    "flavor": "The patron's purse buys a place at every table."
   },
   "fm_abandonedShrine": {
     "id": "fm_abandonedShrine",
@@ -2963,7 +3027,7 @@ export const fullMapStructures = {
     "vassalPrestigeCost": 10,
     "vassalPhaseCost": 12,
     "ui": {
-      "rule": "Each successful   Influence activation  converts up to 1 additional eligible children opposing residents, using that Practice’s allegiance. Requires 60 local residents. Copies do not stack. No independent conversion or stored allegiance."
+      "rule": "Successful local Influence Practices convert 1 additional eligible children opposing residents to that Practice's allegiance; Requires 60 local residents. Copies do not stack."
     },
     "footprint": 1,
     "housing": 0,
@@ -2989,7 +3053,8 @@ export const fullMapStructures = {
         "kind": "children"
       },
       "minimumPopulation": 60
-    }
+    },
+    "flavor": "The old stones still gather the village children."
   },
   "fm_crumblingCottages": {
     "id": "fm_crumblingCottages",
@@ -3007,7 +3072,7 @@ export const fullMapStructures = {
     "vassalPrestigeCost": 10,
     "vassalPhaseCost": 12,
     "ui": {
-      "rule": "+15 Housing."
+      "rule": "+15 Housing Capacity"
     },
     "footprint": 1,
     "housing": 15,
@@ -3026,7 +3091,8 @@ export const fullMapStructures = {
         }
       ]
     },
-    "localCurrencyCost": 0
+    "localCurrencyCost": 0,
+    "flavor": "A little shelter remains beneath the broken thatch."
   },
   "fm_publicBakehouse": {
     "id": "fm_publicBakehouse",
@@ -3043,7 +3109,7 @@ export const fullMapStructures = {
     "vassalPrestigeCost": 10,
     "vassalPhaseCost": 12,
     "ui": {
-      "rule": "+1 outputMultiplier Edible."
+      "rule": "+1 Output Multiplier for local Practices with Edible Stock; while a local Practice holds Fuel Stock"
     },
     "footprint": 1,
     "housing": 0,
@@ -3075,7 +3141,8 @@ export const fullMapStructures = {
         }
       ]
     },
-    "localCurrencyCost": 0
+    "localCurrencyCost": 0,
+    "flavor": "A kept fire turns the village stores into full tables."
   },
   "fm_lockedArchive": {
     "id": "fm_lockedArchive",
@@ -3092,7 +3159,7 @@ export const fullMapStructures = {
     "vassalPrestigeCost": 10,
     "vassalPhaseCost": 12,
     "ui": {
-      "rule": "+1 capacity Record. Each successful   Influence activation  converts up to 1 additional eligible scholar opposing residents, using that Practice’s allegiance. Copies do not stack. No independent conversion or stored allegiance."
+      "rule": "+1 Capacity Multiplier for Record Successful local Influence Practices convert 1 additional eligible scholar opposing residents to that Practice's allegiance. Copies do not stack."
     },
     "footprint": 1,
     "housing": 0,
@@ -3127,7 +3194,8 @@ export const fullMapStructures = {
       "filter": {
         "specialty": "scholar"
       }
-    }
+    },
+    "flavor": "The shelves preserve more than the keeper will share."
   },
   "fm_imperialWaystation": {
     "id": "fm_imperialWaystation",
@@ -3144,7 +3212,7 @@ export const fullMapStructures = {
     "vassalPrestigeCost": 10,
     "vassalPhaseCost": 12,
     "ui": {
-      "rule": "+1 capacity Edible/Arms. Qualifying Influence Practices may reach the first eligible adjacent road-connected region after local targets are exhausted. Copies do not stack. No independent conversion or stored allegiance."
+      "rule": "+1 Capacity Multiplier for Edible / Arms Local Influence Practices may convert in the first eligible adjacent road-connected region after local targets are exhausted. Copies do not stack."
     },
     "footprint": 2,
     "housing": 0,
@@ -3177,7 +3245,8 @@ export const fullMapStructures = {
     "localCurrencyCost": 0,
     "conversionSupport": {
       "reach": "connectedAdjacent"
-    }
+    },
+    "flavor": "Supplies wait where the imperial roads meet."
   },
   "fe_levyPost": {
     "id": "fe_levyPost",
@@ -3194,7 +3263,7 @@ export const fullMapStructures = {
     "vassalPrestigeCost": 10,
     "vassalPhaseCost": 12,
     "ui": {
-      "rule": "Each successful   Influence activation training warrior converts up to 1 additional eligible  opposing residents, using that Practice’s allegiance. Copies do not stack. No independent conversion or stored allegiance."
+      "rule": "Successful local Influence training Warriors Practices convert 1 additional eligible opposing residents to that Practice's allegiance. Copies do not stack."
     },
     "footprint": 1,
     "housing": 0,
@@ -3217,7 +3286,8 @@ export const fullMapStructures = {
     "conversionSupport": {
       "amount": 1,
       "train": "warrior"
-    }
+    },
+    "flavor": "Every notice on the post asks for another soldier."
   },
   "fe_garrisonBarracks": {
     "id": "fe_garrisonBarracks",
@@ -3235,7 +3305,7 @@ export const fullMapStructures = {
     "vassalPrestigeCost": 10,
     "vassalPhaseCost": 12,
     "ui": {
-      "rule": "+60 Housing. +2 occupation . Local supplied garrison contribution; no global Force sharing."
+      "rule": "+60 Housing Capacity +2 supplied occupation Force with 4 loyal adult Warriors and 2 local Arms"
     },
     "footprint": 2,
     "housing": 60,
@@ -3261,7 +3331,8 @@ export const fullMapStructures = {
         }
       ]
     },
-    "localCurrencyCost": 0
+    "localCurrencyCost": 0,
+    "flavor": "The bunks are full; the town pays to keep them so."
   },
   "fe_provostCourt": {
     "id": "fe_provostCourt",
@@ -3278,7 +3349,7 @@ export const fullMapStructures = {
     "vassalPrestigeCost": 10,
     "vassalPhaseCost": 12,
     "ui": {
-      "rule": "Each successful   Influence activation  converts up to 1 additional eligible adults warrior opposing residents, using that Practice’s allegiance. Support requires 1 Record (kept). Copies do not stack. No independent conversion or stored allegiance."
+      "rule": "Successful local Influence Practices convert 1 additional eligible adults warrior opposing residents to that Practice's allegiance; Require 1 Record Stock (kept). Copies do not stack."
     },
     "footprint": 1,
     "housing": 0,
@@ -3312,7 +3383,8 @@ export const fullMapStructures = {
           "amount": 1
         }
       ]
-    }
+    },
+    "flavor": "The record speaks with the authority of a drawn sword."
   },
   "fe_rationDepot": {
     "id": "fe_rationDepot",
@@ -3329,7 +3401,7 @@ export const fullMapStructures = {
     "vassalPrestigeCost": 10,
     "vassalPhaseCost": 12,
     "ui": {
-      "rule": "+1 capacity Edible. food: Consume 1 Edible; capacity remains active."
+      "rule": "+1 Capacity Multiplier for Edible Food: Consume 1 Edible Stock; bonuses remain active after missed payment."
     },
     "footprint": 1,
     "housing": 0,
@@ -3370,7 +3442,8 @@ export const fullMapStructures = {
         }
       ],
       "disables": false
-    }
+    },
+    "flavor": "The stores feed those charged with guarding the stores."
   },
   "fe_signalBastion": {
     "id": "fe_signalBastion",
@@ -3387,7 +3460,7 @@ export const fullMapStructures = {
     "vassalPrestigeCost": 10,
     "vassalPhaseCost": 12,
     "ui": {
-      "rule": "Assign this supplied local garrison to one adjacent road-connected allied region. Its Warriors, equipment and Force cannot also hold here. The recipient still needs local loyal armed Warriors."
+      "rule": "This supplied garrison may serve one adjacent road-connected allied holding instead of its source; no duplicated Warriors, Arms or Force"
     },
     "footprint": 1,
     "housing": 0,
@@ -3410,7 +3483,8 @@ export const fullMapStructures = {
         }
       ]
     },
-    "localCurrencyCost": 0
+    "localCurrencyCost": 0,
+    "flavor": "One signal sends the garrison beyond its own walls."
   },
   "fe_marshalsCitadel": {
     "id": "fe_marshalsCitadel",
@@ -3427,7 +3501,7 @@ export const fullMapStructures = {
     "vassalPrestigeCost": 10,
     "vassalPhaseCost": 12,
     "ui": {
-      "rule": "+5 occupation . +2 garrisonUpkeep . Local supplied garrison contribution; no global Force sharing."
+      "rule": "+5 supplied occupation Force with 8 loyal adult Warriors and 3 local Arms Pay 2 additional Edible after civilian meals; missed payment disables supplied Force"
     },
     "footprint": 3,
     "housing": 0,
@@ -3457,7 +3531,8 @@ export const fullMapStructures = {
         }
       ]
     },
-    "localCurrencyCost": 0
+    "localCurrencyCost": 0,
+    "flavor": "The town labours beneath the weight of its protection."
   },
   "fe_paradeSquare": {
     "id": "fe_paradeSquare",
@@ -3474,7 +3549,7 @@ export const fullMapStructures = {
     "vassalPrestigeCost": 10,
     "vassalPhaseCost": 12,
     "ui": {
-      "rule": "Each successful faith  Influence activation  converts up to 2 additional eligible  opposing residents, using that Practice’s allegiance. Requires 6 local adult Warriors loyal to that Practice. Copies do not stack. No independent conversion or stored allegiance."
+      "rule": "Successful local Influence activating at Faith Practices convert 2 additional eligible opposing residents to that Practice's allegiance; Requires 6 local adults warrior loyal to that Practice. Copies do not stack."
     },
     "footprint": 2,
     "housing": 0,
@@ -3505,7 +3580,8 @@ export const fullMapStructures = {
           "allegiance": "beneficiary"
         }
       }
-    }
+    },
+    "flavor": "The formation lends its voice to the speaker."
   },
   "fe_imperialArmoury": {
     "id": "fe_imperialArmoury",
@@ -3522,7 +3598,7 @@ export const fullMapStructures = {
     "vassalPrestigeCost": 10,
     "vassalPhaseCost": 12,
     "ui": {
-      "rule": "+1 outputMultiplier Arms. +1 capacity Arms. summer: Consume 1 Tool; bonuses require payment."
+      "rule": "+1 Output Multiplier for local Practices with Arms Stock +1 Capacity Multiplier for Arms Summer: Consume 1 Tool Stock; missed payment disables this Structure until its next upkeep payment."
     },
     "footprint": 2,
     "housing": 0,
@@ -3572,7 +3648,8 @@ export const fullMapStructures = {
         }
       ],
       "disables": true
-    }
+    },
+    "flavor": "A kept workshop fills the racks of the empire."
   },
   "cp_citadelOfStillness": {
     "id": "cp_citadelOfStillness",
@@ -3589,7 +3666,7 @@ export const fullMapStructures = {
     "vassalPrestigeCost": 10,
     "vassalPhaseCost": 12,
     "ui": {
-      "rule": "+1 outputMultiplier Arms. +1 capacity Arms."
+      "rule": "+1 Output Multiplier for local Practices with Arms Stock +1 Capacity Multiplier for Arms"
     },
     "footprint": 3,
     "housing": 0,
@@ -3627,7 +3704,8 @@ export const fullMapStructures = {
         }
       ]
     },
-    "localCurrencyCost": 0
+    "localCurrencyCost": 0,
+    "flavor": "The racks fill beneath walls where no hammer is heard."
   }
 };
 

@@ -1,4 +1,5 @@
-import { mechanicEffect, mechanicEvent } from '../defs/mechanics.js';
+import { mechanicEffect, mechanicEvent, mechanicMultiplier } from '../defs/mechanics.js';
+import { STOCK_TRAIT_IDS } from '../defs/gamepieces/detailed-settlement-defs.js';
 
 const listFilters = ['traitsAny', 'tagsAny', 'actionKindsAny'];
 const flags = ['scholarStaffed', 'premature', 'martial'];
@@ -11,6 +12,17 @@ export function validateGamepieceMechanics(def) {
   const errors = [];
   if (def?.effects !== undefined && !Array.isArray(def.effects)) return ['effects must be an array'];
   if (def?.modifiers !== undefined && !Array.isArray(def.modifiers)) return ['modifiers must be an array'];
+  if (def?.stockMultipliers !== undefined && !Array.isArray(def.stockMultipliers)) return ['stockMultipliers must be an array'];
+  for (const mod of def?.stockMultipliers ?? []) {
+    const binding=mechanicMultiplier(mod?.kind);
+    if (!binding || !Number.isFinite(mod.amount) || mod.amount<0
+      || Object.keys(mod).some(key=>!binding.fields.includes(key))
+      || (mod.biome!==undefined&&!['plains','mountains','forest','water'].includes(mod.biome))
+      || (mod.perRegion!==undefined&&(mod.perRegion!==true||!mod.biome))
+      || (mod.seasonKeys!==undefined&&(!strings(mod.seasonKeys)||mod.seasonKeys.some(key=>!['spring','summer','autumn','winter'].includes(key))))
+      || (mod.stockedTraitsAny!==undefined&&(!strings(mod.stockedTraitsAny)||mod.stockedTraitsAny.some(trait=>!STOCK_TRAIT_IDS.includes(trait))))
+      || !def.effects?.some(effect=>effect.op==='generateStock')) errors.push('invalid Practice Stock multiplier');
+  }
   for (const effect of def?.effects ?? []) {
     const binding = mechanicEffect(effect?.op);
     if (!binding || binding.status !== 'implemented') {

@@ -32,6 +32,14 @@ Record these decisions beside the content or in its experiment report:
 
 ## Tuning and readability
 
+Default to uncapped card scaling. Add a cap only for a demonstrated gameplay
+problem whose value justifies the extra rule. Terrain affinity belongs to the
+individual card's printed, captured effects; biome and Stock traits alone grant
+no multiplier. Inherited starter cards keep small recipes and minimal multiplier
+interactions; purchases provide stronger output, reserves or specialised engines.
+See the [ordinary-pool content pass](card-content-pass.md).
+
+
 Follow [multiplier semantics](output-capacity-multipliers.md): output and capacity
 are independent additive pools. Compare actual retained/consumed throughput at
 zero, early and developed keyword scores; inspect how quickly the card caps out.

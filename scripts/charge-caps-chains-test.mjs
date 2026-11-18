@@ -25,7 +25,7 @@ const PLAGUE_YIELD = 2;
 const PLAGUE_CAPACITY = 5;
 const CHARCOAL_YIELD = 3;
 const CHARCOAL_CAPACITY = 6;
-const SMELT_YIELD = 2;
+const SMELT_YIELD = 4; // 2 base with local Fuel: Output x2.
 const TOOL_YIELD = 2;
 
 const report = { cases: [], limits: [] };

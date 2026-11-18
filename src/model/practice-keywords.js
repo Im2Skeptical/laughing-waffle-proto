@@ -37,19 +37,22 @@ export function keywordScore(state, regionId, id, excludePracticeId = null) {
 }
 
 // All coefficients belong to the card's serialized DSL data. This adds to the
-// existing Output Multiplier, never to base output, Charge or capacity.
+// chosen multiplier pool, never to base output or Charge.
 export function keywordOutputAmount(state, regionId, scale, practiceId = null) {
   if (!scale || !keywordAccess(state, scale.keyword, regionId).active) return 0;
-  return Math.min(scale.cap, Math.floor(keywordScore(state, regionId, scale.keyword, practiceId) / scale.per)) * scale.amount;
+  return Math.min(scale.cap ?? Infinity, Math.floor(keywordScore(state, regionId, scale.keyword, practiceId) / scale.per)) * scale.amount;
 }
 
-export function keywordOutputSources(state, regionId, def) {
-  const scale = def?.keywordOutputScale;
+export const keywordOutputSources = (state,regionId,def) => keywordMultiplierSources(state,regionId,def,'keywordOutputScale');
+export const keywordCapacitySources = (state,regionId,def) => keywordMultiplierSources(state,regionId,def,'keywordCapacityScale');
+
+function keywordMultiplierSources(state, regionId, def, field) {
+  const scale = def?.[field];
   const amount = keywordOutputAmount(state, regionId, scale, def?.id);
   if (!amount) return [];
   if (scale.keyword === 'synthesis') {
     const contributors = synthesisContributors(state, regionId, def.id);
-    return Array.from({ length: Math.min(scale.cap, Math.floor(contributors.length / scale.per)) }, (_, index) => {
+    return Array.from({ length: Math.min(scale.cap ?? Infinity, Math.floor(contributors.length / scale.per)) }, (_, index) => {
       const group = contributors.slice(index * scale.per, (index + 1) * scale.per);
       return { id: `keyword:synthesis:${group.map(source => source.slotIndex).join(':')}`,
         label: group.map(source => source.label).join(', '), amount: scale.amount, query: { tagsAny: ['Synthesis'] } };
@@ -59,7 +62,8 @@ export function keywordOutputSources(state, regionId, def) {
 }
 
 export function keywordReading(state, regionId, def) {
-  const scale = def?.keywordOutputScale, id = scale?.keyword, keyword = PRACTICE_KEYWORDS[id];
+  const scale = def?.keywordOutputScale ?? def?.keywordCapacityScale, id = scale?.keyword, keyword = PRACTICE_KEYWORDS[id];
+  const pool = def?.keywordCapacityScale ? 'Capacity' : 'Output';
   if (!keyword) return null;
   const score = keywordScore(state, regionId, id, def.id), access = keywordAccess(state, id, regionId);
   const bonus = keywordOutputAmount(state, regionId, scale, def.id);
@@ -70,6 +74,6 @@ export function keywordReading(state, regionId, def) {
       : `Count occupied settlements in this road-connected trade zone, ${state?.rulesetId ? 'held by the same faction, including this one' : 'including this one and neutral towns'}. Frontier${state?.rulesetId ? ', foreign holdings' : ''} and ruins break the zone. Each counts once; connecting two zones joins them.`;
   return { id, name: keyword.name, score, bonus, inMultiplierPool: true,
     active: access.active, emphasised: access.emphasised,
-    text: `${keyword.name} contributes to Output Multiplier.`,
-    definition: `${definition} ${access.reason} ${score} counted; +${scale.amount} per ${scale.per} count${scale.per === 1 ? '' : 's'}, capped at +${scale.cap * scale.amount}. Currently +${bonus} to this Practice's Output Multiplier. This contribution adds to the base 1 and other multiplier sources. Base Stock yields, recipes, Research, Charge gain and capacity are unchanged.`, lens: '' };
+    pool, text: `+${scale.amount} ${pool} Multiplier per ${scale.per === 1 ? '' : scale.per+' '}${keyword.name}${scale.cap === undefined ? '' : ' (maximum +'+scale.cap*scale.amount+')'}.`,
+    definition: `${definition} ${access.reason} ${score} counted; +${scale.amount} per ${scale.per} count${scale.per === 1 ? '' : 's'}${scale.cap === undefined ? '' : ', capped at +'+scale.cap*scale.amount}. Currently +${bonus} to this Practice's ${pool} Multiplier. This contribution adds to the base 1 and other multiplier sources. Base Stock yields, recipes, Research and Charge gain are unchanged. ${pool === 'Capacity' ? 'Output is unchanged.' : 'Capacity is unchanged.'}`, lens: '' };
 }

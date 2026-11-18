@@ -42,11 +42,11 @@ function modifierText(mod, amount, candidateStat) {
   const n = fmt(amount), percent = fmt(amount * 100), scope = practiceScope(mod.query);
   const history = { age:'civilization age', records:'stocked Record Practices', losses:'lost settlements', retired:'retired Vassals of the candidate class', commissions:'completed Commissions by retired Vassals of the candidate class', chaos:'Chaos Power', conquests:'completed conquests', victories:'martial victories', knowledgeStructures:'distinct local Knowledge Structures' };
   const lines = {
-    capacity: mod.query?.traitsAny?.length && !mod.query.tagsAny?.length
+    capacity: mod.query?.traitsAny?.length && Object.keys(mod.query).every(key=>['traitsAny','stockedTraitsAny','unique'].includes(key))
       ? `+${n} Capacity Multiplier for ${mod.query.traitsAny.join(' / ')}`
       : `+${n} Capacity Multiplier for ${scope}`,
     output: `+${n} Stock output from ${scope}`,
-    outputMultiplier: `+${n} Output Multiplier for ${mod.query?.traitsAny?.length?mod.query.traitsAny.join(' / '):scope}`,
+    outputMultiplier: `+${n} Output Multiplier for ${scope}`,
     chargeGain: `+${n} incoming Charge for ${scope}`,
     effectBonus: `+${n} to numeric effects of ${scope}`,
     requireSubstitution: `${mod.from} Stock can satisfy ${mod.to} requirements${mod.providerTagsAny?.length ? ` from Practices tagged ${mod.providerTagsAny.join(' or ')}` : ''}`,
@@ -92,7 +92,18 @@ export function getStructureReading(def, { slot = null, settlement = null } = {}
     if (mod.kind === 'support') bonuses.push({ kind:'population', amount:amount * 100, unit:'%', label:'Martial Support', traits:[] });
   }
   if (def.pool !== 'common' && def.candidateBonus) effects.push({ timing:'', text:`+${def.candidateBonus} ${candidateStat} for future local ${title(def.pool)} candidates (institutions: max +5)` });
-  if ((def.conversionSupport||def.upkeep||def.mealExtra) && def.ui?.rule) effects.push({timing:'',text:def.ui.rule});
+  const support=def.conversionSupport;
+  if(support) {
+    if(support.reach) effects.push({timing:'',text:'Local Influence Practices may convert in the first eligible adjacent road-connected region after local targets are exhausted. Copies do not stack.'});
+    else {
+      const target=[support.filter?.kind,support.filter?.specialty].filter(Boolean).join(' ');
+      const qualifications=[support.query?.pool?`${title(support.query.pool)} Influence`:'Influence',support.activation?`activating at ${title(support.activation)}`:'',support.train?`training ${title(support.train)}s`:'',support.consumeTrait?`consuming ${support.consumeTrait}`:''].filter(Boolean).join(' ');
+      const payments=[...(support.consume??[]).map(c=>`Consume ${c.amount} ${c.traits.join(' or ')} Stock`),...(support.require??[]).map(c=>`Require ${c.amount} ${c.traits.join(' or ')} Stock (kept)`),...(support.minimumPopulation?[`Requires ${support.minimumPopulation} local residents`]:[]),...(support.populationRequire?[`Requires ${support.populationRequire.amount} local ${support.populationRequire.filter?.kind??''} ${support.populationRequire.filter?.specialty??''} loyal to that Practice`]:[])];
+      effects.push({timing:'',text:`Successful local ${qualifications} Practices convert ${support.amount} additional eligible ${target?target+' ':''}opposing residents to that Practice's allegiance${payments.length?'; '+payments.join('; '):''}. Copies do not stack.`});
+    }
+  }
+  if(def.mealExtra) effects.push({timing:'',text:`Civilian meals consume ${def.mealExtra} additional Edible Stock.`});
+  if(def.upkeep) effects.push({timing:title(def.upkeep.activation),text:`Consume ${(def.upkeep.consume??[]).map(c=>`${c.amount} ${c.traits.join(' or ')} Stock`).join(' and ')}; ${def.upkeep.disables?'missed payment disables this Structure until its next upkeep payment':'bonuses remain active after missed payment'}.`});
   if (!effects.length && def.ui?.rule) effects.push({ timing:'', text:def.ui.rule });
   const requirements = def.specialistGate ? [`Requires ${def.specialistGate} local ${title(def.pool)}${def.specialistGate === 1 ? '' : 's'}.`] : [];
   const active = slot?.construction || slot?.upkeepActive===false ? false : !def.specialistGate ? true : settlement ? specialistCount(settlement, def.pool) >= def.specialistGate : null;

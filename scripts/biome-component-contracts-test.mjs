@@ -13,17 +13,11 @@ import {mkdirSync, writeFileSync} from 'node:fs';
 import {createNewGameState} from '../src/model/new-game.js';
 import {getRegionalMap, regionalMapId} from '../src/model/regional-map/definition.js';
 import {worldMapDefs} from '../src/defs/world/world-map-defs.js';
-import {BIOME_MULTIPLIER_RULES} from '../src/defs/world/biome-multiplier-rules.js';
 import {contiguousBiomeRegions} from '../src/model/detailed-settlements/biome-multipliers.js';
 import {stockOutputBreakdown} from '../src/model/detailed-settlements/stock.js';
 import {serializeGameState, deserializeGameState} from '../src/model/state.js';
 import {practiceSlot} from '../src/model/dev-lab/fixtures.js';
 
-const RULES = [
-  {biome:'plains', kind:'outputMultiplier', query:{traitsAny:['Grain']}, amountPerRegion:1, practices:['dryFarming', 'milling']},
-  {biome:'mountains', kind:'outputMultiplier', query:{traitsAny:['Stone']}, amountPerRegion:1, practices:['quarrying']},
-  {biome:'forest', kind:'outputMultiplier', query:{traitsAny:['Construction']}, amountPerRegion:1, practices:['logging', 'carpentry', 'masonry', 'quarrying']},
-];
 const PRACTICES = ['dryFarming', 'milling', 'forage', 'quarrying', 'logging', 'carpentry'];
 const SEEDS = [1, 42, 1867, 4294967295];
 const MAINLAND = ['black-marsh', 'cedar-woods', 'copper-basin', 'east-steppe', 'high-pass', 'iron-hills', 'lake-country', 'obsidian-ridge', 'reed-delta', 'river-crown', 'salt-coast', 'southern-savanna', 'upper-floodplain', 'west-levee'];
@@ -89,10 +83,12 @@ function readScope(state, regionId, practiceId) {
 }
 
 function expectedScope(biome, members, practice) {
-  const rule = RULES.find(entry => entry.biome === biome && entry.practices.includes(practice));
-  if (!rule) return {multiplier:1, sources:[]};
-  const regionIds = sorted(members);
-  return {multiplier:1 + regionIds.length, sources:[{id:`biome:${biome}`, amount:regionIds.length, trait:rule.query.traitsAny[0], regionIds}]};
+  if(practice==='quarrying'&&biome==='mountains') {
+    const regionIds=sorted(members);
+    return {multiplier:1+regionIds.length,sources:[{id:'practice:quarrying:0',amount:regionIds.length,trait:null,regionIds}]};
+  }
+  if(practice==='forage'&&biome==='forest')return {multiplier:2,sources:[{id:'practice:forage:0',amount:1,trait:null,regionIds:[]}]};
+  return {multiplier:1,sources:[]};
 }
 
 function checkRegions(state, definition, expected) {
@@ -117,7 +113,6 @@ function checkRegions(state, definition, expected) {
   }
 }
 
-assert.deepEqual(BIOME_MULTIPLIER_RULES.map(({biome, kind, query, amountPerRegion}) => ({biome, kind, query, amountPerRegion})), RULES.map(({practices, ...rule}) => rule));
 const states = new Map();
 for (const seed of SEEDS) {
   const state = createNewGameState(seed);

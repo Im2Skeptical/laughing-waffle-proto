@@ -61,6 +61,6 @@ const loaded=deserializeGameState(serializeGameState(state));
 assert.deepEqual(getVassalNodeResolutionGains(loaded,getCurrentLifeMapVassal(loaded),'development'),getVassalNodeResolutionGains(state,v,'development'));
 for(const schema of [49,50]) {
  const obsolete=serializeGameState(state);obsolete.gameStateSchemaVersion=schema;
- assert.throws(()=>deserializeGameState(obsolete),/expected v51/,'older Practice-capacity and fractional-payout trajectories are rejected');
+ assert.throws(()=>deserializeGameState(obsolete),/expected v52/,'older Practice-capacity and fractional-payout trajectories are rejected');
 }
 console.log('Regional Prestige: per-region floor, population/control, node preview, shared payout, delve/encounter exclusion, no drip and JSON continuation OK.');

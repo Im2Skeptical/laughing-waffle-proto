@@ -318,10 +318,15 @@ export function canonicalizeGamepiecesDraft(value) {
   for(const [id,def] of Object.entries(practices)) {
     const source=value?.practices?.[id];
     if(!source)continue;
-    const scale=source.keywordOutputScale;
+    for(const field of ['keywordOutputScale','keywordCapacityScale']) {
+    const scale=source[field];
     if(scale && Object.hasOwn(PRACTICE_KEYWORDS,scale.keyword) && Number.isInteger(scale.per) && scale.per>0
-      && Number.isInteger(scale.cap) && scale.cap>=0 && Number.isFinite(scale.amount) && scale.amount>=0
-      && def.effects.some(effect=>effect.op==='generateStock')) def.keywordOutputScale=clone(scale);
+      && (scale.cap===undefined || Number.isInteger(scale.cap) && scale.cap>=0) && Number.isFinite(scale.amount) && scale.amount>=0
+      && def.effects.some(effect=>effect.op==='generateStock')) def[field]=clone(scale);
+    else if(!Object.hasOwn(source,field)) delete def[field];
+    }
+    if(source.stockMultipliers && !validateGamepieceMechanics({...def,stockMultipliers:source.stockMultipliers}).length) def.stockMultipliers=clone(source.stockMultipliers);
+    else if(!Object.hasOwn(source,'stockMultipliers')) delete def.stockMultipliers;
     const seasonal=[def.activation.type,...(def.activation.also??[])].includes('season');
     def.effects.forEach((effect,index)=>{
       const amounts=source.effects?.[index]?.seasonAmounts;
@@ -446,12 +451,15 @@ export function validateGamepiecesDraft(value) {
       }
     }
     if (kind==='practices') for (const [id,def] of Object.entries(value.practices)) {
-      const scale=def.keywordOutputScale;
+      for(const field of ['keywordOutputScale','keywordCapacityScale']) {
+      const scale=def[field];
       if(scale!==undefined&&(!scale||!Object.hasOwn(PRACTICE_KEYWORDS,scale.keyword)
-        ||!Number.isInteger(scale.per)||scale.per<1||!Number.isInteger(scale.cap)||scale.cap<0
+        ||!Number.isInteger(scale.per)||scale.per<1||(scale.cap!==undefined&&(!Number.isInteger(scale.cap)||scale.cap<0))
         ||!Number.isFinite(scale.amount)||scale.amount<0
         ||!def.effects?.some(effect=>effect.op==='generateStock')))
-        errors.push(`practices.${id}: invalid keyword Output Multiplier`);
+        errors.push(`practices.${id}: invalid keyword ${field==='keywordCapacityScale'?'Capacity':'Output'} Multiplier`);
+      }
+      if(def.keywordOutputScale && def.keywordCapacityScale) errors.push(`practices.${id}: choose one keyword multiplier pool`);
       if (!['scheduled','charge'].includes(def.mode) || def.lane!==def.mode || (def.mode==='charge')!==(def.activation?.type==='charge')) errors.push(`practices.${id}: invalid mode`);
       if (def.mode==='charge' && (!Number.isInteger(def.charge?.threshold) || def.charge.threshold<1 || !Number.isInteger(def.charge?.gain) || def.charge.gain<1 || !def.charge.trigger?.any?.length)) errors.push(`practices.${id}: invalid Charge grammar`);
       if (def.mode==='charge' && ((def.consume??[]).length || (def.require??[]).length)) errors.push(`practices.${id}: Charge cannot consume or require Stock`);

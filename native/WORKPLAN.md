@@ -139,3 +139,11 @@ user decision; this milestone does not authorize cutover.
   assets, build/preview and all regression suites). `npm start` served the
   browser preview with matching version and fingerprint metadata. These are
   browser-project/setup checks, not native compilation or device measurements.
+
+## Browser reference maintenance - card content pass
+
+Bounded maintenance owner: card-content task (complete at handoff). The browser
+v1.1.74 content pass replaces blanket terrain effects with captured card rules
+and uses GameState 52. Regenerate only `native/reference/corpus/` after checking
+live/JSON/replay parity, then run its frozen verifier. No native gameplay or
+N02/N03 implementation is included; the existing ready items retain their owners.
