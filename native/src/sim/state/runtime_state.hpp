@@ -52,6 +52,10 @@ struct RuntimeState {
     RuntimeIndexes indexes;
     std::shared_ptr<const CapturedContent> content;
     runtime::IdTables addedIds;
+    // The browser omits this latch on export and clears it on import.
+    bool seasonChanged{};
+    // Derived from tSec and immutable settings. Zero triggers calculation.
+    double nextLunarBoundarySec{};
 
     template<class Key>
     Key find_id(std::string_view name) const

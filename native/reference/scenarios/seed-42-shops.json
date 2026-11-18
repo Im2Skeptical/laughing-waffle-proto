@@ -76,5 +76,10 @@
     71,
     80,
     132
+  ],
+  "windows": [
+    { "startSec": 12, "count": 8 },
+    { "startSec": 68, "count": 8 },
+    { "startSec": 80, "count": 12 }
   ]
 }

@@ -73,8 +73,7 @@ ctest --preset dev --output-on-failure
 ```
 
 The optimized preset uses the same three commands with preset `optimized` and
-`.\build\optimized\waffle_native_demo.exe --smoke`. CTest has six tests,
-each with a 60-second timeout. `headless_rmlui`, `headless_utf8_assets` and
+`.\build\optimized\waffle_native_demo.exe --smoke`. `headless_rmlui`, `headless_utf8_assets` and
 `headless_presentation_math` link RmlUi and FreeType and run without a window.
 `core_layering`, `core_vectors` and `core_state_round_trip` verify the core
 without Node or graphics dependencies. See [core verification](src/core/README.md)
@@ -84,6 +83,20 @@ scripted presentation benchmark. `--smoke --capture <existing-directory>` writes
 the overview and nested inspector screenshots. Do not leave `waffle_native_demo`
 running. See [README.md](README.md) for the measurement boundaries. Recorded
 results are in [WORKPLAN.md](WORKPLAN.md).
+
+Run step-reference checks from the repository root after building:
+
+```powershell
+node native/reference/trace.mjs
+node native/reference/trace.mjs --check
+node native/reference/verify.mjs
+node native/reference/step-windows.mjs native/build/optimized/src/sim/waffle_parity.exe
+```
+
+CTest runs the checked-in seed-1 step window, numeric clock and lunar controls,
+and CLI controls when Node is available. The last command above opts into all
+generated windows. See [step parity](src/sim/README.md#step-parity) for the
+single-window CLI, mask validation, and optimized timing.
 
 For an Android debug APK, run
 `powershell -NoProfile -ExecutionPolicy Bypass -File native/tools/bootstrap-android.ps1`

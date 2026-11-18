@@ -11,6 +11,7 @@ import {
   applyReplayActionsAtSecond,
   TICKS_PER_REPLAY_SECOND,
 } from "../../src/model/replay-second-runner.js";
+import { setPaused } from "../../src/model/game-model.js";
 import { deserializeGameState, serializeGameState } from "../../src/model/state.js";
 import {
   appendActionAtCursor,
@@ -25,6 +26,7 @@ const scenariosDir = join(here, "scenarios");
 const fixturesDir = join(here, "fixtures");
 const artifactDir = join(REPO_ROOT, "artifacts", "native-reference");
 const tracesDir = join(artifactDir, "traces");
+const windowsDir = join(artifactDir, "windows");
 const minLastContinuationSec = 60;
 
 function readJson(path) {
@@ -42,7 +44,7 @@ function integerInRange(value, min, max = Number.MAX_SAFE_INTEGER) {
 function loadScenario(id) {
   requireThat(/^[a-z0-9]+(?:-[a-z0-9]+)*$/u.test(id), "Invalid scenario id " + id);
   const scenario = readJson(join(scenariosDir, id + ".json"));
-  const { start, actions, horizonSec, keepSeconds } = scenario;
+  const { start, actions, horizonSec, keepSeconds, windows = [] } = scenario;
   requireThat(scenario.id === id, id + ": scenario id must match its file name");
   requireThat(start && integerInRange(start.seed, 1, 0xffffffff), id + ": expected a nonzero uint32 seed");
   requireThat(start.kind === "newGame" ||
@@ -62,6 +64,20 @@ function loadScenario(id) {
       typeof action.kind === "string" && action.kind.length > 0 &&
       action.payload && typeof action.payload === "object" && !Array.isArray(action.payload)),
   id + ": actions need a kind, payload, and ascending tSec inside the trace");
+  const windowIds = new Set();
+  requireThat(Array.isArray(windows), id + ": windows must be an array");
+  for (const window of windows) {
+    requireThat(window && integerInRange(window.startSec, startSec, endSec) &&
+      integerInRange(window.count, 2, endSec - window.startSec + 1) &&
+      (!Object.hasOwn(window, "paused") || window.paused === true),
+    id + ": windows need startSec and count inside the trace, with optional paused: true");
+    const windowId = String(window.startSec) + (window.paused ? "-paused" : "");
+    requireThat(!windowIds.has(windowId), id + ": duplicate window " + windowId);
+    windowIds.add(windowId);
+    requireThat(window.paused || !actions.some(action =>
+      action.tSec > window.startSec && action.tSec < window.startSec + window.count),
+    id + ": step window " + windowId + " crosses a journal action");
+  }
   return { scenario, startSec, endSec };
 }
 
@@ -106,6 +122,22 @@ function assertHash(id, check, sec, expected, actual, expectedHash) {
     "\n" + formatStateDiff(diffStates(expected, actual)) + "\nStates: " + diagnostic);
 }
 
+function capturePausedWindow(snapshot, { startSec, count }) {
+  const state = deserializeGameState(snapshot);
+  requireThat(setPaused(state, true).ok, "Could not pause window at " + startSec);
+  const anchor = serializeGameState(state);
+  const hash = sha256Value(anchor);
+  const files = new Map([[stateFile(startSec), JSON.stringify(anchor)]]);
+  for (let offset = 1; offset < count; offset += 1) {
+    const result = advanceReplayStateOneSecond(state);
+    requireThat(!result.ok && result.currentSec === startSec, "Paused window advanced at " + startSec);
+    const after = serializeGameState(state);
+    requireThat(sha256Value(after) === hash, "Paused window mutated at " + startSec);
+    files.set(stateFile(startSec + offset), JSON.stringify(after));
+  }
+  return files;
+}
+
 function capture({ scenario, startSec, endSec }, baseline) {
   const { id, actions, keepSeconds } = scenario;
   const live = createStart(scenario, startSec);
@@ -130,6 +162,11 @@ function capture({ scenario, startSec, endSec }, baseline) {
   const validationEnd = Math.max(endSec, continuationWindows.at(-1).throughSec);
   const rows = [HASHES_HEADER];
   const files = new Map();
+  const windows = (scenario.windows ?? []).map(window => ({
+    ...window,
+    id: String(window.startSec) + (window.paused ? "-paused" : ""),
+    files: new Map(),
+  }));
   let checkpointIndex = 0;
   let continuation;
   for (let sec = startSec; sec <= validationEnd; sec += 1) {
@@ -139,6 +176,13 @@ function capture({ scenario, startSec, endSec }, baseline) {
     const snapshot = serializeGameState(live);
     const hash = sha256Value(snapshot);
     if (sec <= endSec) rows.push(sec + "\t" + hash);
+    for (const window of windows) {
+      if (window.paused) {
+        if (sec === window.startSec) window.files = capturePausedWindow(snapshot, window);
+      } else if (sec >= window.startSec && sec < window.startSec + window.count) {
+        window.files.set(stateFile(sec), JSON.stringify(snapshot));
+      }
+    }
 
     if (continuation) {
       const { state, fromSec, throughSec } = continuation;
@@ -185,7 +229,7 @@ function capture({ scenario, startSec, endSec }, baseline) {
     timing: { startSec, endSec, ticksPerSecond: TICKS_PER_REPLAY_SECOND, secondsPerYear: secondsPerYear(live) },
     validation: { continuationWindows, rebuildSeconds: keepSeconds },
   }, null, 2) + "\n");
-  return files;
+  return { files, windows };
 }
 
 function assertMatchingFile(directory, file, text) {
@@ -205,6 +249,16 @@ function checkOutputs(directory, fixtureDir, files) {
   }
 }
 
+function writeOutputs(directory, files) {
+  mkdirSync(directory, { recursive: true });
+  for (const [file, text] of files) writeFileSync(join(directory, file), text);
+  for (const entry of readdirSync(directory, { withFileTypes: true })) {
+    if (entry.isFile() && /^state-\d+\.json$/u.test(entry.name) && !files.has(entry.name)) {
+      unlinkSync(join(directory, entry.name));
+    }
+  }
+}
+
 function main(args) {
   const baseline = readJson(join(here, "BASELINE"));
   requireThat(baseline.gameConfigSchemaVersion === GAME_CONFIG_SCHEMA_VERSION &&
@@ -218,23 +272,28 @@ function main(args) {
   for (const recipe of scenarios) {
     const { scenario: { id, keepSeconds }, startSec, endSec } = recipe;
     const started = performance.now();
-    const files = capture(recipe, baseline);
+    const { files, windows } = capture(recipe, baseline);
     const directory = join(tracesDir, id);
     if (check) {
       checkOutputs(directory, join(fixturesDir, id), files);
     } else {
-      mkdirSync(directory, { recursive: true });
-      for (const [file, text] of files) writeFileSync(join(directory, file), text);
-      for (const entry of readdirSync(directory, { withFileTypes: true })) {
-        if (entry.isFile() && /^state-\d+\.json$/u.test(entry.name) && !files.has(entry.name)) {
-          unlinkSync(join(directory, entry.name));
-        }
+      writeOutputs(directory, files);
+    }
+    let windowStates = 0;
+    for (const window of windows) {
+      const path = join(windowsDir, id, window.id);
+      if (check) {
+        checkOutputs(path, join(fixturesDir, "windows", id, window.id), window.files);
+      } else {
+        writeOutputs(path, window.files);
       }
+      windowStates += window.files.size;
     }
     const bytes = [...files.values()].reduce((total, text) => total + Buffer.byteLength(text), 0);
     console.log(id + " " + (check ? "checked" : "captured") +
       ": seconds " + startSec + "-" + endSec + ", " + keepSeconds.length + " states, " +
-      bytes + " bytes in " + ((performance.now() - started) / 1000).toFixed(2) +
+      bytes + " trace bytes, " + windowStates + " states in " + windows.length +
+      " step windows in " + ((performance.now() - started) / 1000).toFixed(2) +
       " s; JSON continuation and rebuild matched.");
   }
 }

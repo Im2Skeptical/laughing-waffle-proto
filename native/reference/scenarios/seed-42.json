@@ -3,5 +3,6 @@
   "start": { "kind": "newGame", "seed": 42 },
   "actions": [],
   "horizonSec": 160,
-  "keepSeconds": [0, 6, 32, 100]
+  "keepSeconds": [0, 6, 32, 100],
+  "windows": [{ "startSec": 0, "count": 2, "paused": true }, { "startSec": 6, "count": 8 }]
 }
