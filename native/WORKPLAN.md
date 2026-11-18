@@ -221,7 +221,7 @@ optimized build passed 11/11 CTests. Deferred divergences: modular RNG,
 overflow policy and collation. Open questions: required marker columns and
 admissible world/content sizes.
 
-## N03d - Browser-schema adapter and L0 round-trip (N03d-1, N03d-2 done; N03d-3 active)
+## N03d - Browser-schema adapter and L0 round-trip (done)
 
 N03d-1: generated mirror types and JSON I/O with L0 round-trip. N03d-2: the
 runtime state model (hot typed tables, interned IDs, cold subtrees kept as mirror
@@ -260,6 +260,16 @@ N03d-3: move growing cold history (Practice traces, journals, histories) out of
 the copied state into append-only immutable storage with cursors in state.
 Done when a late-state full copy is ≤20 µs, L0 through runtime still holds and
 copy independence is tested.
+
+N03d-3 result, 19 Nov 2026 (merged from `t3/native-append-only-cold-history`
+650f3556). Histories (site and civilization Practice traces, receipts, Vassal
+and Life Map records) now live in immutable 16-record typed pages with cursors
+in state. Appending creates a branch-owned tail page; export materializes
+retained order. Optimized full copies: opening 3.6 µs, year 50 5.6 µs (was
+560), late trace 5.4 µs (was 614). Ring retention matches the browser writer
+for saturated cases. L0 through runtime: 22/22 and 2,949/2,949. The
+supervisor's merged optimized build passed 16/16 CTests. Append cost and
+forecast memory get measured once recipes write traces (N03e-3).
 
 ## N03e - Tick systems with step parity (N03e-0 and N03e-1 active)
 

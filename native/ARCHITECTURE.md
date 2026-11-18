@@ -143,8 +143,11 @@ mappings convert between the mirror and runtime state. The adapter is used for
 fixtures, parity tests and importing browser states. Its speed does not matter.
 
 Value semantics give previews independent mutable state. A preview or restore
-copies runtime state. It does not share pointers with cached state, which keeps
-the timegraph guardrail.
+copies runtime state. Every copy owns all of its mutable data. Copies may share
+immutable data: captured content, and the append-only history pages and
+versions introduced by N03d-3. Nothing shared is ever mutated, and an append
+creates a new page owned by that branch. This keeps the timegraph guardrail
+(no shared mutable pointers between previews and cached state).
 
 ## Port order
 
