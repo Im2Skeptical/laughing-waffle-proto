@@ -358,6 +358,15 @@ N03e-3 coding against fixed interfaces:
 - N03d-5 allocation-free history appends: in-place writes to a branch-owned
   tail plus an amortized page arena, with the `History` API unchanged.
 
+19 Nov 2026: the Codex workspace ran out of credits. N03e-7a stopped
+mid-task. Its unverified partial work is preserved as WIP commit 3d01d5fb on
+`t3/port-native-migration-stage`. It includes a `seed-123-migration` scenario
+with natural movement at seconds 2033 and 2129, 32 people each. Other active
+workers (N03e-3, N03e-4, N03e-6a, N03d-4, N03d-5) may stop the same way. Their
+worktrees hold uncommitted work. Resume each from its branch and worktree.
+Note: N03e-3 and N03e-6a both edit `gamestate.v52.json` and regenerate the
+mirror, so expect schema merge conflicts.
+
 ## N03f - Actions, replay and new game (pending N03e)
 
 Action application and `rebuildStateAtSecond` (L2), then new game and world
