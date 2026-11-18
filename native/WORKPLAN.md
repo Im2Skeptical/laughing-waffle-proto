@@ -193,7 +193,7 @@ layout.
 Done when a design note with budgets per step exists, micro-benchmarks support
 it, and every proposed divergence from JS behavior is listed for review.
 
-## N03d - Browser-schema adapter and L0 round-trip (N03d-1 active; N03d-2 pending N03p)
+## N03d - Browser-schema adapter and L0 round-trip (N03d-1 done; N03d-2 pending N03p)
 
 N03d-1: generated mirror types and JSON I/O with L0 round-trip. N03d-2: the
 mapping between mirror and runtime state, once N03p fixes the layout.
@@ -201,6 +201,16 @@ mapping between mirror and runtime state, once N03p fixes the layout.
 Generate mirror types and JSON I/O from the schema. Map them to and from
 runtime state. Every reference state round-trips to byte-identical canonical
 JSON. `waffle_parity` can import, export and diff states.
+
+N03d-1 result, 19 Nov 2026 (merged from `t3/generated-browser-schema-mirror`
+b05f3fd0): [codegen.mjs](schema/codegen.mjs) with `--check` generates the
+`waffle_sim` mirror (12.5k lines; optimized compile about 11 s). Absent and null
+stay distinct, and dict order is preserved. `waffle_parity` provides
+`roundtrip`, `hash` and `diff`. L0: 22/22 trace states and 2,949/2,949 schema
+snapshots round-trip with equal hashes. No schema fixes were needed. The
+supervisor's merged optimized build passed 10/10 CTests. The `waffle_parity hash`
+of the seed-1 opening equals trace second 0 (`b38990e9…`). The binary is at
+`build/<preset>/src/sim/waffle_parity.exe`.
 
 ## N03e - Tick systems with step parity (pending N03d; split by pipeline)
 
