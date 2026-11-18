@@ -1,3 +1,4 @@
+#include "core/js_math.hpp"
 #include "core/js_number.hpp"
 #include "core/json.hpp"
 #include "core/rng.hpp"
@@ -14,6 +15,7 @@
 #include <iostream>
 #include <iterator>
 #include <limits>
+#include <sstream>
 #include <stdexcept>
 #include <vector>
 
@@ -42,14 +44,18 @@ std::string read_file(const std::filesystem::path& path)
     return {std::istreambuf_iterator<char>(file), {}};
 }
 
-double from_hex(const json::Value& value)
+std::uint64_t bits_from_hex(std::string_view hex)
 {
-    const auto& hex = value.as_string();
     const auto end = hex.data() + hex.size();
     std::uint64_t bits;
     const auto result = std::from_chars(hex.data(), end, bits, 16);
     expect(hex.size() == 16 && result.ptr == end && result.ec == std::errc{}, "invalid hex vector");
-    return std::bit_cast<double>(bits);
+    return bits;
+}
+
+double from_hex(const json::Value& value)
+{
+    return std::bit_cast<double>(bits_from_hex(value.as_string()));
 }
 
 std::string float_hex(double value)
@@ -105,6 +111,82 @@ void check_numbers(const json::Value& vectors)
         const auto& text = number.at(0).as_string();
         check_bits(json::parse(text).as_number(), number.at(1), text + " parser");
     }
+}
+
+void check_math_vectors(const std::filesystem::path& path)
+{
+    struct Operation {
+        std::string_view name;
+        double (*unary)(double) noexcept = nullptr;
+        double (*binary)(double, double) noexcept = nullptr;
+    };
+    constexpr Operation operations[] = {
+        {"pow", nullptr, js::pow}, {"exp", js::exp}, {"log", js::log}, {"log10", js::log10},
+        {"sin", js::sin}, {"cos", js::cos}, {"atan2", nullptr, js::atan2},
+        {"hypot", nullptr, js::hypot}, {"sqrt", js::sqrt},
+    };
+    std::ifstream file(path);
+    expect(file.is_open(), "could not open math fixture " + path.string());
+    std::string line;
+    expect(bool(std::getline(file, line)) && line.starts_with("# v24."), "missing Node 24 math reference");
+    std::cout << line << '\n';
+    for (const auto& operation : operations) {
+        std::string name;
+        std::size_t count = 0;
+        expect(bool(std::getline(file, line)), "missing math vector section");
+        std::istringstream section(line);
+        expect(bool(section >> name >> count) && name == operation.name && count >= 20'000,
+            "invalid math vector section for " + std::string(operation.name));
+
+        const bool check_legacy = name == "pow";
+        const std::size_t input_count = operation.binary ? 2 : 1;
+        const std::size_t column_count = input_count + 1 + check_legacy;
+        std::size_t default_mismatches = 0;
+        std::uint64_t max_ulp = 0;
+        for (std::size_t row = 0; row < count; ++row) {
+            expect(bool(std::getline(file, line)) && line.size() == 17 * column_count - 1,
+                "invalid math vector width");
+            const auto field = [&](std::size_t column) {
+                return std::string_view(line).substr(column * 17, 16);
+            };
+            const auto first = std::bit_cast<double>(bits_from_hex(field(0)));
+            const double actual = operation.binary
+                ? operation.binary(first, std::bit_cast<double>(bits_from_hex(field(1))))
+                : operation.unary(first);
+            const auto actual_bits = std::bit_cast<std::uint64_t>(actual);
+            const auto expected = field(column_count - 1);
+            const auto operands = std::string_view(line).substr(0, input_count * 17 - 1);
+            if (actual_bits != bits_from_hex(expected)) {
+                std::ostringstream error;
+                error << name << "(" << operands << ") expected " << expected
+                      << ", got " << std::hex << actual_bits;
+                throw std::runtime_error(error.str());
+            }
+
+            if (check_legacy) {
+                const auto default_bits = bits_from_hex(field(input_count));
+                if (actual_bits == default_bits) continue;
+                const auto default_value = std::bit_cast<double>(default_bits);
+                const auto difference = actual_bits > default_bits
+                    ? actual_bits - default_bits : default_bits - actual_bits;
+                if (!std::isfinite(actual) || !std::isfinite(default_value) ||
+                    std::signbit(actual) != std::signbit(default_value) || difference > 1) {
+                    std::ostringstream error;
+                    error << "pow(" << operands << ") exceeds the default Node 1 ULP allowance: expected "
+                          << field(input_count) << ", got " << std::hex << actual_bits;
+                    throw std::runtime_error(error.str());
+                }
+                ++default_mismatches;
+                max_ulp = std::max(max_ulp, difference);
+            }
+        }
+        std::cout << name << ": " << count << " exact";
+        if (check_legacy) {
+            std::cout << " (fdlibm), " << default_mismatches << " default Node mismatches, max " << max_ulp << " ULP";
+        }
+        std::cout << '\n';
+    }
+    expect(!std::getline(file, line) && file.eof() && !file.bad(), "trailing math vectors or read failure");
 }
 
 void expect_invalid_json(std::string_view input)
@@ -226,7 +308,7 @@ void check_states(const std::filesystem::path& manifest)
 
 int main(int argc, char** argv)
 try {
-    expect(argc == 3, "usage: waffle_core_tests vectors|states INPUT_JSON");
+    expect(argc == 3, "usage: waffle_core_tests vectors|states|math INPUT_FILE");
     const std::string_view mode(argv[1]);
     if (mode == "vectors") {
         const auto vectors = json::parse(read_file(argv[2]));
@@ -235,6 +317,8 @@ try {
         check_rng(vectors);
     } else if (mode == "states") {
         check_states(argv[2]);
+    } else if (mode == "math") {
+        check_math_vectors(argv[2]);
     } else {
         throw std::runtime_error("unknown test mode");
     }
