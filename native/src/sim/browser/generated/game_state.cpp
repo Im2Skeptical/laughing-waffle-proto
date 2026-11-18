@@ -9827,4 +9827,9 @@ core::json::Value export_game_state(const GameState& state)
     return write_GameState(state);
 }
 
+core::json::Value export_game_config(const GameConfig& config)
+{
+    return write_GameConfig(config);
+}
+
 }

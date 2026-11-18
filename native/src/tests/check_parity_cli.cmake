@@ -9,6 +9,21 @@ if(NOT hash STREQUAL expected)
 	message(FATAL_ERROR "round-trip hash: expected ${expected}, got ${hash}")
 endif()
 execute_process(COMMAND "${parity}" diff "${input}" "${exported}" COMMAND_ERROR_IS_FATAL ANY)
+execute_process(COMMAND "${parity}" runtime-roundtrip "${input}" --out "${exported}"
+	COMMAND_ERROR_IS_FATAL ANY)
+execute_process(COMMAND "${parity}" hash "${exported}"
+	OUTPUT_VARIABLE hash OUTPUT_STRIP_TRAILING_WHITESPACE COMMAND_ERROR_IS_FATAL ANY)
+if(NOT hash STREQUAL expected)
+	message(FATAL_ERROR "runtime round-trip hash: expected ${expected}, got ${hash}")
+endif()
+execute_process(COMMAND "${parity}" runtime-stats "${input}"
+	OUTPUT_VARIABLE stats COMMAND_ERROR_IS_FATAL ANY)
+string(JSON sites GET "${stats}" sites)
+string(JSON hot_bytes GET "${stats}" hotBytes)
+string(JSON copies GET "${stats}" copySamples)
+if(NOT sites EQUAL 20 OR hot_bytes LESS 1 OR NOT copies EQUAL 101)
+	message(FATAL_ERROR "unexpected runtime statistics: ${stats}")
+endif()
 
 set(left "${output_dir}/parity-left.json")
 set(right "${output_dir}/parity-right.json")
