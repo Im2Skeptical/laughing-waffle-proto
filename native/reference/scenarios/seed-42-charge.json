@@ -1,0 +1,7 @@
+{
+  "id": "seed-42-charge",
+  "start": { "kind": "chargeExhibit", "seed": 42 },
+  "actions": [],
+  "horizonSec": 48,
+  "keepSeconds": [0, 17, 41]
+}

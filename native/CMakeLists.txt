@@ -36,6 +36,15 @@ add_subdirectory(src/core)
 add_subdirectory(src/sim)
 add_subdirectory(src/bench)
 
+if(NOT ANDROID)
+	add_test(NAME stage_parity COMMAND "${CMAKE_COMMAND}"
+		"-Dparity=$<TARGET_FILE:waffle_parity>"
+		"-Dfixture=${CMAKE_CURRENT_SOURCE_DIR}/reference/fixtures/stages/seed-1/1"
+		"-Doutput_dir=${CMAKE_CURRENT_BINARY_DIR}"
+		-P "${CMAKE_CURRENT_SOURCE_DIR}/src/tests/check_stage_cli.cmake")
+	set_tests_properties(stage_parity PROPERTIES TIMEOUT 60)
+endif()
+
 include("${CMAKE_CURRENT_LIST_DIR}/cmake/dependencies.cmake")
 
 add_library(waffle_demo_probe STATIC

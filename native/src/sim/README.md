@@ -313,3 +313,39 @@ The seed-1 opening window measured 0.159 µs per sim-second on the
 Intel Core i9-10900K with MSVC 19.50, using the median of three optimized
 runs of 9,984 timed advances each. The 0.25 µs clock and dispatch budget
 is recorded in the [performance architecture](../../spec/performance-architecture.md#stepping-and-phase-budget).
+
+## Stage parity
+
+The [browser stage probes](../../reference/README.md#stage-probes) provide
+complete GameState and a versioned sidecar at each named seam. The checked-in
+seed 1 clock pair runs through the native clock and AP kernel in CTest.
+
+```powershell
+$parity = ".\native\build\optimized\src\sim\waffle_parity.exe"
+$fixture = "native/reference/fixtures/stages/seed-1/1"
+& $parity stage --stage advance_clock --before "$fixture/before-advance_clock.json" --after "$fixture/after-advance_clock.json"
+```
+
+For a gameplay pair, resolve the named stage's `before` and `after` indices
+through the capture manifest. `stage --stage <name> --before <file> --after
+<file> [--masks <file>]` imports the before state's browser mirror into
+`RuntimeState`, restores `seasonChanged`, and executes the selected seam in
+isolation. When wiring a lunar stage, derive its schedule from the imported
+`tSec` and captured `phaseDurationSec`. Pass the sidecar's pre-phase Chaos
+value to the phase event drain. Legacy `_boardDirty` stays as boundary
+metadata. False and absent are supported. The clock span uses
+`advance_one_second` with the settlement dispatcher disabled and ends with
+the dispatch-entry latch.
+
+At this cut the gameplay functions are private stubs. The CLI identifies
+their comparisons as `unported identity`. A mismatch is expected whenever
+the browser stage wrote a compared field. As each gameplay seam becomes
+callable, wire the production stage body into the tool's stage dispatcher.
+
+The CLI exports the result and compares canonical GameState hashes and the
+sidecar against the after file. It exits 0 on a match, 1 on a difference
+with the first path, and 2 on invalid input. Comparisons are unmasked by
+default. Optional format-version-1 masks apply to GameState only. Use
+stage-specific masks so the comparison covers the fields the stage is
+supposed to write. CTest also verifies that an altered expected latch
+fails and that a true input latch is restored.

@@ -80,7 +80,7 @@ export function formatStateDiff({ differingLeaves, entries }) {
   ].join("\n");
 }
 
-function readHashes(file) {
+export function readHashes(file) {
   const lines = readFileSync(file, "utf8").split("\n");
   if (lines.shift() !== HASHES_HEADER || lines.pop() !== "" || !lines.length) {
     throw new Error(file + ": expected a header, data rows, and a final LF.");
