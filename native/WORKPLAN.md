@@ -373,7 +373,12 @@ six of eight full Birth probes run scheduled Practices first, so full Birth
 parity depends on N03e-3; it was adding a Practice-seam comparison.
 N03e-6a bf6c6951 on `t3/native-faith-chaos-stage`: Faith matched all four
 original stage pairs unmasked, including the collapse reservation; nine step
-windows passed. Remaining: probe expansion and mask narrowing.
+windows passed. Remaining: probe expansion and mask narrowing. N03e-3 on
+`t3/native-scheduled-stock-discharge` (WIP on top of a temporary seed-1
+topology stub commit). It had settled the browser recipe order: complete the
+local scheduled pass, drain FIFO, then shared retries one at a time, each
+draining its children. The engine was unfinished and unverified. All six
+workers are stopped; nothing native is running.
 Note: N03e-3 and N03e-6a both edit `gamestate.v52.json` and regenerate the
 mirror, so expect schema merge conflicts.
 
