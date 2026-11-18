@@ -349,6 +349,15 @@ Parallel wave, started 19 Nov 2026: N03e-3 recipe engine, N03e-4 Birth,
 N03e-6a Faith/Chaos and N03e-7a Migration, each in its own stage files.
 Food, Housing, Death and control follow once the recipe engine lands.
 
+N03e-3 surfaced two foundation gaps, now assigned. Both run concurrently, with
+N03e-3 coding against fixed interfaces:
+- N03d-4 world topology: an immutable `WorldTopology` (region order, physical
+  adjacency, biome, mountain components) shared from RuntimeState. For now it
+  is loaded from browser-exported files in `reference/topology/`. N03f must
+  later generate identical topology natively (L3).
+- N03d-5 allocation-free history appends: in-place writes to a branch-owned
+  tail plus an amortized page arena, with the `History` API unchanged.
+
 ## N03f - Actions, replay and new game (pending N03e)
 
 Action application and `rebuildStateAtSecond` (L2), then new game and world
