@@ -1,12 +1,90 @@
 # Browser reference corpus
 
-Preparatory capture for pending native milestone N03
-([issue 96](https://github.com/Im2Skeptical/laughing-waffle-proto/issues/96)).
-This directory freezes a small browser behavioral reference. It does not
-implement C++, finish N03, or establish cross-language parity.
+This directory contains the N03b step-reference traces and the older opening
+regression corpus. The traces freeze observed browser behavior for the native
+port. [Native parity levels](../ARCHITECTURE.md#parity-levels)
 
-The bootstrap worker owns `native/WORKPLAN.md`, `native/AGENTS.md`, and the
-native build files. This packet owns only `native/reference/`.
+## Step-reference traces
+
+Use the browser model pinned in [BASELINE](BASELINE). From the repository root:
+
+```text
+node native/reference/trace.mjs
+node native/reference/trace.mjs --check
+node native/reference/trace.mjs seed-42-shops
+node native/reference/diff.mjs --self-test
+node native/reference/diff.mjs <expected-state.json> <actual-state.json>
+node native/reference/diff.mjs <reference-trace-dir> <native-trace-dir-or-hashes.tsv>
+```
+
+`trace.mjs` defaults to all scenarios and accepts one or more scenario IDs.
+A capture writes `artifacts/native-reference/traces/<id>/`. `--check`
+regenerates in memory and compares the artifact files and any checked-in
+fixtures byte for byte. `fixtures/` carries all five hash lists and the seed 1
+opening state for codec tests. The other full states are generated on demand.
+
+A scenario gives the start seed, optional prepared forecast anchor, duration
+(`horizonSec`), absolute `keepSeconds`, and chronological `actions`. Each
+action is a stored `{tSec, kind, payload}` entry. The official runner advances
+all 60 ticks to a second, applies that second's journal entries in their
+listed order, then captures the state. The start has no advance. A full state
+already includes the journal entries for its second.
+
+### Files
+
+- `hashes.tsv` is UTF-8 without a BOM. Its header is exactly `tSec<TAB>sha256<LF>`.
+  Each row is `<second><TAB><digest><LF>` with no padding or extra columns.
+  Seconds are nonnegative decimal integers without leading zeros, ascending
+  consecutively from start through end inclusive. Digests are 64 lowercase
+  hexadecimal characters. The final row ends in LF.
+- Each digest covers UTF-8 JSON from the corpus's `canonicalJson` applied to
+  `serializeGameState(state)`, with no BOM or trailing newline. Object keys
+  are sorted by UTF-16 code units before `JSON.stringify` (ECMAScript emits
+  integer-index properties first, in numeric order). Array order and values
+  are preserved. Use `JSON.stringify` number and string formatting.
+- `state-<second>.json` is the exact UTF-8 output of
+  `JSON.stringify(serializeGameState(state))`. It retains JS property order and
+  has no BOM or final newline. Use it for ordered codec round-trips.
+- `manifest.json` records the baseline and schema versions, gameConfig hash,
+  scenario, simulated timing and validation intervals. Capture prints measured
+  elapsed time separately so the generated files stay byte-identical.
+
+A passing capture means every kept state reproduces the uninterrupted hashes
+from its JSON round-trip through the next kept second, or for 60 seconds after
+the last kept state. That last interval can extend past the exported horizon.
+`rebuildStateAtSecond` also matches every kept hash. A mismatch stops capture
+and prints the first paths, with full conflicting states under
+`artifacts/native-reference/diagnostics/<id>/` when both states are available.
+The native step-parity check still needs to run against these references.
+
+`diff.mjs` exits `0` on a match, `1` on divergence and `2` for invalid input.
+State comparisons visit object keys lexically and array elements by index.
+The first eight paths include values and their parent paths. The leaf count
+includes all differences. A missing subtree counts its leaves, a type
+replacement counts the larger subtree, and an empty container counts as one
+value. Trace comparisons find the first divergent or missing second and use
+`state-<second>.json` from both directories when available.
+
+### Scenarios and capture size
+
+Measured serially on an Intel Core i9-10900K with Node 24.15.0.
+The captured settings use 32 seconds per in-game year.
+
+| Scenario | Inclusive trace seconds | Coverage | Output bytes | Wall time |
+| --- | ---: | --- | ---: | ---: |
+| `seed-1` | 0–1600 | 50 years from New Game | 2,984,742 | 75.17 s |
+| `seed-42` | 0–160 | 5 years from New Game | 2,461,262 | 6.58 s |
+| `seed-1867` | 0–192 | 6 years from New Game | 2,842,497 | 7.86 s |
+| `seed-42-shops` | 0–192 | 6 years with vassal selection, a Practice Reform purchase, and a Public Works visit | 4,931,836 | 8.76 s |
+| `seed-2026-late` | 3200–3392 | 6 years from a year-100 forecast anchor | 2,608,753 | 18.87 s |
+
+The late scenario reconstructs the prepared performance-start anchor through
+the model's forecast path, so the development gzip is optional. The anchor is
+865,644 bytes, up from 373,393 at opening. Its timing includes the preparation.
+
+## Opening regression corpus
+
+The opening corpus predates the step-reference traces.
 
 ## What a passing check means
 

@@ -1,0 +1,80 @@
+{
+  "id": "seed-42-shops",
+  "start": {
+    "kind": "newGame",
+    "seed": 42
+  },
+  "actions": [
+    {
+      "tSec": 7,
+      "kind": "settlementSelectVassal",
+      "payload": {
+        "candidateIndex": 0,
+        "expectedPoolHash": "[{\"classId\":null,\"founderClassId\":\"scholar\",\"archetype\":\"Philosopher\",\"candidateId\":\"candidate-1-1\",\"age\":21,\"locationRegionId\":\"R12\",\"originRegionId\":\"R12\",\"prestige\":18,\"stats\":{\"cunning\":1,\"wisdom\":2,\"effectiveness\":1,\"intelligence\":1},\"portrait\":{\"skinTone\":\"ochre\",\"hairStyle\":\"waves\",\"hairColor\":\"auburn\",\"faceShape\":\"angular\",\"clothingColor\":\"charcoal\",\"accessory\":\"band\",\"expression\":\"calm\"},\"signatureNode\":{\"id\":\"knowledgeShop\",\"groupId\":\"tagShop\",\"tag\":\"Knowledge\",\"label\":\"Knowledge Shop\",\"glyph\":\"KN\",\"color\":6200271,\"description\":\"A mixed shop containing only Knowledge-tagged gamepieces.\",\"variantId\":\"knowledgeShop\"}},{\"classId\":null,\"founderClassId\":\"warrior\",\"archetype\":\"Warlord\",\"candidateId\":\"candidate-1-2\",\"age\":15,\"locationRegionId\":\"R19\",\"originRegionId\":\"R19\",\"prestige\":18,\"stats\":{\"cunning\":0,\"wisdom\":0,\"effectiveness\":0,\"intelligence\":1},\"portrait\":{\"skinTone\":\"ochre\",\"hairStyle\":\"waves\",\"hairColor\":\"gold\",\"faceShape\":\"angular\",\"clothingColor\":\"gold\",\"accessory\":\"beads\",\"expression\":\"bright\"},\"signatureNode\":{\"id\":\"monsterHunt\",\"groupId\":\"monsterHunt\",\"label\":\"Kill Monsters\",\"glyph\":\"KM\",\"color\":13593437,\"description\":\"Choose Campaign targets across the map. Encounter mode determines Force; Food costs also depend on distance.\",\"variantId\":\"monsterHunt\"}}]"
+      }
+    },
+    {
+      "tSec": 12,
+      "kind": "vassalEnterLifeNode",
+      "payload": {
+        "nodeId": "life-milestone-milestone-1"
+      }
+    },
+    {
+      "tSec": 12,
+      "kind": "vassalSelectLifeOption",
+      "payload": {
+        "nodeId": "life-milestone-milestone-1",
+        "optionId": "random"
+      }
+    },
+    {
+      "tSec": 12,
+      "kind": "vassalPurchaseShopOffer",
+      "payload": {
+        "nodeId": "life-milestone-milestone-1",
+        "offerId": "life-milestone-milestone-1:r0:practice:0",
+        "toIndex": 0
+      }
+    },
+    {
+      "tSec": 12,
+      "kind": "vassalConfirmLifeNode",
+      "payload": {
+        "nodeId": "life-milestone-milestone-1"
+      }
+    },
+    {
+      "tSec": 80,
+      "kind": "vassalEnterLifeNode",
+      "payload": {
+        "nodeId": "life-d02-r01"
+      }
+    },
+    {
+      "tSec": 80,
+      "kind": "vassalSelectLifeOption",
+      "payload": {
+        "nodeId": "life-d02-r01",
+        "optionId": "Housing"
+      }
+    },
+    {
+      "tSec": 80,
+      "kind": "vassalConfirmLifeNode",
+      "payload": {
+        "nodeId": "life-d02-r01"
+      }
+    }
+  ],
+  "horizonSec": 192,
+  "keepSeconds": [
+    0,
+    7,
+    12,
+    70,
+    71,
+    80,
+    132
+  ]
+}

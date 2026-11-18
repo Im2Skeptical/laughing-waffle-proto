@@ -1,0 +1,7 @@
+{
+  "id": "seed-1867",
+  "start": { "kind": "newGame", "seed": 1867 },
+  "actions": [],
+  "horizonSec": 192,
+  "keepSeconds": [0, 32, 96, 132]
+}
