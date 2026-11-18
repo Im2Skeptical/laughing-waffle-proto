@@ -1,6 +1,7 @@
 #include "sim/step/advance_second.hpp"
 
 #include "core/js_number.hpp"
+#include "sim/settlement/prelude.hpp"
 #include "sim/state/runtime_state.hpp"
 
 #include <algorithm>
@@ -76,10 +77,8 @@ void advance_clock(RuntimeState& state, int ticks) noexcept
 }
 
 // Deferred stage writes and their owners are listed in parity-masks.json.
-void prelude(RuntimeState&) {}                                     // Unrest, Green, Stranger defaults.
 void seasonal_practices(RuntimeState&) {}                          // Recipes, Stock, Charge, events.
-void spring_death_baseline(RuntimeState&) {}                       // Site history.springDeaths.
-void birth(RuntimeState&, LunarSchedule) {}                        // Moon turns, cohorts, aging and RNG.
+void birth(RuntimeState&, LunarSchedule) {}                        // Cohorts, aging and RNG.
 void food(RuntimeState&, LunarSchedule) {}                         // Meals, market and reservations.
 void after_meals_practices(RuntimeState&) {}                       // Recipes, Stock, Charge, events.
 void garrison_upkeep(RuntimeState&) {}                             // Supplies and garrison records.
@@ -99,7 +98,7 @@ void dispatch_second(RuntimeState& state)
     auto& hot = state.hot;
     if (!hot.variantFlags.settlementPrototypeEnabled) return;
 
-    prelude(state);
+    settlement::second_prelude(state);
     if (state.seasonChanged) {
         seasonal_practices(state);
         if (terminal(hot)) {
@@ -108,8 +107,8 @@ void dispatch_second(RuntimeState& state)
         }
         const auto seasons = state.tables.view(hot.seasons);
         if (hot.currentSeasonIndex >= 0 && hot.currentSeasonIndex < static_cast<double>(seasons.size()) &&
-            state.name(seasons[static_cast<std::size_t>(hot.currentSeasonIndex)]) == "spring") {
-            spring_death_baseline(state);
+            seasons[static_cast<std::size_t>(hot.currentSeasonIndex)] == state.settlementPrelude.spring) {
+            settlement::spring_death_baseline(state);
         }
     }
     if (hot.tSec >= state.nextLunarBoundarySec) {
@@ -119,6 +118,10 @@ void dispatch_second(RuntimeState& state)
         state.nextLunarBoundarySec = hot.tSec + (duration - sinceBoundary);
         if (phase.boundary) {
             const double chaosBefore = hot.civilization.chaos.chaosPower;
+            // Migration's scheduled activation precedes its phase writer.
+            if (phase.phase == LunarPhase::migration && hot.rulesetId) migration_practices(state);
+            if (phase.phase == LunarPhase::birth) settlement::begin_moon_turn(state, phase);
+            else settlement::set_moon_turn_phase(state, phase);
             switch (phase.phase) {
             case LunarPhase::birth:
                 birth(state, phase);
@@ -135,7 +138,6 @@ void dispatch_second(RuntimeState& state)
                 faith(state, phase);
                 break;
             case LunarPhase::migration:
-                if (hot.rulesetId) migration_practices(state);
                 migration(state, phase);
                 break;
             case LunarPhase::death:

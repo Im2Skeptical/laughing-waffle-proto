@@ -1,4 +1,6 @@
 #include "sim/state/runtime_state.hpp"
+#include "sim/settlement/population.hpp"
+#include "sim/settlement/prelude.hpp"
 
 #include "core/sha256.hpp"
 #include "sim/browser/detail/json_path.hpp"
@@ -398,7 +400,9 @@ RuntimeState import_runtime(const browser::GameState& state)
     Import codec{*content, result};
     result.hot = codec.read<HotState>(state, "$");
     result.content = std::move(content);
+    settlement::prepare_population(result);
     rebuild_runtime_indexes(result);
+    settlement::prepare_prelude(result);
     return result;
 }
 
