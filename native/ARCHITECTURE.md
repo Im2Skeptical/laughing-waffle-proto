@@ -171,7 +171,13 @@ rate, re-simulating 16 s from an anchor costs about half a millisecond, so
 anchors can be sparse and memory stays low on the phone. Expected large wins
 are typed state, no per-anchor JSON, collapsed per-tick work and compiled
 content. Deterministic parallelism within a second, such as independent
-regions in a phase, is a later option and must be measured. The timegraph
-non-negotiables (every 60-tick second, every-second summaries) carry over as
-*observable* contracts. Whether native may collapse no-op ticks while keeping
-observable results is a decision for Cam.
+regions in a phase, is a later option and must be measured.
+
+**Tick granularity is a native design choice** (Cam, 18 November 2026). The
+browser's 60 ticks per second is not a requirement for the native runtime.
+Native may collapse or skip ticks, or step per second or per event, wherever
+that is faster. Determinism and native replay must hold. The observable
+contracts also remain: every second is a scrubbable state with its own
+summary, and events are attributed to the second in which they occur. Where
+this changes results relative to the browser, record it as an intentional
+divergence.
