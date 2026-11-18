@@ -180,7 +180,7 @@ Profile, JS sustained 6,720 s in 14.62 s (about 460 sim-s/s): summaries 27%,
 Food 19%, anchor JSON 16%, drains 11%. Clock/AP work is about 0.2%. Lunar phases
 make nearly every second substantive.
 
-## N03p - Performance architecture (active)
+## N03p - Performance architecture (done)
 
 Cam's priority, 18 Nov 2026: performance outranks exact JS matching. See
 [Priorities](ARCHITECTURE.md#priorities). Using the N03c pipeline, frequency
@@ -193,10 +193,23 @@ layout.
 Done when a design note with budgets per step exists, micro-benchmarks support
 it, and every proposed divergence from JS behavior is listed for review.
 
-## N03d - Browser-schema adapter and L0 round-trip (N03d-1 done; N03d-2 pending N03p)
+Result, 19 Nov 2026 (merged from `t3/native-performance-architecture`
+09c18cc1). See the [design note](spec/performance-architecture.md); the adopted
+decisions are in [ARCHITECTURE](ARCHITECTURE.md#performance-stance).
+`waffle_bench` runs skeleton kernels, not rule ports, on a world derived from
+real browser state. Optimized, i9-10900K, seven 32,000 s runs: 3.90 µs/sim-s
+at 20 sites (Birth 2.34, Workforce 0.65, Summary 0.37, Events 0.29), 7.86 at
+2x and 15.04 at 4x. Snapshot 2 KB; restore p95 211 µs at a 64 s stride.
+Summary 2.7 KB/s. Peak 84 MiB for one horizon. The supervisor's merged
+optimized build passed 11/11 CTests. Deferred divergences: modular RNG,
+overflow policy and collation. Open questions: required marker columns and
+admissible world/content sizes.
+
+## N03d - Browser-schema adapter and L0 round-trip (N03d-1 done; N03d-2 active)
 
 N03d-1: generated mirror types and JSON I/O with L0 round-trip. N03d-2: the
-mapping between mirror and runtime state, once N03p fixes the layout.
+runtime state model (hot typed tables, interned IDs, cold subtrees kept as mirror
+types) and the mirror-to-runtime-to-mirror mapping, with L0 through runtime.
 
 Generate mirror types and JSON I/O from the schema. Map them to and from
 runtime state. Every reference state round-trips to byte-identical canonical

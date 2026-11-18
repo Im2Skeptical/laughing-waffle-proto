@@ -124,10 +124,17 @@ never hide an unexplained mismatch.
 
 ## State representation
 
-Runtime state is designed around the measured hot path. Candidates include
-dense arrays indexed by small integer ids, structure-of-arrays for cohorts and
-practices, and precompiled content (DSL to bytecode or tables) captured per
-run. Copying state is cheap, and anchors are compact binary rather than JSON.
+Adopted from [N03p](spec/performance-architecture.md), 19 November 2026.
+IDs are interned to dense ordinals when a run loads, and rules keep explicit
+authored order. Hot state lives in typed dense tables. These cover sites,
+the joint population ledger as authority, board rows, hosted Stock with
+indexed provider spans, and control. Captured `gameConfig` compiles into an
+immutable per-run object of tables and typed DSL instructions. It is keyed by
+content identity plus a native rules/compiler version, so replay always
+compiles the same inputs. Cold data (Life Map, lineage, journals, traces)
+stays outside the hot block. Initially it may stay as the generated mirror
+types, which are already typed values. Versioned cold storage comes only
+when a measurement calls for it.
 
 The browser-schema adapter sits at the boundary. A checked-in schema,
 `native/schema/gamestate.v<N>.json`, describes the browser's serialized
@@ -166,12 +173,35 @@ fix it on its own.
 ## Performance stance
 
 Measurements count only from optimized builds on stated hardware, with the
-Pixel 6 as the floor. Fast simulation also makes scrubbing cheap. At the target
-rate, re-simulating 16 s from an anchor costs about half a millisecond, so
-anchors can be sparse and memory stays low on the phone. Expected large wins
-are typed state, no per-anchor JSON, collapsed per-tick work and compiled
-content. Deterministic parallelism within a second, such as independent
-regions in a phase, is a later option and must be measured.
+Pixel 6 as the floor. The planning budget is 10–12 µs per sim-second on the
+i9-10900K desktop, which assumes a Pixel 6 big core is 2.5–3× slower (to be
+measured). Adopted mechanisms:
+
+- One dispatch per second at fixed deadlines. The season clock keeps the
+  browser's 60 binary64 additions, because exact compatibility is cheap there.
+- Trigger indexes instead of event-driven global scans. FIFO, Charge-before-
+  Discharge and root caps are preserved.
+- One typed summary row per second on the simulation thread (about 2.7 KB at
+  20 sites, so about 83 MiB per 1000-year horizon). Dirty aggregates are used
+  only where invalidation is provable, with a full-recompute oracle in tests.
+- Value-copy typed anchors every 64 s. Restore replays at most 63 s. Pixel 6
+  targets: random restore p95 ≤4 ms and p99 ≤8 ms under forecast load;
+  input-to-visible ≤2 frames.
+- Forecast storage capped at 256 MiB across the current and one previous
+  generation. Under pressure, new horizon is shortened and scrub is never
+  degraded.
+- A single simulation worker. The UI reads immutable published results.
+  Restore requests take priority over forecasting, and stale generations
+  are discarded.
+- Zero steady-state heap allocation per second.
+
+The N03p skeleton measured 3.9 µs/sim-s at opening and 5.6 µs/sim-s on a
+late state, leaving about 5 µs for full rule work. Every N03e item therefore
+reports its measured cost. If real rules exceed the budget, the candidate
+levers are distribution-preserving sampling for Birth/Death (the largest
+skeleton cost; this is a divergence needing approval), cheaper lunar work,
+then summary narrowing. Deterministic parallelism is not planned at this
+world size.
 
 **Tick granularity is a native design choice** (Cam, 18 November 2026). The
 browser's 60 ticks per second is not a requirement for the native runtime.
