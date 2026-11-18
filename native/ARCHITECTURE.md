@@ -101,7 +101,7 @@ is recorded as an intentional divergence:
 
 | Level | Claim | Evidence |
 | --- | --- | --- |
-| L0 | Adapter round-trip | Every reference state imports and exports as byte-identical canonical JSON |
+| L0 | Adapter round-trip | Every reference state imports and exports to identical sorted-key canonical JSON (equal hashes). Id-keyed collection order is preserved as data. Record field order need not match the browser |
 | L1 | Step parity | Native advance from browser state `t` matches the browser at `t+k`, per covered second |
 | L2 | Replay parity | Native replay from an initial state plus an action journal matches at checkpoints, including `rebuildStateAtSecond` |
 | L3 | New-game parity | Native initial state from seed and config matches the browser |
