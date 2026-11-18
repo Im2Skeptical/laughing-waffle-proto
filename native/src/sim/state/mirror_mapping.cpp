@@ -2,6 +2,7 @@
 #include "sim/settlement/population.hpp"
 #include "sim/settlement/prelude.hpp"
 #include "sim/world/topology.hpp"
+#include "sim/practice/detail.hpp"
 
 #include "core/sha256.hpp"
 #include "sim/browser/detail/json_path.hpp"
@@ -152,7 +153,10 @@ struct Import {
     template<class R, class M>
     R read_row(const M& source, const std::string& path, std::uint32_t row, R*)
     {
-        if constexpr (requires { Mapping<R>::read(*this, source, path, row); })
+        if constexpr (std::is_same_v<R, PracticeEvent>) {
+            Import eventCodec{content, state, &state.pendingPracticePayload};
+            return Mapping<R>::read(eventCodec, source, path, row);
+        } else if constexpr (requires { Mapping<R>::read(*this, source, path, row); })
             return Mapping<R>::read(*this, source, path, row);
         else
             return Mapping<R>::read(*this, source, path);
@@ -264,7 +268,10 @@ struct Export {
     template<class M, class R>
     void write_row(M& result, const R& source, std::uint32_t row) const
     {
-        if constexpr (requires { Mapping<R>::write(*this, source, row); })
+        if constexpr (std::is_same_v<R, PracticeEvent>) {
+            const Export eventCodec{state, &state.pendingPracticePayload};
+            result = Mapping<R>::write(eventCodec, source, row);
+        } else if constexpr (requires { Mapping<R>::write(*this, source, row); })
             result = Mapping<R>::write(*this, source, row);
         else
             result = Mapping<R>::write(*this, source);
@@ -387,11 +394,7 @@ RuntimeState import_runtime(const browser::GameState& state)
     // Record fields have schema order, while dictionary order contributes to
     // definition ordinals and the captured content's identity.
     content->configHash = core::sha256_text(core::json::stringify(configJson));
-    seed_rows<PracticeId>(*content, state.gameConfig.gamepieces.practices, "$.gameConfig.gamepieces.practices",
-                          [](const auto& row) -> const auto& { return row.first; });
-    seed_rows<StructureId>(*content, state.gameConfig.gamepieces.structures, "$.gameConfig.gamepieces.structures",
-                           [](const auto& row) -> const auto& { return row.first; });
-    seed_recipe_vocabulary(*content, *configJson.find("gamepieces"), "$.gameConfig.gamepieces");
+    auto compiled = compile_content(content->config, content->ids);
     seed_rows<RegionId>(*content, state.world.regions, "$.world.regions",
                          [](const auto& row) -> const auto& { return row.id; });
     seed_rows<SiteId>(*content, state.world.sites, "$.world.sites",
@@ -401,10 +404,12 @@ RuntimeState import_runtime(const browser::GameState& state)
     Import codec{*content, result};
     result.hot = codec.read<HotState>(state, "$");
     result.content = std::move(content);
+    result.compiledContent = std::move(compiled);
     if (state.world.definitionId == "regional-v2:1") result.topology = std::make_shared<const WorldTopology>();
     settlement::prepare_population(result);
     rebuild_runtime_indexes(result);
     settlement::prepare_prelude(result);
+    practice::detail::admit(result);
     return result;
 }
 

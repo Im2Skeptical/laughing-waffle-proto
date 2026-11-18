@@ -1,0 +1,234 @@
+#include "sim/practice/detail.hpp"
+
+namespace waffle::sim::practice {
+namespace detail {
+namespace {
+
+constexpr std::array<std::string_view, static_cast<std::size_t>(EventKind::count)> eventNames{
+    "monsterSpawn", "monsterPressure", "stockGenerated", "stockConsumed", "chaosIncreased",
+    "candidateDevelopment", "supportContributed", "martialActionResolved", "populationDied",
+    "monsterDestroyed", "defenseSucceeded", "practiceInstalled", "dangerSurvived", "campaignWon",
+    "externalTrade", "challengeCompleted", "settlementLost", "crisisResolved",
+    "scheduledActivation", "practiceResolved", "phaseResolved", "candidateDevelopmentBanked",
+    "populationConverted", "activated", "discharged", "chargeGained", "cascadeDeferred",
+    "dischargeBlocked", "cascadeSafetyCap",
+};
+constexpr std::array<std::string_view, 10> activationNames{
+    "season", "birth", "food", "housing", "faith", "migration", "death", "charge", "passive", "crisis",
+};
+constexpr std::array<std::string_view, 4> seasonNames{"spring", "summer", "autumn", "winter"};
+constexpr std::array<std::string_view, 3> poolNames{"common", "scholar", "warrior"};
+constexpr std::array<std::string_view, 2> specialtyNames{"scholar", "warrior"};
+constexpr std::array<std::string_view, 4> actionNames{"campaign", "defense", "hunt", "conquest"};
+
+template<class Key, std::size_t N>
+void initialize(RuntimeState& state, std::array<Key, N>& target,
+                const std::array<std::string_view, N>& names)
+{
+    for (std::size_t index = 0; index < N; ++index)
+        target[index] = state.intern<Key>(names[index], "Practice vocabulary");
+}
+
+template<class Key>
+browser::OptionalNullable<Key> nullable(Key id)
+{
+    return id ? browser::OptionalNullable<Key>{id} : browser::OptionalNullable<Key>{std::nullopt};
+}
+
+template<class T>
+void reserve(std::vector<T>& rows, std::size_t count)
+{
+    rows.reserve(rows.size() + count);
+}
+
+PracticeEventTrace make_trace(const RuntimeState& state, HistoryPayload& page,
+                              PracticeEvent event, const EventData& data, bool includeId,
+                              std::string_view reason)
+{
+    auto text = [&](const auto& id) -> std::optional<HistoryTextId> {
+        if (!id) return {};
+        return page.intern_text(state.name(*id), "Practice trace");
+    };
+    const auto& p = data.fields;
+    PracticeEventTrace result{
+        .tSec = event.tSec,
+        .kind = event.kind,
+        .regionId = event.regionId,
+        .targetPracticeId = p.targetPracticeId,
+        .slotIndex = p.slotIndex,
+        .rootId = event.rootId,
+        .parentId = event.parentId,
+        .practiceId = p.practiceId,
+        .activationType = text(p.activationType),
+        .id = includeId ? std::optional(event.id) : std::nullopt,
+        .amount = p.amount,
+        .pool = text(p.pool),
+        .scholarStaffed = p.scholarStaffed,
+        .discharge = p.discharge,
+        .phase = text(p.phase),
+        .premature = p.premature,
+        .faction = p.faction,
+        .controller = p.controller,
+        .instanceId = p.instanceId,
+        .reason = reason.empty() ? text(p.reason) : page.intern_text(reason, "Practice trace reason"),
+        .cause = text(p.cause),
+        .targetRegionId = p.targetRegionId,
+        .structureId = p.structureId,
+        .previousController = p.previousController,
+        .military = p.military,
+        .untilSec = p.untilSec,
+        .actionKind = text(p.actionKind),
+        .action = text(p.action),
+        .outcome = text(p.outcome),
+        .sourceRegionId = p.sourceRegionId,
+        .strengthBefore = p.strengthBefore,
+        .strengthAfter = p.strengthAfter,
+        .martial = p.martial,
+        .destinationId = text(p.destinationId),
+        .charge = p.charge,
+        .threshold = p.threshold,
+    };
+    if (p.classId.has_key()) {
+        const auto id = text(p.classId.value());
+        result.classId = id ? browser::OptionalNullable<HistoryTextId>{*id}
+                            : browser::OptionalNullable<HistoryTextId>{std::nullopt};
+    }
+    if (data.providers) result.providers = store_providers(page, *data.providers);
+    if (data.traits) result.traits = store(page, *data.traits);
+    if (data.tags) result.tags = store(page, *data.tags);
+    if (data.sources) result.sourceRegionIds = store(page, *data.sources);
+    return result;
+}
+
+}
+
+void admit(RuntimeState& state)
+{
+    auto& v = state.practiceVocabulary;
+    initialize(state, v.events, eventNames);
+    initialize(state, v.activations, activationNames);
+    initialize(state, v.seasons, seasonNames);
+    initialize(state, v.pools, poolNames);
+    initialize(state, v.specialties, specialtyNames);
+    initialize(state, v.martialActions, actionNames);
+    auto sym = [&](std::string_view name) { return state.intern<SymbolId>(name, "Practice vocabulary"); };
+    v.consume = sym("consume");
+    v.require = sym("require");
+    v.sacrifice = sym("sacrifice");
+    v.alreadyDischarged = sym("Already Discharged in this root chain");
+    v.capacityFull = sym("Stock capacity is full");
+    v.noTraining = sym("No unclassed adults available for training");
+    v.unmetCondition = sym("State / population requirements not satisfied");
+    v.player = state.intern<FactionId>("player", "Practice faction");
+    v.frontier = state.intern<FactionId>("frontier", "Practice faction");
+    v.external = state.intern<FactionId>("external-a", "Practice faction");
+    v.neutral = state.intern<FactionId>("neutral", "Practice faction");
+    v.beneficiary = state.intern<FactionId>("beneficiary", "Practice faction");
+    v.knowledge = state.intern<TagId>("Knowledge", "Practice tag");
+    v.food = state.intern<TagId>("Food", "Practice tag");
+    v.currency = state.intern<TraitId>("Currency", "Practice trait");
+    v.edible = state.intern<TraitId>("Edible", "Practice trait");
+    v.record = state.intern<TraitId>("Record", "Practice trait");
+    for (const auto& region : state.tables.view(state.hot.world.regions))
+        v.regionSymbols.push_back(sym(state.name(region.id)));
+    for (const auto& row : state.tables.rows<NeutralStock>())
+        v.marketLabels.push_back(sym(state.cold.at(row.label.row).get()));
+
+    const auto events = state.hot.world.sites.size() * 20u;
+    reserve(state.tables.rows<PracticeEvent>(), events);
+    reserve(state.eventPayloads, events);
+    reserve(state.pendingPracticePayload.rows<TraitId>(), events * 3);
+    reserve(state.pendingPracticePayload.rows<TagId>(), events * 3);
+    reserve(state.pendingPracticePayload.rows<StockProvider>(), events * 3);
+    reserve(state.pendingPracticePayload.rows<RegionId>(), events);
+    auto& siteTraces = state.histories.rows<History<PracticeEventTrace, 100, DetailedSettlement_practiceActivationTrace>>();
+    reserve(siteTraces, state.hot.world.sites.size());
+}
+
+void trace(RuntimeState& state, PracticeEvent event, const EventData& data,
+           bool includeId, std::string_view dynamicReason)
+{
+    auto append = [&](auto& history) {
+        history.append([&](HistoryPayload& page) {
+            return make_trace(state, page, event, data, includeId, dynamicReason);
+        });
+    };
+    append(state.histories.at(state.hot.civilization.practiceEvents.trace.row));
+    if (!event.regionId || event.regionId->value >= state.indexes.sitesByRegion.size()) return;
+    const auto siteId = state.indexes.sitesByRegion[event.regionId->value];
+    if (!siteId) return;
+    auto& reference = settlement::site_at(state, siteId).detailedState.practiceActivationTrace;
+    if (!reference) {
+        using Ref = std::remove_reference_t<decltype(reference)>::value_type;
+        reference = Ref{{state.histories.table<typename Ref::Storage>().append(1, "Practice history").begin}};
+    }
+    append(state.histories.at(reference->row));
+}
+
+EventData read_event(const RuntimeState& state, std::size_t index, std::vector<Provider>& providers)
+{
+    const auto& p = state.eventPayloads[index];
+    const auto& payload = state.pendingPracticePayload;
+    EventData result{};
+    result.fields = p;
+    providers.clear();
+    if (p.providers) {
+        for (const auto& row : payload.view(*p.providers))
+            providers.push_back({row, payload.view(row.traits),
+                                 row.substitution ? payload.view(*row.substitution) : std::span<const TraitId>{}});
+        result.providers = providers;
+    }
+    if (p.traits) result.traits = payload.view(*p.traits);
+    if (p.tags) result.tags = payload.view(*p.tags);
+    if (p.sourceRegionIds) result.sources = payload.view(*p.sourceRegionIds);
+    return result;
+}
+
+}
+
+runtime::PracticeEvent emit(RuntimeState& state, EventKind kind,
+                            std::optional<runtime::RegionId> region, EventData data)
+{
+    using namespace detail;
+    auto& journal = state.hot.civilization.practiceEvents;
+    auto& p = data.fields;
+    if (state.hot.rulesetId) {
+        const auto controller = region ? holder(state, *region) : FactionId{};
+        const PracticeSlot* slot = nullptr;
+        if (region && region->value < state.indexes.sitesByRegion.size()) {
+            const auto site = state.indexes.sitesByRegion[region->value];
+            if (site) {
+                const auto& board = settlement::site_at(state, site).detailedState.practiceSlots;
+                if (p.slotIndex && *p.slotIndex >= 0 && *p.slotIndex < board.slots.size()) {
+                    const auto row = board.slots[static_cast<std::size_t>(*p.slotIndex)];
+                    if (row) slot = &state.tables.at(row);
+                }
+                if (!slot && p.practiceId) {
+                    const auto rows = state.tables.view(board.rows);
+                    const auto found = std::ranges::find(rows, *p.practiceId, &PracticeSlot::practiceId);
+                    if (found != rows.end()) slot = &*found;
+                }
+            }
+        }
+        if (!p.controller.has_key()) p.controller = nullable(controller);
+        if (!p.faction.has_key()) p.faction = nullable(slot ? slot->allegiance.value_or(controller) : controller);
+        if (!p.instanceId.has_key()) p.instanceId = nullable(slot ? slot->instanceId.value_or(InstanceId{}) : InstanceId{});
+    }
+    if (kind == EventKind::monsterDestroyed &&
+        (!state.hot.rulesetId || (p.faction.has_key() && p.faction.value() == state.practiceVocabulary.player)))
+        ++state.hot.civilization.history.monsterTrophies;
+    const auto id = journal.nextId++;
+    PracticeEvent event{state.hot.tSec, event_id(state, kind), region,
+                        journal.activeRoot.value_or(id), journal.activeEvent, id};
+    auto& arena = state.pendingPracticePayload;
+    if (data.providers) p.providers = store_providers(arena, *data.providers);
+    if (data.traits) p.traits = store(arena, *data.traits);
+    if (data.tags) p.tags = store(arena, *data.tags);
+    if (data.sources) p.sourceRegionIds = store(arena, *data.sources);
+    state.tables.rows<PracticeEvent>().push_back(event);
+    state.eventPayloads.push_back(p);
+    journal.pending.end = checked_index(state.eventPayloads.size(), "Practice events");
+    return event;
+}
+
+}
