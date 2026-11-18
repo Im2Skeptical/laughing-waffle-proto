@@ -31,7 +31,7 @@ for(const [population,demand] of [[29,1],[30,1],[31,2]]) {
 }
 let currency=createLabFixture('currency'),region=currency.civilization.capitalRegionId;
 currency=editLabState(currency,region,{kind:'classEffect',payload:{family:'crisis',id:`buy-relief-${region}`}});
-assert.equal(getLabObservation(currency,region).currency,2);assert.equal(getLabObservation(currency,region).edible,3);
+assert.equal(getLabObservation(currency,region).currency,2);assert.equal(getLabObservation(currency,region).edible,2);
 let warrior=createLabFixture('warrior');region=warrior.civilization.capitalRegionId;
 assert.equal(getLabObservation(warrior,region).retinue.value,2);
 warrior=editLabState(warrior,region,{kind:'spendPrestige'});assert.equal(getLabObservation(warrior,region).retinue.value,1);

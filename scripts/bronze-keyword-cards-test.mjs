@@ -5,7 +5,7 @@ import { getDetailedPracticeDef } from '../src/model/game-config.js';
 import { getDetailedSettlementSites } from '../src/model/detailed-settlements/queries.js';
 import { evaluateDetailedPracticeSlot, runPracticeActivation, flushPracticeEvents } from '../src/model/detailed-settlements/practices.js';
 import { getGamepieceFace } from '../src/model/gamepiece-presentation.js';
-import { stockOutputBreakdown, stockCapacity } from '../src/model/detailed-settlements/stock.js';
+import { stockOutputBreakdown, stockCapacityBreakdown, stockCapacity } from '../src/model/detailed-settlements/stock.js';
 import { initializeReplayClock, advanceReplayStateToSecond as advance } from '../src/model/replay-second-runner.js';
 import { createTimelineFromInitialState, rebuildStateAtSecond } from '../src/model/timeline/index.js';
 import { serializeGameState, deserializeGameState } from '../src/model/state.js';
@@ -36,9 +36,11 @@ for(const role of ['scholar','warrior']) {
     assert.ok(face.reading.effects.some(effect=>effect.passive&&!effect.timing));
     assert.ok(face.reading.effects.filter(effect=>effect.timing).every(effect=>!effect.text.includes('Output Multiplier')));
     const inactive=copy(state);inactive.civilization.vassalLineage.currentVassalId=null;
-    const ordinary=stockOutputBreakdown(inactive,home(inactive).detailedState,slot);
-    assert.equal(stockOutputBreakdown(state,site.detailedState,slot).multiplier-ordinary.multiplier,face.keywordReading.bonus);
-    assert.equal(stockCapacity(state,site.detailedState,slot),stockCapacity(inactive,home(inactive).detailedState,slot));
+    const breakdown=def.keywordCapacityScale ? stockCapacityBreakdown : stockOutputBreakdown;
+    const ordinary=breakdown(inactive,home(inactive).detailedState,slot);
+    assert.equal(breakdown(state,site.detailedState,slot).multiplier-ordinary.multiplier,face.keywordReading.bonus);
+    if(!def.keywordCapacityScale) assert.equal(stockCapacity(state,site.detailedState,slot),stockCapacity(inactive,home(inactive).detailedState,slot));
+    else assert.equal(stockOutputBreakdown(state,site.detailedState,slot).multiplier,stockOutputBreakdown(inactive,home(inactive).detailedState,slot).multiplier);
     assert.equal(evaluateDetailedPracticeSlot(state,site.regionId,index).chargeGain,evaluateDetailedPracticeSlot(inactive,site.regionId,index).chargeGain);
   }
   assert.deepEqual(serializeGameState(state),before,'pool and inspection are pure, including RNG');

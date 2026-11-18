@@ -18,7 +18,7 @@ at their existing minimum tiers; none is a Stock Supply candidate.
 | Doomsday Chronicle | Scholar / Gold | Birth consumes 1 Paper and grants 3 Research + 1 per lost settlement, capped at +4. No Stock or worker sockets. |
 | Surveying | Scholar / Bronze | Migration produces 1 Record Stock. No Research. |
 | Charnel Alchemy | Scholar / Diamond | Another local Bone/Medicine producer gives 1 base Charge; at 3, produce 2 Medicine/Metal/Trade Stock and add 15 Creep. No Research. |
-| Monster Hunting | Warrior / Silver | Death consumes 1 Arms and 1 Edible to attack an eligible adjacent Monster. Victory produces the existing Defense-scaled Loot/Record/Currency Stock, including Monster Trophies scaling. No Research. Personal Campaign Research remains separate. |
+| Monster Hunting | Warrior / Silver | Death consumes 1 Arms and 1 Edible to attack an eligible adjacent Monster. Victory produces the existing Loot/Record/Currency Stock with a flat defeated-Monster Strength bonus. Monster Trophies still scale Output and base capacity remains 12. No Research. Personal Campaign Research remains separate. |
 
 Each uses one of five Practice spaces. Quality and minimum unlock tier remain
 separate; Charge workers multiply incoming Charge, rather than Research payout.

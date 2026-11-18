@@ -12,7 +12,7 @@ import { serializeGameState, deserializeGameState } from '../src/model/state.js'
 // independently of effects.amount. The workbook is the historical import record.
 const source = JSON.parse(readFileSync(new URL('../docs/civcontent-2.6-source.json', import.meta.url), 'utf8'));
 const named = (text) => {
-  const sentence = String(text ?? '').match(/Generate (\d+) Stock/);
+  const sentence = String(text ?? '').match(/(?:Generate|Produce) (\d+) Stock/);
   const column = String(text ?? '').match(/(?:On Discharge: \+|^\+)(\d+)/);
   return sentence ? Number(sentence[1]) : column ? Number(column[1]) : null;
 };
@@ -82,8 +82,8 @@ for (const [id, producerId, miss, expectedStock] of CASES) {
     assert.equal(column, id === 'borderSkirmishing' ? 2 : expectedStock, `${id} workbook Stock column`);
     const f = board(id);
     const capacityBefore = def.stockCapacity;
-    // Seed 42 has one plains region in this explicit legacy specimen.
-    const retainedStock = id === 'milling' ? 6 : expectedStock;
+    // Legacy traits no longer grant an implicit terrain bonus.
+    const retainedStock = expectedStock;
     fire(f, withProducerTags(miss));
     assert.equal(f.slot.charge, 0, `${id} unrelated event`);
     assert.equal(f.slot.stock, 0, `${id} unrelated event adds no stock`);

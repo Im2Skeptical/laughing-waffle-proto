@@ -1,4 +1,3 @@
-import { BIOME_MULTIPLIER_RULES } from '../../defs/world/biome-multiplier-rules.js';
 import { getWorldDefinition, getAdjacentRegionIds } from '../world-state.js';
 
 // Immutable map geometry only, like world-state's adjacency cache. Ownership,
@@ -26,15 +25,4 @@ export function contiguousBiomeRegions(state, regionId) {
     patchesByDefinition.set(definition,patches);
   }
   return patches.get(regionId)??[];
-}
-
-export function biomeMultiplierModifiers(state, settlement) {
-  const regionId=state?.world?.sites.find(site=>site.detailedState===settlement)?.regionId;
-  const region=getWorldDefinition(state)?.regions.find(region=>region.id===regionId);
-  if(!region)return [];
-  return BIOME_MULTIPLIER_RULES.filter(rule=>rule.biome===region.biome).map(rule=>{
-    const regionIds=contiguousBiomeRegions(state,regionId);
-    return {kind:rule.kind,query:rule.query,amount:rule.amountPerRegion*regionIds.length,
-      sourceId:`biome:${rule.biome}`,sourceLabel:`${regionIds.length} contiguous ${rule.biome}`,regionIds};
-  });
 }

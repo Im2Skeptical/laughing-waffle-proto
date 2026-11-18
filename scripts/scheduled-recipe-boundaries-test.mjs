@@ -203,14 +203,14 @@ runCase('rationing', () => {
 
 runCase('dryFarming', () => {
   // This isolated board starts on one plains region: Grain output is x2.
-  const amounts = { spring: 0, summer: 4, autumn: 10, winter: 0 };
+  const amounts = { spring: 0, summer: 2, autumn: 10, winter: 0 };
   const seen = {};
   for (const [season, index] of [['spring', 0], ['summer', 1], ['autumn', 2], ['winter', 3]]) {
     const f = board([practiceSlot('dryFarming')], { season: index });
     const def = defOf(f, 'dryFarming');
     if (season === 'spring') {
-      proseHas(def, 'Summer +2');
-      proseHas(def, 'Autumn +6');
+      proseHas(def, 'Summer: Produce 2 Stock');
+      proseHas(def, 'Autumn: Produce 6 Stock');
       assert.deepEqual(def.activation.seasonKeys, ['summer', 'autumn']);
       assert.deepEqual(def.effects[0].seasonAmounts, { summer: 2, autumn: 6 });
     }
@@ -223,8 +223,8 @@ runCase('dryFarming', () => {
 
 runCase('logging', () => {
   const winter = board([practiceSlot('logging')], { season: 3 });
-  proseHas(defOf(winter, 'logging'), 'Autumn +3');
-  proseHas(defOf(winter, 'logging'), 'Spring +2');
+  proseHas(defOf(winter, 'logging'), 'Autumn: Produce 3 Stock');
+  proseHas(defOf(winter, 'logging'), 'Spring: Produce 2 Stock');
   assert.deepEqual(defOf(winter, 'logging').activation.seasonKeys, ['spring', 'summer', 'autumn']);
   runPracticeActivation(winter.state, 'season');
   assert.equal(winter.local.practiceSlots[0].stock, 0);
@@ -301,14 +301,14 @@ runCase('cropRotation', () => {
   ]);
   runPracticeActivation(summer.state, 'season');
   runPracticeActivation(summer.state, 'season');
-  assert.deepEqual(stocks(summer), [8, 1, null, null, null], 'Record require is reusable across activations');
+  assert.deepEqual(stocks(summer), [4, 1, null, null, null], 'Record require is reusable across activations');
   const winter = open(3);
   runPracticeActivation(winter.state, 'season');
   assert.deepEqual(stocks(winter), [0, 1, null, null, null]);
   const autumn = open(2);
   runPracticeActivation(autumn.state, 'season');
-  assert.deepEqual(stocks(autumn), [6, 1, null, null, null]);
-  return { repeatedSummer: 8, recordStock: 1, winter: 0, autumn: 6 };
+  assert.deepEqual(stocks(autumn), [3, 1, null, null, null]);
+  return { repeatedSummer: 4, recordStock: 1, winter: 0, autumn: 3 };
 });
 
 runCase('goatHerding', () => {

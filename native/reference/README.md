@@ -21,7 +21,7 @@ regenerate this corpus explicitly. Do not treat a golden mismatch as a native
 implementation requirement until someone separates an intended change from a
 defect.
 
-The v1.1.74 Research-card redesign explicitly regenerated the corpus because
+The v1.1.76 Research-card redesign explicitly regenerated the corpus because
 the complete captured gameConfig changed. Opening semantic projections are
 unchanged for all three seeds; only gameConfig and full-state hashes differ.
 `generate.mjs --write` checks live/replay/JSON equality before updating them.
@@ -87,6 +87,15 @@ practice install or removal; season rollover; Life Map graphs and portraits in
 the semantic file; map polygons and roads in the semantic file; the gameConfig
 body except its canonical hash; save slots; forecast workers. The full-state
 hash still changes if those excluded serialized fields drift.
+
+## Card content refresh
+
+The v1.1.74 card pass intentionally refreshes the browser reference to GameState
+52: terrain bonuses are printed card data, starter cards have no implicit biome
+bonus, and keyword scaling can target Output or Capacity. The original baseline
+commit below records the corpus's origin; current config and full-state hashes
+are regenerated explicitly for this intentional rules change. No C++ parity is
+claimed. See [content rules and coverage](../../docs/card-content-pass.md).
 
 ## Provenance
 

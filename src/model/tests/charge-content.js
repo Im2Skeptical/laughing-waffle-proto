@@ -36,7 +36,7 @@ const housingCardIds = new Set([
 ]);
 // Current reviewed defaults supersede these workbook Stock traits/capacities.
 const reviewedTraits={forage:['Edible'],logging:['Timber','Construction'],surfaceMining:['Ore'],saltGathering:['Salt','Currency'],pottery:['Storage'],brickmaking:['Construction'],brewing:['Currency','Edible'],saltCuring:['Edible'],recordKeeping:['Record'],surveying:['Record'],anatomicalStudy:[],heresiography:[],doomsdayChronicle:[]};
-const reviewedCapacities={quarrying:3,brewing:8,saltCuring:20,milling:16,recordKeeping:8,raidingParties:20,monsterHunting:7,anatomicalStudy:0,heresiography:0,doomsdayChronicle:0};
+const reviewedCapacities={quarrying:8,brewing:8,saltCuring:20,milling:16,recordKeeping:8,raidingParties:20,monsterHunting:12,anatomicalStudy:0,heresiography:0,doomsdayChronicle:0};
 // Player-facing wording evolves independently of the imported workbook.
 const reviewedTriggerText={watchkeeping:'When Monsters act in or adjacent to this settlement.'};
 for (const row of source.entries) {

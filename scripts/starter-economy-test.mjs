@@ -64,7 +64,7 @@ for(const tier of qualities){
  assert.deepEqual(defs.practices.fm_hearthBarter.require,[],'the weak Currency producer does not deadlock towns without an Edible host');
  assert.equal(defs.practices.fm_hearthBarter.condition,defs.practices.barter.condition,'the same diversity condition prevents a free-currency advantage');
 }
-for(const[starter,normal,host]of[['fm_leakingGranary','granary','forage'],['rm_saggingStorehouse','storehouse','logging']])for(let qualityBonus=0;qualityBonus<4;qualityBonus++){
+for(const[starter,normal,host]of[['fm_leakingGranary','granary','dryFarming'],['rm_saggingStorehouse','storehouse','logging']])for(let qualityBonus=0;qualityBonus<4;qualityBonus++){
  const a=fixture(host),b=fixture(host);
  a.local.structureSlots[0]={structureId:starter,origin:0,width:1,placementId:'starter',qualityBonus};
  b.local.structureSlots[0]={structureId:normal,origin:0,width:1,placementId:'normal',qualityBonus};

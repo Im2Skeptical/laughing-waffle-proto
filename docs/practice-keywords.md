@@ -6,8 +6,10 @@ or keyword toggle. Historical comparisons remain available in Prototypes.
 
 ## Rules
 
-Keywords add to the existing Output Multiplier. They do not add to base Stock,
-change Research, increase incoming Charge or change capacity. Recipes still pay
+Keywords add to the Output or Capacity Multiplier printed on the card. They do
+not add to base Stock, change Research or increase incoming Charge. Pattern
+Carving and Scarred Shields scale Capacity; the other ordinary keyword cards
+scale Output. Ordinary coefficients are uncapped. Recipes still pay
 in full before activation. The passive effect has its own untimed inspection
 line; tapping its name explains the score, class access and current contribution.
 The existing multiplier fitting opens the contribution ledger. No card-face
@@ -17,11 +19,11 @@ trackers are added.
   Consume/Require recipe can currently be supplied. Check each independently
   through ordinary supply without spending or reserving Stock. Empty recipes
   qualify; trigger timing and Charge readiness are irrelevant. Each adds +1
-  Output Multiplier, capped at +4. The ledger names the contributing Practices.
+  the printed multiplier pool, without a cap. The ledger names the contributing Practices.
 - **Monster Trophies (Warrior):** count monsters destroyed by the civilization
   through real Hunt or Campaign resolutions. Clearing a front without destroying
   its nest, defenses and neutral conquest do not count. Each adds +1 Output
-  Multiplier, capped at +6. The count persists across Vassal lives and is never
+  or Capacity Multiplier, without a cap. The count persists across Vassal lives and is never
   spendable Stock. A kill is recorded before its reaction chain, so Beast
   Rendering's Discharge benefits from that kill.
 - **Economic Regions (reserved for Merchant):** the shared score query counts
@@ -47,25 +49,24 @@ cards use ordinary class shops, Research eligibility and artwork. Their full
 design briefs and provisional balance risks remain in the
 [card report](prototypes/keywords-classes/bronze-cards/README.md).
 
-`keywordOutputScale: {keyword, per, amount, cap}` is captured DSL data on a
-Practice definition. The contribution is `min(cap, floor(score / per)) * amount`.
-Validation requires a known keyword, integer `per >= 1`, integer `cap >= 0`,
+`keywordOutputScale` or `keywordCapacityScale: {keyword, per, amount, cap?}` is captured DSL data on a
+Practice definition. The contribution is `floor(score / per) * amount` (an explicitly authored optional cap can limit steps).
+Validation requires a known keyword, integer `per >= 1`, optional integer `cap >= 0`,
 finite nonnegative `amount` and a Stock-generating effect. Edited coefficients
 are respected in play, inspection, saves and authoritative replay.
 `src/model/practice-keywords.js` owns ordinary rules;
 `src/model/detailed-settlements/synthesis.js` owns the pure supply query.
 The prototype adapter handles only explicitly requested historical comparisons.
 
-Game state v41 / runner saves v31 reject older saves. Captured config schema is
-v29: keyword coefficients remain part of its captured card data. No RNG
+Game state v52 / runner saves v33 reject older saves. Captured config schema is
+v31: keyword coefficients remain part of its captured card data. No RNG
 streams, time advancement, layering or forecast-specific rules were introduced.
 
 This serves **pillar 1 (interacting engines)** through supply and kill engines,
 and **pillar 4 (inspectable consequences)** through named contributors and replay.
 It can strain **pillar 2 (limited build opportunities)** if the common scaling
 payoff becomes compulsory, and **pillar 3 (civilization growth)** when Vassal gaps
-temporarily suppress otherwise established institutions. Caps and the five-slot
-constraint remain; throughput and long-run class identity still need playtesting.
+temporarily suppress otherwise established institutions. The five-slot constraint remains; throughput and long-run class identity still need playtesting.
 
 ## Test and view
 

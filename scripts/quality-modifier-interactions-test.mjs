@@ -131,17 +131,17 @@ for (const def of Object.values(settlementStructureDefs)) {
   for (const mod of def.modifiers ?? []) {
     if (mod.kind !== 'capacity') continue;
     const authored = ['fm_leakingGranary','rm_saggingStorehouse'].includes(def.id) ? 0.5
-      : ['fe_rationDepot','fe_imperialArmoury','cp_citadelOfStillness'].includes(def.id) ? 1 : rank;
+      : def.id==='granary' ? 2 : ['fe_rationDepot','fe_imperialArmoury','cp_citadelOfStillness'].includes(def.id) ? 1 : rank;
     expect(mod.amount, authored, `${def.id}:authored-power-matches-quality`);
     for (const qualityBonus of [0,1,2,3]) expect(structureModifierAmount(def,mod,{qualityBonus}), authored+Math.min(4-rank,qualityBonus), `${def.id}:quality-power-${qualityBonus}`);
   }
 }
 for (const qualityBonus of [0,1,2,3]) {
-  const granary = prepared({population:0,slots:[{id:'forage'}],structures:[{id:'granary',origin:0,qualityBonus}]});
-  expect(stockCapacity(granary.state,granary.local,granary.local.practiceSlots[0]),2*(2+qualityBonus),`granary-solo-quality-${qualityBonus}`);
+  const granary = prepared({population:0,slots:[{id:'dryFarming'}],structures:[{id:'granary',origin:0,qualityBonus}]});
+  expect(stockCapacity(granary.state,granary.local,granary.local.practiceSlots[0]),10*(3+qualityBonus),`granary-solo-quality-${qualityBonus}`);
 }
-const twoGranaries = prepared({population:0,slots:[{id:'forage'}],structures:[{id:'granary',origin:0,qualityBonus:0},{id:'granary',origin:1,qualityBonus:0}]});
-expect(stockCapacity(twoGranaries.state,twoGranaries.local,twoGranaries.local.practiceSlots[0]),6,'two-bronze-granaries-times-three');
+const twoGranaries = prepared({population:0,slots:[{id:'dryFarming'}],structures:[{id:'granary',origin:0,qualityBonus:0},{id:'granary',origin:1,qualityBonus:0}]});
+expect(stockCapacity(twoGranaries.state,twoGranaries.local,twoGranaries.local.practiceSlots[0]),50,'two-bronze-granaries-times-five');
 
 // Authored-value checks: base 1 + Bronze 1 + Silver 2 = x4.
 const pool = prepared({population:0, slots:[{id:'carpentry'}], structures:[
@@ -175,7 +175,7 @@ for (const [index, tier] of TIERS.entries()) {
   const structures = [{ id: "workshop", origin: 0, qualityBonus: 1 }, { id: "storehouse", origin: 1, qualityBonus: 1 }];
   pinCapacity(`carpentry-${tier}`, { population: 0, slots: [{ id: "carpentry", tier }], structures }, 0, (5 + index) * 6);
   pinCapacity(`carpentry-bare-${tier}`, { population: 0, slots: [{ id: "carpentry", tier }] }, 0, 5 + index);
-  pinCapacity(`forage-ignores-construction-${tier}`, { population: 0, slots: [{ id: "forage", tier }], structures }, 0, 2 + index);
+  pinCapacity(`forage-generic-storage-${tier}`, { population: 0, slots: [{ id: "forage", tier }], structures }, 0, (2 + index)*3);
   pinCapacity(`plague-record-${tier}`, {
     population: 2, scholars: 2,
     slots: [{ id: "plagueLedger", tier }],
@@ -201,7 +201,7 @@ pinCapacity("toolmaking-tool-not-construction", {
     { id: "foundry", origin: 1, qualityBonus: 3 },
     { id: "storehouse", origin: 3, qualityBonus: 3 },
   ],
-}, 0, 48);
+}, 0, 72);
 
 // A Gold Academy upgraded once is Diamond: base 1 + 4 = x5.
 // Bronze Toolmaking base 4 reaches 20, whether naturally Knowledge-tagged or staffed.

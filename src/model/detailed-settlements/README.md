@@ -26,10 +26,11 @@ file is the legacy tick substrate.
   automatic Charge Discharges, full blocked retries and root-chain safeguards.
 - `stock.js` - Trait queries, atomic provider plans, independent Output and Capacity
   Multiplier pools, capacities and specialist training.
-- `biome-multipliers.js` - Cached same-biome shared-edge components; pure generic
-  Output contributions (+1 per region) for Grain/plains, Stone/mountains and
-  Construction/forest. The containing component includes unowned regions.
-  See `docs/output-capacity-multipliers.md`.
+- `biome-multipliers.js` - Cached same-biome shared-edge components, including
+  unowned regions. Terrain alone grants no bonuses.
+- `practice-multipliers.js` - Pure, self-only captured Practice Output/Capacity
+  contributions, with terrain, component, season and local Stock conditions.
+  See `docs/card-content-pass.md`.
 - `synthesis.js` — pure Scholar-staffing/Stock-supply contributors for ordinary
   Synthesis; no activation or reservation occurs.
 - Stock supply rules:

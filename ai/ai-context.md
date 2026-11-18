@@ -1,6 +1,6 @@
 # Current Project Context
 
-Game build version: `1.1.74`.
+Game build version: `1.1.76`.
 The accepted [regional population UX](../docs/regional-population-ux-integration.md)
 uses floating 70% map readouts, visual demographics, Warrior baseline Force and
 carried proportional newborn allegiance. It preserves the degraded starter
@@ -20,8 +20,7 @@ unheld status. Conquest is separate; losing all player holdings remains terminal
 Repelled Monsters gain
 +1 Strength and retain their latest Spawn result for replayable feedback.
 Each player-held region earns one Prestige per full 20 residents per completed
-node, rounded down separately before combining node income. GameState v51
-supersedes v50; start fresh for the combined Practice capacity and payout rules.
+node, rounded down separately before combining node income. GameState v52 supersedes v51; start fresh for card-authored terrain and multiplier rules.
 This checked marker matches `package.json`; app versions are independent of save
 schemas and isolated art prototype versions. Every PR includes a version bump;
 unintegrated builds show a compact Preview label. Source fingerprints and branch
@@ -75,13 +74,15 @@ Routing skills live in `.grok/skills/`.
   full legal recipes Discharge automatically through the authoritative event queue.
   Each Practice can Discharge once per root chain; refilled Charge is retained.
   Output and Capacity Multipliers are independent additive pools, base ×1.
-  Biome Output contributions use the containing shared-edge component, +1 per
-  region: plains/Grain (including Milling), mountains/Stone, forest/Construction.
-  Ownership does not restrict the component. See `docs/output-capacity-multipliers.md`.
+  Terrain affinities are printed, self-only `stockMultipliers` on individual
+  Practices; there are no blanket biome bonuses. Quarrying counts every region
+  in its containing shared-edge mountain component, regardless of ownership.
+  Keyword scaling is uncapped on ordinary cards and targets the card's printed
+  Output or Capacity pool. See `docs/card-content-pass.md`.
   CivContent 2.6 coverage/deviations: `docs/civcontent-2.6-implementation.md`.
 
 - Synthesis (Scholar) and Monster Trophies (Warrior)
-  are ordinary captured Practice Output Multiplier contributions. No keyword
+  are ordinary captured Practice multiplier contributions. No keyword
   experiment setting is required. See `docs/practice-keywords.md`. Player-owned
   regions receive the active Vassal's discipline; only actual player-faction
   monster destructions update its persistent Trophy history.
@@ -98,7 +99,7 @@ identifiers remain stable; see [the mapping and authoring contract](../docs/cree
 
 Authoritative numbers:
 
-- Game state v51; runner saves v33. Older saves are rejected.
+- Game state v52; runner saves v33. Older saves are rejected.
 - Isolated agent test links use transport/view envelopes v1 and a separate v1
   Dev action journal; none change GameState or runner-save schemas. See the
   [local prototype](../docs/agent-test-links-prototype.md).
