@@ -15,10 +15,11 @@ Differences between intended rules and observed bugs must be recorded explicitly
 
 Port design and verification: [ARCHITECTURE](ARCHITECTURE.md).
 
-**Current state:** Windows development/optimized builds, both headless tests,
-and rendered input smoke checks pass. An arm64 Android debug APK compiles;
-it has not been installed or run on a device. Exact commands and results are in
-[WORKPLAN.md](WORKPLAN.md). Start with [agent instructions](AGENTS.md).
+**Current state:** The Windows presentation slice shows an illustrated regional
+map, five settlement cards, and a nested inspector with a live ledger. An arm64
+Android debug APK compiled for the earlier bootstrap. The presentation slice's
+Android build and device behavior are unverified. Start with
+[agent instructions](AGENTS.md) and the [work plan](WORKPLAN.md).
 
 ## Windows build
 
@@ -45,10 +46,59 @@ llvm-mingw is not downloaded. Otherwise the script downloads the pinned
 llvm-mingw UCRT toolchain. `env.ps1` imports `vcvars64` or the llvm-mingw
 binaries into the current PowerShell process only.
 
-`--smoke` opens a window, renders one RmlUi document, injects a click, checks
-the label and a pixel readback, then exits. Without `--smoke` the window stays
-open until Escape. The headless test does not open a window and does not link SDL.
-Fetched dependencies build under each preset's binary directory; Debug and Release objects stay separate.
+`--smoke` checks mouse and SDL finger input, nested inspection and scroll
+restoration, clipped map readback, counters, and window resize, then exits.
+Add `--capture <existing-directory>` to save the overview and ledger as BMPs.
+The three headless tests cover the RmlUi document, UTF-8 RML/font paths, map
+camera math, and frame-time percentiles. They run without a window or SDL.
+Fetched dependencies build under each preset's binary directory.
+
+Launch without arguments to explore. Drag to pan the map, use its +/− buttons
+or the wheel to zoom, and select a Practice card to inspect it. The inspector
+accepts wheel and finger scrolling. `--touch` routes desktop mouse presses and
+drags through SDL's finger events. Escape closes the window.
+
+From `native/`, run `.\build\optimized\waffle_native_demo.exe --bench 1200` for
+JSON on stdout, or append a JSON output path. It reports time from entry to
+first present and frame tails with SDL vsync set to zero while the script pans, zooms,
+scrolls and visits the nested ledger. CPU frame time is elapsed frame work
+through SDL submission, excluding present. Working set and private bytes are
+sampled after the run. Texture estimates count live RGBA8 art/font pixel storage
+and exclude driver overhead, swapchains and staging memory. These measurements
+describe the Windows presentation workload.
+
+### Presentation renderer
+
+N02a extends the app's SDL_Renderer bridge with premultiplied PNG textures and
+2D affine transforms. The map transforms its contents inside a stationary
+rectangular viewport. The map and inspector use axis-aligned scissors. The
+headless renderer records those calls and verifies the document requests zero
+clip masks, layers or filters. The card frames supply the decorative edges.
+Rounded or transformed clip boundaries would need RmlUi clip masks. Live blur
+and drop shadows would need layer targets and filter passes.
+
+SDL_GPU offers stencil and shader pipelines for those effects on D3D12 and
+Vulkan. It requires matching shader binaries and explicit pass and resource
+management. RmlUi 6.3's SDL_GPU sample supplies geometry, textures, transforms
+and scissors, leaving masks and filters to the app. The same SDL_Renderer
+bridge passed Windows smoke on the default D3D11 driver and on the `gpu`
+driver with `SDL_GPU_DRIVER` set to `direct3d12` and `vulkan`. Retaining the
+bridge covers this screen's requirements with the existing API. Revisit the
+choice with Pixel 6 driver, frame-tail, memory and lifecycle evidence in N02b.
+[SDL GPU platform requirements](https://wiki.libsdl.org/SDL3/CategoryGPU) and
+[RmlUi 6.3 SDL GPU renderer](https://github.com/mikke89/RmlUi/blob/6.3/Backends/RmlUi_Renderer_SDL_GPU.h).
+
+On the i9-10900K / RTX 3080 Windows host, three optimized 1,200-frame runs at
+1120×510 put D3D11 p95 at 2.23–2.36 ms. One run each of the GPU-backed driver
+gave 7.04 ms on D3D12 and 6.53 ms on Vulkan. SDL's GPU-backed renderer prefers
+mailbox presentation at vsync zero. D3D12's median was near the display's
+144 Hz interval, so this comparison includes presentation pacing.
+
+The slice uses the PNG-only build of stb_image. It decodes the five existing PNG
+sheets from SDL's UTF-8 file reads without adding a separate decoder library or
+toolchain. The Windows executable reads the checkout's art in place. The five
+cards share a full atlas upload, which accounts for about 60 MiB of estimated
+texture storage in this slice.
 
 Dependency versions and licenses: [THIRD_PARTY.md](THIRD_PARTY.md).
 
@@ -62,7 +112,8 @@ powershell -NoProfile -ExecutionPolicy Bypass -File native/tools/bootstrap-andro
 
 The script downloads and verifies pinned JDK/SDK/NDK and build tools into
 ignored `native/.tools`, accepts SDK licenses in that local SDK, generates a
-local debug key, and builds `native/android/app/build/outputs/apk/debug/app-debug.apk`.
+local debug key, stages the slice's referenced PNG sheets from the shared art,
+and builds `native/android/app/build/outputs/apk/debug/app-debug.apk`.
 It also copies the APK and package inspection to
 `artifacts/grok-nov14-spend/android-bootstrap/`. It does not install the APK.
 First setup needs network access and several GB of disk space. An existing native

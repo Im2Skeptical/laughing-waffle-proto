@@ -73,10 +73,13 @@ ctest --preset dev --output-on-failure
 ```
 
 The optimized preset uses the same three commands with preset `optimized` and
-`.\build\optimized\waffle_native_demo.exe --smoke`. CTest has two tests,
-`headless_rmlui` and `headless_utf8_assets`, timeout 60 seconds. They link RmlUi and FreeType and do not
-open a window. `--smoke` must exit by itself. Do not leave `waffle_native_demo`
-running. Recorded results are in [WORKPLAN.md](WORKPLAN.md).
+`.\build\optimized\waffle_native_demo.exe --smoke`. CTest runs
+`headless_rmlui`, `headless_utf8_assets`, and `headless_presentation_math` with a
+60-second timeout and no window. `--smoke` must exit by itself. Use
+`.\build\optimized\waffle_native_demo.exe --bench 1200 [json-path]` for the
+scripted presentation benchmark. `--smoke --capture <existing-directory>` writes
+the overview and nested inspector screenshots. Do not leave `waffle_native_demo`
+running. See [README.md](README.md) for the measurement boundaries.
 
 For an Android debug APK, run
 `powershell -NoProfile -ExecutionPolicy Bypass -File native/tools/bootstrap-android.ps1`

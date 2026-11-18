@@ -38,17 +38,21 @@ add_library(waffle_demo_probe STATIC
 target_link_libraries(waffle_demo_probe PUBLIC RmlUi::RmlUi)
 target_include_directories(waffle_demo_probe PUBLIC src/ui)
 
+set(WAFFLE_APP_SOURCES
+	src/app/main.cpp
+	src/app/demo_benchmark.cpp
+	src/app/sdl_rml_renderer.cpp
+)
+
 if(ANDROID)
 	# SDL's Android activity dlsyms SDL_main from libmain.so. The desktop
 	# executables are host programs and are not part of the APK.
 	add_library(main SHARED
-		src/app/main.cpp
-		src/app/sdl_rml_renderer.cpp
-		src/app/sdl_rml_renderer.hpp
+		${WAFFLE_APP_SOURCES}
 		src/app/sdl_asset_file.cpp
 		src/app/sdl_asset_file.hpp
 	)
-	target_link_libraries(main PRIVATE waffle_demo_probe ${WAFFLE_SDL_TARGET})
+	target_link_libraries(main PRIVATE waffle_demo_probe ${WAFFLE_SDL_TARGET} waffle_png_headers)
 	target_include_directories(main PRIVATE src/app)
 	set_target_properties(main PROPERTIES
 		CXX_VISIBILITY_PRESET default
@@ -64,13 +68,15 @@ else()
 		"WAFFLE_FONT_PATH=\"${WAFFLE_FONT_PATH}\""
 	)
 
-	add_executable(waffle_native_demo
-		src/app/main.cpp
-		src/app/sdl_rml_renderer.cpp
-		src/app/sdl_rml_renderer.hpp
-	)
-	target_link_libraries(waffle_native_demo PRIVATE waffle_demo_probe ${WAFFLE_SDL_TARGET})
+	add_executable(waffle_native_demo ${WAFFLE_APP_SOURCES})
+	target_link_libraries(waffle_native_demo PRIVATE waffle_demo_probe ${WAFFLE_SDL_TARGET} waffle_png_headers)
+	target_compile_definitions(waffle_native_demo PRIVATE "WAFFLE_ART_ROOT=\"${CMAKE_CURRENT_LIST_DIR}/../\"")
 	target_include_directories(waffle_native_demo PRIVATE src/app)
+
+	if(WIN32)
+		target_sources(waffle_native_demo PRIVATE src/app/demo_metrics_windows.cpp)
+		target_link_libraries(waffle_native_demo PRIVATE psapi)
+	endif()
 
 	if(MINGW)
 		target_link_options(waffle_native_headless PRIVATE -static)
@@ -90,10 +96,13 @@ else()
 			"$<TARGET_FILE_DIR:waffle_native_demo>/assets/ui/FONT-LICENSE.txt"
 		VERBATIM
 	)
+	set_property(TARGET waffle_native_demo APPEND PROPERTY LINK_DEPENDS "${WAFFLE_RML_PATH}")
 
 	enable_testing()
 	add_test(NAME headless_rmlui COMMAND waffle_native_headless)
 	set_tests_properties(headless_rmlui PROPERTIES TIMEOUT 60)
 	add_test(NAME headless_utf8_assets COMMAND waffle_native_headless --utf8-assets)
 	set_tests_properties(headless_utf8_assets PROPERTIES TIMEOUT 60)
+	add_test(NAME headless_presentation_math COMMAND waffle_native_headless --math)
+	set_tests_properties(headless_presentation_math PROPERTIES TIMEOUT 60)
 endif()

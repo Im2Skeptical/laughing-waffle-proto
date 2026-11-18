@@ -1,33 +1,213 @@
 <rml>
 <head>
-<title>waffle native</title>
+<title>Greywater Reach</title>
 <style>
+@spritesheet practice-art {
+	src: /images/sprite-sheets/settlement-pieces-1.png;
+	forage: 1612px 451px 318px 445px;
+	logging: 324px 3594px 318px 445px;
+	quarry: 2256px 2px 318px 445px;
+	farming: 646px 3145px 318px 445px;
+	pottery: 1612px 2px 318px 445px;
+}
+@spritesheet practice-frames {
+	src: /images/sprite-sheets/piece-frames.png;
+	scheduled: 363px 2px 344px 480px;
+	charge: 711px 2px 340px 480px;
+}
+@spritesheet terrain {
+	src: /images/dark-fantasy/map-generation-prototype/assets/terrain-engraving-v1.png;
+	peaks: 0px 0px 554px 361px;
+	ridge: 556px 82px 365px 279px;
+	woods: 0px 361px 630px 355px;
+	grove: 633px 408px 326px 286px;
+	marsh: 0px 712px 558px 312px;
+	bank: 951px 817px 315px 207px;
+}
+@spritesheet coast {
+	src: /images/dark-fantasy/map-generation-prototype/assets/composable-islands-v1.png;
+	shoal: 0px 680px 382px 344px;
+	cove: 384px 680px 384px 344px;
+	shore: 0px 0px 384px 340px;
+}
+@spritesheet towns {
+	src: /images/dark-fantasy/map-generation-prototype/assets/landmark-lod-v1.png;
+	keep: 0px 24px 515px 410px;
+	harbor: 526px 25px 494px 409px;
+	outpost: 606px 768px 320px 232px;
+}
 body {
-	font-family: Lato;
-	font-size: 18px;
-	width: 640px;
-	height: 360px;
-	color: #f4f1ea;
-	background-color: #141820;
+	width: 100%; height: 100%;
+	margin: 0; font-family: Lato; font-size: 16dp;
+	color: #e3d8bd; background-color: #151918;
 }
-#status {
-	display: block;
-	margin: 24px 24px 8px 24px;
+div, p, h1, h2, h3 { display: block; margin: 0; }
+button {
+	font-family: Lato; color: #f0dcaa; background-color: #252b26;
+	border: 1dp #726044; cursor: pointer;
 }
-#hit {
-	display: block;
-	width: 220px;
-	height: 48px;
-	margin: 16px 24px;
-	padding: 10px 12px;
-	background-color: #3d6b8a;
-	color: #ffffff;
-	font-size: 18px;
+button:hover { background-color: #37382b; border-color: #b09461; }
+button:active { background-color: #695437; color: #fff6db; border-color: #e7c47d; }
+#header {
+	position: absolute; left: 2%; right: 2%; top: 2%; height: 9%;
+	border-bottom: 1dp #605239;
 }
+#reach { font-size: 27dp; color: #f4e4be; }
+#year { position: absolute; right: 0; top: 18%; font-size: 14dp; color: #c3ad80; }
+#left { position: absolute; left: 2%; width: 64%; top: 13%; bottom: 3%; }
+#map {
+	position: absolute; left: 0; right: 0; top: 0; bottom: 44%;
+	overflow: hidden; clip: always;
+	background-color: #273936; border: 1dp #786343;
+}
+#map.panning { border-color: #dcbb75; }
+#world {
+	position: absolute; left: 50%; top: 50%; width: 760dp; height: 320dp;
+	transform-origin: 0 0; pointer-events: none;
+}
+.map-art { position: absolute; }
+#shore     { left:  72dp; top: 141dp; width: 300dp; height: 186dp; decorator: image(shore fill); }
+#cove      { left: 494dp; top: 157dp; width: 260dp; height: 165dp; decorator: image(cove fill); }
+#shoal     { left: 266dp; top:  76dp; width: 300dp; height: 217dp; decorator: image(shoal fill); }
+#low-bank  { left: 243dp; top: 168dp; width: 256dp; height: 129dp; decorator: image(bank fill); }
+#peaks     { left: 346dp; top: -14dp; width: 356dp; height: 198dp; decorator: image(peaks fill); }
+#ridge     { left: 523dp; top:  62dp; width: 203dp; height: 145dp; decorator: image(ridge fill); }
+#woods     { left:  24dp; top:  44dp; width: 337dp; height: 165dp; decorator: image(woods fill); }
+#grove     { left: 215dp; top:  57dp; width: 161dp; height: 136dp; decorator: image(grove fill); }
+#marsh     { left:  54dp; top: 181dp; width: 235dp; height: 136dp; decorator: image(marsh fill); }
+#keep      { left: 315dp; top:  96dp; width: 167dp; height: 133dp; decorator: image(keep fill); }
+#harbor    { left: 533dp; top: 173dp; width: 139dp; height: 115dp; decorator: image(harbor fill); }
+#outpost   { left: 132dp; top: 113dp; width:  98dp; height:  71dp; decorator: image(outpost fill); }
+.place {
+	position: absolute; padding: 3dp 9dp; font-size: 14dp; text-align: center;
+	background-color: #151e1dea; border: 1dp #786a4b; color: #ddcfac;
+}
+#greywater { left: 347dp; top: 215dp; color: #f9e2a7; border-color: #c39e5f; }
+#saltford  { left: 566dp; top: 272dp; }
+#alder     { left: 142dp; top: 178dp; }
+#map-title {
+	position: absolute; top: 10dp; left: 10dp; padding: 4dp 8dp;
+	font-size: 13dp; color: #efe0b5; background-color: #161f1dee;
+	border-left: 2dp #a68b54; pointer-events: none;
+}
+#zoom { position: absolute; right: 10dp; bottom: 10dp; display: flex; gap: 4dp; }
+.zoom-button { display: block; width: 42dp; height: 42dp; line-height: 41dp; text-align: center; font-size: 23dp; }
+#settlement { position: absolute; left: 0; right: 0; top: 58%; bottom: 0; }
+#settlement h2 { font-size: 20dp; color: #ebd5a5; }
+#population { position: absolute; right: 0; top: 5dp; color: #c1b397; font-size: 14dp; }
+#cards {
+	position: absolute; left: 0; right: 0; top: 29dp; bottom: 0;
+	display: flex; align-items: stretch; justify-content: space-between; gap: 6dp;
+}
+.card {
+	position: relative; flex: 1 1 0; min-width: 0; max-width: 132dp;
+	background-color: #242923; border: 1dp #514838; cursor: pointer;
+}
+.card.selected { border-color: #c9a15f; background-color: #332f23; }
+.card:hover { border-color: #b79a66; }
+.card:active { border-color: #fff0b4; background-color: #77613f; }
+.face { position: absolute; left: 4%; right: 4%; top: 4%; bottom: 19%; pointer-events: none; }
+.frame { position: absolute; left: 0; right: 0; top: 0; bottom: 0; pointer-events: none; }
+.scheduled { decorator: image(scheduled fill); }
+.charge { decorator: image(charge fill); }
+.forage { decorator: image(forage cover); }
+.logging { decorator: image(logging cover); }
+.quarry { decorator: image(quarry cover); }
+.farming { decorator: image(farming cover); }
+.pottery { decorator: image(pottery cover); }
+.card-name {
+	position: absolute; left: 6%; right: 6%; bottom: 4dp;
+	font-size: 13dp; text-align: center; color: #f1dfb5;
+	background-color: #171c17db; pointer-events: none;
+}
+#inspector {
+	position: absolute; left: 68%; right: 2%; top: 13%; bottom: 3%;
+	background-color: #212621; border: 1dp #786343;
+}
+#inspector-head { position: absolute; left: 12dp; right: 12dp; top: 9dp; }
+#inspector h2 { color: #f2ddae; font-size: 23dp; }
+#inspector-kind { font-size: 14dp; color: #bba981; }
+#scroll {
+	position: absolute; left: 12dp; right: 5dp; top: 63dp; bottom: 8dp;
+	overflow-x: hidden; overflow-y: auto;
+}
+#scroll p { margin: 8dp 0 12dp; padding-right: 6dp; line-height: 1.35; }
+#scroll h3 { margin-top: 8dp; font-size: 17dp; color: #e1c58e; }
+#scroll button {
+	display: block; width: 94%; height: 41dp;
+	text-align: left; padding-left: 9dp; font-size: 15dp; line-height: 41dp;
+}
+.ledger-row {
+	display: flex; justify-content: space-between;
+	margin-right: 8dp; padding: 7dp 5dp; border-bottom: 1dp #494537;
+}
+.value { color: #ead19c; }
+scrollbarvertical { width: 6dp; margin-left: 3dp; }
+scrollbarvertical slidertrack { background-color: #171c19; }
+scrollbarvertical sliderbar { background-color: #8b7652; }
+scrollbarvertical sliderbar:hover, scrollbarvertical sliderbar:active { background-color: #c4aa73; }
 </style>
 </head>
 <body>
-<p id="status">ready</p>
-<div id="hit">Press</div>
+	<div id="header"><h1 id="reach">Greywater Reach</h1><div id="year">Year 12</div></div>
+	<div id="left">
+		<div id="map">
+			<div id="world">
+				<div class="map-art" id="shore"></div><div class="map-art" id="cove"></div>
+				<div class="map-art" id="shoal"></div><div class="map-art" id="low-bank"></div>
+				<div class="map-art" id="peaks"></div><div class="map-art" id="ridge"></div>
+				<div class="map-art" id="woods"></div><div class="map-art" id="grove"></div>
+				<div class="map-art" id="marsh"></div><div class="map-art" id="outpost"></div>
+				<div class="map-art" id="harbor"></div><div class="map-art" id="keep"></div>
+				<div class="place" id="alder">Alderwatch</div>
+				<div class="place" id="saltford">Saltford</div>
+				<div class="place" id="greywater">Greywater</div>
+			</div>
+			<div id="map-title">Regional map</div>
+			<div id="zoom">
+				<button id="zoom-out" class="zoom-button">-</button>
+				<button id="zoom-in" class="zoom-button">+</button>
+			</div>
+		</div>
+		<div id="settlement">
+			<h2>Greywater</h2><div id="population">Residents <span id="residents">96</span></div>
+			<div id="cards">
+				<div class="card selected" id="card-0"><div class="face forage"></div><div class="frame charge"></div><div class="card-name">Scrub Foraging</div></div>
+				<div class="card" id="card-1"><div class="face logging"></div><div class="frame scheduled"></div><div class="card-name">Logging</div></div>
+				<div class="card" id="card-2"><div class="face quarry"></div><div class="frame charge"></div><div class="card-name">Quarrying</div></div>
+				<div class="card" id="card-3"><div class="face farming"></div><div class="frame scheduled"></div><div class="card-name">Mixed Farming</div></div>
+				<div class="card" id="card-4"><div class="face pottery"></div><div class="frame charge"></div><div class="card-name">Pottery</div></div>
+			</div>
+		</div>
+	</div>
+	<div id="inspector">
+		<div id="inspector-head"><div id="inspector-kind">Practice</div><h2 id="inspector-title">Scrub Foraging</h2></div>
+		<div id="scroll">
+			<div id="overview">
+				<p id="description"></p>
+				<button id="detail">Open contribution ledger</button>
+				<h3>Output</h3>
+				<div class="ledger-row"><span>Base yield</span><span class="value" id="base">12.00</span></div>
+				<div class="ledger-row"><span>From workers</span><span class="value" id="workers">+4.00</span></div>
+				<div class="ledger-row"><span>Settled stock</span><span class="value" id="stock">112.00</span></div>
+				<h3>Worker assignments</h3>
+				<p>Households sign on at the settlement board. The steward keeps a separate tally for each crew so the stock ledger shows where each contribution came from.</p>
+				<h3>Stock and storage</h3>
+				<p id="storage"></p>
+				<p>Reserve stock stays in the storehouse until the next collection. The steward records any overflow separately from stock still in transit between households.</p>
+			</div>
+			<div id="ledger" style="display: none;">
+				<button id="back">Back to Practice</button>
+				<h3>Worker contributions</h3>
+				<p>Read each crew's contribution to the current output recorded for this Practice.</p>
+				<div class="ledger-row"><span>Northbank crew</span><span class="value" id="north">+2.00</span></div>
+				<div class="ledger-row"><span>West Gate crew</span><span class="value" id="west">+1.00</span></div>
+				<div class="ledger-row"><span>Harbor crew</span><span class="value" id="harbor-output">+1.00</span></div>
+				<h3>Collection notes</h3>
+				<p>The Northbank and West Gate crews deliver overland. Harbor workers cross the reach at low tide and hold their share at Saltford until the return crossing.</p>
+				<p>The steward enters each crew's delivery as soon as it arrives at Greywater.</p>
+			</div>
+		</div>
+	</div>
 </body>
 </rml>

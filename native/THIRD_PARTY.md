@@ -14,6 +14,7 @@ copies RmlUi's `Samples/assets/LICENSE.txt` beside it as `FONT-LICENSE.txt`.
 | SDL | 3.4.20 (3 Nov 2026), tag `release-3.4.20`, commit `f00dc919ca35b9756316e86c4777392de442f9b2` | https://github.com/libsdl-org/SDL/releases/tag/release-3.4.20 | Zlib. `SDL3-3.4.20.tar.gz` sha256 `f3bb06f55bed9557227a700af2ea62e49497ebdf58037732a731a5fb3ef8581f`. |
 | FreeType | 2.15.0 (12 Oct 2026) | https://download.savannah.gnu.org/releases/freetype/freetype-2.15.0.tar.gz and https://lists.nongnu.org/archive/html/freetype/2026-10/msg00000.html | FreeType License (BSD-style) or GPL. This build uses the FreeType License terms. Published sha1 `a28dbab6c7dd2d49d2987cbd93f2d485ed888b34`. sha256 `9186627467a616d9a9e3e574748ac0c45fa77398e6364edef3041a8ba8d92f64`. Internal zlib is compiled in (`FT_DISABLE_ZLIB=TRUE` selects FreeType's bundled zlib). HarfBuzz, PNG, bzip2, and Brotli are off. |
 | RmlUi | 6.3 (22 Aug 2026), tag `6.3`, commit `ba95ffe8bfb6370efb2cdcca927eaad4710c5413` | https://github.com/mikke89/RmlUi/releases/tag/6.3 | MIT. Tag archive sha256 `d977298bb6147610e5984d5db85ddf284020d655a8713913f6982074f1dbdede` computed from `https://github.com/mikke89/RmlUi/archive/refs/tags/6.3.tar.gz`. |
+| stb_image | 2.30, commit `013ac3beddff3dbffafd5177e7972067cd2b5083` | https://github.com/nothings/stb/tree/013ac3beddff3dbffafd5177e7972067cd2b5083 | Dual MIT or public domain. This build uses the public-domain dedication. Commit archive `stb-013ac3be.tar.gz` sha256 `b01aa93e1a968aed55f43e072c98ee401d2f20e897aabdb1a166c7166886ed11`. |
 | Lato Latin Regular | file shipped in RmlUi 6.3 `Samples/assets/LatoLatin-Regular.ttf` | copyright 2010-2015 Łukasz Dziedzic, reserved name Lato. http://www.latofonts.com/ | SIL Open Font License 1.1. Notice and license text: `RmlUi-6.3/Samples/assets/LICENSE.txt` in that archive. |
 
 ## Android packaging pins (14 Nov 2026)
@@ -39,10 +40,3 @@ checkout's `native/.tools` after `cmake --version` / `ninja --version` matched.
 what the SDL 3.4.20 project requires. The debug APK is signed only with a
 keystore generated under `native/.tools/android-debug.keystore` (alias
 `androiddebugkey`). That is not a release or store credential.
-
-The window uses SDL's default 2D renderer (`SDL_CreateRenderer` with a null driver name).
-That is an application renderer, not RmlUi's sample `SDL_GPU` or `SDL_GL3` backends.
-Those sample backends also link SDL_image, which this bootstrap does not fetch.
-RmlUi 6.3 deprecates its own `SDLrenderer` sample and points new work at SDL GPU.
-This demo implements the geometry, texture, and scissor calls it needs and leaves
-layers, filters, shaders, and clip masks unimplemented. It is not a phone-backend decision.

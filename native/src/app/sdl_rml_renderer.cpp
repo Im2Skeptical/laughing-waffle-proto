@@ -1,135 +1,125 @@
 #include "sdl_rml_renderer.hpp"
 
-namespace {
+#define STB_IMAGE_IMPLEMENTATION
+#define STBI_ONLY_PNG
+#define STBI_NO_STDIO
+#define STBI_MAX_DIMENSIONS 4096
+#include <stb_image.h>
 
-SDL_FColor ToColor(Rml::ColourbPremultiplied colour) {
-	SDL_FColor out;
-	out.r = static_cast<float>(colour.red) / 255.f;
-	out.g = static_cast<float>(colour.green) / 255.f;
-	out.b = static_cast<float>(colour.blue) / 255.f;
-	out.a = static_cast<float>(colour.alpha) / 255.f;
-	return out;
-}
+#include <algorithm>
+#include <limits>
+#include <memory>
+#include <utility>
 
-} // namespace
-
-SdlRmlRenderer::SdlRmlRenderer(SDL_Renderer* renderer) : renderer_(renderer) {}
-
-SdlRmlRenderer::~SdlRmlRenderer() {
-	for (SDL_Texture* texture : textures_) {
-		if (texture) {
-			SDL_DestroyTexture(texture);
-		}
-	}
-}
+SdlRmlRenderer::SdlRmlRenderer(SDL_Renderer* renderer, std::string art_root)
+	: renderer_(renderer), art_root_(std::move(art_root)) {}
 
 Rml::CompiledGeometryHandle SdlRmlRenderer::CompileGeometry(Rml::Span<const Rml::Vertex> vertices, Rml::Span<const int> indices) {
 	auto mesh = std::make_unique<Mesh>();
 	mesh->vertices.reserve(vertices.size());
 	for (const Rml::Vertex& vertex : vertices) {
-		SDL_Vertex sdl_vertex;
-		sdl_vertex.position.x = vertex.position.x;
-		sdl_vertex.position.y = vertex.position.y;
-		sdl_vertex.color = ToColor(vertex.colour);
-		sdl_vertex.tex_coord.x = vertex.tex_coord.x;
-		sdl_vertex.tex_coord.y = vertex.tex_coord.y;
-		mesh->vertices.push_back(sdl_vertex);
+		const auto& color = vertex.colour;
+		mesh->vertices.push_back({
+			{vertex.position.x, vertex.position.y},
+			{color.red / 255.f, color.green / 255.f, color.blue / 255.f, color.alpha / 255.f},
+			{vertex.tex_coord.x, vertex.tex_coord.y},
+		});
 	}
 	mesh->indices.assign(indices.begin(), indices.end());
-	meshes_.push_back(std::move(mesh));
-	return static_cast<Rml::CompiledGeometryHandle>(meshes_.size());
+	return reinterpret_cast<Rml::CompiledGeometryHandle>(mesh.release());
 }
 
 void SdlRmlRenderer::RenderGeometry(Rml::CompiledGeometryHandle geometry, Rml::Vector2f translation, Rml::TextureHandle texture) {
-	if (geometry == 0 || geometry > meshes_.size() || !meshes_[geometry - 1]) {
-		return;
+	const auto& mesh = *reinterpret_cast<const Mesh*>(geometry);
+	draw_vertices_.assign(mesh.vertices.begin(), mesh.vertices.end());
+	for (auto& vertex : draw_vertices_) {
+		const float x = vertex.position.x + translation.x;
+		const float y = vertex.position.y + translation.y;
+		if (transformed_) {
+			const auto point = transform_ * Rml::Vector4f(x, y, 0.f, 1.f);
+			vertex.position = {point.x, point.y};
+		} else {
+			vertex.position = {x, y};
+		}
 	}
-	const Mesh& mesh = *meshes_[geometry - 1];
-	std::vector<SDL_Vertex> translated = mesh.vertices;
-	for (SDL_Vertex& vertex : translated) {
-		vertex.position.x += translation.x;
-		vertex.position.y += translation.y;
-	}
-	SDL_Texture* sdl_texture = nullptr;
-	if (texture != 0 && texture <= textures_.size()) {
-		sdl_texture = textures_[texture - 1];
-	}
-	const int* index_data = mesh.indices.empty() ? nullptr : mesh.indices.data();
-	const int index_count = static_cast<int>(mesh.indices.size());
-	if (SDL_RenderGeometry(renderer_, sdl_texture, translated.data(), static_cast<int>(translated.size()), index_data, index_count)) {
+	const auto* image = reinterpret_cast<const Texture*>(texture);
+	if (SDL_RenderGeometry(renderer_, image ? image->handle : nullptr, draw_vertices_.data(),
+		static_cast<int>(draw_vertices_.size()), mesh.indices.data(), static_cast<int>(mesh.indices.size()))) {
 		++draw_count_;
+	} else {
+		error_ = SDL_GetError();
 	}
 }
 
 void SdlRmlRenderer::ReleaseGeometry(Rml::CompiledGeometryHandle geometry) {
-	if (geometry == 0 || geometry > meshes_.size()) {
-		return;
-	}
-	meshes_[geometry - 1].reset();
+	delete reinterpret_cast<Mesh*>(geometry);
 }
 
-Rml::TextureHandle SdlRmlRenderer::LoadTexture(Rml::Vector2i& texture_dimensions, const Rml::String& source) {
-	(void)source;
-	texture_dimensions = Rml::Vector2i(0, 0);
-	return 0;
+Rml::TextureHandle SdlRmlRenderer::LoadTexture(Rml::Vector2i& dimensions, const Rml::String& source) {
+	// The RML uses root-relative artwork paths. SDL reads UTF-8 paths on Windows
+	// and the same relative paths from the Android asset manager.
+	const std::string path = art_root_ + source;
+	std::size_t size = 0;
+	const std::unique_ptr<void, decltype(&SDL_free)> encoded(SDL_LoadFile(path.c_str(), &size), SDL_free);
+	if (!encoded || size > static_cast<std::size_t>(std::numeric_limits<int>::max())) {
+		error_ = "cannot read " + path;
+		return 0;
+	}
+	int width = 0, height = 0;
+	const std::unique_ptr<stbi_uc, decltype(&stbi_image_free)> pixels(
+		stbi_load_from_memory(static_cast<const stbi_uc*>(encoded.get()), static_cast<int>(size), &width, &height, nullptr, 4),
+		stbi_image_free);
+	if (!pixels) {
+		error_ = "cannot decode " + path + ": " + stbi_failure_reason();
+		return 0;
+	}
+	const std::size_t bytes = static_cast<std::size_t>(width) * height * 4;
+	for (std::size_t i = 0; i < bytes; i += 4) {
+		auto* pixel = pixels.get() + i;
+		for (int channel = 0; channel < 3; ++channel) {
+			pixel[channel] = static_cast<stbi_uc>((pixel[channel] * pixel[3] + 127) / 255);
+		}
+	}
+	dimensions = {width, height};
+	const auto texture = GenerateTexture({pixels.get(), bytes}, dimensions);
+	if (texture) ++art_count_;
+	return texture;
 }
 
-Rml::TextureHandle SdlRmlRenderer::GenerateTexture(Rml::Span<const Rml::byte> source, Rml::Vector2i source_dimensions) {
-	if (source_dimensions.x <= 0 || source_dimensions.y <= 0) {
+Rml::TextureHandle SdlRmlRenderer::GenerateTexture(Rml::Span<const Rml::byte> source, Rml::Vector2i dimensions) {
+	if (dimensions.x <= 0 || dimensions.y <= 0) return 0;
+	const auto bytes = static_cast<std::uint64_t>(dimensions.x) * dimensions.y * 4;
+	if (source.size() < bytes) return 0;
+
+	SDL_Texture* texture = SDL_CreateTexture(renderer_, SDL_PIXELFORMAT_RGBA32, SDL_TEXTUREACCESS_STATIC, dimensions.x, dimensions.y);
+	if (!texture || !SDL_UpdateTexture(texture, nullptr, source.data(), dimensions.x * 4) ||
+		!SDL_SetTextureBlendMode(texture, SDL_BLENDMODE_BLEND_PREMULTIPLIED)) {
+		error_ = SDL_GetError();
+		if (texture) SDL_DestroyTexture(texture);
 		return 0;
 	}
-	const std::size_t expected = static_cast<std::size_t>(source_dimensions.x) * static_cast<std::size_t>(source_dimensions.y) * 4u;
-	if (source.size() < expected) {
-		return 0;
-	}
-	SDL_Texture* texture = SDL_CreateTexture(renderer_, SDL_PIXELFORMAT_RGBA32, SDL_TEXTUREACCESS_STATIC, source_dimensions.x, source_dimensions.y);
-	if (!texture) {
-		return 0;
-	}
-	if (!SDL_UpdateTexture(texture, nullptr, source.data(), source_dimensions.x * 4)) {
-		SDL_DestroyTexture(texture);
-		return 0;
-	}
-	const SDL_BlendMode premultiplied = SDL_ComposeCustomBlendMode(
-		SDL_BLENDFACTOR_ONE, SDL_BLENDFACTOR_ONE_MINUS_SRC_ALPHA, SDL_BLENDOPERATION_ADD,
-		SDL_BLENDFACTOR_ONE, SDL_BLENDFACTOR_ONE_MINUS_SRC_ALPHA, SDL_BLENDOPERATION_ADD);
-	if (!SDL_SetTextureBlendMode(texture, premultiplied)) {
-		SDL_SetTextureBlendMode(texture, SDL_BLENDMODE_BLEND);
-	}
-	textures_.push_back(texture);
-	++texture_count_;
-	return static_cast<Rml::TextureHandle>(textures_.size());
+	texture_bytes_ += bytes;
+	peak_texture_bytes_ = std::max(peak_texture_bytes_, texture_bytes_);
+	return reinterpret_cast<Rml::TextureHandle>(new Texture{texture, bytes});
 }
 
 void SdlRmlRenderer::ReleaseTexture(Rml::TextureHandle texture) {
-	if (texture == 0 || texture > textures_.size()) {
-		return;
-	}
-	if (SDL_Texture* sdl_texture = textures_[texture - 1]) {
-		SDL_DestroyTexture(sdl_texture);
-		textures_[texture - 1] = nullptr;
-	}
+	const std::unique_ptr<Texture> image(reinterpret_cast<Texture*>(texture));
+	if (!image) return;
+	texture_bytes_ -= image->bytes;
+	SDL_DestroyTexture(image->handle);
 }
 
 void SdlRmlRenderer::EnableScissorRegion(bool enable) {
-	scissor_ = enable;
-	ApplyClip();
+	if (!enable && !SDL_SetRenderClipRect(renderer_, nullptr)) error_ = SDL_GetError();
 }
 
 void SdlRmlRenderer::SetScissorRegion(Rml::Rectanglei region) {
-	clip_.x = region.Left();
-	clip_.y = region.Top();
-	clip_.w = region.Width();
-	clip_.h = region.Height();
-	if (scissor_) {
-		ApplyClip();
-	}
+	const SDL_Rect clip{region.Left(), region.Top(), region.Width(), region.Height()};
+	if (!SDL_SetRenderClipRect(renderer_, &clip)) error_ = SDL_GetError();
 }
 
-void SdlRmlRenderer::ApplyClip() {
-	if (scissor_) {
-		SDL_SetRenderClipRect(renderer_, &clip_);
-	} else {
-		SDL_SetRenderClipRect(renderer_, nullptr);
-	}
+void SdlRmlRenderer::SetTransform(const Rml::Matrix4f* transform) {
+	transformed_ = transform != nullptr;
+	if (transform) transform_ = *transform;
 }
