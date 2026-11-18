@@ -271,7 +271,7 @@ for saturated cases. L0 through runtime: 22/22 and 2,949/2,949. The
 supervisor's merged optimized build passed 16/16 CTests. Append cost and
 forecast memory get measured once recipes write traces (N03e-3).
 
-## N03e - Tick systems with step parity (N03e-0, N03e-1 done; N03e-2 active)
+## N03e - Tick systems with step parity (N03e-0, N03e-1, N03e-2 done; N03e-1b active)
 
 Cuts follow [the tick pipeline](spec/tick-pipeline.md#proposed-n03e-cuts).
 N03e-0 is the captured-content compiler (typed decoded definitions and DSL
@@ -323,6 +323,24 @@ Discharges. The clock runs on ticks 1-60. On tick 60 the stages run in order:
 `chaosBefore`. `waffle_parity stage --stage <name> --before --after [--masks]`
 tests one stage. The supervisor's merged optimized build passed 22/22 CTests.
 N03e-3 to N03e-8 can now be ported in parallel once N03e-2 lands.
+
+N03e-2 result, 19 Nov 2026 (merged from `t3/native-settlement-prelude`
+959818a5): ports moon-turn creation and rollover, Green tiers, empty Stranger
+resets, the Spring death baseline, and Unrest income through expiry. Adds
+typed site/bin access, stable ledger merge and proportional allocation, cohort
+helpers and class/faction totals ([handoff](src/sim/settlement/README.md)).
+Masks: 4 broad masks removed, 29 narrower moon-payload masks added; all 144
+remaining masks name an owner. Step parity: 133 comparisons in 11 windows, zero
+unmasked mismatches. Optimized cost 0.41 µs/sim-s at the 20-site opening
+(0.11 before). Ledger vectors: 17/17. The supervisor's merged optimized build
+passed 24/24 CTests. Seams left: migration refunds (N03e-7); control
+clearing, market restoration and events (N03e-8).
+
+N03e-1b (active): a public `run_stage` interface with one file per stage, so
+the stage-parity CLI runs the production path and parallel stage ports stay
+in their own files. The parallel wave starts after it lands: N03e-3 recipe
+engine, N03e-4 Birth, N03e-6 Faith/Chaos and N03e-7 Migration. Food, Housing
+and Death need the recipe engine for their internal drains.
 
 ## N03f - Actions, replay and new game (pending N03e)
 
