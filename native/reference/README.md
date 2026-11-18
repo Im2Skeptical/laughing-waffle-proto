@@ -20,8 +20,9 @@ node native/reference/diff.mjs <reference-trace-dir> <native-trace-dir-or-hashes
 `trace.mjs` defaults to all scenarios and accepts one or more scenario IDs.
 A capture writes `artifacts/native-reference/traces/<id>/`. `--check`
 regenerates in memory and compares the artifact files and any checked-in
-fixtures byte for byte. `fixtures/` carries all five hash lists and the seed 1
-opening state for codec tests. The other full states are generated on demand.
+fixtures byte for byte. `fixtures/` carries all five hash lists, the seed 1
+opening state for codec tests, and its first advancing state for step parity.
+The other full states are generated on demand.
 
 A scenario gives the start seed, optional prepared forecast anchor, duration
 (`horizonSec`), absolute `keepSeconds`, and chronological `actions`. Each
@@ -55,8 +56,6 @@ the last kept state. That last interval can extend past the exported horizon.
 `rebuildStateAtSecond` also matches every kept hash. A mismatch stops capture
 and prints the first paths, with full conflicting states under
 `artifacts/native-reference/diagnostics/<id>/` when both states are available.
-The native step-parity check still needs to run against these references.
-
 `diff.mjs` exits `0` on a match, `1` on divergence and `2` for invalid input.
 State comparisons visit object keys lexically and array elements by index.
 The first eight paths include values and their parent paths. The leaf count
@@ -65,10 +64,45 @@ replacement counts the larger subtree, and an empty container counts as one
 value. Trace comparisons find the first divergent or missing second and use
 `state-<second>.json` from both directories when available.
 
+### Step windows
+
+A scenario can request additional consecutive full states using
+`"windows": [{ "startSec": 0, "count": 40 }]`. The count includes the
+initial state, so this example tests 39 advances. Captures are written to
+`artifacts/native-reference/windows/<scenario>/<startSec>/`, and `--check`
+also checks these files byte for byte. The checked-in window in
+`fixtures/windows/seed-1/0/` reuses the existing seed-1 opening as its anchor.
+A window may begin at a second with journal actions already applied. Later
+seconds in the window must be action-free because `step` only runs simulation.
+
+A paused probe sets `"paused": true` on a window. Its directory gets a
+`-paused` suffix. The capture forks the anchor through the browser pause
+command and calls the official runner for each requested attempt. Filenames
+count attempted seconds while the serialized `tSec` and all other fields stay
+at the paused anchor. The catalogue covers default season and year wraps,
+moon rollover, late anchors, timed Vassal state, and a paused attempt.
+
+```powershell
+node native/reference/step-windows.mjs native/build/optimized/src/sim/waffle_parity.exe
+```
+
+For single-window commands and timings, see [step parity](../src/sim/README.md#step-parity).
+The [mask file](parity-masks.json) uses format version 1. Patterns are rooted
+at `$` and use dot-separated property names or array indices. `*` matches one
+segment and `**` matches zero or more. A match removes an object property or
+replaces an array element with null, preserving array length and other
+indices. Masks identify the narrowest path covering the write, including
+the parent when a stage can create or replace the record. Each mask names a
+responsible cut. Shared paths may need to stay masked until all of their
+writers are ported. The native CLI
+validates format and owner IDs, and CTest checks the owners against the
+[cut table](../spec/tick-pipeline.md#proposed-n03e-cuts).
+
 ### Scenarios and capture size
 
-Measured serially on an Intel Core i9-10900K with Node 24.15.0.
-The captured settings use 32 seconds per in-game year.
+Base trace sizes and capture times below were measured serially on an Intel
+Core i9-10900K with Node 24.15.0. The nine additional windows currently write
+116 full states, about 80 MiB. The captured settings use 32 seconds per in-game year.
 
 | Scenario | Inclusive trace seconds | Coverage | Output bytes | Wall time |
 | --- | ---: | --- | ---: | ---: |
@@ -88,10 +122,9 @@ The opening corpus predates the step-reference traces.
 
 ## What a passing check means
 
-`verify.mjs` checks the current browser engine against the frozen reference:
-official replay, JSON continuation, and the semantic projection. A pass is a
-browser regression result. It is not native parity. Native parity does not
-exist yet.
+`verify.mjs` checks official browser replay, JSON continuation, and the
+semantic projection against the frozen reference. Native `step` results cover
+the compared seconds and unmasked fields for the current port cut.
 
 Golden numbers are observed baseline-engine output. They are not a claim that
 every serialized field is the intended design. A future rule fix must
@@ -167,8 +200,8 @@ The v1.1.74 card pass intentionally refreshes the browser reference to GameState
 52: terrain bonuses are printed card data, starter cards have no implicit biome
 bonus, and keyword scaling can target Output or Capacity. The original baseline
 commit below records the corpus's origin; current config and full-state hashes
-are regenerated explicitly for this intentional rules change. No C++ parity is
-claimed. See [content rules and coverage](../../docs/card-content-pass.md).
+are regenerated explicitly for this intentional rules change. These goldens
+establish the browser-side baseline. See [content rules and coverage](../../docs/card-content-pass.md).
 
 ## Provenance
 

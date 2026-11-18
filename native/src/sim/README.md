@@ -162,3 +162,60 @@ L0 establishes sorted-key canonical equality for the exercised states, with
 dictionary enumeration order tested separately. Original record text order,
 native stepping, replay, new-game generation, and cross-platform agreement
 are outside the L0 claim. The adapter performs no RNG draws or time advances.
+
+## Second advance
+
+[`advance_one_second`](step/advance_second.hpp) in `waffle_sim` gates on pause
+and terminal state, advances the clock, and dispatches gameplay at most once.
+AP cap and income use the new second, before the clock addition on the
+dispatch tick. The typed import establishes numeric AP fields. The separate
+AP cycle and named settlement lunar phases follow their respective browser
+schedules. A derived lunar deadline skips phase selection between boundaries.
+
+The gameplay dispatch sees the season latch after the same ordered binary64
+additions as the browser. The default first season change dispatches at second
+9, and the first year wraps at second 33. The latch survives native value
+copies if a step ends between boundaries. Browser export omits it and browser
+import begins with a cleared latch, matching the browser's serialization
+behavior. The lunar deadline is derived again on import.
+
+The dispatcher names the prelude, seasonal Practices and Spring baseline,
+Birth, Food and after-meal work, Housing, Faith, Migration, Death and control,
+the phase event drain, the Vassal check, and the final flush. These stage
+bodies are currently empty. The [pipeline write table](../../spec/tick-pipeline.md#detailed-settlement-step)
+and [parity masks](../../reference/parity-masks.json) record their deferred
+writes. The ported kernel uses no heap allocation per advance and draws no
+RNG. It leaves the browser save schema and browser replay path intact, and the
+native sim takes no wall clock, file, or UI dependencies.
+
+## Step parity
+
+After generating the [step windows](../../reference/README.md#step-windows),
+run one window from the repository root:
+
+```powershell
+$parity = ".\native\build\optimized\src\sim\waffle_parity.exe"
+$window = "artifacts/native-reference/windows/seed-1/0"
+& $parity step --from "$window/state-0.json" --seconds 39 --expect-dir $window --masks native/reference/parity-masks.json --time
+node native/reference/step-windows.mjs $parity
+```
+
+`step` compares canonical hashes after each advance, applying the same masks
+to the browser and native state. A gated attempt is compared with the full
+reference state. A mismatch exits 1 and reports the second and first path
+using the same traversal as `diff`. Invalid input exits 2. Optional
+`--report <path>` writes comparison counts and hashes on divergence, or
+comparison counts and timing when requested on success.
+
+`--time` repeats the verified advancing portion of the window in batches.
+It reports microseconds per sim-second and the timed advance count. It excludes
+state copying, import, export, masking and hash comparison. Optimized
+timings at this cut cover the clock and dispatch with empty gameplay stage
+bodies. CTest uses the existing seed-1 anchor and one additional full state,
+with separate controls for the lunar schedule, clocks, gates, wildcard
+matching, cut owners and unmasked diagnostics.
+
+The seed-1 opening window measured 0.159 µs per sim-second on the
+Intel Core i9-10900K with MSVC 19.50, using the median of three optimized
+runs of 9,984 timed advances each. The 0.25 µs clock and dispatch budget
+is recorded in the [performance architecture](../../spec/performance-architecture.md#stepping-and-phase-budget).

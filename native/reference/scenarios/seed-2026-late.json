@@ -3,5 +3,6 @@
   "start": { "kind": "performanceAnchor", "seed": 2026, "anchorSec": 3200 },
   "actions": [],
   "horizonSec": 192,
-  "keepSeconds": [3200, 3264, 3332]
+  "keepSeconds": [3200, 3264, 3332],
+  "windows": [{ "startSec": 3200, "count": 12 }]
 }
