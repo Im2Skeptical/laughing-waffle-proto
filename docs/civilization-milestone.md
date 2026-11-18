@@ -273,6 +273,8 @@ human playtest work.
   requires sustained 3x effective population to buy at least 100 additional years
   per start. It isolates the Resistance contribution; played population growth
   still needs Food, Housing and Faith support.
+  Primordial income caps at 1 billion Chaos per moon. A zero base yields zero
+  income at every year, and total Chaos can continue to accumulate.
   Passive Creep is tuned against the real simulation over each starting
   road; dangerous-action costs and the 100-progress threshold stay independent.
 - Authored Raid, conquest, forbidden Discovery, selected advanced/esoteric

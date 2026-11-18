@@ -61,7 +61,6 @@ export function createProjectionStateRestorer({ maxEntries = 64, maxReplayEntrie
     state.gameConfig = entry.config;
     attachRngHelpers(state);
     state._boardDirty = false;
-    state._seasonChanged = false;
     syncPhaseToPaused(state);
     if (targetSec > baseSec) {
       initializeReplayClock(state, baseSec);

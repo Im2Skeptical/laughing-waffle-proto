@@ -1,60 +1,14 @@
 import { SEASON_DURATION_SEC } from "../../defs/gamesettings/gamerules-defs.js";
 import { runLiveSecondStages } from "../live-second-stage-scheduler.js";
 import {
-  getCurrentSeasonKey,
-} from "../state.js";
-import {
   getApCapForSecond,
   getApIncomePerSecond,
   normalizeApState,
 } from "./ap-helpers.js";
 
 const TICKS_PER_SEC = 60;
-const DEFAULT_SEASON_DURATION_SEC = SEASON_DURATION_SEC;
 
-export function cmdAdvanceSeason(state) {
-  const oldSeasonKey = getCurrentSeasonKey(state);
-
-  const seasons = state.seasons || [];
-  if (!seasons.length) return { ok: false, reason: "noSeasons" };
-
-  const nextSeasonIndex = ((state.currentSeasonIndex || 0) + 1) % seasons.length;
-  state.currentSeasonIndex = nextSeasonIndex;
-
-  if (nextSeasonIndex === 0) {
-    const currentYear = Number.isFinite(state.year) ? Math.floor(state.year) : 0;
-    state.year = Math.max(1, currentYear + 1);
-  }
-
-  const newSeasonKey = getCurrentSeasonKey(state);
-
-  state._seasonChanged = true;
-
-  return { ok: true, oldSeasonKey, newSeasonKey };
-}
-
-function maybeAdvanceSeasonBySimTime(state, dt) {
-  const dur =
-    typeof state.seasonDurationSec === "number" && state.seasonDurationSec > 0
-      ? state.seasonDurationSec
-      : DEFAULT_SEASON_DURATION_SEC;
-
-  state.seasonClockSec = typeof state.seasonClockSec === "number" ? state.seasonClockSec : 0;
-
-  state.seasonClockSec += dt;
-
-  let advanced = 0;
-  while (state.seasonClockSec >= dur) {
-    state.seasonClockSec -= dur;
-    const res = cmdAdvanceSeason(state);
-    if (res?.ok) advanced += 1;
-    else break;
-  }
-
-  return advanced;
-}
-
-export function cmdTickSimulation(state, dt) {
+export function cmdTickSimulation(state) {
   if (state.paused || state.runStatus?.complete) return { ok: false };
 
   state.simStepIndex = (state.simStepIndex || 0) + 1;
@@ -73,31 +27,32 @@ export function cmdTickSimulation(state, dt) {
     state.actionPoints = Math.min(state.actionPoints, state.actionPointCap);
   }
 
-  let advancedSeasonCount = 0;
-
-  const scaledDt = dt;
-
-  state.simTime = (state.simTime ?? 0) + scaledDt;
-
-  advancedSeasonCount = maybeAdvanceSeasonBySimTime(state, scaledDt);
-
-  const dur =
-    typeof state.seasonDurationSec === "number" && state.seasonDurationSec > 0
+  const durationSec =
+    Number.isInteger(state.seasonDurationSec) && state.seasonDurationSec > 0
       ? state.seasonDurationSec
-      : DEFAULT_SEASON_DURATION_SEC;
-  state.seasonTimeRemaining = Math.max(0, dur - (state.seasonClockSec ?? 0));
+      : SEASON_DURATION_SEC;
+  const seasonTicks = durationSec * TICKS_PER_SEC;
+  const tickInSeason = state.simStepIndex % seasonTicks;
+  state.simTime = state.simStepIndex / TICKS_PER_SEC;
+  state.seasonClockSec = tickInSeason / TICKS_PER_SEC;
+  state.seasonTimeRemaining = (seasonTicks - tickInSeason) / TICKS_PER_SEC;
 
-  state._seasonChanged = state._seasonChanged === true || advancedSeasonCount > 0;
-
+  let seasonChanged = false;
   if (didAdvanceSecond) {
-    runLiveSecondStages(state, state.tSec);
-    if (state._seasonChanged) state._seasonChanged = false;
+    const seasonCount = state.seasons?.length ?? 0;
+    seasonChanged = tickInSeason === 0 && seasonCount > 0;
+    if (seasonChanged) {
+      const elapsedSeasons = state.simStepIndex / seasonTicks;
+      state.currentSeasonIndex = elapsedSeasons % seasonCount;
+      state.year = 1 + Math.floor(elapsedSeasons / seasonCount);
+    }
+    runLiveSecondStages(state, state.tSec, { seasonChanged });
   }
 
   return {
     ok: true,
-    advancedSeason: advancedSeasonCount > 0,
-    advancedSeasonCount,
+    advancedSeason: seasonChanged,
+    advancedSeasonCount: seasonChanged ? 1 : 0,
   };
 }
 

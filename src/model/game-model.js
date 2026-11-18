@@ -23,11 +23,11 @@ import { cmdTickSimulation, cmdSetPaused } from "./commands/simulation-commands.
 // UPDATE LOOP (orchestration)
 // =============================================================================
 
-export function updateGame(dt, state) {
+export function updateGame(_dt, state) {
   const s = state; // explicit state threading
 
   // 1. Master Clock Tick
-  const tick = cmdTickSimulation(s, dt);
+  const tick = cmdTickSimulation(s);
   if (!tick?.ok) return;
 
   // 2. Pause Gate

@@ -48,7 +48,7 @@ primordial.gameConfig.settings.values.primordialGrowthFactor = 2;
 primordial.gameConfig.settings.values.primordialGrowthCadenceYears = 3;
 primordial.year = 7;
 assert.equal(getPrimordialChaosPressure(primordial), 16,
-  "Primordial base, factor, and cadence are configurable without a cap");
+  "Primordial base, factor, and cadence are configurable");
 assert.deepEqual(assignDetailedSettlementWorkers(state, "river-crown")
   .map((entry) => entry.effectiveWorkers), [1, 0, 0, 0, 0]);
 const strangerWorkers = fresh();
