@@ -362,8 +362,13 @@ N03e-3 coding against fixed interfaces:
 mid-task. Its unverified partial work is preserved as WIP commit 3d01d5fb on
 `t3/port-native-migration-stage`. It includes a `seed-123-migration` scenario
 with natural movement at seconds 2033 and 2129, 32 people each. Other active
-workers (N03e-3, N03e-4, N03e-6a, N03d-4, N03d-5) may stop the same way. Their
-worktrees hold uncommitted work. Resume each from its branch and worktree.
+workers may stop the same way. Their worktrees hold uncommitted work. Resume
+each from its branch and worktree. Also stopped, with WIP preserved:
+N03d-4 44d39ed4 on `t3/native-world-topology-admission` (the exporter found 4
+definitions, and browser comparisons of neighbor order, symmetry, road order and
+components passed before the stop; the builds were unverified), and N03d-5
+2b2db2d4 on `t3/allocation-free-history-appends` (late copy baseline 5.8 µs;
+the arena was unfinished).
 Note: N03e-3 and N03e-6a both edit `gamestate.v52.json` and regenerate the
 mirror, so expect schema merge conflicts.
 
