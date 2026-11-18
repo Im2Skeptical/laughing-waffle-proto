@@ -1,6 +1,7 @@
 add_library(waffle_sim STATIC
 	browser/detail/codec.cpp
 	browser/generated/game_state.cpp
+	content/compiled_content.cpp
 	state/mirror_mapping.cpp
 	state/runtime_state.cpp
 	step/advance_second.cpp
@@ -18,13 +19,19 @@ if(NOT ANDROID)
 	target_link_libraries(waffle_browser_tests PRIVATE waffle_sim)
 	add_executable(waffle_step_clock_test ../tests/step_clock_test.cpp)
 	target_link_libraries(waffle_step_clock_test PRIVATE waffle_sim)
+	add_executable(waffle_content_tests ../tests/content_test.cpp)
+	target_link_libraries(waffle_content_tests PRIVATE waffle_sim)
 	if(MINGW)
 		target_link_options(waffle_parity PRIVATE -static)
 		target_link_options(waffle_browser_tests PRIVATE -static)
 		target_link_options(waffle_step_clock_test PRIVATE -static)
+		target_link_options(waffle_content_tests PRIVATE -static)
 	endif()
 
 	set(native_dir "${CMAKE_CURRENT_SOURCE_DIR}/../..")
+	add_test(NAME captured_content COMMAND waffle_content_tests fixtures
+		"${native_dir}/src/tests/vectors/seed-1-initial.json"
+		"${native_dir}/reference/fixtures/seed-1/state-0.json")
 	add_test(NAME browser_state_l0 COMMAND waffle_browser_tests fixtures
 		"${native_dir}/src/tests/vectors/seed-1-initial.json"
 		"${native_dir}/reference/fixtures/seed-1/state-0.json"
@@ -48,7 +55,7 @@ if(NOT ANDROID)
 		--masks "${native_dir}/reference/parity-masks.json")
 	add_test(NAME step_clock COMMAND waffle_step_clock_test)
 	set_tests_properties(browser_state_l0 browser_state_controls runtime_state_l0 runtime_state_controls
-		parity_cli step_parity step_clock PROPERTIES TIMEOUT 60)
+		parity_cli step_parity step_clock captured_content PROPERTIES TIMEOUT 60)
 
 	find_program(WAFFLE_NODE_EXECUTABLE NAMES node)
 	if(WAFFLE_NODE_EXECUTABLE)
@@ -63,6 +70,8 @@ if(NOT ANDROID)
 		add_test(NAME step_parity_controls
 			COMMAND "${WAFFLE_NODE_EXECUTABLE}" "${native_dir}/src/tests/check-step-cli.mjs"
 				"$<TARGET_FILE:waffle_parity>" "${native_dir}" "${CMAKE_CURRENT_BINARY_DIR}/step-cli-controls")
-		set_tests_properties(browser_schema_codegen runtime_field_coverage runtime_history_retention step_parity_controls PROPERTIES TIMEOUT 60)
+		add_test(NAME content_field_coverage
+			COMMAND "${WAFFLE_NODE_EXECUTABLE}" "${CMAKE_CURRENT_SOURCE_DIR}/content/generate.mjs" --check)
+		set_tests_properties(browser_schema_codegen runtime_field_coverage runtime_history_retention step_parity_controls content_field_coverage PROPERTIES TIMEOUT 60)
 	endif()
 endif()

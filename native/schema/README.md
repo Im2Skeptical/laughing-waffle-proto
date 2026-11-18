@@ -19,6 +19,32 @@ Record notes identify observed reordering with the same field set and known cons
 
 Reference scope is the initialized V52 simulation. `createEmptyState` before initialization, runner-save envelopes, legacy board/pawn editors, outer performance bundles, inputs to a launch recipe and transient runtime helpers are outside this contract. Pending Practice events are typed from emitters. Transient root context, optional card effects and rare shop/Relic/Commission branches remain source-derived where capture did not exercise them.
 
+### GameConfig number audit
+
+Captured fields retain fractional values when their browser editors and readers
+permit them. The v52 inventory initially inferred some integers from defaults.
+These fields are now `number`.
+
+| Schema fields | Browser contract |
+| --- | --- |
+| `KeywordScale.amount`, `per`, `cap` | A multiplier accepts a finite nonnegative coefficient and requires whole counts for `per` and `cap`. Effect-level keyword expressions share this shape and retain fractional divisors and caps. The compiler checks whole counts for the multiplier attachments. |
+| `PracticeDefinition.cadenceMoons`, `minimumSupportRequired`, `retinueForce`, `minimumWarriors` | Cadence is the divisor in a remainder test, and the other fields are Force contributions or numeric thresholds. The editor validates finiteness. |
+| `StructureDefinition.specialistGate`, `StructureDefinitionConversionSupport.minimumPopulation`, `ModifiersQuery.minimumSpecialists`, `minimumRequirements`, `historicalBurdens` | Gates compare an observed count to the authored threshold. |
+| `StructureDefinitionModifiersEntry.arms`, `cap` | Arms is a Stock threshold and cap bounds a numeric institution bonus. |
+| `PracticeDefinitionPopulationRequireEntry.amount` | Population reserves compare the eligible population count to the authored threshold. |
+| `StockInput.amount`, `ConversionSupportRequireEntry.amount`, `ConversionSupportConsumeEntry.amount` | Stock planning uses numeric amounts. The shared Stock shape also covers upkeep and other recipes whose editor has no whole-number check. Practice Consume/Require and construction keep their separate integral input checks. |
+| `StructureDefinitionWorkbook.row`, `PracticeDefinitionWorkbook.row` | Provenance metadata passes through the generic numeric editor. |
+| `LifeMapDesignOccurrence.{common,uncommon,rare}`, `NodeFamilyWeights.{patronage,development,crossroads,practiceReform,publicWorks,crisis,training,discovery,campaign,challenge,foodShop,housingShop}`, `RelicWeight.weight` | Weighted choice operates on finite fractional weights. |
+| `CostBandsTime.{cheap,fair,expensive}`, `CostBandsPrestige.{cheap,fair,expensive}`, `CostBandsMonsterPressure.{cheap,fair,expensive}`, `CardPrice.time` | Balance validation accepts finite base costs. Time rounds after conversion from years to phases. |
+
+Remaining integer settings are explicitly checked by the settings draft
+validator. Season and moon-phase durations retain their existing `number`
+types for the direct configured initializer. Other integral fields represent
+validated counts, grid positions, admission limits, whole currency prices or
+population selections. Relevant checks are in `game-config.js`,
+`mechanic-validation.js`, `vassal-life-map-generator.js`, `life-map-design.js`,
+`life-map-balance.js`, and `life-map-columns.js`.
+
 ## Capture and validate
 
 Run from the repository root with Node:

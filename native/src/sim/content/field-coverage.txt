@@ -1,0 +1,522 @@
+# Exhaustive field accounting for records reachable from GameConfig.
+# Type policies are compiled fields. descriptive fields remain in captured JSON.
+# unsupported:<reason> rejects the field if present.
+
+[GameConfig]
+compiled schemaVersion settings gamepieces lifeMapGenerator keywordPrototype
+
+[GameSettings]
+compiled schemaVersion values
+
+[Gamepieces]
+compiled schemaVersion structures practices
+
+[LifeMapGeneratorConfig]
+compiled schemaVersion laneCount normalDepthCount routeCount earlyDepthCount midDepthCount layoutSmoothing minimumNodeGap design weights
+runtime::SymbolId nonRepeatFamilyIds
+
+[KeywordPrototype]
+KeywordMode mode
+KeywordClass classId
+Keyword taught
+
+[SettingValues]
+compiled seasonDurationSec phaseDurationSec unrestDurationYears unrestChaosPerYear populationPerToken villagerEffectiveness strangerEffectiveness startingResearch researchSilverThreshold researchSilverFullThreshold researchGoldThreshold researchDiamondThreshold practiceReactionResolutionCap birthRateBronze birthRateSilver birthRateGold birthRateDiamond childToAdultRate adultToElderRate newElderAge fullFeedStreakForIncrease partialFeedMinimumRatio partialFeedMemoryLength missedFeedStreakForStarvation overHousingNegativeRatio faithStreakForShift bronzeCollapseLossRate prematureDeathChaosWeight externalEmigrationChaosWeight oldAgeDeathChaosWeight internalMigrationChaosWeight primordialBasePressure primordialGrowthFactor primordialGrowthCadenceYears bronzeChaosResistancePopulation silverChaosResistancePopulation goldChaosResistancePopulation diamondChaosResistancePopulation populationChaosResistanceMultiplier monsterExpansionThreshold monsterProgressPerChaosRatio monsterDiversionProgress discoveryMonsterProgress conquestMonsterProgress conquestMonsterProgressPerDefense deepStudyMonsterProgress silverRelicMonsterProgress goldRelicMonsterProgress diamondRelicMonsterProgress greenAutomaticTier greenForcedTier greenCadenceYears migrationHardshipDeathRate elderMortalityThrough49 elderMortality50To54 elderMortality55To59 elderMortality60To64 elderMortality65To69 elderMortality70To74 elderMortality75Plus elderPrestigeBaseAge resistancePerAdditionalElder
+
+[LifeMapDesign]
+compiled enabled pools nodes occurrence costBands optionCosts shopPricing stockSupply guarantees shopServices relicPools columns bookends
+
+[LifeMapGeneratorConfigWeights]
+compiled early mid late
+
+[StructureDefinition]
+runtime::StructureId id degradedFrom
+descriptive label ui flavor workbook authoredRule authoredHook provisionalNotes
+Pool pool
+Provenance provenance
+Quality minimumQuality
+runtime::TagId tags
+compiled effects consume require vassalPrestigeCost vassalPhaseCost footprint housing modifiers construction localCurrencyCost conversionSupport upkeep mealExtra candidateBonus specialistGate locked
+
+[PracticeDefinition]
+runtime::PracticeId id degradedFrom
+descriptive label ui source flavor workbook authoredEffect authoredHook provisionalNotes
+Pool pool
+Provenance provenance
+Quality minimumQuality
+runtime::TagId tags
+compiled effects consume require vassalPrestigeCost vassalPhaseCost activation workerCapacity workerBonus stockCapacity costs charge populationConsume populationRequire requireBaseHeadroom workerCapacityPerQuality keywordOutputScale keywordCapacityScale stockMultipliers locked cadenceMoons scholarRequired supportMultiplier minimumSupportRequired defenseMultiplier retinueForce positiveSupportRequired minimumWarriors connectedSupportRequired
+Category category
+Mode mode lane
+runtime::TraitId stockTraits
+PopulationCondition populationCondition
+Condition condition
+ExternalAction externalAction
+SpecialistClass specialistRequired
+ResponseAction responseAction
+
+[LifeMapDesignNodes]
+compiled patronage development crossroads practiceReform publicWorks crisis relic training discovery campaign challenge neutralMarket classMarket foodShop housingShop stockShop legacy signature:legacyPlus signature:monsterHunt signature:removePractice signature:foodShop signature:knowledgeShop signature:housingShop specialRelic
+
+[LifeMapDesignOccurrence]
+compiled common uncommon rare
+
+[LifeMapDesignCostBands]
+compiled time prestige risk monsterPressure
+
+[LifeMapDesignOptionCosts]
+compiled patronage development crossroads training discovery challenge campaign crisis legacy relic signature:legacyPlus signature:monsterHunt signature:removePractice practiceReform publicWorks neutralMarket classMarket foodShop housingShop stockShop signature:foodShop signature:housingShop signature:knowledgeShop specialRelic
+
+[LifeMapDesignShopPricing]
+compiled enabled prices
+
+[LifeMapDesignStockSupply]
+compiled enabled randomCount unmetCount minDepth maxDepth
+
+[LifeMapDesignShopServices]
+compiled delve emptyConfirm
+
+[RelicPools]
+compiled relic specialRelic
+
+[LifeMapDesignBookends]
+compiled founding legacy
+
+[NodeFamilyWeights]
+compiled patronage development crossroads practiceReform publicWorks crisis relic specialRelic training discovery campaign challenge neutralMarket classMarket foodShop housingShop
+
+[StructureDefinitionUi]
+descriptive rule
+
+[StructureDefinitionConstruction]
+compiled cycles activation consume
+
+[StructureDefinitionConversionSupport]
+compiled amount query filter require consume minimumPopulation populationRequire
+runtime::TraitId consumeTrait
+Reach reach
+SpecialistClass train
+Activation activation
+
+[StructureDefinitionUpkeep]
+UpkeepActivation activation
+compiled consume disables
+
+[StructureDefinitionWorkbook]
+descriptive version sheet row
+
+[PracticeDefinitionUi]
+descriptive rule
+
+[PracticeDefinitionActivation]
+Activation type also
+Stage stage
+Season seasonKeys
+compiled conditions
+
+[PracticeDefinitionSource]
+descriptive icon cadence
+
+[PracticeDefinitionCharge]
+compiled gain threshold trigger
+descriptive triggerText dischargeText
+
+[KeywordScale]
+Keyword keyword
+compiled per amount cap
+
+[PracticeDefinitionWorkbook]
+descriptive version sheet row
+
+[LifeMapDesignPoolsEntry]
+runtime::SymbolId id
+descriptive label
+Rarity occurrence
+compiled maxConsecutive
+
+[LifeMapNodeRule]
+compiled enabled milestonesOnly
+runtime::SymbolId poolId
+LifeMapScope scope
+Rarity occurrence
+Timing timings
+
+[CostBandsTime]
+compiled cheap fair expensive
+
+[CostBandsPrestige]
+compiled cheap fair expensive
+
+[CostBandsRisk]
+compiled cheap fair expensive
+
+[CostBandsMonsterPressure]
+compiled cheap fair expensive
+
+[OptionCostsPatronage]
+compiled immediateFavor longAppointment cultivateConnections
+
+[OptionCostsDevelopment]
+compiled deepStudy hardLesson steadyPractice
+
+[OptionCostsCrossroads]
+compiled travel route tour
+
+[OptionCostsTraining]
+compiled train-estate
+
+[OptionCostsDiscovery]
+compiled discovery-research discovery-frontier
+
+[OptionCostsChallenge]
+compiled challenge-3 challenge-6 challenge-9
+
+[OptionCostsCampaign]
+compiled attack duel quest leave
+
+[OptionCostsCrisis]
+compiled relief buy-relief delay rescue observe-crisis
+
+[OptionCostsLegacy]
+compiled highest-stat accumulated-prestige
+
+[OptionCostsRelic]
+compiled search
+
+[OptionCostsSignatureLegacyPlus]
+compiled foundDynasty enduringOffice humbleRemembrance
+
+[OptionCostsSignatureMonsterHunt]
+compiled attack duel quest leave
+
+[OptionCostsSignatureRemovePractice]
+compiled remove removalFallback
+
+[OptionCostsPracticeReform]
+
+[OptionCostsPublicWorks]
+
+[OptionCostsNeutralMarket]
+
+[OptionCostsClassMarket]
+
+[OptionCostsFoodShop]
+
+[OptionCostsHousingShop]
+
+[OptionCostsStockShop]
+
+[OptionCostsSignatureFoodShop]
+
+[OptionCostsSignatureHousingShop]
+
+[OptionCostsSignatureKnowledgeShop]
+
+[OptionCostsSpecialRelic]
+compiled search
+
+[ShopPricingPrices]
+compiled practice structure
+
+[LifeMapDesignGuaranteesEntry]
+runtime::SymbolId id targetId
+LifeMapStage lifeStage
+TargetType targetType
+LifeMapScope scope
+compiled count minDepth maxDepth
+GuaranteeCoverage coverage
+
+[ShopServicesDelve]
+compiled time
+
+[ShopServicesEmptyConfirm]
+compiled time
+
+[RelicPoolsRelic]
+compiled qualities
+
+[SpecialRelicPool]
+compiled entries
+
+[LifeMapDesignColumnsEntry]
+runtime::SymbolId id targetId
+descriptive label
+compiled enabled depth
+TargetType targetType
+LifeMapScope scope
+LifeMapStage lifeStage
+
+[BookendsFounding]
+compiled enabled depth priority
+
+[BookendsLegacy]
+compiled enabled depth
+
+[StockInput]
+runtime::TraitId traits
+compiled amount
+
+[StructureDefinitionModifiersEntry]
+ModifierKind kind
+compiled amount arms adjacent query warriors cap
+HistorySource sources
+runtime::TraitId from to
+runtime::TagId providerTagsAny
+
+[ConstructionActivation]
+Activation type
+
+[ConversionSupportQuery]
+Pool pool
+
+[ConversionSupportFilter]
+runtime::SpecialtyId specialty
+runtime::LifeStageId kind
+
+[ConversionSupportPopulationRequire]
+compiled amount filter
+
+[ActivationConditions]
+Condition death
+
+[ChargeTrigger]
+compiled any anotherPractice
+
+[PracticeDefinitionPopulationConsumeEntry]
+compiled amount filter
+
+[PracticeDefinitionPopulationRequireEntry]
+compiled amount filter other
+
+[OptionCost]
+compiled time prestige risk monsterPressure
+
+[PricesPractice]
+compiled bronze silver gold diamond
+
+[PricesStructure]
+compiled bronze silver gold diamond
+
+[RelicQualities]
+compiled bronze silver gold diamond
+
+[PracticeEffectaddMonsterPressure]
+compiled op amount seasonAmounts activationAmounts keywordScale
+
+[PracticeEffecttriggerMonsterSpawn]
+compiled op amount
+
+[PracticeEffectgenerateStock]
+compiled op amount seasonAmounts activationAmounts keywordScale populationBand localDeathScale localDeathCap externalConnectionScale
+HistoryScale historyScale
+
+[PracticeEffectaddChaos]
+compiled op amount seasonAmounts activationAmounts keywordScale
+
+[PracticeEffectresearch]
+compiled op amount seasonAmounts activationAmounts keywordScale populationBand localDeathScale localDeathCap externalConnectionScale
+HistoryScale historyScale
+
+[PracticeEffecttrain]
+compiled op amount seasonAmounts activationAmounts keywordScale populationBand localDeathScale localDeathCap externalConnectionScale classId
+HistoryScale historyScale
+
+[PracticeEffectaddHousingForPhase]
+compiled op amount seasonAmounts activationAmounts keywordScale populationBand localDeathScale localDeathCap externalConnectionScale
+HistoryScale historyScale
+
+[PracticeEffectreduceLocalFoodRequirement]
+compiled op amount seasonAmounts activationAmounts keywordScale populationBand localDeathScale localDeathCap externalConnectionScale
+HistoryScale historyScale
+
+[PracticeEffectaddFaithChaosResistance]
+compiled op amount seasonAmounts activationAmounts keywordScale populationBand localDeathScale localDeathCap externalConnectionScale
+HistoryScale historyScale
+
+[PracticeEffectbankCandidateDevelopment]
+compiled op amount seasonAmounts activationAmounts keywordScale populationBand localDeathScale localDeathCap externalConnectionScale classId
+HistoryScale historyScale
+
+[PracticeEffectbankShopQuality]
+compiled op amount seasonAmounts activationAmounts keywordScale populationBand localDeathScale localDeathCap externalConnectionScale classId
+HistoryScale historyScale
+
+[PracticeEffectbankSupport]
+compiled op amount seasonAmounts activationAmounts keywordScale populationBand localDeathScale localDeathCap externalConnectionScale
+HistoryScale historyScale
+SupportBank bank
+
+[PracticeEffectbankPreview]
+compiled op amount seasonAmounts activationAmounts keywordScale populationBand localDeathScale localDeathCap externalConnectionScale
+HistoryScale historyScale
+
+[PracticeEffectboostSeasonalFood]
+compiled op amount seasonAmounts activationAmounts keywordScale populationBand localDeathScale localDeathCap externalConnectionScale
+HistoryScale historyScale
+
+[PracticeEffectconvertPopulation]
+compiled op amount seasonAmounts activationAmounts keywordScale populationBand localDeathScale localDeathCap externalConnectionScale filter train
+HistoryScale historyScale
+Reach reach
+
+[PracticeEffectpoliticalForce]
+compiled op amount seasonAmounts activationAmounts keywordScale populationBand localDeathScale localDeathCap externalConnectionScale defenseOnly
+HistoryScale historyScale
+Duration duration
+
+[ModifiersQuery]
+runtime::TraitId traitsAny stockedTraitsAny consumesAny triggerTraitsAny requiresOrConsumesAny requiresAny
+runtime::TagId tagsAny
+TriggerKind triggerKindsAny
+compiled unique minimumSpecialists minimumRequirements threatened scholarStaffed historicalBurdens
+SpecialistClass specialistClass classId
+EffectOp effectOpsAny
+
+[ConversionSupportRequireEntry]
+runtime::TraitId traits
+compiled amount
+
+[ConversionSupportConsumeEntry]
+runtime::TraitId traits
+compiled amount
+
+[PopulationRequireFilter]
+runtime::LifeStageId kind
+runtime::SpecialtyId specialty
+runtime::FactionId allegiance
+
+[PopulationConsumeFilter]
+runtime::LifeStageId kind
+runtime::SpecialtyId specialty
+
+[PracticeDefinitionPopulationRequireFilter]
+runtime::LifeStageId kind
+runtime::SpecialtyId specialty
+
+[PracticeStockMultiplieroutputMultiplier]
+compiled kind amount perRegion
+Biome biome
+Season seasonKeys
+runtime::TraitId stockedTraitsAny
+
+[PracticeStockMultipliercapacity]
+compiled kind amount perRegion
+Biome biome
+Season seasonKeys
+runtime::TraitId stockedTraitsAny
+
+[CardPrice]
+compiled prestige time currency
+
+[RelicWeight]
+compiled enabled weight
+
+[SeasonAmounts]
+compiled spring summer autumn winter
+
+[ActivationAmounts]
+compiled season birth food housing faith migration death charge passive crisis
+
+[PopulationFilter]
+runtime::ResidencyId classId
+runtime::LifeStageId kind
+runtime::SpecialtyId specialty
+compiled opposing
+runtime::FactionId allegiance
+
+[TriggerClausemonsterSpawn]
+compiled kind
+TriggerScope scope
+
+[TriggerClausemonsterPressure]
+compiled kind
+TriggerScope scope
+runtime::FactionId faction controller
+
+[TriggerClausestockGenerated]
+compiled kind scholarStaffed
+TriggerScope scope
+runtime::FactionId faction controller
+runtime::TraitId traitsAny
+runtime::TagId tagsAny
+Pool pool
+
+[TriggerClausestockConsumed]
+compiled kind
+TriggerScope scope
+runtime::FactionId faction controller
+runtime::TraitId traitsAny
+runtime::TagId tagsAny
+Pool pool
+
+[TriggerClausechaosIncreased]
+compiled kind
+TriggerScope scope
+runtime::FactionId faction controller
+
+[TriggerClausecandidateDevelopment]
+compiled kind classId
+TriggerScope scope
+runtime::FactionId faction controller
+
+[TriggerClausesupportContributed]
+compiled kind classId
+TriggerScope scope
+runtime::FactionId faction controller
+MartialAction actionKindsAny
+
+[TriggerClausemartialActionResolved]
+compiled kind classId minimumSources
+TriggerScope scope
+runtime::FactionId faction controller
+MartialAction actionKindsAny
+
+[TriggerClausepopulationDied]
+compiled kind premature
+TriggerScope scope
+runtime::FactionId faction controller
+
+[TriggerClausemonsterDestroyed]
+compiled kind classId
+TriggerScope scope
+runtime::FactionId faction controller
+
+[TriggerClausedefenseSucceeded]
+compiled kind
+TriggerScope scope
+runtime::FactionId faction controller
+
+[TriggerClausepracticeInstalled]
+compiled kind
+TriggerScope scope
+runtime::FactionId faction controller
+
+[TriggerClausedangerSurvived]
+compiled kind classId martial
+TriggerScope scope
+runtime::FactionId faction controller
+
+[TriggerClausecampaignWon]
+compiled kind classId
+TriggerScope scope
+runtime::FactionId faction controller
+
+[TriggerClauseexternalTrade]
+compiled kind
+TriggerScope scope
+runtime::FactionId faction controller
+
+[TriggerClausechallengeCompleted]
+compiled kind classId
+TriggerScope scope
+runtime::FactionId faction controller
+
+[TriggerClausesettlementLost]
+compiled kind
+TriggerScope scope
+runtime::FactionId faction controller
+
+[TriggerClausecrisisResolved]
+compiled kind
+TriggerScope scope
+runtime::FactionId faction controller

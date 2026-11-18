@@ -264,7 +264,10 @@ function generate(schema, banner) {
     "// Throws std::invalid_argument with a JSON path if the value fails the schema.",
     root + " import_game_state(const core::json::Value& value);",
     "core::json::Value export_game_state(const " + root + "& state);",
-    ...(hasGameConfig ? ["core::json::Value export_game_config(const GameConfig& config);"] : []),
+    ...(hasGameConfig ? [
+      "GameConfig import_game_config(const core::json::Value& value);",
+      "core::json::Value export_game_config(const GameConfig& config);",
+    ] : []),
     "", "}", "",
   ].join("\n");
   const source = [
@@ -285,7 +288,9 @@ function generate(schema, banner) {
     functionText("core::json::Value export_game_state(const " + root + "& state)", [
       "return " + writer(schema.root) + "(state);",
     ]),
-    ...(hasGameConfig ? [functionText("core::json::Value export_game_config(const GameConfig& config)", [
+    ...(hasGameConfig ? [functionText("GameConfig import_game_config(const core::json::Value& value)", [
+      'return read_GameConfig(value, "$.gameConfig");',
+    ]), functionText("core::json::Value export_game_config(const GameConfig& config)", [
       "return write_GameConfig(config);",
     ])] : []),
     "}", "",
