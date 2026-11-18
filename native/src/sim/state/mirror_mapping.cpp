@@ -1,6 +1,7 @@
 #include "sim/state/runtime_state.hpp"
 #include "sim/settlement/population.hpp"
 #include "sim/settlement/prelude.hpp"
+#include "sim/world/topology.hpp"
 
 #include "core/sha256.hpp"
 #include "sim/browser/detail/json_path.hpp"
@@ -400,6 +401,7 @@ RuntimeState import_runtime(const browser::GameState& state)
     Import codec{*content, result};
     result.hot = codec.read<HotState>(state, "$");
     result.content = std::move(content);
+    if (state.world.definitionId == "regional-v2:1") result.topology = std::make_shared<const WorldTopology>();
     settlement::prepare_population(result);
     rebuild_runtime_indexes(result);
     settlement::prepare_prelude(result);

@@ -6,6 +6,8 @@
 
 namespace waffle::sim {
 
+class WorldTopology;
+
 struct CapturedContent {
     browser::GameConfig config;
     std::string configHash;
@@ -74,6 +76,7 @@ struct RuntimeState {
     runtime::HistoryTables histories;
     RuntimeIndexes indexes;
     std::shared_ptr<const CapturedContent> content;
+    std::shared_ptr<const WorldTopology> topology;
     runtime::IdTables addedIds;
     SettlementPreludeCache settlementPrelude;
     PopulationVocabulary populationVocabulary;
