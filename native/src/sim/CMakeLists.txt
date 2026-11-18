@@ -5,6 +5,7 @@ add_library(waffle_sim STATIC
 	state/mirror_mapping.cpp
 	state/runtime_state.cpp
 	settlement/population.cpp
+	settlement/migration_reservation.cpp
 	settlement/prelude.cpp
 	step/advance_second.cpp
 	step/stages.cpp

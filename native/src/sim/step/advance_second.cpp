@@ -46,7 +46,7 @@ void dispatch_second(RuntimeState& state, StageContext& context)
         const double sinceBoundary = context.lunar.boundary ? 0 : js::remainder(hot.tSec - 1, duration);
         state.nextLunarBoundarySec = hot.tSec + (duration - sinceBoundary);
         if (context.lunar.boundary) {
-            const double chaosBefore = hot.civilization.chaos.chaosPower;
+            const double chaosBefore = hot.civilization.chaos.chaosPower.value_or(0);
             switch (context.lunar.phase) {
             case LunarPhase::birth:
                 run_stage(Stage::birth, state, context);
