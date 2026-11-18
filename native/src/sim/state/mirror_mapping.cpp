@@ -2,6 +2,7 @@
 #include "sim/settlement/population.hpp"
 #include "sim/settlement/prelude.hpp"
 
+#include "core/js_number.hpp"
 #include "core/sha256.hpp"
 #include "sim/browser/detail/json_path.hpp"
 
@@ -228,6 +229,18 @@ struct Export {
     std::uint64_t jointCounts(std::uint32_t row) const { return state.jointCounts.at(row); }
     const auto& eventPayload(std::uint32_t row) const { return state.eventPayloads.at(row); }
 
+    void migration_transfer_id(std::string& result, const MigrationMovement& movement) const
+    {
+        if (movement.transferId) {
+            result = state.name(movement.transferId);
+            return;
+        }
+        result = "migration:" + core::js::number_to_string(movement.transferSecond) + ':';
+        if (movement.external.value_or(false)) result += "external:";
+        result += state.name(movement.reason);
+        result += ':' + std::to_string(movement.transferOrdinal);
+    }
+
     void practices(browser::DetailedSettlementPracticeSlots& result, const PracticeBoard& board) const;
     void structures(browser::DetailedSettlementStructureSlots& result, const StructureBoard& board) const;
 
@@ -403,6 +416,7 @@ RuntimeState import_runtime(const browser::GameState& state)
     settlement::prepare_population(result);
     rebuild_runtime_indexes(result);
     settlement::prepare_prelude(result);
+    settlement::prepare_migration(result);
     return result;
 }
 

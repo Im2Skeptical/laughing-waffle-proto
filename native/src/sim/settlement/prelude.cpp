@@ -12,11 +12,10 @@ using namespace runtime;
 namespace js = core::js;
 using MoonRegion = Entry<RegionId, MoonRegionResult>;
 
-void finish_unrest_expiry(RuntimeState&, Site&)
+void finish_unrest_expiry(RuntimeState& state, Site& site)
 {
-    // N03e-7 cancels and refunds migration before the town freezes. N03e-8
-    // then clears control, restores the market and emits unrestEnded. Keep
-    // the transition together. Unrest income stops at untilSec.
+    cancel_moon_migration(state, site.regionId);
+    // N03e-8 clears control, restores the market and emits unrestEnded.
 }
 
 void step_unrest(RuntimeState& state)
