@@ -280,6 +280,118 @@ int step(const StepOptions& options)
     return 0;
 }
 
+struct StageOptions {
+    std::string_view name;
+    std::filesystem::path before, after, masks;
+};
+
+StageOptions parse_stage_options(int argc, char** argv)
+{
+    StageOptions options;
+    for (int index = 2; index < argc; ++index) {
+        const std::string_view flag = argv[index];
+        if (index + 1 == argc) throw std::invalid_argument("stage: missing value for " + std::string(flag));
+        const std::string_view value = argv[++index];
+        if (value.empty()) throw std::invalid_argument("stage: empty value for " + std::string(flag));
+        if (flag == "--stage" && options.name.empty()) options.name = value;
+        else if (flag == "--before" && options.before.empty()) options.before = value;
+        else if (flag == "--after" && options.after.empty()) options.after = value;
+        else if (flag == "--masks" && options.masks.empty()) options.masks = value;
+        else throw std::invalid_argument("stage: unknown or repeated option " + std::string(flag));
+    }
+    if (options.name.empty() || options.before.empty() || options.after.empty())
+        throw std::invalid_argument("Usage: waffle_parity stage --stage <name> --before <file> "
+                                    "--after <file> [--masks <file>]");
+    constexpr std::string_view names[] = {
+        "advance_clock", "prelude", "seasonal_practices", "spring_death_baseline",
+        "birth", "food", "after_meals_practices", "garrison_upkeep", "housing", "faith",
+        "migration_practices", "migration", "death", "death_practices", "control_and_spatial_pressure",
+        "phase_events_and_drain", "vassal_check", "final_flush",
+    };
+    if (std::ranges::find(names, options.name) == std::end(names))
+        throw std::invalid_argument("stage: unknown stage " + std::string(options.name));
+    return options;
+}
+
+Value read_stage_boundary(const std::filesystem::path& path, std::string_view stage)
+{
+    auto value = json::parse(read_file(path));
+    const auto* version = value.find("formatVersion");
+    const auto* state = value.find("state");
+    const auto* sidecar = value.find("sidecar");
+    if (!version || version->kind() != Value::Kind::number || version->as_number() != 1 ||
+        !state || state->kind() != Value::Kind::object || !sidecar || sidecar->kind() != Value::Kind::object ||
+        value.as_object().size() != 3)
+        throw std::invalid_argument("stage: invalid boundary envelope in " + path.string());
+    const auto* seasonChanged = sidecar->find("_seasonChanged");
+    const auto* boardDirty = sidecar->find("_boardDirty");
+    const auto* chaosBefore = sidecar->find("chaosBefore");
+    const auto chaosKind = stage == "phase_events_and_drain" ? Value::Kind::number : Value::Kind::null;
+    if (!seasonChanged || seasonChanged->kind() != Value::Kind::boolean ||
+        !boardDirty || (boardDirty->kind() != Value::Kind::null &&
+            (boardDirty->kind() != Value::Kind::boolean || boardDirty->as_bool())) ||
+        !chaosBefore || chaosBefore->kind() != chaosKind || sidecar->as_object().size() != 3)
+        throw std::invalid_argument("stage: invalid or unsupported sidecar in " + path.string());
+    return value;
+}
+
+bool execute_stage(std::string_view name, sim::RuntimeState& state)
+{
+    // Gameplay seams are private stubs at this cut. A port connects its
+    // callable implementation here, with the lunar schedule and sidecar
+    // context as applicable, and returns true once its body executes.
+    if (name != "advance_clock") return false;
+
+    auto& hot = state.hot;
+    if (hot.simStepIndex != hot.tSec * 60)
+        throw std::invalid_argument("stage: advance_clock requires a second-aligned anchor");
+    const bool enabled = hot.variantFlags.settlementPrototypeEnabled;
+    const bool seasonChanged = state.seasonChanged;
+    const double seasonIndex = hot.currentSeasonIndex;
+    const double year = hot.year;
+    hot.variantFlags.settlementPrototypeEnabled = false;
+    if (!sim::advance_one_second(state))
+        throw std::invalid_argument("stage: advance_clock requires an advancing anchor");
+    hot.variantFlags.settlementPrototypeEnabled = enabled;
+    // advance_one_second clears the latch after dispatch. The clock probe
+    // ends at dispatch entry, where the latch still carries pending work.
+    state.seasonChanged = seasonChanged || hot.currentSeasonIndex != seasonIndex || hot.year != year;
+    return true;
+}
+
+int stage(const StageOptions& options)
+{
+    const auto before = read_stage_boundary(options.before, options.name);
+    const auto after = read_stage_boundary(options.after, options.name);
+    auto state = sim::import_runtime(browser::import_game_state(*before.find("state")));
+    auto actualSidecar = *before.find("sidecar");
+    state.seasonChanged = actualSidecar.find("_seasonChanged")->as_bool();
+    const bool executed = execute_stage(options.name, state);
+    actualSidecar.set("_seasonChanged", Value(state.seasonChanged));
+
+    auto actual = browser::export_game_state(sim::export_runtime(state));
+    auto expected = *after.find("state");
+    if (!options.masks.empty()) {
+        const waffle::tools::ParityMasks masks(json::parse(read_file(options.masks)));
+        actual = masks.apply(actual);
+        expected = masks.apply(expected);
+    }
+    const auto expectedHash = json::sha256_value(expected);
+    const auto actualHash = json::sha256_value(actual);
+    Diff diff;
+    compare(diff, "$.sidecar", after.find("sidecar"), &actualSidecar);
+    if (expectedHash != actualHash) compare(diff, "$", &expected, &actual);
+    const auto mode = executed ? "" : " (unported identity)";
+    if (diff.differing_leaves == 0 && expectedHash == actualHash) {
+        std::cout << "Stage parity matched " << options.name << mode << ".\n";
+        return 0;
+    }
+    std::cout << "Divergent stage " << options.name << mode << " (" << diff.differing_leaves
+              << " differing leaves)\nFirst divergent path: " << diff.first_path
+              << "\nExpected state hash " << expectedHash << "\nActual state hash   " << actualHash << '\n';
+    return 1;
+}
+
 template<class T, class Verify>
 double median_copy_us(const T& source, std::size_t samples, Verify verify)
 {
@@ -415,10 +527,11 @@ int main(int argc, char** argv)
         if (command == "diff" && argc == 4)
             return diff_files(json::parse(read_file(argv[2])), json::parse(read_file(argv[3])));
         if (command == "step") return step(parse_step_options(argc, argv));
+        if (command == "stage") return stage(parse_stage_options(argc, argv));
 
         throw std::invalid_argument("Usage: waffle_parity (roundtrip | runtime-roundtrip) <state.json> [--out <path>] | "
                                     "runtime-stats <state.json> | "
-                                    "hash <state.json> | diff <a.json> <b.json> | step [options]");
+                                    "hash <state.json> | diff <a.json> <b.json> | step [options] | stage [options]");
     } catch (const std::exception& error) {
         std::cerr << error.what() << '\n';
         return 2;

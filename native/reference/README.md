@@ -20,12 +20,13 @@ node native/reference/diff.mjs <reference-trace-dir> <native-trace-dir-or-hashes
 `trace.mjs` defaults to all scenarios and accepts one or more scenario IDs.
 A capture writes `artifacts/native-reference/traces/<id>/`. `--check`
 regenerates in memory and compares the artifact files and any checked-in
-fixtures byte for byte. `fixtures/` carries all five hash lists, the seed 1
+fixtures byte for byte. `fixtures/` carries the checked scenario hash lists, the seed 1
 opening state for codec tests, and its first advancing state for step parity.
 The other full states are generated on demand.
 
-A scenario gives the start seed, optional prepared forecast anchor, duration
-(`horizonSec`), absolute `keepSeconds`, and chronological `actions`. Each
+A scenario gives the start seed, optional prepared forecast anchor or Gym
+Charge exhibit, duration (`horizonSec`), absolute `keepSeconds`, and
+chronological `actions`. Each
 action is a stored `{tSec, kind, payload}` entry. The official runner advances
 all 60 ticks to a second, applies that second's journal entries in their
 listed order, then captures the state. The start has no advance. A full state
@@ -111,10 +112,89 @@ Core i9-10900K with Node 24.15.0. The nine additional windows currently write
 | `seed-1867` | 0–192 | 6 years from New Game | 2,842,497 | 7.86 s |
 | `seed-42-shops` | 0–192 | 6 years with vassal selection, a Practice Reform purchase, and a Public Works visit | 4,931,836 | 8.76 s |
 | `seed-2026-late` | 3200–3392 | 6 years from a year-100 forecast anchor | 2,608,753 | 18.87 s |
+| `seed-42-charge` | 0–48 | Gym metallurgy exhibit with same-root Smelting and Toolmaking Discharges | 1,101,608 | — |
 
 The late scenario reconstructs the prepared performance-start anchor through
 the model's forecast path, so the development gzip is optional. The anchor is
 865,644 bytes, up from 373,393 at opening. Its timing includes the preparation.
+
+## Stage probes
+
+Run from the repository root.
+
+```powershell
+node native/reference/stage-probe.mjs
+node native/reference/stage-probe.mjs --check
+node native/reference/stage-probe.mjs seed-1 9 33
+node native/reference/stage-probe.mjs --all
+node native/reference/stage-probe.mjs --all --check
+```
+
+The default captures seed 1 second 1. `--all` selects 36 seconds across the
+opening, the year-50 end of `seed-1`, the year-100 anchor, the shop journal
+and timed Vassal work, and the Gym metallurgy board. The two Gym samples
+require Smelting and Toolmaking to Discharge under the same event root.
+Each sample writes to `artifacts/native-reference/stages/<scenario>/<second>/`.
+The full suite writes about 180 MiB. `--check` regenerates and compares files
+byte for byte. The default check can run with just the checked-in clock pair.
+
+The probe starts from an official replay state at the end of the previous
+second. It checks that anchor against the preceding pinned trace hash. Every
+probe must match the full-state hash from `advanceReplayStateOneSecond` before
+actions. It also matches the pinned trace row after applying the target
+second's journal actions to both branches, in trace order. Actions belong
+outside the stage spans. This distinction matters at shop seconds 7, 12 and
+80, where the trace includes actions. No masks are used in these gates.
+
+Tick numbers are relative to the requested second. `advance_clock` spans
+ticks 1–60, including AP and clock work. The first 59 ticks use the official
+tick path. On tick 60 the probe temporarily disables the settlement scheduler
+via its variant flag, runs the same tick, restores the flag, and recovers the
+dispatch-entry latch from the prior latch or the clock's season/year change.
+All applicable gameplay stages below execute synchronously at tick 60. Omitted
+stages did not fire for that second.
+
+| Native seam | Tick | Condition and boundary |
+| --- | ---: | --- |
+| `advance_clock` | 1–60 | Aligned advancing second, through AP and the dispatch-entry clock. |
+| `prelude` | 60 | Unrest, Green, and empty Stranger defaults. |
+| `seasonal_practices`, `spring_death_baseline` | 60 | Latched season first, then the Spring baseline if the run survives. |
+| `birth` | 60 | Birth boundary, including moon rollover and Birth Practices. |
+| `food`, `after_meals_practices`, `garrison_upkeep` | 60 | Food boundary, in this order. Food includes its pre/post-routing Practices. |
+| `housing`, `faith` | 60 | Each at its named boundary. Housing keeps its construction drain and Faith keeps its Chaos calculation. |
+| `migration_practices`, `migration` | 60 | Migration boundary. The Practice span is full-map only. |
+| `death`, `death_practices`, `control_and_spatial_pressure` | 60 | Death boundary, in this order. Death keeps its internal event drain. |
+| `phase_events_and_drain` | 60 | After the lunar phase, using the Chaos value from before the phase. |
+| `vassal_check`, `final_flush` | 60 | Vassal runs while the game is live. Final flush also runs for the seasonal early-terminal path. |
+
+The version-1 manifest lists the ordered spans as `{name, firstTick, lastTick,
+before, after}`. The last two values are zero-based indices into `boundaries`.
+Each boundary names its file, relative tick, absolute `simStepIndex`, `tSec`,
+canonical GameState hash, and sidecar. Identical boundary envelopes share a
+file, so resolve endpoints through the manifest. The `end` boundary is after
+the dispatcher clears the season latch and before replay applies actions.
+`validation` holds both pre-action hashes, the post-action/trace hashes, and
+the action kinds. The hash algorithm is the trace algorithm above.
+
+Boundary files are `{formatVersion: 1, state, sidecar}`. The `state` member is a
+complete `serializeGameState` value. The sidecar carries three fields.
+
+- `_seasonChanged` as the Boolean latch at the boundary. Restore it explicitly
+  because ordinary browser and native import clear it.
+- `_boardDirty` as the browser's legacy flag, with null denoting absence.
+  The browser model does not use it in these stages.
+- `chaosBefore` as the pre-phase Chaos value on both endpoints of
+  `phase_events_and_drain`, and null elsewhere. This is dispatcher-local
+  context. The phase and moon index are derived from the captured clock and
+  settings.
+
+The RNG methods are derived from the captured streams. Pending Practice
+events are already in GameState. Root and parent scratch context exists
+inside synchronous recipe/drain calls, so the probe rejects a boundary
+with an active root. The span retains any internal drain in the exported
+browser routine that owns it. See the [tick pipeline](../spec/tick-pipeline.md)
+for call order and [native stage parity](../src/sim/README.md#stage-parity) for
+the CLI contract.
 
 ## Opening regression corpus
 

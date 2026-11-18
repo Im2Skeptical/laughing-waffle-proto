@@ -1,7 +1,8 @@
 import { existsSync, mkdirSync, readFileSync, readdirSync, unlinkSync, writeFileSync } from "node:fs";
-import { basename, join } from "node:path";
+import { basename, join, resolve } from "node:path";
 import { performance } from "node:perf_hooks";
-import { fileURLToPath } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
+import { createLabFixture } from "../../src/model/dev-lab/fixtures.js";
 import { GAME_CONFIG_SCHEMA_VERSION } from "../../src/model/game-config.js";
 import { secondsPerYear } from "../../src/model/detailed-settlements/unrest.js";
 import { createNewGameState } from "../../src/model/new-game.js";
@@ -41,16 +42,16 @@ function integerInRange(value, min, max = Number.MAX_SAFE_INTEGER) {
   return Number.isSafeInteger(value) && value >= min && value <= max;
 }
 
-function loadScenario(id) {
+export function loadScenario(id) {
   requireThat(/^[a-z0-9]+(?:-[a-z0-9]+)*$/u.test(id), "Invalid scenario id " + id);
   const scenario = readJson(join(scenariosDir, id + ".json"));
   const { start, actions, horizonSec, keepSeconds, windows = [] } = scenario;
   requireThat(scenario.id === id, id + ": scenario id must match its file name");
   requireThat(start && integerInRange(start.seed, 1, 0xffffffff), id + ": expected a nonzero uint32 seed");
-  requireThat(start.kind === "newGame" ||
+  requireThat(start.kind === "newGame" || start.kind === "chargeExhibit" ||
     (start.kind === "performanceAnchor" && integerInRange(start.anchorSec, 1)),
-  id + ": expected newGame or performanceAnchor with an anchorSec");
-  const startSec = start.kind === "newGame" ? 0 : start.anchorSec;
+  id + ": expected newGame, chargeExhibit, or performanceAnchor with an anchorSec");
+  const startSec = start.kind === "performanceAnchor" ? start.anchorSec : 0;
   const endSec = startSec + horizonSec;
   requireThat(integerInRange(horizonSec, 1) && Number.isSafeInteger(endSec + minLastContinuationSec),
     id + ": expected a positive integer horizonSec within safe integer range");
@@ -81,7 +82,8 @@ function loadScenario(id) {
   return { scenario, startSec, endSec };
 }
 
-function createStart({ start }, startSec) {
+export function createStart({ start }, startSec) {
+  if (start.kind === "chargeExhibit") return createLabFixture("charge", start.seed);
   const state = createNewGameState(start.seed);
   if (start.kind === "newGame") return state;
 
@@ -96,20 +98,20 @@ function createStart({ start }, startSec) {
   return deserializeGameState(forecast.lastStateData);
 }
 
-function applyActions(state, actions, sec, label) {
+export function applyActions(state, actions, sec, label) {
   if (!actions) return;
   const result = applyReplayActionsAtSecond(state, actions, sec);
   requireThat(result.ok, label + " action failed at second " + sec + ": " +
     result.action?.kind + " (" + result.reason + ")");
 }
 
-function advance(state, sec, label) {
+export function advance(state, sec, label) {
   const result = advanceReplayStateOneSecond(state);
   requireThat(result.ok && result.currentSec === sec,
     label + " could not advance to second " + sec + ": " + (result.reason ?? result.currentSec));
 }
 
-function assertHash(id, check, sec, expected, actual, expectedHash) {
+export function assertHash(id, check, sec, expected, actual, expectedHash) {
   const actualHash = sha256Value(actual);
   if (expectedHash === actualHash) return;
 
@@ -138,12 +140,7 @@ function capturePausedWindow(snapshot, { startSec, count }) {
   return files;
 }
 
-function capture({ scenario, startSec, endSec }, baseline) {
-  const { id, actions, keepSeconds } = scenario;
-  const live = createStart(scenario, startSec);
-  const config = configIdentity(serializeGameState(live));
-  requireThat(config.gameStateSchemaVersion === baseline.gameStateSchemaVersion,
-    id + ": GameState version differs from BASELINE");
+export function groupReplayActions(live, { id, actions }) {
   const timeline = createTimelineFromInitialState(live);
   const actionsBySecond = new Map();
   for (const action of actions) {
@@ -154,6 +151,16 @@ function capture({ scenario, startSec, endSec }, baseline) {
     if (!actionsBySecond.has(action.tSec)) actionsBySecond.set(action.tSec, []);
     actionsBySecond.get(action.tSec).push(action);
   }
+  return { timeline, actionsBySecond };
+}
+
+function capture({ scenario, startSec, endSec }, baseline) {
+  const { id, keepSeconds } = scenario;
+  const live = createStart(scenario, startSec);
+  const config = configIdentity(serializeGameState(live));
+  requireThat(config.gameStateSchemaVersion === baseline.gameStateSchemaVersion,
+    id + ": GameState version differs from BASELINE");
+  const { timeline, actionsBySecond } = groupReplayActions(live, scenario);
 
   const continuationWindows = keepSeconds.map((fromSec, index) => ({
     fromSec,
@@ -298,9 +305,11 @@ function main(args) {
   }
 }
 
-try {
-  main(process.argv.slice(2));
-} catch (error) {
-  console.error(error.message);
-  process.exitCode = 1;
+if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1])).href) {
+  try {
+    main(process.argv.slice(2));
+  } catch (error) {
+    console.error(error.message);
+    process.exitCode = 1;
+  }
 }
