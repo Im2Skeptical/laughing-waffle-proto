@@ -22,7 +22,7 @@ enum class HistorySource : std::uint8_t { age, records, losses, retired, commiss
 enum class SupportBank : std::uint8_t { formation, siege, mobility, coordination, greatHost };
 enum class Reach : std::uint8_t { local, connectedAdjacent };
 enum class Duration : std::uint8_t { moon, year };
-enum class Biome : std::uint8_t { plains, mountains, forest, water };
+enum class Biome : std::uint8_t { plains, mountains, forest, water, islands, swamp, unspecified };
 enum class TriggerScope : std::uint8_t { local, adjacent, connected, civilization };
 enum class MartialAction : std::uint8_t { campaign, defense, hunt, conquest };
 enum class Keyword : std::uint8_t { synthesis, monsterTrophies, economicRegions };

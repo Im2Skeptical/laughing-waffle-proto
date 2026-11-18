@@ -6,6 +6,8 @@
 
 namespace waffle::sim {
 
+class WorldTopology;
+
 struct CapturedContent {
     browser::GameConfig config;
     std::string configHash;
@@ -74,6 +76,7 @@ struct RuntimeState {
     runtime::HistoryTables histories;
     RuntimeIndexes indexes;
     std::shared_ptr<const CapturedContent> content;
+    std::shared_ptr<const WorldTopology> topology;
     runtime::IdTables addedIds;
     SettlementPreludeCache settlementPrelude;
     PopulationVocabulary populationVocabulary;
@@ -116,6 +119,8 @@ struct RuntimeState {
 // Import checks representational bounds and live world links. Schema shape
 // validation belongs to browser::import_game_state.
 RuntimeState import_runtime(const browser::GameState& state);
+// Gameplay admission requires the topology for state.world.definitionId.
+RuntimeState admit_runtime(const browser::GameState& state, const core::json::Value* topology);
 browser::GameState export_runtime(const RuntimeState& state);
 
 // Rebuild lookup and summary indexes after changing their authoritative inputs.

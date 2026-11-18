@@ -1,0 +1,281 @@
+{
+  "formatVersion": 1,
+  "definitionId": "regional-v2:42",
+  "generatorRevision": 2,
+  "regions": [
+    {
+      "id": "R01",
+      "name": "Northwestern Islands A",
+      "neutralSettlementName": "Northwestern Islands A Market",
+      "biome": "islands",
+      "neighbors": [
+        "R02",
+        "R05"
+      ]
+    },
+    {
+      "id": "R02",
+      "name": "Southeastern Islands",
+      "neutralSettlementName": "Southeastern Islands Market",
+      "biome": "islands",
+      "neighbors": [
+        "R01",
+        "R05",
+        "R06",
+        "R07"
+      ]
+    },
+    {
+      "id": "R03",
+      "name": "Northwestern Plains",
+      "neutralSettlementName": "Northwestern Plains Market",
+      "biome": "plains",
+      "neighbors": [
+        "R04"
+      ]
+    },
+    {
+      "id": "R04",
+      "name": "Northern Plains",
+      "neutralSettlementName": "Northern Plains Market",
+      "biome": "plains",
+      "neighbors": [
+        "R03",
+        "R05",
+        "R12"
+      ]
+    },
+    {
+      "id": "R05",
+      "name": "Northwestern Forest",
+      "neutralSettlementName": "Northwestern Forest Market",
+      "biome": "forest",
+      "neighbors": [
+        "R01",
+        "R02",
+        "R04",
+        "R06",
+        "R12",
+        "R13",
+        "R14"
+      ]
+    },
+    {
+      "id": "R06",
+      "name": "Southwestern Mountains",
+      "neutralSettlementName": "Southwestern Mountains Market",
+      "biome": "mountains",
+      "neighbors": [
+        "R02",
+        "R05",
+        "R07",
+        "R14",
+        "R15"
+      ]
+    },
+    {
+      "id": "R07",
+      "name": "Northeastern Mountains",
+      "neutralSettlementName": "Northeastern Mountains Market",
+      "biome": "mountains",
+      "neighbors": [
+        "R02",
+        "R06",
+        "R08",
+        "R15"
+      ]
+    },
+    {
+      "id": "R08",
+      "name": "Northeastern Plains",
+      "neutralSettlementName": "Northeastern Plains Market",
+      "biome": "plains",
+      "neighbors": [
+        "R07",
+        "R09",
+        "R15",
+        "R16",
+        "R17"
+      ]
+    },
+    {
+      "id": "R09",
+      "name": "Northeastern Forest",
+      "neutralSettlementName": "Northeastern Forest Market",
+      "biome": "forest",
+      "neighbors": [
+        "R08",
+        "R10",
+        "R17"
+      ]
+    },
+    {
+      "id": "R10",
+      "name": "Northwestern Islands B",
+      "neutralSettlementName": "Northwestern Islands B Market",
+      "biome": "islands",
+      "neighbors": [
+        "R09",
+        "R11",
+        "R17"
+      ]
+    },
+    {
+      "id": "R11",
+      "name": "Eastern Islands",
+      "neutralSettlementName": "Eastern Islands Market",
+      "biome": "islands",
+      "neighbors": [
+        "R10"
+      ]
+    },
+    {
+      "id": "R12",
+      "name": "Central Plains",
+      "neutralSettlementName": "Central Plains Market",
+      "biome": "plains",
+      "neighbors": [
+        "R04",
+        "R05",
+        "R13",
+        "R18",
+        "R19"
+      ]
+    },
+    {
+      "id": "R13",
+      "name": "Western Swamp",
+      "neutralSettlementName": "Western Swamp Market",
+      "biome": "swamp",
+      "neighbors": [
+        "R05",
+        "R12",
+        "R14",
+        "R19"
+      ]
+    },
+    {
+      "id": "R14",
+      "name": "Central Swamp",
+      "neutralSettlementName": "Central Swamp Market",
+      "biome": "swamp",
+      "neighbors": [
+        "R05",
+        "R06",
+        "R13",
+        "R15",
+        "R19",
+        "R20"
+      ]
+    },
+    {
+      "id": "R15",
+      "name": "Eastern Swamp",
+      "neutralSettlementName": "Eastern Swamp Market",
+      "biome": "swamp",
+      "neighbors": [
+        "R06",
+        "R07",
+        "R08",
+        "R14",
+        "R16",
+        "R20"
+      ]
+    },
+    {
+      "id": "R16",
+      "name": "Southern Forest",
+      "neutralSettlementName": "Southern Forest Market",
+      "biome": "forest",
+      "neighbors": [
+        "R08",
+        "R15",
+        "R17"
+      ]
+    },
+    {
+      "id": "R17",
+      "name": "Southeastern Forest",
+      "neutralSettlementName": "Southeastern Forest Market",
+      "biome": "forest",
+      "neighbors": [
+        "R08",
+        "R09",
+        "R10",
+        "R16"
+      ]
+    },
+    {
+      "id": "R18",
+      "name": "Southwestern Plains",
+      "neutralSettlementName": "Southwestern Plains Market",
+      "biome": "plains",
+      "neighbors": [
+        "R12",
+        "R19"
+      ]
+    },
+    {
+      "id": "R19",
+      "name": "Southern Plains",
+      "neutralSettlementName": "Southern Plains Market",
+      "biome": "plains",
+      "neighbors": [
+        "R12",
+        "R13",
+        "R14",
+        "R18",
+        "R20"
+      ]
+    },
+    {
+      "id": "R20",
+      "name": "Southeastern Plains",
+      "neutralSettlementName": "Southeastern Plains Market",
+      "biome": "plains",
+      "neighbors": [
+        "R14",
+        "R15",
+        "R19"
+      ]
+    }
+  ],
+  "biomeComponents": [
+    [
+      "R01",
+      "R02"
+    ],
+    [
+      "R03",
+      "R04",
+      "R12",
+      "R18",
+      "R19",
+      "R20"
+    ],
+    [
+      "R05"
+    ],
+    [
+      "R06",
+      "R07"
+    ],
+    [
+      "R08"
+    ],
+    [
+      "R09",
+      "R17",
+      "R16"
+    ],
+    [
+      "R10",
+      "R11"
+    ],
+    [
+      "R13",
+      "R14",
+      "R15"
+    ]
+  ]
+}

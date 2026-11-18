@@ -155,8 +155,25 @@ std::size_t mirror_dynamic_bytes(const T& value)
 }
 
 
+sim::RuntimeState admit_parity_state(const Value& input, const std::filesystem::path& topologyDir)
+{
+    const auto state = browser::import_game_state(input);
+    auto file = state.world.definitionId;
+    for (auto& ch : file) {
+        const bool alphanumeric = (ch >= 'A' && ch <= 'Z') || (ch >= 'a' && ch <= 'z') ||
+            (ch >= '0' && ch <= '9');
+        if (!alphanumeric && ch != '-' && ch != '_') ch = '_';
+    }
+    const auto dir = topologyDir.empty() ? std::filesystem::path(WAFFLE_REFERENCE_TOPOLOGY_DIR) : topologyDir;
+    const auto path = dir / (file + ".json");
+    if (!std::filesystem::exists(path))
+        throw std::invalid_argument("world topology for " + state.world.definitionId + ": missing topology file " + path.string());
+    const auto topology = json::parse(read_file(path));
+    return sim::admit_runtime(state, &topology);
+}
+
 struct StepOptions {
-    std::filesystem::path from, expectDir, masks, report;
+    std::filesystem::path from, expectDir, masks, report, topologyDir;
     std::size_t seconds{};
     bool time{};
 };
@@ -176,6 +193,7 @@ StepOptions parse_step_options(int argc, char** argv)
         else if (flag == "--expect-dir" && options.expectDir.empty()) options.expectDir = value;
         else if (flag == "--masks" && options.masks.empty()) options.masks = value;
         else if (flag == "--report" && options.report.empty()) options.report = value;
+        else if (flag == "--topology-dir" && options.topologyDir.empty()) options.topologyDir = value;
         else if (flag == "--seconds" && options.seconds == 0) {
             const auto end = value.data() + value.size();
             const auto parsed = std::from_chars(value.data(), end, options.seconds);
@@ -187,7 +205,8 @@ StepOptions parse_step_options(int argc, char** argv)
     }
     if (options.from.empty() || options.expectDir.empty() || options.masks.empty() || options.seconds == 0)
         throw std::invalid_argument("Usage: waffle_parity step --from <state.json> --seconds <k> "
-                                    "--expect-dir <directory> --masks <masks.json> [--report <path>] [--time]");
+                                    "--expect-dir <directory> --masks <masks.json> "
+                                    "[--report <path>] [--time] [--topology-dir <directory>]");
     return options;
 }
 
@@ -216,7 +235,7 @@ StepTiming time_steps(const sim::RuntimeState& initial, std::size_t seconds)
 int step(const StepOptions& options)
 {
     const waffle::tools::ParityMasks masks(json::parse(read_file(options.masks)));
-    const auto initial = sim::import_runtime(browser::import_game_state(json::parse(read_file(options.from))));
+    const auto initial = admit_parity_state(json::parse(read_file(options.from)), options.topologyDir);
     auto state = initial;
     const double start = state.hot.tSec;
     constexpr double maxSafeInteger = 0x1p53 - 1;
@@ -283,7 +302,7 @@ int step(const StepOptions& options)
 
 struct StageOptions {
     std::string_view name;
-    std::filesystem::path before, after, masks;
+    std::filesystem::path before, after, masks, topologyDir;
 };
 
 StageOptions parse_stage_options(int argc, char** argv)
@@ -298,11 +317,12 @@ StageOptions parse_stage_options(int argc, char** argv)
         else if (flag == "--before" && options.before.empty()) options.before = value;
         else if (flag == "--after" && options.after.empty()) options.after = value;
         else if (flag == "--masks" && options.masks.empty()) options.masks = value;
+        else if (flag == "--topology-dir" && options.topologyDir.empty()) options.topologyDir = value;
         else throw std::invalid_argument("stage: unknown or repeated option " + std::string(flag));
     }
     if (options.name.empty() || options.before.empty() || options.after.empty())
         throw std::invalid_argument("Usage: waffle_parity stage --stage <name> --before <file> "
-                                    "--after <file> [--masks <file>]");
+                                    "--after <file> [--masks <file>] [--topology-dir <directory>]");
     return options;
 }
 
@@ -335,7 +355,7 @@ int stage(const StageOptions& options)
     const auto name = sim::stage_name(*selected);
     const auto before = read_stage_boundary(options.before, *selected);
     const auto after = read_stage_boundary(options.after, *selected);
-    auto state = sim::import_runtime(browser::import_game_state(*before.find("state")));
+    auto state = admit_parity_state(*before.find("state"), options.topologyDir);
     const auto& sidecar = *before.find("sidecar");
     sim::StageContext context{};
     context.seasonChanged = sidecar.find("_seasonChanged")->as_bool();
