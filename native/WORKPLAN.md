@@ -221,7 +221,7 @@ optimized build passed 11/11 CTests. Deferred divergences: modular RNG,
 overflow policy and collation. Open questions: required marker columns and
 admissible world/content sizes.
 
-## N03d - Browser-schema adapter and L0 round-trip (N03d-1 done; N03d-2 active)
+## N03d - Browser-schema adapter and L0 round-trip (N03d-1, N03d-2 done; N03d-3 active)
 
 N03d-1: generated mirror types and JSON I/O with L0 round-trip. N03d-2: the
 runtime state model (hot typed tables, interned IDs, cold subtrees kept as mirror
@@ -241,7 +241,32 @@ supervisor's merged optimized build passed 10/10 CTests. The `waffle_parity hash
 of the seed-1 opening equals trace second 0 (`b38990e9…`). The binary is at
 `build/<preset>/src/sim/waffle_parity.exe`.
 
-## N03e - Tick systems with step parity (pending N03d; split by pipeline)
+N03d-2 result, 19 Nov 2026 (merged from `t3/native-runtime-state-mapping`
+7cdb1d7e): `RuntimeState` holds flat typed hot tables: clocks, AP, binary64 RNG,
+regions and sites, the joint ledger, boards, Stock, moon turns, civilization
+ledgers and pending events. It uses checked 32-bit ordinals and authored-order
+spans. Cold mirror data is copied with the state; captured content is shared
+immutably with an order-sensitive SHA-256. A generated field map drives both
+directions, and CTest rejects unclassified fields. L0 through runtime: 22/22
+trace states and 2,949/2,949 captures. Copy independence holds. Optimized copy,
+median of 101: opening 3.7 µs (38 KB hot); year 50 549 µs (74 KB hot);
+late trace 512 µs. With Practice traces cleared, year 50 copies in 6.5 µs. Cold
+traces dominate copy cost and would add about 8.6 µs/sim-s at a 64 s anchor
+stride, so N03d-3 fixes this. The supervisor's merged optimized build passed
+15/15 CTests. Open: legacy captures without joint ledgers; physical adjacency
+awaits the world-definition port.
+
+N03d-3: move growing cold history (Practice traces, journals, histories) out of
+the copied state into append-only immutable storage with cursors in state.
+Done when a late-state full copy is ≤20 µs, L0 through runtime still holds and
+copy independence is tested.
+
+## N03e - Tick systems with step parity (N03e-0 and N03e-1 active)
+
+Cuts follow [the tick pipeline](spec/tick-pipeline.md#proposed-n03e-cuts).
+N03e-0 is the captured-content compiler (typed decoded definitions and DSL
+structures, with unsupported-op reporting). N03e-1 is clock and stage
+dispatch plus the step-parity harness and mask file.
 
 Port tick systems in pipeline order, one bounded item per subsystem group.
 Each item removes its parity masks, passes L1 on the trace set (or records an
