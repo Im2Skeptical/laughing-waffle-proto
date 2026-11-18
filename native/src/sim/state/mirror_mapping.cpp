@@ -403,6 +403,7 @@ RuntimeState import_runtime(const browser::GameState& state)
     settlement::prepare_population(result);
     rebuild_runtime_indexes(result);
     settlement::prepare_prelude(result);
+    settlement::prepare_birth(result);
     return result;
 }
 

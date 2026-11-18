@@ -1,6 +1,7 @@
 #pragma once
 
 #include "sim/state/rows.generated.hpp"
+#include "sim/settlement/birth_storage.hpp"
 
 #include <memory>
 
@@ -77,6 +78,7 @@ struct RuntimeState {
     runtime::IdTables addedIds;
     SettlementPreludeCache settlementPrelude;
     PopulationVocabulary populationVocabulary;
+    settlement::BirthStorage birthStorage;
     // The browser omits this latch on export and clears it on import.
     bool seasonChanged{};
     // Derived from tSec and immutable settings. Zero triggers calculation.

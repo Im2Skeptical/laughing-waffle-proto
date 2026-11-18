@@ -284,6 +284,8 @@ int step(const StepOptions& options)
 struct StageOptions {
     std::string_view name;
     std::filesystem::path before, after, masks;
+    bool time{};
+    bool birthCohorts{};
 };
 
 StageOptions parse_stage_options(int argc, char** argv)
@@ -291,6 +293,14 @@ StageOptions parse_stage_options(int argc, char** argv)
     StageOptions options;
     for (int index = 2; index < argc; ++index) {
         const std::string_view flag = argv[index];
+        if (flag == "--time" && !options.time) {
+            options.time = true;
+            continue;
+        }
+        if (flag == "--birth-cohorts" && !options.birthCohorts) {
+            options.birthCohorts = true;
+            continue;
+        }
         if (index + 1 == argc) throw std::invalid_argument("stage: missing value for " + std::string(flag));
         const std::string_view value = argv[++index];
         if (value.empty()) throw std::invalid_argument("stage: empty value for " + std::string(flag));
@@ -302,8 +312,45 @@ StageOptions parse_stage_options(int argc, char** argv)
     }
     if (options.name.empty() || options.before.empty() || options.after.empty())
         throw std::invalid_argument("Usage: waffle_parity stage --stage <name> --before <file> "
-                                    "--after <file> [--masks <file>]");
+                                    "--after <file> [--masks <file>] [--time] [--birth-cohorts]");
+    if (options.birthCohorts && options.name != "birth")
+        throw std::invalid_argument("stage: --birth-cohorts requires the birth stage");
     return options;
+}
+
+bool execute_stage(sim::Stage stage, sim::RuntimeState& state, sim::StageContext& context, bool birthCohorts)
+{
+    if (!birthCohorts) return sim::run_stage(stage, state, context);
+    sim::settlement::resolve_birth_cohorts(state);
+    return true;
+}
+
+void time_stage(sim::Stage stage, const sim::RuntimeState& initial, sim::StageContext initialContext, bool birthCohorts)
+{
+    using Clock = std::chrono::steady_clock;
+    constexpr std::size_t batches = 256;
+    constexpr std::size_t perBatch = 32;
+    double microseconds = 0;
+    std::vector<sim::RuntimeState> inputs;
+    inputs.reserve(perBatch);
+    for (std::size_t batch = 0; batch < batches + 1; ++batch) {
+        inputs.assign(perBatch, initial);
+        const auto start = Clock::now();
+        for (auto& input : inputs) {
+            auto context = initialContext;
+            execute_stage(stage, input, context, birthCohorts);
+        }
+        if (batch != 0)
+            microseconds += std::chrono::duration<double, std::micro>(Clock::now() - start).count();
+    }
+    const auto perInvocation = microseconds / (batches * perBatch);
+    std::cout << perInvocation << " us/invocation";
+    if (stage == sim::Stage::birth) {
+        const auto duration = initial.content->config.settings.values.phaseDurationSec;
+        const auto secondsPerMoon = 6 * std::max(1.0, waffle::core::js::floor(duration));
+        std::cout << ", " << perInvocation / secondsPerMoon << " us/sim-second";
+    }
+    std::cout << " (" << batches * perBatch << " timed invocations).\n";
 }
 
 Value read_stage_boundary(const std::filesystem::path& path, sim::Stage stage)
@@ -353,7 +400,12 @@ int stage(const StageOptions& options)
     } else {
         context.lunar = sim::lunar_schedule_at_second(second, state.content->config.settings.values.phaseDurationSec);
     }
-    const bool ported = sim::run_stage(*selected, state, context);
+    const auto timingInput = options.time ? std::optional{state} : std::nullopt;
+    const auto timingContext = context;
+    if (options.birthCohorts && (!state.hot.civilization.currentMoonTurn ||
+        state.hot.civilization.currentMoonTurn->startedSec != second))
+        throw std::invalid_argument("stage: --birth-cohorts requires a post-Practice Birth boundary");
+    const bool ported = execute_stage(*selected, state, context, options.birthCohorts);
     if (clock && !context.clockBoundary)
         throw std::invalid_argument("stage: advance_clock requires an advancing anchor");
 
@@ -381,6 +433,7 @@ int stage(const StageOptions& options)
             return 3;
         }
         std::cout << "Stage parity matched " << name << ".\n";
+        if (timingInput) time_stage(*selected, *timingInput, timingContext, options.birthCohorts);
         return 0;
     }
     std::cout << "Divergent stage " << name << (ported ? "" : " (not ported)") << " (" << diff.differing_leaves

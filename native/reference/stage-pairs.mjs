@@ -11,10 +11,13 @@ function directories(path) {
 }
 
 function main(args) {
+  const birthCohorts = args.includes("--birth-cohorts");
+  args = args.filter(arg => arg !== "--birth-cohorts");
   if (args.length < 2 || args.length > 3) {
-    throw new Error("Usage: node native/reference/stage-pairs.mjs <waffle_parity> <stage> [masks.json]");
+    throw new Error("Usage: node native/reference/stage-pairs.mjs <waffle_parity> <stage> [masks.json] [--birth-cohorts]");
   }
   const [parity, stage, masks] = args;
+  if (birthCohorts && stage !== "birth") throw new Error("--birth-cohorts requires the birth stage.");
   const binary = resolve(parity);
   const root = join(REPO_ROOT, "artifacts", "native-reference", "stages");
   if (!existsSync(root)) throw new Error("Generate stage pairs with node native/reference/stage-probe.mjs --all.");
@@ -28,8 +31,11 @@ function main(args) {
       const span = manifest.stages.find(({ name }) => name === stage);
       if (!span) continue;
       const boundary = index => join(sample, manifest.boundaries[index].file);
+      const before = birthCohorts ? span.birthCohortsBefore : span.before;
+      if (before === undefined) throw new Error(`${scenario}/${second} needs regenerated Birth probes.`);
       const result = spawnSync(binary, [
-        "stage", "--stage", stage, "--before", boundary(span.before), "--after", boundary(span.after), ...maskArgs,
+        "stage", "--stage", stage, "--before", boundary(before), "--after", boundary(span.after),
+        ...(birthCohorts ? ["--birth-cohorts"] : []), ...maskArgs,
       ], { encoding: "utf8" });
       if (result.error) throw result.error;
       comparisons += 1;

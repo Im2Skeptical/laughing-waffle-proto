@@ -4,14 +4,6 @@
 
 namespace waffle::sim::settlement {
 
-enum class Residency { villager, stranger };
-
-struct PopulationBin {
-    Residency residency{};
-    runtime::JointCohort key;
-    std::uint64_t count{};
-};
-
 struct PopulationBinView {
     Residency residency{};
     std::span<const runtime::JointCohort> keys;
@@ -30,32 +22,9 @@ struct PopulationFilter {
     bool opposing{};
 };
 
-struct Cohort {
-    double children{}, adults{};
-    std::vector<runtime::ElderCohort> elders;
-};
-
 struct CohortView {
     double children{}, adults{};
     std::span<const runtime::ElderCohort> elders;
-};
-
-struct CohortScratch {
-    std::vector<std::pair<std::uint64_t, double>> ages;
-    void reserve(std::size_t agesPerClass);
-};
-
-// Reuse one workspace across sites. Reserve from the maximum input and output
-// bin count of a stage before entering its steady-state loop.
-struct LedgerScratch {
-    struct Rank {
-        std::size_t index;
-        double remainder;
-    };
-    std::vector<Rank> ranks;
-    std::vector<PopulationBin> merged;
-    std::array<std::array<Cohort, 3>, 2> summaries;
-    void reserve(std::size_t binsPerSite);
 };
 
 void prepare_population(RuntimeState& state);
@@ -85,5 +54,7 @@ void add_age_cohort(Cohort& target, CohortView source, int sign, CohortScratch& 
 void split_specialist_cohorts(const RuntimeState& state, const runtime::PopulationClass& population,
                               std::array<Cohort, 3>& parts, CohortScratch& scratch);
 void combine_specialist_cohorts(const std::array<Cohort, 3>& parts, Cohort& combined, CohortScratch& scratch);
+void write_legacy_cohorts(RuntimeState& state, runtime::SiteId site, Residency residency,
+                          const std::array<Cohort, 3>& parts, const Cohort& combined);
 
 }
