@@ -368,7 +368,12 @@ N03d-4 44d39ed4 on `t3/native-world-topology-admission` (the exporter found 4
 definitions, and browser comparisons of neighbor order, symmetry, road order and
 components passed before the stop; the builds were unverified), and N03d-5
 2b2db2d4 on `t3/allocation-free-history-appends` (late copy baseline 5.8 µs;
-the arena was unfinished).
+the arena was unfinished). N03e-4 0405ee81 on `t3/native-birth-annual-cohorts`:
+six of eight full Birth probes run scheduled Practices first, so full Birth
+parity depends on N03e-3; it was adding a Practice-seam comparison.
+N03e-6a bf6c6951 on `t3/native-faith-chaos-stage`: Faith matched all four
+original stage pairs unmasked, including the collapse reservation; nine step
+windows passed. Remaining: probe expansion and mask narrowing.
 Note: N03e-3 and N03e-6a both edit `gamestate.v52.json` and regenerate the
 mirror, so expect schema merge conflicts.
 
