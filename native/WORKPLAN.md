@@ -130,6 +130,17 @@ optimized configure/build: 5/5 CTests and `--smoke` pass. Android: core
 cross-compiles with NDK clang 21. Device execution and llvm-mingw runtime are
 unverified.
 
+N03a-2 result, 19 Nov 2026 (merged from `t3/deterministic-transcendentals`
+714c0632): `waffle::core::js` provides fdlibm/V8 `pow`, `exp`, `log`, `log10`,
+`sin`, `cos`, `atan2`, `hypot` and `sqrt`. The vectors (27k–44k per function)
+are bit-exact with Node 24.15 fdlibm results. Node's default Windows
+`Math.pow` differs in 913/44,096 cases (2.07%), each by 1 ULP. Browser `pow`
+is therefore platform-dependent, while native uses portable fdlibm, so
+cross-platform native replay is unaffected. The layering check now rejects
+platform transcendentals in core/sim/timegraph. Core tests cross-link for
+Android arm64 API 31. The supervisor's merged optimized build passed 12/12
+CTests.
+
 ## N03b - Reference traces and divergence tooling (done)
 
 JavaScript tooling in `native/reference/`. Pin `BASELINE`. Write a trace
