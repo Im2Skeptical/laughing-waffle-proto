@@ -309,9 +309,20 @@ optimized build passed 21/21 CTests with both codegen checks current. Open:
 run admission must keep the compiled pointer; the active-Vassal keyword
 overlay is an interpreter decision for N03e-3.
 
-Stage probes (N03b-2, active) give each stage its own parity test using
-browser states captured between stages, so N03e-3 to N03e-8 can be ported in
-parallel once N03e-2 lands.
+N03b-2 result, 19 Nov 2026 (merged from `t3/native-stage-probes` 08181841).
+`native/reference/stage-probe.mjs` reproduces official seconds stage by stage.
+The validity gate passed: all 36 sampled seconds matched official replay and
+the trace hashes, giving 254 stage pairs. Coverage includes season, year and
+moon rollovers, shops, year 50 and 100, and same-root Smelting/Toolmaking
+Discharges. The clock runs on ticks 1-60. On tick 60 the stages run in order:
+`prelude`, `seasonal_practices`, `spring_death_baseline`, `birth`, `food`,
+`after_meals_practices`, `garrison_upkeep`, `housing`, `faith`,
+`migration_practices`, `migration`, `death`, `death_practices`,
+`control_and_spatial_pressure`, `phase_events_and_drain`, `vassal_check` and
+`final_flush`. The sidecar carries `_seasonChanged`, `_boardDirty` and
+`chaosBefore`. `waffle_parity stage --stage <name> --before --after [--masks]`
+tests one stage. The supervisor's merged optimized build passed 22/22 CTests.
+N03e-3 to N03e-8 can now be ported in parallel once N03e-2 lands.
 
 ## N03f - Actions, replay and new game (pending N03e)
 
