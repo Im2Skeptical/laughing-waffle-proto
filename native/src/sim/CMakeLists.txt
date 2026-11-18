@@ -7,6 +7,25 @@ add_library(waffle_sim STATIC
 	settlement/population.cpp
 	settlement/prelude.cpp
 	step/advance_second.cpp
+	step/stages.cpp
+	stages/advance_clock.cpp
+	stages/prelude.cpp
+	stages/seasonal_practices.cpp
+	stages/spring_death_baseline.cpp
+	stages/birth.cpp
+	stages/food.cpp
+	stages/after_meals_practices.cpp
+	stages/garrison_upkeep.cpp
+	stages/housing.cpp
+	stages/faith.cpp
+	stages/migration_practices.cpp
+	stages/migration.cpp
+	stages/death.cpp
+	stages/death_practices.cpp
+	stages/control_and_spatial_pressure.cpp
+	stages/phase_events_and_drain.cpp
+	stages/vassal_check.cpp
+	stages/final_flush.cpp
 )
 target_compile_features(waffle_sim PUBLIC cxx_std_20)
 target_link_libraries(waffle_sim PUBLIC waffle_core)

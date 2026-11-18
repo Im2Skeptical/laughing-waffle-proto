@@ -373,14 +373,13 @@ copies if a step ends between boundaries. Browser export omits it and browser
 import begins with a cleared latch, matching the browser's serialization
 behavior. The lunar deadline is derived again on import.
 
-The dispatcher names the prelude, seasonal Practices and Spring baseline,
-Birth, Food and after-meal work, Housing, Faith, Migration, Death and control,
-the phase event drain, the Vassal check, and the final flush. These stage
-bodies are currently empty. The [pipeline write table](../../spec/tick-pipeline.md#detailed-settlement-step)
-and [parity masks](../../reference/parity-masks.json) record their deferred
+The dispatcher invokes [registered stages](step/stages.hpp) in browser probe
+order. Clock, prelude, Spring death baseline, and lunar report headers run
+in the current port. The [pipeline write table](../../spec/tick-pipeline.md#detailed-settlement-step)
+and [parity masks](../../reference/parity-masks.json) record the deferred
 writes. The ported kernel uses no heap allocation per advance and draws no
-RNG. It leaves the browser save schema and browser replay path intact, and the
-native sim takes no wall clock, file, or UI dependencies.
+RNG. The native sim depends only on the core and preserves the browser's
+save schema and replay path.
 
 ## Step parity
 
@@ -403,13 +402,12 @@ comparison counts and timing when requested on success.
 
 `--time` repeats the verified advancing portion of the window in batches.
 It reports microseconds per sim-second and the timed advance count. It excludes
-state copying, import, export, masking and hash comparison. Optimized
-timings at this cut cover the clock and dispatch with empty gameplay stage
-bodies. CTest uses the existing seed-1 anchor and one additional full state,
+state copying, import, export, masking and hash comparison. CTest uses the
+existing seed-1 anchor and one additional full state,
 with separate controls for the lunar schedule, clocks, gates, wildcard
 matching, cut owners and unmasked diagnostics.
 
-The seed-1 opening window measured 0.159 µs per sim-second on the
+The N03e-1 seed-1 opening window measured 0.159 µs per sim-second on the
 Intel Core i9-10900K with MSVC 19.50, using the median of three optimized
 runs of 9,984 timed advances each. The 0.25 µs clock and dispatch budget
 is recorded in the [performance architecture](../../spec/performance-architecture.md#stepping-and-phase-budget).
@@ -417,8 +415,9 @@ is recorded in the [performance architecture](../../spec/performance-architectur
 ## Stage parity
 
 The [browser stage probes](../../reference/README.md#stage-probes) provide
-complete GameState and a versioned sidecar at each named seam. The checked-in
-seed 1 clock pair runs through the native clock and AP kernel in CTest.
+complete GameState and a versioned sidecar at each named seam. CTest uses the
+checked-in seed 1 clock pair and the shared `after-advance_clock.json`
+boundary for both ends of the idempotent opening prelude.
 
 ```powershell
 $parity = ".\native\build\optimized\src\sim\waffle_parity.exe"
@@ -427,25 +426,41 @@ $fixture = "native/reference/fixtures/stages/seed-1/1"
 ```
 
 For a gameplay pair, resolve the named stage's `before` and `after` indices
-through the capture manifest. `stage --stage <name> --before <file> --after
-<file> [--masks <file>]` imports the before state's browser mirror into
-`RuntimeState`, restores `seasonChanged`, and executes the selected seam in
-isolation. When wiring a lunar stage, derive its schedule from the imported
-`tSec` and captured `phaseDurationSec`. Pass the sidecar's pre-phase Chaos
-value to the phase event drain. Legacy `_boardDirty` stays as boundary
-metadata. False and absent are supported. The clock span uses
-`advance_one_second` with the settlement dispatcher disabled and ends with
-the dispatch-entry latch.
+through the capture manifest. The CLI imports the state and fills
+`StageContext` with the season latch, legacy board flag (false or absent),
+and pre-phase Chaos when present. Lunar stages use the schedule derived
+from `tSec` and captured settings. The CLI and the second dispatcher share
+`run_stage`. The clock stage ends at dispatch entry with the season latch
+still set when due. The second driver clears it after dispatch and then
+completes any clock ticks left over from a mid-second anchor.
 
-At this cut the gameplay functions are private stubs. The CLI identifies
-their comparisons as `unported identity`. A mismatch is expected whenever
-the browser stage wrote a compared field. As each gameplay seam becomes
-callable, wire the production stage body into the tool's stage dispatcher.
+The CLI compares canonical GameState hashes and sidecars. It exits 0 when a
+ported stage matches, 1 on a difference with the first path, and 2 on
+invalid input. A stage with deferred work reports `not ported` and exits 3
+when the compared fields match, or 1 when they differ.
 
-The CLI exports the result and compares canonical GameState hashes and the
-sidecar against the after file. It exits 0 on a match, 1 on a difference
-with the first path, and 2 on invalid input. Comparisons are unmasked by
-default. Optional format-version-1 masks apply to GameState only. Use
-stage-specific masks so the comparison covers the fields the stage is
-supposed to write. CTest also verifies that an altered expected latch
-fails and that a true input latch is restored.
+## Porting a stage
+
+Edit the matching file under [`stages/`](stages), such as
+[`birth.cpp`](stages/birth.cpp). Each entry returns true when the stage is
+ported. The second dispatcher owns gates and order. Birth owns moon
+rollover. Food, Housing, Faith, Migration and Death each set the moon phase
+at the start of their entry. Full-map Migration Practices run before the
+Migration entry and see the previous phase header. Capture Chaos before
+any lunar work and pass it to the phase event drain after the phase.
+
+From the repo root, capture inputs and check a single stage across the
+generated manifests.
+
+```powershell
+node native/reference/stage-probe.mjs --all
+node native/reference/stage-pairs.mjs $parity prelude
+```
+
+Start with an unmasked comparison. If there are deferred writes in that
+stage, copy only the relevant paths and their owner/reason entries from
+[`parity-masks.json`](../../reference/parity-masks.json) into a temporary
+format-version-1 mask file. Pass it as the third argument to
+`stage-pairs.mjs` or via `--masks` on the single-pair CLI. Keep the fields
+the stage now owns visible, and narrow the shared step masks as their
+remaining owners land. Masks apply only to GameState.

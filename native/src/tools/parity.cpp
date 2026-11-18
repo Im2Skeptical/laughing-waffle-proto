@@ -2,6 +2,7 @@
 #include "sim/browser/generated/game_state.hpp"
 #include "sim/state/runtime_state.hpp"
 #include "sim/step/advance_second.hpp"
+#include "sim/step/stages.hpp"
 #include "tools/json_file.hpp"
 #include "tools/parity_masks.hpp"
 
@@ -302,18 +303,10 @@ StageOptions parse_stage_options(int argc, char** argv)
     if (options.name.empty() || options.before.empty() || options.after.empty())
         throw std::invalid_argument("Usage: waffle_parity stage --stage <name> --before <file> "
                                     "--after <file> [--masks <file>]");
-    constexpr std::string_view names[] = {
-        "advance_clock", "prelude", "seasonal_practices", "spring_death_baseline",
-        "birth", "food", "after_meals_practices", "garrison_upkeep", "housing", "faith",
-        "migration_practices", "migration", "death", "death_practices", "control_and_spatial_pressure",
-        "phase_events_and_drain", "vassal_check", "final_flush",
-    };
-    if (std::ranges::find(names, options.name) == std::end(names))
-        throw std::invalid_argument("stage: unknown stage " + std::string(options.name));
     return options;
 }
 
-Value read_stage_boundary(const std::filesystem::path& path, std::string_view stage)
+Value read_stage_boundary(const std::filesystem::path& path, sim::Stage stage)
 {
     auto value = json::parse(read_file(path));
     const auto* version = value.find("formatVersion");
@@ -326,7 +319,7 @@ Value read_stage_boundary(const std::filesystem::path& path, std::string_view st
     const auto* seasonChanged = sidecar->find("_seasonChanged");
     const auto* boardDirty = sidecar->find("_boardDirty");
     const auto* chaosBefore = sidecar->find("chaosBefore");
-    const auto chaosKind = stage == "phase_events_and_drain" ? Value::Kind::number : Value::Kind::null;
+    const auto chaosKind = stage == sim::Stage::phase_events_and_drain ? Value::Kind::number : Value::Kind::null;
     if (!seasonChanged || seasonChanged->kind() != Value::Kind::boolean ||
         !boardDirty || (boardDirty->kind() != Value::Kind::null &&
             (boardDirty->kind() != Value::Kind::boolean || boardDirty->as_bool())) ||
@@ -335,39 +328,40 @@ Value read_stage_boundary(const std::filesystem::path& path, std::string_view st
     return value;
 }
 
-bool execute_stage(std::string_view name, sim::RuntimeState& state)
-{
-    // Gameplay seams are private stubs at this cut. A port connects its
-    // callable implementation here, with the lunar schedule and sidecar
-    // context as applicable, and returns true once its body executes.
-    if (name != "advance_clock") return false;
-
-    auto& hot = state.hot;
-    if (hot.simStepIndex != hot.tSec * 60)
-        throw std::invalid_argument("stage: advance_clock requires a second-aligned anchor");
-    const bool enabled = hot.variantFlags.settlementPrototypeEnabled;
-    const bool seasonChanged = state.seasonChanged;
-    const double seasonIndex = hot.currentSeasonIndex;
-    const double year = hot.year;
-    hot.variantFlags.settlementPrototypeEnabled = false;
-    if (!sim::advance_one_second(state))
-        throw std::invalid_argument("stage: advance_clock requires an advancing anchor");
-    hot.variantFlags.settlementPrototypeEnabled = enabled;
-    // advance_one_second clears the latch after dispatch. The clock probe
-    // ends at dispatch entry, where the latch still carries pending work.
-    state.seasonChanged = seasonChanged || hot.currentSeasonIndex != seasonIndex || hot.year != year;
-    return true;
-}
-
 int stage(const StageOptions& options)
 {
-    const auto before = read_stage_boundary(options.before, options.name);
-    const auto after = read_stage_boundary(options.after, options.name);
+    const auto selected = sim::stage_from_name(options.name);
+    if (!selected) throw std::invalid_argument("stage: unknown stage " + std::string(options.name));
+    const auto name = sim::stage_name(*selected);
+    const auto before = read_stage_boundary(options.before, *selected);
+    const auto after = read_stage_boundary(options.after, *selected);
     auto state = sim::import_runtime(browser::import_game_state(*before.find("state")));
-    auto actualSidecar = *before.find("sidecar");
-    state.seasonChanged = actualSidecar.find("_seasonChanged")->as_bool();
-    const bool executed = execute_stage(options.name, state);
-    actualSidecar.set("_seasonChanged", Value(state.seasonChanged));
+    const auto& sidecar = *before.find("sidecar");
+    sim::StageContext context{};
+    context.seasonChanged = sidecar.find("_seasonChanged")->as_bool();
+    if (const auto& dirty = *sidecar.find("_boardDirty"); dirty.kind() != Value::Kind::null)
+        context.boardDirty = dirty.as_bool();
+    if (const auto& chaos = *sidecar.find("chaosBefore"); chaos.kind() != Value::Kind::null)
+        context.chaosBefore = chaos.as_number();
+    const double second = state.hot.tSec;
+    const bool clock = *selected == sim::Stage::advance_clock;
+    if (clock) {
+        if (state.hot.simStepIndex != second * sim::ticksPerSecond)
+            throw std::invalid_argument("stage: advance_clock requires a second-aligned anchor");
+        if (state.hot.paused || (state.hot.runStatus && state.hot.runStatus->complete))
+            throw std::invalid_argument("stage: advance_clock requires an advancing anchor");
+    } else {
+        context.lunar = sim::lunar_schedule_at_second(second, state.content->config.settings.values.phaseDurationSec);
+    }
+    const bool ported = sim::run_stage(*selected, state, context);
+    if (clock && !context.clockBoundary)
+        throw std::invalid_argument("stage: advance_clock requires an advancing anchor");
+
+    const Value actualSidecar(Value::Object{
+        {"_seasonChanged", Value(context.seasonChanged)},
+        {"_boardDirty", context.boardDirty ? Value(*context.boardDirty) : Value()},
+        {"chaosBefore", context.chaosBefore ? Value(*context.chaosBefore) : Value()},
+    });
 
     auto actual = browser::export_game_state(sim::export_runtime(state));
     auto expected = *after.find("state");
@@ -381,12 +375,15 @@ int stage(const StageOptions& options)
     Diff diff;
     compare(diff, "$.sidecar", after.find("sidecar"), &actualSidecar);
     if (expectedHash != actualHash) compare(diff, "$", &expected, &actual);
-    const auto mode = executed ? "" : " (unported identity)";
     if (diff.differing_leaves == 0 && expectedHash == actualHash) {
-        std::cout << "Stage parity matched " << options.name << mode << ".\n";
+        if (!ported) {
+            std::cout << "Stage " << name << " not ported (compared fields matched).\n";
+            return 3;
+        }
+        std::cout << "Stage parity matched " << name << ".\n";
         return 0;
     }
-    std::cout << "Divergent stage " << options.name << mode << " (" << diff.differing_leaves
+    std::cout << "Divergent stage " << name << (ported ? "" : " (not ported)") << " (" << diff.differing_leaves
               << " differing leaves)\nFirst divergent path: " << diff.first_path
               << "\nExpected state hash " << expectedHash << "\nActual state hash   " << actualHash << '\n';
     return 1;

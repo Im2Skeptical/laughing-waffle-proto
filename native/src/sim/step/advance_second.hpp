@@ -4,6 +4,8 @@ namespace waffle::sim {
 
 struct RuntimeState;
 
+inline constexpr int ticksPerSecond = 60;
+
 enum class LunarPhase { birth, food, housing, faith, migration, death };
 
 struct LunarSchedule {
