@@ -8,7 +8,7 @@ export function describeMechanicEffect(effect, amount) {
   if (effect.op === 'addChaos') return `Gain ${amount} ${MECHANICS.chaos.name}`;
   if (effect.op === 'triggerMonsterSpawn') return amount === 1 ? `Trigger a ${MECHANICS.monsterSpawn.name}` : `Trigger ${amount} ${MECHANICS.monsterSpawn.name}s`;
   const text = {
-    convertPopulation: `${effect.train?'Train and convert':'Convert'} up to ${amount} eligible ${effect.filter?.kind??''} ${effect.filter?.specialty??''} opposing residents to this institution's allegiance${effect.reach==='connectedAdjacent'?'; first eligible adjacent road-connected region':'; local'}`,
+    convertPopulation: `${effect.train?'Train as '+(names[effect.train]??effect.train)+' and convert':'Convert'} up to ${amount} eligible ${[effect.filter?.classId,effect.filter?.kind,effect.filter?.specialty==='ordinary'?'non-specialist':effect.filter?.specialty].filter(Boolean).join(' ')} opposing residents to this institution's allegiance${effect.reach==='connectedAdjacent'?'; first eligible adjacent road-connected region':'; local'}`.replace(/\s+/g,' '),
     politicalForce: `+${amount} supplied ${effect.defenseOnly?'monster defence':'occupation'} Force until next ${effect.duration??'moon'} (refreshes)`,
     generateStock: `Produce ${amount} ${mechanic.name}`,
     research: `Gain ${amount} ${mechanic.name}`,
@@ -23,7 +23,8 @@ export function describeMechanicEffect(effect, amount) {
     bankSupport: `Bank ${amount} ${title(effect.bank)} ${mechanic.name} for a future martial action (up to 10)`,
   }[effect.op];
   const history = { losses: 'lost settlements', deaths: 'local deaths', deathsSinceSpring: 'local deaths since Spring' };
-  return (text ?? `${amount} ${mechanicEffect(effect.op)?.label ?? 'Unsupported effect'}`) + (effect.historyScale ? `; increased by ${history[effect.historyScale] ?? effect.historyScale}` : '');
+  return (text ?? `${amount} ${mechanicEffect(effect.op)?.label ?? 'Unsupported effect'}`) + (effect.historyScale ? `; increased by ${history[effect.historyScale] ?? effect.historyScale}` : '')
+    + (effect.populationBand ? `; +1 per ${effect.populationBand} residents (maximum +3 before Structure bonuses)` : '');
 }
 
 
@@ -49,4 +50,14 @@ export function describeMechanicTrigger(trigger) {
     return `${binding?.name ?? 'Unsupported event'} ${scopes[clause.scope ?? 'local'] ?? '(unsupported scope)'}${details.length ? ` (${details.join('; ')})` : ''}`;
   });
   return `On ${clauses.join(' or ')}${trigger.anotherPractice ? '; another Practice only' : ''}.`;
+}
+
+export function describePracticeMultiplier(mod) {
+  const pool = mod.kind === 'capacity' ? 'Capacity' : 'Output';
+  const terrain = {mountains:'mountain',plains:'plains',forest:'forest'};
+  const scope = mod.perRegion ? ` per connected ${terrain[mod.biome] ?? mod.biome} region`
+    : mod.biome ? ` in ${mod.biome === 'forest' ? 'forest' : mod.biome}` : '';
+  const season = mod.seasonKeys ? ` during ${mod.seasonKeys.map(s => s[0].toUpperCase()+s.slice(1)).join(' or ')}` : '';
+  const supply = mod.stockedTraitsAny ? ` while a local Practice holds ${mod.stockedTraitsAny.join(' or ')} Stock` : '';
+  return `+${mod.amount} ${pool} Multiplier${scope}${season}${supply}.`;
 }

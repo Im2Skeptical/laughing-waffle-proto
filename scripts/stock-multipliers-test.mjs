@@ -23,7 +23,8 @@ function equalState(actual,expected,label) {
 assert.deepEqual([...contiguousBiomeRegions(state,'R01')].sort(),['R01','R04'],'plains component excludes disconnected plains');
 assert.deepEqual([...contiguousBiomeRegions(state,'R02')].sort(),['R02','R05','R13'],'mountain chain follows shared edges');
 assert.deepEqual([...contiguousBiomeRegions(state,'R03')],['R03'],'isolated forest still counts its own region');
-const cases=[['R01',[3,1,1,1,1]],['R06',[1,1,3,3,3]],['R08',[1,1,2,1,1]]];
+state.currentSeasonIndex=2; // Authored Autumn harvest; no tick or random draw.
+const cases=[['R01',[3,1,1,1,1]],['R06',[1,2,1,1,1]],['R08',[1,1,2,1,1]]];
 for(const [regionId,expected] of cases) {
   const site=state.world.sites.find(site=>site.regionId===regionId),local=site.detailedState;
   site.neutral=null;delete site.town;getRegionState(state,regionId).controller='player';
@@ -34,14 +35,14 @@ for(const [regionId,expected] of cases) {
   const beforeCapacity=stockCapacityBreakdown(state,local,local.practiceSlots[0]);
   local.structureSlots[0]={structureId:'granary',origin:0,width:1,placementId:'test:granary'};
   assert.deepEqual(local.practiceSlots.map(slot=>stockOutputBreakdown(state,local,slot).multiplier),expected,'Granary adds no Output Multiplier');
-  assert.equal(stockCapacityBreakdown(state,local,local.practiceSlots[0]).multiplier,beforeCapacity.multiplier+1,'Granary retains capacity-only effect');
+  assert.equal(stockCapacityBreakdown(state,local,local.practiceSlots[0]).multiplier,beforeCapacity.multiplier+2,'Granary retains capacity-only effect');
   const out=state.gameConfig.gamepieces.structures.storehouse;
   const originalModifiers=JSON.parse(JSON.stringify(out.modifiers));
   out.modifiers=[{kind:'outputMultiplier',query:{traitsAny:['Construction']},amount:2}];
   local.structureSlots[1]={structureId:'storehouse',origin:1,width:1,placementId:'test:output',qualityBonus:1};
   const logging=local.practiceSlots[3];
   assert.equal(stockOutputBreakdown(state,local,logging).multiplier,expected[3]+3,'quality-ranked generic Structure contribution adds to the same pool');
-  assert.equal(stockCapacityBreakdown(state,local,logging).multiplier,1,'Output Multiplier does not grant capacity');
+  assert.equal(stockCapacityBreakdown(state,local,logging).multiplier,regionId==='R06'?3:1,'Output Multiplier does not grant capacity');
   local.structureSlots[1].construction={completedCycles:0};
   assert.equal(stockOutputBreakdown(state,local,logging).multiplier,expected[3],'unfinished output Structure is inactive');
   local.structureSlots[1]=null;
@@ -49,7 +50,7 @@ for(const [regionId,expected] of cases) {
   getRegionState(state,'R04').controller='external-a';state.world.connections=[];
   assert.deepEqual(local.practiceSlots.map(slot=>stockOutputBreakdown(state,local,slot).multiplier),expected,'ownership and roads do not change biome counts');
   const evaluated=evaluateDetailedPracticeSlot(state,regionId,3).effects.find(effect=>effect.op==='generateStock').scaledValue;
-  assert.equal(evaluated.effectiveValue,Math.floor(evaluated.baseValue*evaluated.workerMultiplier*expected[3]),'scheduled evaluation uses the real output pool');
+  assert.equal(evaluated.effectiveValue,Math.floor(3*evaluated.workerMultiplier*expected[3]),'scheduled evaluation uses the real output pool');
   logging.stock=0;
   const capacity=stockCapacityBreakdown(state,local,logging).total;
   generateStock(state,local,logging,1000);
@@ -59,8 +60,10 @@ for(const [regionId,expected] of cases) {
 const local=state.world.sites.find(site=>site.regionId==='R01').detailedState;
 local.practiceSlots=fiveSlots(practiceSlot('milling'),practiceSlot('dryFarming',10));
 setFixturePopulation(local,30);local.structureSlots.fill(null);
+assert.equal(stockOutputBreakdown(state,local,local.practiceSlots[0]).multiplier,1,'legacy Milling receives no blanket terrain bonus');
+state.gameConfig.gamepieces.practices.milling.stockMultipliers=[{kind:'outputMultiplier',amount:2}];
 const mill=evaluateDetailedPracticeSlot(state,'R01',0);
-assert.equal(stockOutputBreakdown(state,local,local.practiceSlots[0]).multiplier,3,'plains includes Milling');
+assert.equal(stockOutputBreakdown(state,local,local.practiceSlots[0]).multiplier,3,'captured self modifier scales Charge output');
 const discharge=mill.effects.find(effect=>effect.op==='generateStock').scaledValue;
 assert.equal(discharge.effectiveValue,Math.floor(discharge.baseValue*3),'Charge discharge Stock uses the pool, without another worker output multiplier');
 const mountain=state.world.sites.find(site=>site.regionId==='R08').detailedState;
@@ -107,22 +110,22 @@ assert.ok(board.structureSlots.every(slot=>!slot),'live board remains unchanged 
 const mixed=createLabNodeSandbox({type:'foodShop',prestige:200,seed:1});
 const mixedActor=getCurrentLifeMapVassal(mixed.state),mixedNode=mixedActor.lifeMap.nodeStates[mixed.nodeId];
 // Explicit mixed inventory keeps this arithmetic test independent of catalogue sampling.
-mixedNode.inventory=[{offerId:'fixture:sheep',label:'Sheep',basePrestigeCost:10,basePhaseCost:4,baseCurrencyCost:0,intervention:{kind:'practice',mode:'learn',practiceId:'sheepHusbandry',resultingTier:'bronze',targetRegionId:mixedActor.locationRegionId}},{offerId:'fixture:granary',label:'Granary',basePrestigeCost:10,basePhaseCost:4,baseCurrencyCost:0,intervention:{kind:'structure',mode:'add',structureId:'granary',tier:'bronze',qualityBonus:1,targetRegionId:mixedActor.locationRegionId}}];
+mixedNode.inventory=[{offerId:'fixture:sheep',label:'Sheep',basePrestigeCost:10,basePhaseCost:4,baseCurrencyCost:0,intervention:{kind:'practice',mode:'learn',practiceId:'dryFarming',resultingTier:'bronze',targetRegionId:mixedActor.locationRegionId}},{offerId:'fixture:granary',label:'Granary',basePrestigeCost:10,basePhaseCost:4,baseCurrencyCost:0,intervention:{kind:'structure',mode:'add',structureId:'granary',tier:'bronze',qualityBonus:1,targetRegionId:mixedActor.locationRegionId}}];
 const mixedOffers=getVassalNodeDecisionPresentation(mixed.state,mixed.nodeId).offers;
-const sheep=mixedOffers.find(o=>o.intervention.practiceId==='sheepHusbandry');
+const sheep=mixedOffers.find(o=>o.intervention.practiceId==='dryFarming');
 const granary=mixedOffers.find(o=>o.intervention.structureId==='granary');
 assert.ok(sheep&&granary);
 assert.ok(purchaseVassalShopOffer(mixed.state,mixed.nodeId,sheep.offerId).ok);
 const beforeMixedHover=JSON.stringify(serializeGameState(mixed.state));
 const mixedHover=getVassalNodeDecisionPresentation(mixed.state,mixed.nodeId,{previewOfferId:granary.offerId})
-  .settlement.multiplierPreview.rows.find(row=>row.practiceId==='sheepHusbandry');
-assert.equal(mixedHover.capacity.multiplier,3,'Granary hover includes a newly staged Practice');
+  .settlement.multiplierPreview.rows.find(row=>row.practiceId==='dryFarming');
+assert.equal(mixedHover.capacity.multiplier,4,'Granary hover includes a newly staged Practice');
 assert.equal(mixedHover.before.capacity.multiplier,1,'new Practice has a meaningful pre-Structure baseline');
 assert.ok(mixedHover.capacity.sources.some(source=>source.pending),'new Practice hover marks pending contributions');
 assert.equal(JSON.stringify(serializeGameState(mixed.state)),beforeMixedHover,'mixed-shop hover remains pure');
 assert.ok(purchaseVassalShopOffer(mixed.state,mixed.nodeId,granary.offerId).ok);
 const mixedReserved=getVassalNodeDecisionPresentation(mixed.state,mixed.nodeId).settlement.multiplierPreview.rows
-  .find(row=>row.practiceId==='sheepHusbandry');
-assert.equal(mixedReserved.capacity.multiplier,3);
+  .find(row=>row.practiceId==='dryFarming');
+assert.equal(mixedReserved.capacity.multiplier,4);
 assert.equal(mixedReserved.before.capacity.multiplier,1,'reservation keeps the new Practice delta visible');
 console.log('[stock-multipliers] OK: biome scopes/components, independent pools, construction, preview purity, RNG, save, replay and forecast');

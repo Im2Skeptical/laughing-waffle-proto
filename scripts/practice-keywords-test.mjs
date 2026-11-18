@@ -23,7 +23,7 @@ for (const role of ['scholar', 'warrior']) {
     ? ['floodAlmanacs', 'marginalia', 'measuredRations', 'patternCarving', 'copyingTexts']
     : ['beastRendering', 'scarredShields', 'trailProvisioning', 'trophyRubbings', 'monsterHunting']) {
     const def = getDetailedPracticeDef(state, id);
-    assert.equal(def.keywordOutputScale.keyword, keyword);
+    assert.equal((def.keywordOutputScale ?? def.keywordCapacityScale).keyword, keyword);
     assert.equal(def.prototypeKeyword, undefined, 'ordinary definitions carry no prototype marker');
     assert.equal(getGamepieceFace(null, 'practice', id).reading.keyword.id, keyword, 'catalogue inspection explains the passive too');
   }
@@ -56,12 +56,13 @@ for (const role of ['scholar', 'warrior']) {
   assert.equal(keywordAccess(state, keyword).active, true, 'a selected matching successor restores the discipline');
   assert.equal(keywordScore(state, null, 'monsterTrophies'), 1, 'selection does not reset history');
   const obsolete = structuredClone(saved); obsolete.gameStateSchemaVersion--;
-  assert.throws(() => deserializeGameState(obsolete), /expected v51/);
+  assert.throws(() => deserializeGameState(obsolete), /expected v52/);
 }
 
 // Ordinary A rules use captured coefficients, with no hidden per-card override.
 const scholar = createKeywordCardsState('scholar'), regionId = scholar.civilization.capitalRegionId;
 const definition = getDetailedPracticeDef(scholar, 'floodAlmanacs');
+delete definition.keywordCapacityScale;
 definition.keywordOutputScale = { keyword: 'synthesis', per: 2, amount: 2, cap: 1 };
 const readingBefore = serializeGameState(scholar);
 const sources = keywordOutputSources(scholar, regionId, definition);

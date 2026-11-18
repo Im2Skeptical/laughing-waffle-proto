@@ -167,6 +167,7 @@ assert.deepEqual(loggingReading.reading.effects,[
   {timing:'Spring',text:'Produce 2 Stock'},
   {timing:'Summer',text:'Produce 2 Stock'},
   {timing:'Autumn',text:'Produce 3 Stock'},
+  {timing:'',passive:true,text:'+2 Capacity Multiplier in forest.'},
 ]);
 assert.equal(loggingReading.reading.type,'Cycle');
 assert.equal(loggingReading.reading.trigger,null,'Season timing belongs in the Activation block');
@@ -205,9 +206,9 @@ for(const definition of Object.values(settlementStructureDefs)) {
   assert.ok(!getPracticeSymbols(face).some(entry=>/^(Cycle|Charge|Worker|Worker multiplier)$/.test(entry.name)),'Structures explain their own symbols');
 }
 const granaryFace=getGamepieceFace(faceClock,'structure','granary','bronze',{slot:{qualityBonus:1}});
-assert.equal(granaryFace.reading.effects[0].text,'+2 Capacity Multiplier for Edible');
-assert.deepEqual(granaryFace.structureBonuses[0].traits,['Edible']);
-assert.deepEqual(getPracticeSymbols(granaryFace).map(entry=>entry.name),['Edible','Capacity Multiplier','Construction footprint','Quality']);
+assert.equal(granaryFace.reading.effects[0].text,'+3 Capacity Multiplier for Grain');
+assert.deepEqual(granaryFace.structureBonuses[0].traits,['Grain']);
+assert.deepEqual(getPracticeSymbols(granaryFace).map(entry=>entry.name),['Grain','Capacity Multiplier','Construction footprint','Quality']);
 const kilnTerms=getInspectionTerms(getGamepieceFace(faceClock,'structure','kiln')).terms;
 assert.ok(kilnTerms.Construction&&kilnTerms.Vessel&&kilnTerms.Glass,'References cover Stock traits in Structure rules, including traits absent from its face');
 assert.equal(getGamepieceFace(faceClock,'structure','mudHouses','bronze',{slot:{qualityBonus:1}}).structureBonuses[0].amount,37,'Housing rounds per Structure');
