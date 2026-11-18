@@ -100,7 +100,7 @@ Node. Cases include `Number::toString` across exponent boundaries,
 stream, and sorted-key hashes equal to the corpus hashes for corpus states.
 Dev and optimized CTest pass.
 
-## N03b - Reference traces and divergence tooling (active)
+## N03b - Reference traces and divergence tooling (done)
 
 JavaScript tooling in `native/reference/`. Pin `BASELINE`. Write a trace
 dumper for scenarios (seed or prepared start, action journal, horizon). It
@@ -112,6 +112,17 @@ Done when traces regenerate deterministically, include several seeds, at least
 one multi-year horizon and an action-bearing scenario, and pass the browser's
 own replay/JSON-continuation checks. The differ must be shown to catch
 injected changes. Browser runtime behavior is unchanged.
+
+Result, 18 Nov 2026 (merged from `t3/native-reference-tracing` 67621683):
+`trace.mjs`, `diff.mjs`, `BASELINE` (496d9971, GameState 52), five scenarios.
+These are `seed-1` (50 years), `seed-42`, `seed-1867`, `seed-42-shops` (vassal
+selection, a Practice Reform purchase and a Public Works visit) and
+`seed-2026-late` (from second 3200). Checked-in per-second hashes total 535 KB.
+JSON continuation reproduced every per-second hash from all 22 kept states.
+`rebuildStateAtSecond` matched all checkpoints, and `--check` is byte-stable.
+Step parity from serialized states is therefore valid. The `diff.mjs`
+self-test catches four injected change kinds. RNG seeds are unbounded doubles
+(`3914056142423` observed), not uint32.
 
 ## N03c - State inventory and tick specification (active)
 
