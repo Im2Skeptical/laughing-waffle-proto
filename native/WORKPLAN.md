@@ -180,6 +180,11 @@ Profile, JS sustained 6,720 s in 14.62 s (about 460 sim-s/s): summaries 27%,
 Food 19%, anchor JSON 16%, drains 11%. Clock/AP work is about 0.2%. Lunar phases
 make nearly every second substantive.
 
+Browser follow-up: the three confirmed defects are being fixed separately
+on browser branch `fix/sim-rng-season-primordial`: uint32 seed storage,
+integer season clock and a finite Primordial pressure policy. The native port
+adopts them in a baseline catch-up after merge. Until then it pins 496d9971.
+
 ## N03p - Performance architecture (done)
 
 Cam's priority, 18 Nov 2026: performance outranks exact JS matching. See
