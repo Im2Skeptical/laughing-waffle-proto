@@ -1,6 +1,7 @@
 add_library(waffle_sim STATIC
 	browser/detail/codec.cpp
 	browser/generated/game_state.cpp
+	content/compiled_content.cpp
 	state/mirror_mapping.cpp
 	state/runtime_state.cpp
 )
@@ -12,12 +13,18 @@ if(NOT ANDROID)
 	target_link_libraries(waffle_parity PRIVATE waffle_sim)
 	add_executable(waffle_browser_tests ../tests/browser_state_test.cpp)
 	target_link_libraries(waffle_browser_tests PRIVATE waffle_sim)
+	add_executable(waffle_content_tests ../tests/content_test.cpp)
+	target_link_libraries(waffle_content_tests PRIVATE waffle_sim)
 	if(MINGW)
 		target_link_options(waffle_parity PRIVATE -static)
 		target_link_options(waffle_browser_tests PRIVATE -static)
+		target_link_options(waffle_content_tests PRIVATE -static)
 	endif()
 
 	set(native_dir "${CMAKE_CURRENT_SOURCE_DIR}/../..")
+	add_test(NAME captured_content COMMAND waffle_content_tests fixtures
+		"${native_dir}/src/tests/vectors/seed-1-initial.json"
+		"${native_dir}/reference/fixtures/seed-1/state-0.json")
 	add_test(NAME browser_state_l0 COMMAND waffle_browser_tests fixtures
 		"${native_dir}/src/tests/vectors/seed-1-initial.json"
 		"${native_dir}/reference/fixtures/seed-1/state-0.json"
@@ -36,7 +43,7 @@ if(NOT ANDROID)
 		"-Doutput_dir=${CMAKE_CURRENT_BINARY_DIR}"
 		-P "${native_dir}/src/tests/check_parity_cli.cmake")
 	set_tests_properties(browser_state_l0 browser_state_controls runtime_state_l0 runtime_state_controls
-		parity_cli PROPERTIES TIMEOUT 60)
+		parity_cli captured_content PROPERTIES TIMEOUT 60)
 
 	find_program(WAFFLE_NODE_EXECUTABLE NAMES node)
 	if(WAFFLE_NODE_EXECUTABLE)
@@ -44,6 +51,8 @@ if(NOT ANDROID)
 			COMMAND "${WAFFLE_NODE_EXECUTABLE}" "${native_dir}/schema/codegen.mjs" --check)
 		add_test(NAME runtime_field_coverage
 			COMMAND "${WAFFLE_NODE_EXECUTABLE}" "${native_dir}/schema/runtime-codegen.mjs" --check)
-		set_tests_properties(browser_schema_codegen runtime_field_coverage PROPERTIES TIMEOUT 60)
+		add_test(NAME content_field_coverage
+			COMMAND "${WAFFLE_NODE_EXECUTABLE}" "${CMAKE_CURRENT_SOURCE_DIR}/content/generate.mjs" --check)
+		set_tests_properties(browser_schema_codegen runtime_field_coverage content_field_coverage PROPERTIES TIMEOUT 60)
 	endif()
 endif()

@@ -27,6 +27,103 @@ key, and `value()` on a present key returns an optional value. Dictionaries
 store ordered key/value pairs. Core JSON provides JS index ordering and
 value formatting. Export emits record fields in schema declaration order.
 
+## Captured content
+
+[`compile_content`](content/compiled_content.hpp) builds a shared immutable
+object from the run's captured configuration. The cache key combines the
+schema-order capture hash and native compiler version. Populate the shared
+config ID domains before interning live rows, retain the object for the run,
+and pass it to future tick and replay consumers. Supply the original
+`gameConfig` JSON at admission for identity diagnostics. The compile stage
+does no simulation, filesystem work, clock reads, or RNG draws.
+
+The compiler produces dense Practice and Structure rows, typed settings and
+Life Map generator rules, ordered arena spans for recipes and modifier
+queries, and tagged effect and trigger instructions. Practice rows expose
+timing masks and the authored effect indices that commit with the population
+recipe. In the browser, recipe preflight evaluates the conversion plan with
+the definition's primary activation. At commit, the interpreter evaluates
+amounts for the whole effects span in the dispatch context before any input
+mutation. It commits Stock inputs, population inputs and grouped conversions,
+then dispatches effects in declaration order. Strings used as IDs are
+interned and definition ordinals follow captured registry order. Text and
+workbook provenance stay in the serialized config.
+
+The browser readers for these groups are `src/model/detailed-settlements/practices.js`
+for scheduling, effects, triggers and upkeep, `src/model/detailed-settlements/political-recipes.js`
+for population inputs and conversion support, `src/model/detailed-settlements/stock.js`
+and `src/model/detailed-settlements/practice-multipliers.js` for Stock and
+multiplier queries, and `src/model/detailed-settlements/construction.js` for
+building. The active Vassal can change the keyword prototype's Practice
+overlay. The tables retain its captured switch, configuration and base
+definitions for the interpreter to resolve against live state.
+
+[`field-coverage.txt`](content/field-coverage.txt) classifies every reachable
+config field. Compiled fields specify any vocabulary or ID domain. Descriptive
+fields are stripped from the tables. A field with an unsupported reason is
+rejected if present. CTest checks generated layouts and decompiles typed rows
+back to their executable JSON projection. The comparison keeps array and
+dictionary order and normalizes record keys. The identity diagnostic receives
+the original, unnormalized JSON. See [parity divergences](../../spec/divergences.md).
+
+From the repository root, after building `optimized`:
+
+```powershell
+$test = '.\native\build\optimized\src\sim\waffle_content_tests.exe'
+& $test timing native/reference/fixtures/seed-1/state-0.json
+& $test corpus artifacts/native-schema/snapshots-v2 artifacts/native-schema/sustained artifacts/native-schema/queued
+```
+
+### Execution identity inventory
+
+Paths and lines refer to the browser baseline. These rules define the native
+representation when each consumer is ported. The modifier query key is
+already available on compiled Structure rows.
+
+| Browser location | Native identity rule |
+| --- | --- |
+| `src/model/detailed-settlements/stock.js:38` | Dedup `unique` modifiers by kind and interned semantic query key. First eligible source wins. |
+| `src/model/state.js:530`, `src/model/timegraph/forecast-wire.js:20`, `src/model/timegraph/forecast-wire.js:91`, `src/model/timegraph/retained-projection.js:20` | Share the immutable per-run content by its versioned capture key. Keep definition and other ordered dictionary traversal in the key. Record field permutations compare equal. |
+| `src/model/regional-map/biome-clustering.js:21`, `src/model/regional-map/biome-clustering.js:55` | Use a tuple of available-set and depth for failed placements, and a tuple of seed, adjacency, quota and affinity for generated maps. Compare record members by value and preserve array order. |
+| `src/model/detailed-settlements/vassals.js:260`, `src/model/vassal-life-map/selectors.js:484` | Compare ordered candidate rows by their captured fields. Compare signature and portrait records by value. |
+| `src/model/detailed-settlements/population-ledger.js:5`, `src/model/detailed-settlements/population-ledger.js:69` | Key cohorts by allegiance, residency, specialty, life stage and optional age. Compare typed summary records and ordered elder cohorts on import. Preserve the browser lexical tie-break when allocating people. |
+| `src/model/detailed-settlements/birth-allegiance.js:12` | Compare normalized sets of faction IDs before retaining carry credits. |
+| `src/model/detailed-settlements/practices.js:58`, `src/model/detailed-settlements/practices.js:324` | Compare sorted Stock trait sequences for diversity and key root deferral by root plus a tagged instance or site-and-slot identity. |
+| `src/model/world-state.js:36`, `src/model/world-state.js:45`, `src/model/regional-map/generator.js:19` | Use unordered endpoint pairs normalized by ID for road and polygon edge equality. |
+| `src/model/regional-map/generator.js:18`, `src/model/regional-map/definition.js:34` | Key vertices by the pair of quantized coordinates at the respective precision. |
+| `src/model/life-map-design.js:123`, `src/model/vassal-life-map-generator.js:135`, `src/model/vassal-life-map-generator.js:190`, `src/model/vassal-life-map-generator.js:230`, `src/model/vassal-life-map-generator.js:347`, `src/model/vassal-life-map-generator.js:354`, `src/model/vassal-life-map-generator.js:539` | Use tuples for pool runs, edge coordinates and directed node endpoints. Compare path lane sequences in order and compare the topology signature by its node fields and sorted child signatures, retaining the generation-rule node identity. |
+| `src/model/life-map-design.js:114`, `src/model/life-map-design.js:145`, `src/model/vassal-life-map/lifecycle/candidates.js:79` | Resolve normal family and signature variant as tagged rule IDs in the captured design. |
+| `src/model/vassal-life-map/lifecycle/node-confirm.js:590`, `src/model/vassal-life-map/lifecycle/node-confirm.js:591`, `src/model/vassal-life-map/lifecycle/step.js:194` | Compare ordered board slots and purchase ID sequences directly. Compare records by their fields. |
+| `src/model/timeline/index.js:375`, `src/model/timeline/index.js:384`, `src/model/timeline/index.js:937` | Compare persistent knowledge by value and use a pair of range endpoints for the time-range key. Preserve value-array ordering. |
+| `src/model/practice-outputs.js:32`, `src/model/dev-lab/card-review.js:8` | The editor compares effect shapes and patch paths structurally. Captured effects keep their declared order. |
+
+Generated identifiers that enter the save or action protocol keep their
+spellings. Native uses typed IDs for equality after interning them.
+
+- Place and node IDs come from `src/model/full-map-world.js:45`,
+  `src/model/world-state.js:576`, `src/model/detailed-settlements/external-world.js:142`,
+  `src/model/vassal-life-map-generator.js:366`, and `src/model/life-map-columns.js:78`.
+- Institution, placement, and transfer IDs come from `src/model/detailed-settlements/practices.js:401`,
+  `src/model/detailed-settlements/vassals.js:631`, `src/model/detailed-settlements/stock.js:178`,
+  `src/model/detailed-settlements/phases/migration.js:447`, `src/model/detailed-settlements/phases/migration.js:450`,
+  `src/model/vassal-life-map/lifecycle/node-confirm.js:99`, and `src/model/vassal-life-map/shop.js:351`.
+- Materialized choice and offer IDs come from `src/model/vassal-life-map/campaign.js:39`,
+  `src/model/vassal-life-map/class-actions.js:24`, `src/model/vassal-life-map/class-actions.js:33`,
+  `src/model/vassal-life-map/class-actions.js:44`, `src/model/vassal-life-map/class-actions.js:45`,
+  `src/model/vassal-life-map/class-actions.js:49`, `src/model/vassal-life-map/class-actions.js:57`,
+  `src/model/vassal-life-map/world-choices.js:35`, `src/model/vassal-life-map/world-choices.js:44`,
+  `src/model/vassal-life-map/heirlooms.js:227`, `src/model/vassal-life-map/commissions.js:62`,
+  `src/model/vassal-life-map/shop.js:98`, `src/model/vassal-life-map/shop.js:123`,
+  `src/model/vassal-life-map/shop.js:209`, `src/model/vassal-life-map/shop.js:233`,
+  `src/model/vassal-life-map/shop.js:277`, and `src/model/vassal-life-map/shop.js:355`.
+- Lineage event, transaction, and development choice IDs come from
+  `src/model/vassal-life-map/commissions.js:101`, `src/model/vassal-life-map/lifecycle/node-confirm.js:214`,
+  `src/model/vassal-life-map/lifecycle/node-confirm.js:300`, `src/model/vassal-life-map/lifecycle/node-confirm.js:452`,
+  and `src/model/vassal-life-map/lifecycle/node-confirm.js:629`.
+
+JSON copying, diagnostic messages, serialized output, size estimates, and
+catalogue and inspection keys have no simulation equality contract.
+
 ## Runtime layout
 
 - `hot` holds clocks, AP, binary64 RNG streams, flags, run status and

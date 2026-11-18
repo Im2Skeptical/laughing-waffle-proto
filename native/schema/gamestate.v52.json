@@ -217,7 +217,7 @@
       "kind": "record",
       "fields": {
         "prestige": { "type": "number", "optional": false, "nullable": false },
-        "time": { "type": "integer", "optional": false, "nullable": false },
+        "time": { "type": "number", "optional": false, "nullable": false },
         "currency": { "type": "integer", "optional": false, "nullable": false }
       }
     },
@@ -452,7 +452,7 @@
       "kind": "record",
       "fields": {
         "traits": { "type": "StringArray", "optional": false, "nullable": false },
-        "amount": { "type": "integer", "optional": false, "nullable": false }
+        "amount": { "type": "number", "optional": false, "nullable": false }
       }
     },
     "ConversionSupportFilter": {
@@ -483,23 +483,23 @@
       "kind": "record",
       "fields": {
         "traits": { "type": "StringArray", "optional": false, "nullable": false },
-        "amount": { "type": "integer", "optional": false, "nullable": false }
+        "amount": { "type": "number", "optional": false, "nullable": false }
       }
     },
     "CostBandsMonsterPressure": {
       "kind": "record",
       "fields": {
-        "cheap": { "type": "integer", "optional": false, "nullable": false },
-        "fair": { "type": "integer", "optional": false, "nullable": false },
-        "expensive": { "type": "integer", "optional": false, "nullable": false }
+        "cheap": { "type": "number", "optional": false, "nullable": false },
+        "fair": { "type": "number", "optional": false, "nullable": false },
+        "expensive": { "type": "number", "optional": false, "nullable": false }
       }
     },
     "CostBandsPrestige": {
       "kind": "record",
       "fields": {
-        "cheap": { "type": "integer", "optional": false, "nullable": false },
-        "fair": { "type": "integer", "optional": false, "nullable": false },
-        "expensive": { "type": "integer", "optional": false, "nullable": false }
+        "cheap": { "type": "number", "optional": false, "nullable": false },
+        "fair": { "type": "number", "optional": false, "nullable": false },
+        "expensive": { "type": "number", "optional": false, "nullable": false }
       }
     },
     "CostBandsRisk": {
@@ -513,9 +513,9 @@
     "CostBandsTime": {
       "kind": "record",
       "fields": {
-        "cheap": { "type": "integer", "optional": false, "nullable": false },
-        "fair": { "type": "integer", "optional": false, "nullable": false },
-        "expensive": { "type": "integer", "optional": false, "nullable": false }
+        "cheap": { "type": "number", "optional": false, "nullable": false },
+        "fair": { "type": "number", "optional": false, "nullable": false },
+        "expensive": { "type": "number", "optional": false, "nullable": false }
       }
     },
     "DeathByClass": {
@@ -786,10 +786,10 @@
       "kind": "record",
       "fields": {
         "keyword": { "type": "string", "optional": false, "nullable": false },
-        "per": { "type": "integer", "optional": false, "nullable": false },
-        "amount": { "type": "integer", "optional": false, "nullable": false },
+        "per": { "type": "number", "optional": false, "nullable": false },
+        "amount": { "type": "number", "optional": false, "nullable": false },
         "cap": {
-          "type": "integer",
+          "type": "number",
           "optional": true,
           "nullable": false,
           "note": "Optional cap in canonicalizeGamepiecesDraft."
@@ -977,9 +977,9 @@
     "LifeMapDesignOccurrence": {
       "kind": "record",
       "fields": {
-        "common": { "type": "integer", "optional": false, "nullable": false },
-        "uncommon": { "type": "integer", "optional": false, "nullable": false },
-        "rare": { "type": "integer", "optional": false, "nullable": false }
+        "common": { "type": "number", "optional": false, "nullable": false },
+        "uncommon": { "type": "number", "optional": false, "nullable": false },
+        "rare": { "type": "number", "optional": false, "nullable": false }
       }
     },
     "LifeMapDesignOptionCosts": {
@@ -1465,14 +1465,14 @@
         "triggerKindsAny": { "type": "StringArray", "optional": true, "nullable": false },
         "triggerTraitsAny": { "type": "StringArray", "optional": true, "nullable": false },
         "unique": { "type": "boolean", "optional": true, "nullable": false },
-        "minimumSpecialists": { "type": "integer", "optional": true, "nullable": false },
+        "minimumSpecialists": { "type": "number", "optional": true, "nullable": false },
         "specialistClass": { "type": "string", "optional": true, "nullable": false },
         "requiresOrConsumesAny": { "type": "StringArray", "optional": true, "nullable": false },
-        "minimumRequirements": { "type": "integer", "optional": true, "nullable": false },
+        "minimumRequirements": { "type": "number", "optional": true, "nullable": false },
         "requiresAny": { "type": "StringArray", "optional": true, "nullable": false },
         "threatened": { "type": "boolean", "optional": true, "nullable": false },
         "scholarStaffed": { "type": "boolean", "optional": true, "nullable": false },
-        "historicalBurdens": { "type": "integer", "optional": true, "nullable": false },
+        "historicalBurdens": { "type": "number", "optional": true, "nullable": false },
         "effectOpsAny": { "type": "StringArray", "optional": true, "nullable": false },
         "classId": { "type": "string", "optional": true, "nullable": false }
       },
@@ -1646,22 +1646,22 @@
     "NodeFamilyWeights": {
       "kind": "record",
       "fields": {
-        "patronage": { "type": "integer", "optional": false, "nullable": false },
-        "development": { "type": "integer", "optional": false, "nullable": false },
-        "crossroads": { "type": "integer", "optional": false, "nullable": false },
-        "practiceReform": { "type": "integer", "optional": false, "nullable": false },
-        "publicWorks": { "type": "integer", "optional": false, "nullable": false },
-        "crisis": { "type": "integer", "optional": false, "nullable": false },
+        "patronage": { "type": "number", "optional": false, "nullable": false },
+        "development": { "type": "number", "optional": false, "nullable": false },
+        "crossroads": { "type": "number", "optional": false, "nullable": false },
+        "practiceReform": { "type": "number", "optional": false, "nullable": false },
+        "publicWorks": { "type": "number", "optional": false, "nullable": false },
+        "crisis": { "type": "number", "optional": false, "nullable": false },
         "relic": { "type": "number", "optional": false, "nullable": false },
         "specialRelic": { "type": "number", "optional": false, "nullable": false },
-        "training": { "type": "integer", "optional": false, "nullable": false },
-        "discovery": { "type": "integer", "optional": false, "nullable": false },
-        "campaign": { "type": "integer", "optional": false, "nullable": false },
-        "challenge": { "type": "integer", "optional": false, "nullable": false },
+        "training": { "type": "number", "optional": false, "nullable": false },
+        "discovery": { "type": "number", "optional": false, "nullable": false },
+        "campaign": { "type": "number", "optional": false, "nullable": false },
+        "challenge": { "type": "number", "optional": false, "nullable": false },
         "neutralMarket": { "type": "number", "optional": false, "nullable": false },
         "classMarket": { "type": "number", "optional": false, "nullable": false },
-        "foodShop": { "type": "integer", "optional": false, "nullable": false },
-        "housingShop": { "type": "integer", "optional": false, "nullable": false }
+        "foodShop": { "type": "number", "optional": false, "nullable": false },
+        "housingShop": { "type": "number", "optional": false, "nullable": false }
       }
     },
     "OptionCost": {
@@ -2026,16 +2026,16 @@
         "stockMultipliers": { "type": "PracticeDefinitionStockMultipliers", "optional": true, "nullable": false },
         "locked": { "type": "boolean", "optional": true, "nullable": false },
         "externalAction": { "type": "string", "optional": true, "nullable": false },
-        "cadenceMoons": { "type": "integer", "optional": true, "nullable": false },
+        "cadenceMoons": { "type": "number", "optional": true, "nullable": false },
         "scholarRequired": { "type": "boolean", "optional": true, "nullable": false },
         "specialistRequired": { "type": "string", "optional": true, "nullable": false },
         "supportMultiplier": { "type": "number", "optional": true, "nullable": false },
-        "minimumSupportRequired": { "type": "integer", "optional": true, "nullable": false },
+        "minimumSupportRequired": { "type": "number", "optional": true, "nullable": false },
         "defenseMultiplier": { "type": "number", "optional": true, "nullable": false },
-        "retinueForce": { "type": "integer", "optional": true, "nullable": false },
+        "retinueForce": { "type": "number", "optional": true, "nullable": false },
         "positiveSupportRequired": { "type": "boolean", "optional": true, "nullable": false },
         "responseAction": { "type": "string", "optional": true, "nullable": false },
-        "minimumWarriors": { "type": "integer", "optional": true, "nullable": false },
+        "minimumWarriors": { "type": "number", "optional": true, "nullable": false },
         "connectedSupportRequired": { "type": "boolean", "optional": true, "nullable": false }
       },
       "note": "game-config.js:257–334 iterates authored keys, then overlays validated review fields. Locked and keyword/terrain modifiers may append or disappear. Observed multiple insertion orders with the same field set."
@@ -2084,7 +2084,7 @@
     "PracticeDefinitionPopulationRequireEntry": {
       "kind": "record",
       "fields": {
-        "amount": { "type": "integer", "optional": false, "nullable": false },
+        "amount": { "type": "number", "optional": false, "nullable": false },
         "filter": { "type": "PracticeDefinitionPopulationRequireFilter", "optional": false, "nullable": false },
         "other": { "type": "boolean", "optional": false, "nullable": false }
       }
@@ -2118,7 +2118,7 @@
       "fields": {
         "version": { "type": "string", "optional": false, "nullable": false },
         "sheet": { "type": "string", "optional": false, "nullable": false },
-        "row": { "type": "integer", "optional": false, "nullable": false }
+        "row": { "type": "number", "optional": false, "nullable": false }
       }
     },
     "PracticeEffect": {
@@ -2809,7 +2809,7 @@
       "kind": "record",
       "fields": {
         "enabled": { "type": "boolean", "optional": false, "nullable": false },
-        "weight": { "type": "integer", "optional": false, "nullable": false }
+        "weight": { "type": "number", "optional": false, "nullable": false }
       }
     },
     "RemovalReceipt": {
@@ -3116,7 +3116,7 @@
       "kind": "record",
       "fields": {
         "traits": { "type": "StringArray", "optional": false, "nullable": false },
-        "amount": { "type": "integer", "optional": false, "nullable": false }
+        "amount": { "type": "number", "optional": false, "nullable": false }
       },
       "note": "Observed multiple insertion orders with the same field set."
     },
@@ -3213,7 +3213,7 @@
         "authoredHook": { "type": "string", "optional": true, "nullable": false },
         "candidateBonus": { "type": "number", "optional": true, "nullable": false },
         "provisionalNotes": { "type": "StringArray", "optional": true, "nullable": false },
-        "specialistGate": { "type": "integer", "optional": true, "nullable": false },
+        "specialistGate": { "type": "number", "optional": true, "nullable": false },
         "locked": {
           "type": "boolean",
           "optional": true,
@@ -3241,7 +3241,7 @@
         "consumeTrait": { "type": "string", "optional": true, "nullable": false },
         "reach": { "type": "string", "optional": true, "nullable": false },
         "consume": { "type": "ConversionSupportConsume", "optional": true, "nullable": false },
-        "minimumPopulation": { "type": "integer", "optional": true, "nullable": false },
+        "minimumPopulation": { "type": "number", "optional": true, "nullable": false },
         "train": { "type": "string", "optional": true, "nullable": false },
         "activation": { "type": "string", "optional": true, "nullable": false },
         "populationRequire": { "type": "ConversionSupportPopulationRequire", "optional": true, "nullable": false }
@@ -3256,12 +3256,12 @@
       "fields": {
         "kind": { "type": "string", "optional": false, "nullable": false },
         "amount": { "type": "number", "optional": true, "nullable": false },
-        "arms": { "type": "integer", "optional": true, "nullable": false },
+        "arms": { "type": "number", "optional": true, "nullable": false },
         "adjacent": { "type": "boolean", "optional": true, "nullable": false },
         "query": { "type": "ModifiersQuery", "optional": true, "nullable": false },
         "warriors": { "type": "integer", "optional": true, "nullable": false },
         "sources": { "type": "StringArray", "optional": true, "nullable": false },
-        "cap": { "type": "integer", "optional": true, "nullable": false },
+        "cap": { "type": "number", "optional": true, "nullable": false },
         "from": { "type": "string", "optional": true, "nullable": false },
         "to": { "type": "string", "optional": true, "nullable": false },
         "providerTagsAny": { "type": "StringArray", "optional": true, "nullable": false }
@@ -3287,7 +3287,7 @@
       "fields": {
         "version": { "type": "string", "optional": false, "nullable": false },
         "sheet": { "type": "string", "optional": false, "nullable": false },
-        "row": { "type": "integer", "optional": false, "nullable": false }
+        "row": { "type": "number", "optional": false, "nullable": false }
       }
     },
     "StructureDraftEdit": {
