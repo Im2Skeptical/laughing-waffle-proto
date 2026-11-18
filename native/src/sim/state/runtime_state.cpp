@@ -1,7 +1,5 @@
 #include "sim/state/runtime_state.hpp"
 
-#include "sim/browser/detail/json_path.hpp"
-
 #include <algorithm>
 
 namespace waffle::sim {
@@ -63,10 +61,10 @@ Range<T> appended_range(const std::vector<T>& rows, std::size_t begin, std::stri
     return {checked_index(begin, path), checked_index(rows.size(), path)};
 }
 
-void add_count(std::uint64_t& total, std::uint64_t count, const std::string& path)
+void add_count(std::uint64_t& total, std::uint64_t count)
 {
     if (count > std::numeric_limits<std::uint64_t>::max() - total)
-        throw std::invalid_argument(path + ": population total exceeds 64-bit range");
+        throw std::invalid_argument("populationByClass: population total exceeds 64-bit range");
     total += count;
 }
 
@@ -75,9 +73,16 @@ void index_population(RuntimeState& state, const Site& site, SiteIndex& index,
 {
     const auto& populations = site.detailedState.populationByClass;
     const std::array classes{&populations.villager, &populations.stranger};
-    const auto path = browser::detail::index_path("$.world.sites", site.id.value) + ".detailedState.populationByClass";
     auto& allegiance = state.indexes.allegianceTotals;
-    const auto begin = allegiance.size();
+    index.byResidency = {};
+    auto& storage = index.allegianceStorage;
+    if (storage.size() == 0) {
+        const auto begin = checked_index(allegiance.size(), "population allegiance");
+        const auto end = checked_index(allegiance.size() + state.populationVocabulary.factions.size(), "population allegiance");
+        allegiance.resize(end);
+        storage = {begin, end};
+    }
+    auto used = storage.begin;
     std::uint64_t siteTotal = 0;
     for (std::size_t residency = 0; residency < classes.size(); ++residency) {
         const auto& population = *classes[residency];
@@ -87,10 +92,10 @@ void index_population(RuntimeState& state, const Site& site, SiteIndex& index,
             // Their browser summary uses the class rows directly.
             totals.children = population.children;
             totals.adults = population.adults;
-            add_count(siteTotal, totals.children, path);
-            add_count(siteTotal, totals.adults, path);
+            add_count(siteTotal, totals.children);
+            add_count(siteTotal, totals.adults);
             for (const auto& cohort : state.tables.view(population.eldersByAge)) {
-                add_count(siteTotal, cohort.count, path);
+                add_count(siteTotal, cohort.count);
                 totals.elders += cohort.count;
             }
             continue;
@@ -99,20 +104,33 @@ void index_population(RuntimeState& state, const Site& site, SiteIndex& index,
         for (auto i = range.begin; i < range.end; ++i) {
             const auto& key = state.tables.rows<JointCohort>().at(i);
             const auto count = state.jointCounts.at(i);
-            add_count(siteTotal, count, path);
+            add_count(siteTotal, count);
             if (key.kind == children) totals.children += count;
             else if (key.kind == adults) totals.adults += count;
             else if (key.kind == elder) totals.elders += count;
 
-            const auto first = allegiance.begin() + begin;
-            const auto found = std::find_if(first, allegiance.end(), [&](const auto& total) {
+            const auto first = allegiance.begin() + storage.begin;
+            const auto end = allegiance.begin() + used;
+            const auto found = std::find_if(first, end, [&](const auto& total) {
                 return total.key == key.allegiance;
             });
-            if (found != allegiance.end()) found->value += count;
-            else allegiance.push_back({key.allegiance, count});
+            if (found != end) {
+                found->value += static_cast<double>(count);
+                continue;
+            }
+            if (used == storage.end) {
+                // Preserve adapter support for states with additional factions.
+                const auto begin = checked_index(allegiance.size(), "population allegiance");
+                const auto limit = checked_index(allegiance.size() + storage.size() * 2ULL, "population allegiance");
+                allegiance.resize(limit);
+                std::copy_n(allegiance.begin() + storage.begin, storage.size(), allegiance.begin() + begin);
+                used = begin + storage.size();
+                storage = {begin, limit};
+            }
+            allegiance[used++] = {key.allegiance, static_cast<double>(count)};
         }
     }
-    index.byAllegiance = appended_range(allegiance, begin, path);
+    index.byAllegiance = {storage.begin, used};
 }
 
 }
@@ -129,7 +147,15 @@ std::size_t RuntimeState::hot_bytes() const
 {
     return sizeof(hot) + tables.live_bytes() + live_bytes(practiceStock) +
            live_bytes(practiceCharge) + live_bytes(jointCounts) + live_bytes(eventPayloads) +
-           indexes.live_bytes() + addedIds.live_bytes();
+           indexes.live_bytes() + addedIds.live_bytes() + sizeof(settlementPrelude) + sizeof(populationVocabulary);
+}
+
+void refresh_site_population_index(RuntimeState& state, runtime::SiteId id)
+{
+    using namespace runtime;
+    const auto& stages = state.populationVocabulary.stages;
+    index_population(state, state.tables.at(Index<Site>{id.value}), state.indexes.sites.at(id.value),
+                     stages[1], stages[0], stages[2]); // children, adults, elder
 }
 
 void rebuild_runtime_indexes(RuntimeState& state)
@@ -140,9 +166,6 @@ void rebuild_runtime_indexes(RuntimeState& state)
     const auto sites = state.tables.view(world.sites);
     const auto roads = state.tables.view(world.connections);
     const auto detailed = state.find_id<SiteModeId>("detailed");
-    const auto children = state.find_id<LifeStageId>("children");
-    const auto adults = state.find_id<LifeStageId>("adults");
-    const auto elder = state.find_id<LifeStageId>("elder");
 
     index.sitesByRegion.assign(world.regions.size(), {});
     index.detailedSitesByRegion.assign(world.regions.size(), {});
@@ -150,8 +173,7 @@ void rebuild_runtime_indexes(RuntimeState& state)
     index.activeSites.clear();
     index.roadsByRegion.resize(world.regions.size());
     index.roadNeighbors.clear();
-    index.sites.assign(sites.size(), {});
-    index.allegianceTotals.clear();
+    index.sites.resize(sites.size());
     index.currentVassal = {};
     for (const auto& site : sites) {
         // Browser lookups choose the first site, or first detailed site.
@@ -163,7 +185,7 @@ void rebuild_runtime_indexes(RuntimeState& state)
             index.detailedSites.push_back(site.id);
             if (!site.neutral) index.activeSites.push_back(site.id);
         }
-        index_population(state, site, index.sites.at(site.id.value), children, adults, elder);
+        refresh_site_population_index(state, site.id);
     }
     for (const auto& region : state.tables.view(world.regions)) {
         const auto begin = index.roadNeighbors.size();

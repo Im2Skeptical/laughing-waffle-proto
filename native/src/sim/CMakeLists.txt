@@ -3,6 +3,8 @@ add_library(waffle_sim STATIC
 	browser/generated/game_state.cpp
 	state/mirror_mapping.cpp
 	state/runtime_state.cpp
+	settlement/population.cpp
+	settlement/prelude.cpp
 	step/advance_second.cpp
 )
 target_compile_features(waffle_sim PUBLIC cxx_std_20)
@@ -18,10 +20,13 @@ if(NOT ANDROID)
 	target_link_libraries(waffle_browser_tests PRIVATE waffle_sim)
 	add_executable(waffle_step_clock_test ../tests/step_clock_test.cpp)
 	target_link_libraries(waffle_step_clock_test PRIVATE waffle_sim)
+	add_executable(waffle_settlement_ledger_test ../tests/settlement_ledger_test.cpp)
+	target_link_libraries(waffle_settlement_ledger_test PRIVATE waffle_sim)
 	if(MINGW)
 		target_link_options(waffle_parity PRIVATE -static)
 		target_link_options(waffle_browser_tests PRIVATE -static)
 		target_link_options(waffle_step_clock_test PRIVATE -static)
+		target_link_options(waffle_settlement_ledger_test PRIVATE -static)
 	endif()
 
 	set(native_dir "${CMAKE_CURRENT_SOURCE_DIR}/../..")
@@ -63,6 +68,14 @@ if(NOT ANDROID)
 		add_test(NAME step_parity_controls
 			COMMAND "${WAFFLE_NODE_EXECUTABLE}" "${native_dir}/src/tests/check-step-cli.mjs"
 				"$<TARGET_FILE:waffle_parity>" "${native_dir}" "${CMAKE_CURRENT_BINARY_DIR}/step-cli-controls")
+		add_test(NAME settlement_prelude_windows
+			COMMAND "${WAFFLE_NODE_EXECUTABLE}" "${native_dir}/src/tests/settlement-prelude.mjs"
+				"$<TARGET_FILE:waffle_parity>" "${native_dir}" "${CMAKE_CURRENT_BINARY_DIR}/settlement-prelude-windows")
+		add_test(NAME settlement_ledger_vectors
+			COMMAND "${WAFFLE_NODE_EXECUTABLE}" "${native_dir}/src/tests/settlement-ledger-vectors.mjs"
+				"$<TARGET_FILE:waffle_settlement_ledger_test>" "${native_dir}/reference/fixtures/seed-1/state-0.json"
+				"${CMAKE_CURRENT_BINARY_DIR}/settlement-ledger-vectors.json")
 		set_tests_properties(browser_schema_codegen runtime_field_coverage runtime_history_retention step_parity_controls PROPERTIES TIMEOUT 60)
+		set_tests_properties(settlement_prelude_windows settlement_ledger_vectors PROPERTIES TIMEOUT 60)
 	endif()
 endif()

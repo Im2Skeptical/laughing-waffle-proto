@@ -82,6 +82,9 @@ by the world-definition port. The mirror contains live roads and the world ID.
 Workforce, recipe provider eligibility, compiled content and dispatch
 scratch belong to the systems that use them.
 
+[Settlement helpers and prelude](settlement/README.md) describe the typed
+population APIs, moon buffer lifetime and deferred Unrest expiry transition.
+
 ## Cold history and retention
 
 [History](state/history.hpp) stores ordered POD rows in 16-record pages.

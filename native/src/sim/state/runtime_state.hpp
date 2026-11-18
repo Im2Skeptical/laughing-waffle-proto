@@ -19,9 +19,32 @@ struct PopulationTotals {
     std::uint64_t total() const { return children + adults + elders; }
 };
 
+using FactionPopulationTotal = runtime::Entry<runtime::FactionId, double>;
+
 struct SiteIndex {
     std::array<PopulationTotals, 2> byResidency;
-    runtime::Range<runtime::Entry<runtime::FactionId, std::uint64_t>> byAllegiance;
+    runtime::Range<FactionPopulationTotal> byAllegiance;
+    runtime::Range<FactionPopulationTotal> allegianceStorage;
+    std::array<runtime::Range<runtime::JointCohort>, 2> jointStorage;
+    std::array<std::array<runtime::Range<runtime::ElderCohort>, 3>, 2> elderStorage;
+};
+
+struct PopulationVocabulary {
+    // Lexical order of the browser's closed ledger vocabulary.
+    std::array<runtime::FactionId, 3> factions;
+    std::array<runtime::SpecialtyId, 3> specialties;
+    std::array<runtime::LifeStageId, 3> stages;
+};
+
+struct SettlementPreludeCache {
+    runtime::SeasonId spring;
+    runtime::SymbolId gold;
+    runtime::SymbolId neutral;
+    std::array<runtime::SymbolId, 6> phases;
+    // Own the capacity of two rotating moon dictionaries and one result per site.
+    std::array<runtime::Range<runtime::Entry<runtime::RegionId, runtime::MoonRegionResult>>, 2> moonRegions;
+    runtime::Range<runtime::MoonRegionResult> siteResults;
+    unsigned nextMoonBuffer{};
 };
 
 struct RuntimeIndexes {
@@ -32,7 +55,7 @@ struct RuntimeIndexes {
     std::vector<runtime::Range<runtime::RegionId>> roadsByRegion;
     std::vector<runtime::RegionId> roadNeighbors;
     std::vector<SiteIndex> sites;
-    std::vector<runtime::Entry<runtime::FactionId, std::uint64_t>> allegianceTotals;
+    std::vector<FactionPopulationTotal> allegianceTotals;
     runtime::Index<runtime::Entry<runtime::VassalId, runtime::Vassal>> currentVassal;
 
     std::size_t live_bytes() const;
@@ -52,6 +75,8 @@ struct RuntimeState {
     RuntimeIndexes indexes;
     std::shared_ptr<const CapturedContent> content;
     runtime::IdTables addedIds;
+    SettlementPreludeCache settlementPrelude;
+    PopulationVocabulary populationVocabulary;
     // The browser omits this latch on export and clears it on import.
     bool seasonChanged{};
     // Derived from tSec and immutable settings. Zero triggers calculation.
@@ -97,5 +122,6 @@ browser::GameState export_runtime(const RuntimeState& state);
 // Serialized population summary columns are independent caches at the adapter
 // boundary and must be kept current by any future population writes.
 void rebuild_runtime_indexes(RuntimeState& state);
+void refresh_site_population_index(RuntimeState& state, runtime::SiteId site);
 
 }
