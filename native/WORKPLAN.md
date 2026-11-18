@@ -336,11 +336,18 @@ unmasked mismatches. Optimized cost 0.41 µs/sim-s at the 20-site opening
 passed 24/24 CTests. Seams left: migration refunds (N03e-7); control
 clearing, market restoration and events (N03e-8).
 
-N03e-1b (active): a public `run_stage` interface with one file per stage, so
-the stage-parity CLI runs the production path and parallel stage ports stay
-in their own files. The parallel wave starts after it lands: N03e-3 recipe
-engine, N03e-4 Birth, N03e-6 Faith/Chaos and N03e-7 Migration. Food, Housing
-and Death need the recipe engine for their internal drains.
+N03e-1b result, 19 Nov 2026 (merged from `t3/native-stage-parity-wiring`
+ec7cf31f): the dispatcher and `waffle_parity stage` share `run_stage` and
+`StageContext` over 18 stages, one file per stage
+([porting guide](src/sim/README.md#porting-a-stage)). Birth owns moon rollover,
+and Migration Practices run before the Migration header update. Stage parity:
+advance_clock 36/36, prelude 36/36 with five expiry masks (35/36 unmasked;
+the R06 expiry at seed-1/1598 awaits N03e-7/8), spring_death_baseline 3/3.
+The supervisor's merged optimized build passed 25/25 CTests.
+
+Parallel wave, started 19 Nov 2026: N03e-3 recipe engine, N03e-4 Birth,
+N03e-6a Faith/Chaos and N03e-7a Migration, each in its own stage files.
+Food, Housing, Death and control follow once the recipe engine lands.
 
 ## N03f - Actions, replay and new game (pending N03e)
 
