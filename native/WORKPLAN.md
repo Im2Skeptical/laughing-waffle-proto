@@ -7,6 +7,9 @@
   gameplay or cross-language parity exists yet.
 - Coordination: one supervising session sets design and reviews and integrates
   delegated items on its branch. Each item has one owner at a time.
+- Active owners (18 Nov 2026): supervising session on `t3/native-rebuild-planning`.
+  It delegated N02a, N03a, N03b and N03c to separate worktree workers, whose
+  results it reviews and merges.
 - Accepted choices: [README](README.md), [ARCHITECTURE](ARCHITECTURE.md) and
   [THIRD_PARTY.md](THIRD_PARTY.md). C++/SDL3/RmlUi stays the stack. The
   bootstrap renderer is SDL3's default 2D renderer, not RmlUi's SDL_GPU/SDL_GL3 samples.
@@ -62,7 +65,7 @@ layers, filters and clip masks remain outside this bootstrap. It is not the
 final graphics-backend decision. N02 owns representative effects and Pixel 6
 proof. N03 owns arithmetic/serialization contracts and native simulation.
 
-## N02a - Representative presentation slice on Windows (ready)
+## N02a - Representative presentation slice on Windows (active)
 
 Render existing map and card artwork and a representative inspector using
 RmlUi. Exercise layering, clipping, scrolling, long text, changing numbers,
@@ -84,7 +87,7 @@ startup and thermal behavior, and set provisional frame-tail, scrub-latency and
 memory budgets for N04. An emulator result does not satisfy this item. A
 scripted adb install/run/log-capture helper may be prepared beforehand.
 
-## N03a - Core foundations (ready)
+## N03a - Core foundations (active)
 
 Build `waffle_core` per the [determinism contract](ARCHITECTURE.md#determinism-contract):
 JS-compatible numerics, RNG streams, an ordered JSON value with JS key order,
@@ -97,7 +100,7 @@ Node. Cases include `Number::toString` across exponent boundaries,
 stream, and sorted-key hashes equal to the corpus hashes for corpus states.
 Dev and optimized CTest pass.
 
-## N03b - Reference traces and divergence tooling (ready)
+## N03b - Reference traces and divergence tooling (active)
 
 JavaScript tooling in `native/reference/`. Pin `BASELINE`. Write a trace
 dumper for scenarios (seed or prepared start, action journal, horizon). It
@@ -110,7 +113,7 @@ one multi-year horizon and an action-bearing scenario, and pass the browser's
 own replay/JSON-continuation checks. The differ must be shown to catch
 injected changes. Browser runtime behavior is unchanged.
 
-## N03c - State inventory and tick specification (ready)
+## N03c - State inventory and tick specification (active)
 
 Read-only analysis of the pinned baseline. Produce a draft
 `native/schema/gamestate.v<N>.json` describing every serialized field, checked
