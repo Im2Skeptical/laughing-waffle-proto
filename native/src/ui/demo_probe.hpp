@@ -1,30 +1,22 @@
 #pragma once
 
+#include "map_camera.hpp"
+
 #include <RmlUi/Core.h>
 
+#include <array>
+#include <cstdint>
 #include <string>
 
 namespace waffle {
 
-// Fixed clock so document setup does not depend on wall time.
-// This is presentation scaffolding, not simulation state.
-class FixedClock final : public Rml::SystemInterface {
+class DemoClock final : public Rml::SystemInterface {
 public:
 	double GetElapsedTime() override;
 	bool LogMessage(Rml::Log::Type type, const Rml::String& message) override;
 
+	double seconds = 0.0;
 	std::string last_error;
-	std::string log;
-};
-
-class StatusClickListener final : public Rml::EventListener {
-public:
-	~StatusClickListener() override;
-	void OnAttach(Rml::Element*) override { ++attachments; }
-	void OnDetach(Rml::Element*) override { --attachments; }
-	void ProcessEvent(Rml::Event& event) override;
-	int clicks = 0;
-	int attachments = 0;
 };
 
 // SDL and RmlUi paths are UTF-8; the Windows CRT's narrow fopen is not.
@@ -37,16 +29,40 @@ public:
 	std::size_t Tell(Rml::FileHandle file) override;
 };
 
-struct DemoSession {
-	Rml::ElementDocument* document = nullptr;
-	StatusClickListener listener;
-};
+class DemoSession final : public Rml::EventListener {
+public:
+	bool Load(Rml::Context& context, const std::string& rml_path, const std::string& font_path, std::string& error);
+	void Resize(Rml::Vector2i dimensions);
+	void Tick(std::uint64_t frame);
+	void Update();
+	void ProcessEvent(Rml::Event& event) override;
 
-bool LoadDemo(Rml::Context* context, const std::string& rml_path, const std::string& font_path, DemoSession& session,
-	std::string& error);
-bool HitCenter(const DemoSession& session, float& x, float& y, std::string& error);
-void PointerMove(Rml::Context* context, float x, float y);
-void PointerButton(Rml::Context* context, bool down);
-std::string StatusText(const DemoSession& session);
+	Rml::Element* Find(const char* id) const { return document_->GetElementById(id); }
+	Rml::Vector2f Center(const char* id) const;
+	bool InMap(Rml::Vector2f point) const;
+	bool CanPan(Rml::Vector2f point) const;
+	void SetPanning(bool panning);
+	void Pan(Rml::Vector2f pixels);
+	void Zoom(float factor, Rml::Vector2f point);
+
+	const MapCamera& camera() const { return camera_; }
+	bool in_ledger() const { return in_ledger_; }
+	int selected_card() const { return selected_; }
+
+private:
+	void ApplyCamera();
+	void SelectCard(int index);
+	void ShowLedger(bool show);
+
+	Rml::Context* context_ = nullptr;
+	Rml::ElementDocument* document_ = nullptr;
+	std::array<Rml::Element*, 5> cards_{};
+	MapCamera camera_{0.f, -6.f, .92f};
+	float density_ = 1.f;
+	float overview_scroll_ = 0.f;
+	float pending_scroll_ = -1.f;
+	int selected_ = 0;
+	bool in_ledger_ = false;
+};
 
 } // namespace waffle

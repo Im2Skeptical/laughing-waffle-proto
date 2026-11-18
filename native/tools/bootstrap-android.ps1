@@ -189,9 +189,19 @@ Get-ChildItem -LiteralPath (Join-Path $sdlRoot "android-project\app\src\main\res
 	Copy-Item -Path (Join-Path $_.FullName "*") -Destination $dest -Force
 }
 
-$assetDir = Join-Path $android "app\src\main\assets\ui"
+$assets = Join-Path $android "app\src\main\assets"
+$assetDir = Join-Path $assets "ui"
+$rmlSource = Join-Path $native "assets\ui\demo.rml"
 New-Item -ItemType Directory -Force -Path $assetDir | Out-Null
-Copy-Item -LiteralPath (Join-Path $native "assets\ui\demo.rml") -Destination (Join-Path $assetDir "demo.rml") -Force
+Copy-Item -LiteralPath $rmlSource -Destination (Join-Path $assetDir "demo.rml") -Force
+# Package the root-relative PNG sources referenced by the slice's RCSS spritesheets.
+$artPaths = @(Select-String -LiteralPath $rmlSource -Pattern '^\s*src:\s*/(images/[\w./-]+\.png);\s*$' | ForEach-Object { $_.Matches[0].Groups[1].Value })
+if ($artPaths.Count -eq 0) { throw "Slice artwork references are missing" }
+foreach ($art in $artPaths) {
+	$destination = Join-Path $assets $art
+	New-Item -ItemType Directory -Force -Path (Split-Path -Parent $destination) | Out-Null
+	Copy-Item -LiteralPath (Join-Path $repo $art) -Destination $destination -Force
+}
 $fontStage = Join-Path $tools "_stage_font"
 if (Test-Path $fontStage) { Remove-LocalTree $fontStage }
 New-Item -ItemType Directory -Force -Path $fontStage | Out-Null
@@ -296,6 +306,9 @@ $required = @(
 )
 foreach ($path in $required) {
 	if (-not (Test-Path $path)) { throw "validation missing $path" }
+}
+foreach ($art in $artPaths) {
+	if (-not (Test-Path -LiteralPath (Join-Path $inspectDir "assets/$art"))) { throw "APK missing assets/$art" }
 }
 if (-not $sdlMain) { throw "libmain.so does not export SDL_main" }
 Set-Content -LiteralPath $inspect -Value ($lines -join "`r`n") -Encoding UTF8

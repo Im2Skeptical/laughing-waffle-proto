@@ -73,13 +73,17 @@ ctest --preset dev --output-on-failure
 ```
 
 The optimized preset uses the same three commands with preset `optimized` and
-`.\build\optimized\waffle_native_demo.exe --smoke`. CTest has five tests,
-each with a 60-second timeout. `headless_rmlui` and `headless_utf8_assets`
-link RmlUi and FreeType and run without a window. `core_layering`,
-`core_vectors`, and `core_state_round_trip` verify the core without Node or
-graphics dependencies. See [core verification](src/core/README.md) for
-fixture regeneration and the full corpus check. `--smoke` must exit by itself.
-Do not leave `waffle_native_demo` running. Recorded results are in [WORKPLAN.md](WORKPLAN.md).
+`.uild\optimized\waffle_native_demo.exe --smoke`. CTest has six tests,
+each with a 60-second timeout. `headless_rmlui`, `headless_utf8_assets` and
+`headless_presentation_math` link RmlUi and FreeType and run without a window.
+`core_layering`, `core_vectors` and `core_state_round_trip` verify the core
+without Node or graphics dependencies. See [core verification](src/core/README.md)
+for fixture regeneration and the full corpus check. `--smoke` must exit by itself.
+Use `.uild\optimized\waffle_native_demo.exe --bench 1200 [json-path]` for the
+scripted presentation benchmark. `--smoke --capture <existing-directory>` writes
+the overview and nested inspector screenshots. Do not leave `waffle_native_demo`
+running. See [README.md](README.md) for the measurement boundaries. Recorded
+results are in [WORKPLAN.md](WORKPLAN.md).
 
 For an Android debug APK, run
 `powershell -NoProfile -ExecutionPolicy Bypass -File native/tools/bootstrap-android.ps1`

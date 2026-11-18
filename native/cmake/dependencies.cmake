@@ -89,6 +89,17 @@ FetchContent_Declare(RmlUi
 )
 FetchContent_MakeAvailable(RmlUi)
 
+# stb_image 2.30, compiled with only the PNG decoder enabled.
+waffle_pinned_url(WAFFLE_STB_URL "stb-013ac3be.tar.gz" "https://codeload.github.com/nothings/stb/tar.gz/013ac3beddff3dbffafd5177e7972067cd2b5083")
+FetchContent_Declare(stb
+	URL "${WAFFLE_STB_URL}"
+	URL_HASH SHA256=b01aa93e1a968aed55f43e072c98ee401d2f20e897aabdb1a166c7166886ed11
+	DOWNLOAD_EXTRACT_TIMESTAMP TRUE
+)
+FetchContent_MakeAvailable(stb)
+add_library(waffle_png_headers INTERFACE)
+target_include_directories(waffle_png_headers SYSTEM INTERFACE "${stb_SOURCE_DIR}")
+
 set(WAFFLE_LATO_PATH "${rmlui_SOURCE_DIR}/Samples/assets/LatoLatin-Regular.ttf")
 set(WAFFLE_FONT_LICENSE "${rmlui_SOURCE_DIR}/Samples/assets/LICENSE.txt")
 if(NOT EXISTS "${WAFFLE_LATO_PATH}")
