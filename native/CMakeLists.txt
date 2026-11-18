@@ -29,6 +29,11 @@ if(ANDROID)
 	set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 endif()
 
+if(NOT ANDROID)
+	enable_testing()
+endif()
+add_subdirectory(src/core)
+
 include("${CMAKE_CURRENT_LIST_DIR}/cmake/dependencies.cmake")
 
 add_library(waffle_demo_probe STATIC
@@ -91,7 +96,6 @@ else()
 		VERBATIM
 	)
 
-	enable_testing()
 	add_test(NAME headless_rmlui COMMAND waffle_native_headless)
 	set_tests_properties(headless_rmlui PROPERTIES TIMEOUT 60)
 	add_test(NAME headless_utf8_assets COMMAND waffle_native_headless --utf8-assets)
