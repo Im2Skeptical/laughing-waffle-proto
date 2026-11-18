@@ -1,8 +1,9 @@
 # Native third-party notices
 
-Versions below were checked against the publisher's release on 14 November 2026.
-Full license texts are in the fetched sources (`native/build/<preset>/_deps` after configure)
-and are not copied into git. Build output that ships `LatoLatin-Regular.ttf` also
+The bootstrap versions below were checked against the publishers' releases on
+14 November 2026. License texts for fetched dependencies are in their sources
+(`native/build/<preset>/_deps` after configure). The vendored math notices are
+reproduced below. Build output that ships `LatoLatin-Regular.ttf` also
 copies RmlUi's `Samples/assets/LICENSE.txt` beside it as `FONT-LICENSE.txt`.
 
 | Piece | Version | Source | License |
@@ -16,6 +17,52 @@ copies RmlUi's `Samples/assets/LICENSE.txt` beside it as `FONT-LICENSE.txt`.
 | RmlUi | 6.3 (22 Aug 2026), tag `6.3`, commit `ba95ffe8bfb6370efb2cdcca927eaad4710c5413` | https://github.com/mikke89/RmlUi/releases/tag/6.3 | MIT. Tag archive sha256 `d977298bb6147610e5984d5db85ddf284020d655a8713913f6982074f1dbdede` computed from `https://github.com/mikke89/RmlUi/archive/refs/tags/6.3.tar.gz`. |
 | stb_image | 2.30, commit `013ac3beddff3dbffafd5177e7972067cd2b5083` | https://github.com/nothings/stb/tree/013ac3beddff3dbffafd5177e7972067cd2b5083 | Dual MIT or public domain. This build uses the public-domain dedication. Commit archive `stb-013ac3be.tar.gz` sha256 `b01aa93e1a968aed55f43e072c98ee401d2f20e897aabdb1a166c7166886ed11`. |
 | Lato Latin Regular | file shipped in RmlUi 6.3 `Samples/assets/LatoLatin-Regular.ttf` | copyright 2010-2015 Łukasz Dziedzic, reserved name Lato. http://www.latofonts.com/ | SIL Open Font License 1.1. Notice and license text: `RmlUi-6.3/Samples/assets/LICENSE.txt` in that archive. |
+
+## V8 and fdlibm math
+
+`native/src/core/js_math.cpp` ports the relevant fdlibm-derived functions from the
+V8 13.6.233.17-node.48 sources shipped in Node v24.15.0. The two-argument
+`hypot` port follows V8's math builtin. The code retains the SunSoft and V8
+notices and uses C++20 binary64 bit operations. [V8 ieee754.cc](https://github.com/nodejs/node/blob/v24.15.0/deps/v8/src/base/ieee754.cc), [V8 math.tq](https://github.com/nodejs/node/blob/v24.15.0/deps/v8/src/builtins/math.tq), [V8 LICENSE](https://github.com/nodejs/node/blob/v24.15.0/deps/v8/LICENSE).
+
+```text
+Copyright (C) 1993 by Sun Microsystems, Inc. All rights reserved.
+
+Developed at SunSoft, a Sun Microsystems, Inc. business.
+Permission to use, copy, modify, and distribute this
+software is freely granted, provided that this notice
+is preserved.
+
+Copyright 2016 the V8 project authors. All rights reserved.
+Copyright 2019 the V8 project authors. All rights reserved.
+
+Copyright 2014, the V8 project authors. All rights reserved.
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are
+met:
+
+    * Redistributions of source code must retain the above copyright
+      notice, this list of conditions and the following disclaimer.
+    * Redistributions in binary form must reproduce the above
+      copyright notice, this list of conditions and the following
+      disclaimer in the documentation and/or other materials provided
+      with the distribution.
+    * Neither the name of Google Inc. nor the names of its
+      contributors may be used to endorse or promote products derived
+      from this software without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+```
 
 ## Android packaging pins (14 Nov 2026)
 
