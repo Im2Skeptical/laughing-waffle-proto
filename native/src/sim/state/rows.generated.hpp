@@ -4,7 +4,7 @@
 
 #include "core/rng.hpp"
 #include "sim/browser/generated/game_state.hpp"
-#include "sim/state/tables.hpp"
+#include "sim/state/history.hpp"
 
 namespace waffle::sim::runtime {
 
@@ -49,6 +49,8 @@ struct MoonRegionResultDeathByClassStranger;
 struct DeathByClass;
 struct MoonRegionResultDeath;
 struct MoonRegionResult;
+struct StockProvider;
+struct PracticeEventTrace;
 struct DetailedSettlementMealRelief;
 struct DetailedSettlementHistory;
 struct ControlUnrest;
@@ -66,8 +68,9 @@ struct NeutralMarket;
 struct Town;
 struct Site;
 struct World;
-struct StockProvider;
 struct PracticeEvent;
+struct StockTransfersTransfersEntry;
+struct PracticeEventJournalStockTransfers;
 struct PracticeEventJournal;
 struct CivilizationCandidateDevelopment;
 struct ChaosLastMonsterSpawn;
@@ -77,6 +80,7 @@ struct ChaosPendingLosses;
 struct CivilizationChaos;
 struct CivilizationHistory;
 struct CivilizationResearch;
+struct CivilizationRetiredVassalsEntry;
 struct PhaseModifiers;
 struct CivilizationGreen;
 struct VassalLegacyFutureStartingStatBonuses;
@@ -84,6 +88,8 @@ struct CivilizationVassalLegacy;
 struct VassalStats;
 struct LifeMapPendingResolution;
 struct LifeMap;
+struct LifeEventsIntervention;
+struct VassalLifeEventsEntry;
 struct CommissionOffer;
 struct ActiveCommission;
 struct Vassal;
@@ -93,11 +99,49 @@ struct MoonTurn;
 struct CivilizationTreasury;
 struct CivilizationRemnant;
 struct Civilization;
+struct LegacyFeedEntry;
 struct SkillModifiersGlobal;
 struct SkillModifiers;
 struct SkillRuntime;
 struct RunStatus;
 struct HotState;
+struct World_definitionId { static constexpr std::string_view name = "World.definitionId"; };
+struct Region_colour { static constexpr std::string_view name = "Region.colour"; };
+struct Site_name { static constexpr std::string_view name = "Site.name"; };
+struct NeutralMarket_template { static constexpr std::string_view name = "NeutralMarket.template"; };
+struct NeutralStock_label { static constexpr std::string_view name = "NeutralStock.label"; };
+struct Civilization_heirloomVault { static constexpr std::string_view name = "Civilization.heirloomVault"; };
+struct Vassal_portrait { static constexpr std::string_view name = "Vassal.portrait"; };
+struct Vassal_signatureNode { static constexpr std::string_view name = "Vassal.signatureNode"; };
+struct Vassal_developmentChoiceQueue { static constexpr std::string_view name = "Vassal.developmentChoiceQueue"; };
+struct LifeMap_graph { static constexpr std::string_view name = "LifeMap.graph"; };
+struct LifeMap_availableNodeIds { static constexpr std::string_view name = "LifeMap.availableNodeIds"; };
+struct LifeMap_nodeStates { static constexpr std::string_view name = "LifeMap.nodeStates"; };
+struct Vassal_heirlooms { static constexpr std::string_view name = "Vassal.heirlooms"; };
+struct CommissionOffer_label { static constexpr std::string_view name = "CommissionOffer.label"; };
+struct CommissionOffer_description { static constexpr std::string_view name = "CommissionOffer.description"; };
+struct CommissionOffer_statLabel { static constexpr std::string_view name = "CommissionOffer.statLabel"; };
+struct CommissionOffer_locationLabel { static constexpr std::string_view name = "CommissionOffer.locationLabel"; };
+struct CommissionOffer_nodeLabel { static constexpr std::string_view name = "CommissionOffer.nodeLabel"; };
+struct ActiveCommission_label { static constexpr std::string_view name = "ActiveCommission.label"; };
+struct ActiveCommission_description { static constexpr std::string_view name = "ActiveCommission.description"; };
+struct ActiveCommission_statLabel { static constexpr std::string_view name = "ActiveCommission.statLabel"; };
+struct ActiveCommission_locationLabel { static constexpr std::string_view name = "ActiveCommission.locationLabel"; };
+struct ActiveCommission_nodeLabel { static constexpr std::string_view name = "ActiveCommission.nodeLabel"; };
+struct Lineage_pendingCandidates { static constexpr std::string_view name = "Lineage.pendingCandidates"; };
+struct Lineage_pendingVaultOverflow { static constexpr std::string_view name = "Lineage.pendingVaultOverflow"; };
+struct Lineage_lastInheritanceReport { static constexpr std::string_view name = "Lineage.lastInheritanceReport"; };
+struct GameState_skillProgressionDefs { static constexpr std::string_view name = "GameState.skillProgressionDefs"; };
+struct SkillModifiers_pawnById { static constexpr std::string_view name = "SkillModifiers.pawnById"; };
+struct SkillRuntime_unlocks { static constexpr std::string_view name = "SkillRuntime.unlocks"; };
+struct GameState_persistentKnowledge { static constexpr std::string_view name = "GameState.persistentKnowledge"; };
+struct DetailedSettlement_practiceActivationTrace { static constexpr std::string_view name = "DetailedSettlement.practiceActivationTrace"; };
+struct PracticeEventJournal_trace { static constexpr std::string_view name = "PracticeEventJournal.trace"; };
+struct PracticeEventJournalStockTransfers_transfers { static constexpr std::string_view name = "PracticeEventJournalStockTransfers.transfers"; };
+struct Civilization_retiredVassals { static constexpr std::string_view name = "Civilization.retiredVassals"; };
+struct LifeMap_completedNodeIds { static constexpr std::string_view name = "LifeMap.completedNodeIds"; };
+struct Vassal_lifeEvents { static constexpr std::string_view name = "Vassal.lifeEvents"; };
+struct GameState_gameEventFeed { static constexpr std::string_view name = "GameState.gameEventFeed"; };
 
 struct ApCapOverride {
     bool enabled{};
@@ -121,7 +165,7 @@ struct RegionMonster {
 
 struct Region {
     RegionId id{};
-    ColdRef<std::string> colour{};
+    ColdRef<std::string, Region_colour> colour{};
     FactionId controller{};
     std::uint32_t structureCapacity{};
     bool detailedSettlementEnabled{};
@@ -412,6 +456,63 @@ struct MoonRegionResult {
     double currencySpent{};
 };
 
+struct StockProvider {
+    SymbolId kind{};
+    RegionId regionId{};
+    double slotIndex{};
+    std::optional<PracticeId> practiceId{};
+    double amount{};
+    Range<TraitId> traits{};
+    std::optional<SymbolId> paymentFor{};
+    std::optional<MarketStockId> marketStockId{};
+    std::optional<SymbolId> label{};
+    std::optional<double> unitPrice{};
+};
+
+struct PracticeEventTrace {
+    double tSec{};
+    EventKindId kind{};
+    std::optional<RegionId> regionId{};
+    std::optional<PracticeId> targetPracticeId{};
+    std::optional<double> slotIndex{};
+    double rootId{};
+    std::optional<double> parentId{};
+    std::optional<Range<StockProvider>> providers{};
+    std::optional<PracticeId> practiceId{};
+    std::optional<HistoryTextId> activationType{};
+    std::optional<double> id{};
+    std::optional<double> amount{};
+    std::optional<Range<TraitId>> traits{};
+    std::optional<Range<TagId>> tags{};
+    std::optional<HistoryTextId> pool{};
+    std::optional<bool> scholarStaffed{};
+    std::optional<bool> discharge{};
+    std::optional<HistoryTextId> phase{};
+    std::optional<bool> premature{};
+    browser::OptionalNullable<FactionId> faction{};
+    browser::OptionalNullable<FactionId> controller{};
+    browser::OptionalNullable<InstanceId> instanceId{};
+    std::optional<HistoryTextId> reason{};
+    std::optional<HistoryTextId> cause{};
+    browser::OptionalNullable<RegionId> targetRegionId{};
+    std::optional<StructureId> structureId{};
+    browser::OptionalNullable<FactionId> previousController{};
+    std::optional<bool> military{};
+    std::optional<double> untilSec{};
+    browser::OptionalNullable<HistoryTextId> classId{};
+    std::optional<HistoryTextId> actionKind{};
+    std::optional<HistoryTextId> action{};
+    std::optional<HistoryTextId> outcome{};
+    browser::OptionalNullable<RegionId> sourceRegionId{};
+    browser::OptionalNullable<double> strengthBefore{};
+    browser::OptionalNullable<double> strengthAfter{};
+    std::optional<bool> martial{};
+    std::optional<HistoryTextId> destinationId{};
+    std::optional<Range<RegionId>> sourceRegionIds{};
+    std::optional<double> charge{};
+    std::optional<double> threshold{};
+};
+
 struct DetailedSettlementMealRelief {
     double tSec{};
     FactionId faction{};
@@ -494,7 +595,7 @@ struct DetailedSettlement {
     DetailedSettlementElderOrder elderOrder{};
     std::optional<Index<MealResult>> lastMeal{};
     std::optional<Index<MoonRegionResult>> lastMoonResult{};
-    std::optional<ColdRef<browser::DetailedSettlementPracticeActivationTrace>> practiceActivationTrace{};
+    std::optional<HistoryRef<PracticeEventTrace, 100, DetailedSettlement_practiceActivationTrace>> practiceActivationTrace{};
     std::optional<DetailedSettlementMealRelief> mealRelief{};
     std::optional<DetailedSettlementHistory> history{};
     std::optional<DetailedSettlementControl> control{};
@@ -513,7 +614,7 @@ struct DetailedSettlement {
 
 struct NeutralStock {
     MarketStockId id{};
-    ColdRef<std::string> label{};
+    ColdRef<std::string, NeutralStock_label> label{};
     Range<TraitId> traits{};
     double price{};
     double capacity{};
@@ -522,7 +623,7 @@ struct NeutralStock {
 };
 
 struct NeutralMarket {
-    ColdRef<std::string> template_{};
+    ColdRef<std::string, NeutralMarket_template> template_{};
     double defense{};
     double housing{};
     double currencyStock{};
@@ -540,30 +641,17 @@ struct Site {
     SiteId id{};
     RegionId regionId{};
     SiteModeId simulationMode{};
-    ColdRef<std::string> name{};
+    ColdRef<std::string, Site_name> name{};
     DetailedSettlement detailedState{};
     std::optional<Town> town{};
     std::optional<Index<NeutralMarket>> neutral{};
 };
 
 struct World {
-    ColdRef<std::string> definitionId{};
+    ColdRef<std::string, World_definitionId> definitionId{};
     Range<Region> regions{};
     Range<Connection> connections{};
     Range<Site> sites{};
-};
-
-struct StockProvider {
-    SymbolId kind{};
-    RegionId regionId{};
-    double slotIndex{};
-    std::optional<PracticeId> practiceId{};
-    double amount{};
-    Range<TraitId> traits{};
-    std::optional<SymbolId> paymentFor{};
-    std::optional<MarketStockId> marketStockId{};
-    std::optional<ColdRef<std::string>> label{};
-    std::optional<double> unitPrice{};
 };
 
 struct PracticeEvent {
@@ -613,11 +701,31 @@ struct PracticeEventPayload {
     std::optional<double> threshold{};
 };
 
+struct StockTransfersTransfersEntry {
+    HistoryTextId transferId{};
+    double boundarySec{};
+    HistoryTextId systemId{};
+    HistoryTextId resourceId{};
+    HistoryTextId reason{};
+    HistoryTextId kind{};
+    RegionId sourceRegionId{};
+    RegionId destinationRegionId{};
+    double slotIndex{};
+    std::optional<PracticeId> practiceId{};
+    Range<TraitId> traits{};
+    double amount{};
+};
+
+struct PracticeEventJournalStockTransfers {
+    double tSec{};
+    HistoryRef<StockTransfersTransfersEntry, 0, PracticeEventJournalStockTransfers_transfers> transfers{};
+};
+
 struct PracticeEventJournal {
     double nextId{};
     Range<PracticeEvent> pending{};
-    ColdRef<browser::DetailedSettlementPracticeActivationTrace> trace{};
-    std::optional<ColdRef<browser::PracticeEventJournalStockTransfers>> stockTransfers{};
+    HistoryRef<PracticeEventTrace, 100, PracticeEventJournal_trace> trace{};
+    std::optional<PracticeEventJournalStockTransfers> stockTransfers{};
     std::optional<double> activeRoot{};
     std::optional<double> activeEvent{};
 };
@@ -699,6 +807,17 @@ struct CivilizationResearch {
     double total{};
 };
 
+struct CivilizationRetiredVassalsEntry {
+    VassalId vassalId{};
+    RegionId retirementRegionId{};
+    std::optional<SymbolId> classId{};
+    double completedCommissions{};
+    double finalCunning{};
+    double finalWisdom{};
+    double finalEffectiveness{};
+    double finalIntelligence{};
+};
+
 struct PhaseModifiers {
     Range<Entry<RegionId, double>> housingByRegion{};
     Range<Entry<RegionId, double>> foodByRegion{};
@@ -737,51 +856,79 @@ struct LifeMapPendingResolution {
 };
 
 struct LifeMap {
-    ColdRef<browser::LifeMapGraph> graph{};
+    ColdRef<browser::LifeMapGraph, LifeMap_graph> graph{};
     std::optional<NodeId> currentNodeId{};
-    ColdRef<browser::StringArray> completedNodeIds{};
-    ColdRef<browser::StringArray> availableNodeIds{};
-    ColdRef<browser::LifeMapNodeStates> nodeStates{};
+    HistoryRef<NodeId, 0, LifeMap_completedNodeIds> completedNodeIds{};
+    ColdRef<browser::StringArray, LifeMap_availableNodeIds> availableNodeIds{};
+    ColdRef<browser::LifeMapNodeStates, LifeMap_nodeStates> nodeStates{};
     std::optional<LifeMapPendingResolution> pendingResolution{};
+};
+
+struct LifeEventsIntervention {
+    HistoryTextId kind{};
+    RegionId targetRegionId{};
+    std::optional<PracticeId> practiceId{};
+    HistoryTextId mode{};
+    HistoryTextId tier{};
+    std::optional<HistoryTextId> resultingTier{};
+    std::optional<InstanceId> instanceId{};
+    std::optional<StructureId> structureId{};
+    std::optional<double> qualityBonus{};
+    std::optional<double> capacity{};
+};
+
+struct VassalLifeEventsEntry {
+    HistoryTextId eventId{};
+    EventKindId kind{};
+    double tSec{};
+    std::optional<HistoryTextId> text{};
+    std::optional<NodeId> nodeId{};
+    std::optional<HistoryTextId> offerId{};
+    std::optional<LifeEventsIntervention> intervention{};
+    std::optional<HistoryTextId> result{};
+    std::optional<double> age{};
+    std::optional<HistoryTextId> choiceId{};
+    std::optional<HistoryTextId> statId{};
+    browser::OptionalNullable<HistoryTextId> causeOfDeath{};
 };
 
 struct CommissionOffer {
     SymbolId id{};
     SymbolId difficulty{};
-    ColdRef<std::string> label{};
-    ColdRef<std::string> description{};
+    ColdRef<std::string, CommissionOffer_label> label{};
+    ColdRef<std::string, CommissionOffer_description> description{};
     SymbolId event{};
     double prestige{};
     SymbolId offerId{};
     std::optional<SymbolId> parameter{};
     std::optional<TagId> tag{};
     std::optional<SymbolId> statId{};
-    std::optional<ColdRef<std::string>> statLabel{};
+    std::optional<ColdRef<std::string, CommissionOffer_statLabel>> statLabel{};
     std::optional<RegionId> regionId{};
-    std::optional<ColdRef<std::string>> locationLabel{};
+    std::optional<ColdRef<std::string, CommissionOffer_locationLabel>> locationLabel{};
     std::optional<SymbolId> minimumQuality{};
     std::optional<SymbolId> nodeFamily{};
-    std::optional<ColdRef<std::string>> nodeLabel{};
+    std::optional<ColdRef<std::string, CommissionOffer_nodeLabel>> nodeLabel{};
     std::optional<double> amount{};
 };
 
 struct ActiveCommission {
     SymbolId id{};
     SymbolId difficulty{};
-    ColdRef<std::string> label{};
-    ColdRef<std::string> description{};
+    ColdRef<std::string, ActiveCommission_label> label{};
+    ColdRef<std::string, ActiveCommission_description> description{};
     SymbolId event{};
     double prestige{};
     SymbolId offerId{};
     std::optional<SymbolId> parameter{};
     std::optional<TagId> tag{};
     std::optional<SymbolId> statId{};
-    std::optional<ColdRef<std::string>> statLabel{};
+    std::optional<ColdRef<std::string, ActiveCommission_statLabel>> statLabel{};
     std::optional<RegionId> regionId{};
-    std::optional<ColdRef<std::string>> locationLabel{};
+    std::optional<ColdRef<std::string, ActiveCommission_locationLabel>> locationLabel{};
     std::optional<SymbolId> minimumQuality{};
     std::optional<SymbolId> nodeFamily{};
-    std::optional<ColdRef<std::string>> nodeLabel{};
+    std::optional<ColdRef<std::string, ActiveCommission_nodeLabel>> nodeLabel{};
     std::optional<double> amount{};
     double acceptedSec{};
     double progress{};
@@ -797,22 +944,22 @@ struct Vassal {
     RegionId originRegionId{};
     double prestige{};
     VassalStats stats{};
-    ColdRef<browser::Portrait> portrait{};
-    std::optional<ColdRef<browser::SignatureNode>> signatureNode{};
+    ColdRef<browser::Portrait, Vassal_portrait> portrait{};
+    std::optional<ColdRef<browser::SignatureNode, Vassal_signatureNode>> signatureNode{};
     VassalId vassalId{};
     double initialAge{};
     double selectedSec{};
     double selectedYear{};
     double developmentProgress{};
-    ColdRef<browser::VassalDevelopmentChoiceQueue> developmentChoiceQueue{};
+    ColdRef<browser::VassalDevelopmentChoiceQueue, Vassal_developmentChoiceQueue> developmentChoiceQueue{};
     double nextDevelopmentChoiceId{};
     LifeMap lifeMap{};
-    ColdRef<browser::VassalLifeEvents> lifeEvents{};
+    HistoryRef<VassalLifeEventsEntry, 0, Vassal_lifeEvents> lifeEvents{};
     bool isDead{};
     std::optional<SymbolId> endedReason{};
     std::optional<SymbolId> deathCause{};
     std::optional<double> endSec{};
-    ColdRef<browser::VassalHeirlooms> heirlooms{};
+    ColdRef<browser::VassalHeirlooms, Vassal_heirlooms> heirlooms{};
     std::optional<Range<CommissionOffer>> commissionOffers{};
     std::optional<double> deathSec{};
     std::optional<bool> discoveryAccess{};
@@ -829,12 +976,12 @@ struct Lineage {
     std::optional<VassalId> currentVassalId{};
     Range<VassalId> selectedVassalIds{};
     Range<Entry<VassalId, Vassal>> vassalsById{};
-    ColdRef<browser::LineagePendingCandidates> pendingCandidates{};
+    ColdRef<browser::LineagePendingCandidates, Lineage_pendingCandidates> pendingCandidates{};
     double candidateRerollCount{};
     double nextHeirloomInstanceId{};
     bool pendingHeirloomLoadout{};
-    std::optional<ColdRef<browser::HeirloomArray>> pendingVaultOverflow{};
-    std::optional<ColdRef<browser::LineageLastInheritanceReport>> lastInheritanceReport{};
+    std::optional<ColdRef<browser::HeirloomArray, Lineage_pendingVaultOverflow>> pendingVaultOverflow{};
+    std::optional<ColdRef<browser::LineageLastInheritanceReport, Lineage_lastInheritanceReport>> lastInheritanceReport{};
 };
 
 struct MigrationIntent {
@@ -875,11 +1022,11 @@ struct Civilization {
     CivilizationChaos chaos{};
     CivilizationHistory history{};
     CivilizationResearch research{};
-    ColdRef<browser::CivilizationRetiredVassals> retiredVassals{};
+    HistoryRef<CivilizationRetiredVassalsEntry, 0, Civilization_retiredVassals> retiredVassals{};
     PhaseModifiers phaseModifiers{};
     CivilizationGreen green{};
     CivilizationVassalLegacy vassalLegacy{};
-    ColdRef<browser::VaultSlots> heirloomVault{};
+    ColdRef<browser::VaultSlots, Civilization_heirloomVault> heirloomVault{};
     Lineage vassalLineage{};
     std::optional<MoonTurn> currentMoonTurn{};
     std::optional<MoonTurn> lastMoonTurn{};
@@ -888,6 +1035,10 @@ struct Civilization {
     std::optional<CivilizationTreasury> treasury{};
     std::optional<double> nextPracticeInstanceId{};
     std::optional<CivilizationRemnant> remnant{};
+};
+
+struct LegacyFeedEntry {
+    double id{};
 };
 
 struct SkillModifiersGlobal {
@@ -899,12 +1050,12 @@ struct SkillModifiersGlobal {
 
 struct SkillModifiers {
     SkillModifiersGlobal global{};
-    ColdRef<browser::SkillModifiersPawnById> pawnById{};
+    ColdRef<browser::SkillModifiersPawnById, SkillModifiers_pawnById> pawnById{};
 };
 
 struct SkillRuntime {
     SkillModifiers modifiers{};
-    ColdRef<browser::SkillRuntimeUnlocks> unlocks{};
+    ColdRef<browser::SkillRuntimeUnlocks, SkillRuntime_unlocks> unlocks{};
 };
 
 struct RunStatus {
@@ -934,11 +1085,11 @@ struct HotState {
     VariantFlags variantFlags{};
     World world{};
     Civilization civilization{};
-    ColdRef<browser::LegacyFeed> gameEventFeed{};
+    HistoryRef<LegacyFeedEntry, 0, GameState_gameEventFeed> gameEventFeed{};
     double nextGameEventFeedId{};
-    std::optional<ColdRef<core::json::Value>> skillProgressionDefs{};
+    std::optional<ColdRef<core::json::Value, GameState_skillProgressionDefs>> skillProgressionDefs{};
     SkillRuntime skillRuntime{};
-    ColdRef<browser::PersistentKnowledge> persistentKnowledge{};
+    ColdRef<browser::PersistentKnowledge, GameState_persistentKnowledge> persistentKnowledge{};
     core::RngState rng{};
     std::optional<browser::FullMapRuleset> rulesetId{};
     std::optional<RunStatus> runStatus{};
@@ -967,8 +1118,8 @@ using HotTables = Tables<
     MigrationReport,
     MoonRegionResultDeath,
     MoonRegionResult,
-    Entry<InstanceId, PoliticalForceEntry>,
     TraitId,
+    Entry<InstanceId, PoliticalForceEntry>,
     NeutralStock,
     NeutralMarket,
     Site,
@@ -984,28 +1135,52 @@ using HotTables = Tables<
     Entry<RegionId, MoonRegionResult>,
     MigrationIntent>;
 
+struct HistoryPayload : Tables<StockProvider, TraitId, TagId, RegionId> {
+    Strings text;
+    HistoryTextId intern_text(std::string_view value, std::string_view path);
+    std::size_t live_bytes() const { return Tables::live_bytes() + text.live_bytes(); }
+};
+
 using ColdTables = Tables<
-    std::string,
-    browser::DetailedSettlementPracticeActivationTrace,
-    browser::PracticeEventJournalStockTransfers,
-    browser::CivilizationRetiredVassals,
-    browser::VaultSlots,
-    browser::Portrait,
-    browser::SignatureNode,
-    browser::VassalDevelopmentChoiceQueue,
-    browser::LifeMapGraph,
-    browser::StringArray,
-    browser::LifeMapNodeStates,
-    browser::VassalLifeEvents,
-    browser::VassalHeirlooms,
-    browser::LineagePendingCandidates,
-    browser::HeirloomArray,
-    browser::LineageLastInheritanceReport,
-    browser::LegacyFeed,
-    core::json::Value,
-    browser::SkillModifiersPawnById,
-    browser::SkillRuntimeUnlocks,
-    browser::PersistentKnowledge>;
+    ColdValue<std::string, World_definitionId>,
+    ColdValue<std::string, Region_colour>,
+    ColdValue<std::string, Site_name>,
+    ColdValue<std::string, NeutralMarket_template>,
+    ColdValue<std::string, NeutralStock_label>,
+    ColdValue<browser::VaultSlots, Civilization_heirloomVault>,
+    ColdValue<browser::Portrait, Vassal_portrait>,
+    ColdValue<browser::SignatureNode, Vassal_signatureNode>,
+    ColdValue<browser::VassalDevelopmentChoiceQueue, Vassal_developmentChoiceQueue>,
+    ColdValue<browser::LifeMapGraph, LifeMap_graph>,
+    ColdValue<browser::StringArray, LifeMap_availableNodeIds>,
+    ColdValue<browser::LifeMapNodeStates, LifeMap_nodeStates>,
+    ColdValue<browser::VassalHeirlooms, Vassal_heirlooms>,
+    ColdValue<std::string, CommissionOffer_label>,
+    ColdValue<std::string, CommissionOffer_description>,
+    ColdValue<std::string, CommissionOffer_statLabel>,
+    ColdValue<std::string, CommissionOffer_locationLabel>,
+    ColdValue<std::string, CommissionOffer_nodeLabel>,
+    ColdValue<std::string, ActiveCommission_label>,
+    ColdValue<std::string, ActiveCommission_description>,
+    ColdValue<std::string, ActiveCommission_statLabel>,
+    ColdValue<std::string, ActiveCommission_locationLabel>,
+    ColdValue<std::string, ActiveCommission_nodeLabel>,
+    ColdValue<browser::LineagePendingCandidates, Lineage_pendingCandidates>,
+    ColdValue<browser::HeirloomArray, Lineage_pendingVaultOverflow>,
+    ColdValue<browser::LineageLastInheritanceReport, Lineage_lastInheritanceReport>,
+    ColdValue<core::json::Value, GameState_skillProgressionDefs>,
+    ColdValue<browser::SkillModifiersPawnById, SkillModifiers_pawnById>,
+    ColdValue<browser::SkillRuntimeUnlocks, SkillRuntime_unlocks>,
+    ColdValue<browser::PersistentKnowledge, GameState_persistentKnowledge>>;
+
+using HistoryTables = Tables<
+    History<PracticeEventTrace, 100, DetailedSettlement_practiceActivationTrace>,
+    History<PracticeEventTrace, 100, PracticeEventJournal_trace>,
+    History<StockTransfersTransfersEntry, 0, PracticeEventJournalStockTransfers_transfers>,
+    History<CivilizationRetiredVassalsEntry, 0, Civilization_retiredVassals>,
+    History<NodeId, 0, LifeMap_completedNodeIds>,
+    History<VassalLifeEventsEntry, 0, Vassal_lifeEvents>,
+    History<LegacyFeedEntry, 0, GameState_gameEventFeed>>;
 
 static_assert(std::is_trivially_copyable_v<Index<StructureCell>>);
 static_assert(std::is_trivially_copyable_v<SeasonId>);
@@ -1029,8 +1204,8 @@ static_assert(std::is_trivially_copyable_v<MoonRegionResultFaith>);
 static_assert(std::is_trivially_copyable_v<MigrationReport>);
 static_assert(std::is_trivially_copyable_v<MoonRegionResultDeath>);
 static_assert(std::is_trivially_copyable_v<MoonRegionResult>);
-static_assert(std::is_trivially_copyable_v<Entry<InstanceId, PoliticalForceEntry>>);
 static_assert(std::is_trivially_copyable_v<TraitId>);
+static_assert(std::is_trivially_copyable_v<Entry<InstanceId, PoliticalForceEntry>>);
 static_assert(std::is_trivially_copyable_v<NeutralStock>);
 static_assert(std::is_trivially_copyable_v<NeutralMarket>);
 static_assert(std::is_trivially_copyable_v<Site>);
@@ -1045,6 +1220,12 @@ static_assert(std::is_trivially_copyable_v<SymbolId>);
 static_assert(std::is_trivially_copyable_v<Entry<VassalId, Vassal>>);
 static_assert(std::is_trivially_copyable_v<Entry<RegionId, MoonRegionResult>>);
 static_assert(std::is_trivially_copyable_v<MigrationIntent>);
+static_assert(std::is_trivially_copyable_v<PracticeEventTrace>);
+static_assert(std::is_trivially_copyable_v<StockTransfersTransfersEntry>);
+static_assert(std::is_trivially_copyable_v<CivilizationRetiredVassalsEntry>);
+static_assert(std::is_trivially_copyable_v<NodeId>);
+static_assert(std::is_trivially_copyable_v<VassalLifeEventsEntry>);
+static_assert(std::is_trivially_copyable_v<LegacyFeedEntry>);
 static_assert(std::is_trivially_copyable_v<PracticeEventPayload>);
 static_assert(std::is_trivially_copyable_v<HotState>);
 

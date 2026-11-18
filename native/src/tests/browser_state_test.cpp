@@ -195,11 +195,36 @@ void runtime_controls(const fs::path& path)
     sim::rebuild_runtime_indexes(hot);
     expect(hash(hot) != expected && hash(state) == expected, "hot copy is independent");
 
-    auto cold = state;
+    auto original = state;
+    const auto traceRef = original.hot.civilization.practiceEvents.trace.row;
+    auto& originalTrace = original.histories.at(traceRef);
+    for (int i = 0; i < 100; ++i) {
+        runtime::PracticeEventTrace event;
+        event.kind = original.intern<runtime::EventKindId>("copy-test", "$.test");
+        event.rootId = i;
+        originalTrace.push(event);
+    }
+    original.histories.at(original.hot.gameEventFeed.row).push({42});
+    const auto originalHash = hash(original);
+
+    auto cold = original;
     const auto& firstSite = cold.tables.view(cold.hot.world.sites).front();
-    cold.cold.at(firstSite.name.row) += " (copy)";
-    cold.cold.at(cold.hot.gameEventFeed.row).push_back({42});
-    expect(hash(cold) != expected && hash(state) == expected, "cold copy is independent");
+    auto& name = cold.cold.at(firstSite.name.row);
+    name.replace(name.get() + " (copy)");
+    cold.histories.at(cold.hot.gameEventFeed.row).push({43});
+    auto& copyTrace = cold.histories.at(traceRef);
+    auto next = originalTrace.at(99);
+    next.rootId = 100;
+    copyTrace.push(next);
+    expect(copyTrace.size() == 100 && copyTrace.at(0).rootId == 1 &&
+           originalTrace.at(0).rootId == 0, "fork evicts only its own head");
+    const auto copyHash = hash(cold);
+    expect(copyHash != originalHash && hash(original) == originalHash, "cold copy is independent");
+
+    original.histories.at(original.hot.gameEventFeed.row).push({44});
+    next.rootId = 101;
+    originalTrace.push(next);
+    expect(hash(original) != originalHash && hash(cold) == copyHash, "cold original is independent");
 
     auto legacy = mirror;
     auto& residency = legacy.world.sites[0].detailedState.populationByClass.villager;
@@ -229,6 +254,47 @@ void runtime_controls(const fs::path& path)
         expect(slot == board.begin(), "fixture has an origin at cell zero");
         (*slot)->width = 0;
     }, "$.world.sites[0].detailedState.structureSlots[0].width");
+}
+
+void history_retention(const fs::path& opening, const fs::path& expected)
+{
+    auto state = sim::import_runtime(browser::import_game_state(json::parse(read_file(opening))));
+    const auto sites = state.tables.view(state.hot.world.sites).first(2);
+    auto& civilization = state.histories.at(state.hot.civilization.practiceEvents.trace.row);
+    using SiteHistory = decltype(sites[0].detailedState.practiceActivationTrace)::value_type::Storage;
+    std::array<runtime::Index<SiteHistory>, 2> siteHistories;
+    for (std::size_t i = 0; i < sites.size(); ++i) {
+        auto& site = state.tables.rows<runtime::Site>().at(i);
+        auto& ref = site.detailedState.practiceActivationTrace;
+        if (!ref) {
+            auto& histories = state.histories.rows<SiteHistory>();
+            ref.emplace().row = {runtime::checked_index(histories.size(), "$.test")};
+            histories.emplace_back();
+        }
+        siteHistories[i] = ref->row;
+    }
+
+    const auto kind = state.intern<runtime::EventKindId>("retention-test", "$.test");
+    for (int i = 0; i < 250; ++i) {
+        const auto site = static_cast<std::size_t>(i) % sites.size();
+        const auto append = [&](runtime::HistoryPayload& page) {
+            runtime::PracticeEventTrace event;
+            event.tSec = state.hot.tSec;
+            event.kind = kind;
+            event.regionId = sites[site].regionId;
+            event.rootId = i;
+            event.reason = page.intern_text("sample-" + std::to_string(i), "$.test");
+            return event;
+        };
+        civilization.append(append);
+        state.histories.at(siteHistories[site]).append(append);
+    }
+    const auto actual = browser::export_game_state(sim::export_runtime(state));
+    expect(civilization.size() == 100 &&
+           state.histories.at(siteHistories[0]).size() == 100 &&
+           state.histories.at(siteHistories[1]).size() == 100, "all tested rings must be saturated");
+    expect(json::sha256_value(actual) == json::sha256_value(json::parse(read_file(expected))),
+           "native retained trace windows differ from the browser");
 }
 
 struct Batch {
@@ -316,10 +382,15 @@ int main(int argc, char** argv)
             runtime_controls(argv[2]);
             return 0;
         }
+        if (command == "history-retention" && argc == 4) {
+            history_retention(argv[2], argv[3]);
+            return 0;
+        }
         if ((command == "corpus" || command == "runtime-corpus") && argc >= 4)
             return corpus(argc, argv, command == "runtime-corpus");
         throw std::invalid_argument("expected fixtures or runtime-fixtures <core-state> <trace-state> <hashes.tsv>, "
-                                    "controls or runtime-controls <state>, or corpus or runtime-corpus <traces-dir> <snapshots-dir> [...]");
+                                    "controls or runtime-controls <state>, history-retention <opening> <expected>, "
+                                    "or corpus or runtime-corpus <traces-dir> <snapshots-dir> [...]");
     } catch (const std::exception& error) {
         std::cerr << error.what() << '\n';
         return 1;

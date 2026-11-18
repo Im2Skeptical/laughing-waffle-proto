@@ -1,4 +1,5 @@
 import { readdirSync, readFileSync, writeFileSync } from "node:fs";
+import { identifier } from "./cpp-identifiers.mjs";
 
 const stateDir = new URL("../src/sim/state/", import.meta.url);
 const schemaDir = new URL("./", import.meta.url);
@@ -32,7 +33,9 @@ function readCoverage() {
 const coverage = readCoverage();
 const records = new Map();
 const hotPools = new Set(["Index<StructureCell>"]);
-const coldPools = new Set();
+const coldPools = new Map();
+const historyPools = new Map();
+const historyPayloadPools = new Set();
 const scalars = { boolean: "bool", number: "double", integer: "double", string: "std::string", json: "core::json::Value" };
 const splitColumns = new Map([
   ["stock", { type: "std::optional<double>", column: "practiceStock" }],
@@ -43,7 +46,6 @@ const splitColumns = new Map([
 const indexedRecords = new Set(["PracticeSlot", "JointCohort", "PracticeEvent"]);
 const runtimeName = name => ({ GameState: "HotState", RngSeeds: "core::RngState" })[name] ?? name;
 const mirrorName = name => scalars[name] ?? "browser::" + name;
-const memberName = name => name === "template" ? "template_" : name;
 const isId = policy => /^[A-Z][A-Za-z]*Id$/u.test(policy);
 
 function range(element) {
@@ -88,11 +90,30 @@ function hotType(ref, policy = "hot") {
   throw Error("Unsupported hot policy " + policy + " for schema type " + ref);
 }
 
-function fieldType(field, policy) {
+function fieldType(field, policy, owner, key) {
   if (policy === "cold") {
     const type = mirrorName(field.type);
-    coldPools.add(type);
-    return wrap(field, "ColdRef<" + type + ">");
+    const tag = owner + "_" + key;
+    coldPools.set(tag, { type, ref: field.type });
+    return wrap(field, "ColdRef<" + type + ", " + tag + ">");
+  }
+  if (policy === "history" || policy.startsWith("history:")) {
+    const shape = schema.types[field.type];
+    if (shape.kind !== "array") throw Error("Expected a history array for " + owner + "." + key);
+    const option = policy.split(":")[1] ?? "0";
+    const limit = isId(option) ? "0" : option;
+    if (!/^\d+$/u.test(limit)) throw Error("Invalid history limit for " + owner + "." + key);
+    const row = hotType(shape.items, isId(option) ? option : "hot");
+    const tag = owner + "_" + key;
+    historyPools.set(tag, { row, limit });
+    return wrap(field, "HistoryRef<" + row + ", " + limit + ", " + tag + ">");
+  }
+  if (policy === "history_range" || policy.startsWith("history_range:")) {
+    const shape = schema.types[field.type];
+    if (shape.kind !== "array") throw Error("Expected a history payload array for " + owner + "." + key);
+    const element = hotType(shape.items, policy.split(":")[1] ?? "hot");
+    historyPayloadPools.add(element);
+    return wrap(field, "Range<" + element + ">");
   }
   if (policy === "config") return null;
   if (policy === "practice_board" || policy === "structure_board") {
@@ -128,7 +149,7 @@ function addRecord(name) {
     const payload = placement.startsWith("payload:");
     if (payload && name !== "PracticeEvent") throw Error("Unexpected payload field " + name + "." + key);
     const policy = payload ? placement.slice("payload:".length) : placement;
-    return { key, member: memberName(key), type: fieldType(field, policy), policy, payload };
+    return { key, member: identifier(key), type: fieldType(field, policy, name, key), policy, payload };
   });
   for (const field of policies.keys()) {
     if (!Object.hasOwn(shape.fields, field)) throw Error("Stale coverage entry " + name + "." + field);
@@ -162,16 +183,26 @@ const header = [
   banner, "#pragma once", "",
   '#include "core/rng.hpp"',
   '#include "sim/browser/generated/game_state.hpp"',
-  '#include "sim/state/tables.hpp"', "",
+  '#include "sim/state/history.hpp"', "",
   "namespace waffle::sim::runtime {", "",
   ...[...records.keys()].filter(name => name !== "RngSeeds").map(name => "struct " + runtimeName(name) + ";"),
+  ...[...coldPools.keys(), ...historyPools.keys()].map(tag =>
+    'struct ' + tag + ' { static constexpr std::string_view name = "' + tag.replace("_", ".") + '"; };'),
   "",
   ...[...records].flatMap(([name, fields]) => declaration(name, fields)),
   "using HotTables = Tables<",
   "    " + [...hotPools].join(",\n    ") + ">;", "",
+  "struct HistoryPayload : Tables<" + [...historyPayloadPools].join(", ") + "> {",
+  "    Strings text;",
+  "    HistoryTextId intern_text(std::string_view value, std::string_view path);",
+  "    std::size_t live_bytes() const { return Tables::live_bytes() + text.live_bytes(); }",
+  "};", "",
   "using ColdTables = Tables<",
-  "    " + [...coldPools].join(",\n    ") + ">;", "",
-  ...[...hotPools, "PracticeEventPayload", "HotState"].map(type => "static_assert(std::is_trivially_copyable_v<" + type + ">);"), "",
+  "    " + [...coldPools].map(([tag, { type }]) => "ColdValue<" + type + ", " + tag + ">").join(",\n    ") + ">;", "",
+  "using HistoryTables = Tables<",
+  "    " + [...historyPools].map(([tag, { row, limit }]) => "History<" + row + ", " + limit + ", " + tag + ">").join(",\n    ") + ">;", "",
+  ...[...new Set([...hotPools, ...historyPayloadPools, ...[...historyPools.values()].map(({ row }) => row),
+    "PracticeEventPayload", "HotState"])].map(type => "static_assert(std::is_trivially_copyable_v<" + type + ">);"), "",
   "}", "",
 ].join("\n");
 
@@ -234,10 +265,37 @@ const mapping = [
   ]),
 ].join("\n");
 
+// Only the diagnostics tool needs to walk retained mirror values. Generate
+// this walker from the schema so its byte counts cover new descendants too.
+const coldMirrorRecords = new Set();
+function collectColdMirrorRecords(ref) {
+  const shape = schema.types[ref];
+  if (shape?.kind === "record" && !coldMirrorRecords.has(ref)) {
+    coldMirrorRecords.add(ref);
+    for (const field of Object.values(shape.fields)) collectColdMirrorRecords(field.type);
+  }
+  if (shape?.kind === "array") collectColdMirrorRecords(shape.items);
+  if (shape?.kind === "tuple") shape.items.forEach(collectColdMirrorRecords);
+  if (shape?.kind === "dict" || shape?.kind === "nullable") collectColdMirrorRecords(shape.value);
+  if (shape?.kind === "union" || shape?.kind === "oneOf") Object.values(shape.variants).forEach(collectColdMirrorRecords);
+}
+for (const { ref } of coldPools.values()) collectColdMirrorRecords(ref);
+const mirrorFields = [
+  banner,
+  ...[...coldMirrorRecords].flatMap(name => [
+    "void mirror_fields(const browser::" + name + "& record, auto visit)",
+    "{",
+    ...Object.keys(schema.types[name].fields).map(key => "    visit(record." + identifier(key) + ");"),
+    "}", "",
+  ]),
+].join("\n");
+
 if (process.argv.slice(2).some(arg => arg !== "--check")) {
   throw Error("Usage: node native/schema/runtime-codegen.mjs [--check]");
 }
-for (const [name, expected] of [["rows.generated.hpp", header], ["mapping.generated.inc", mapping]]) {
+for (const [name, expected] of [
+  ["rows.generated.hpp", header], ["mapping.generated.inc", mapping], ["mirror_fields.generated.inc", mirrorFields],
+]) {
   const file = new URL(name, stateDir);
   if (process.argv.includes("--check")) {
     if (readFileSync(file, "utf8").replaceAll("\r\n", "\n") !== expected) {

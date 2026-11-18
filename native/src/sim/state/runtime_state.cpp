@@ -7,6 +7,14 @@
 namespace waffle::sim {
 namespace runtime {
 
+HistoryTextId HistoryPayload::intern_text(std::string_view value, std::string_view path)
+{
+    if (const auto existing = text.find(value)) return {*existing};
+    const auto id = checked_index(text.offsets.size(), path);
+    text.append(value, path);
+    return {id};
+}
+
 std::uint32_t checked_index(std::size_t value, std::string_view path)
 {
     if (value >= no_index) throw std::invalid_argument(std::string(path) + ": exceeds 32-bit ordinal range");

@@ -48,6 +48,7 @@ struct RuntimeState {
     std::vector<std::uint64_t> jointCounts;
     std::vector<runtime::PracticeEventPayload> eventPayloads;
     runtime::ColdTables cold;
+    runtime::HistoryTables histories;
     RuntimeIndexes indexes;
     std::shared_ptr<const CapturedContent> content;
     runtime::IdTables addedIds;

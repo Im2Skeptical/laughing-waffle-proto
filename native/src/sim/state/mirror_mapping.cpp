@@ -101,6 +101,7 @@ T& side_column(std::vector<T>& values, std::uint32_t row)
 struct Import {
     CapturedContent& content;
     RuntimeState& state;
+    HistoryPayload* payload = nullptr;
 
     template<class Key>
     Key existing_id(std::string_view value, const std::string& path) const
@@ -126,6 +127,8 @@ struct Import {
     {
         if constexpr (std::is_same_v<R, M>) {
             return source;
+        } else if constexpr (std::is_same_v<R, HistoryTextId>) {
+            return payload->intern_text(source, path);
         } else if constexpr (wrapped<R, Id>) {
             return seed_id<R>(content, source, path);
         } else if constexpr (std::is_same_v<R, std::uint32_t> || std::is_same_v<R, std::uint64_t>) {
@@ -155,16 +158,27 @@ struct Import {
     template<class T, class M>
     Range<T> read_row(const M& source, const std::string& path, std::uint32_t, Range<T>*)
     {
-        const auto range = state.tables.table<T>().append(source.size(), path);
+        auto& table = range_table<T>();
+        const auto range = table.append(source.size(), path);
         auto row = range.begin;
         for (const auto& element : source) {
             if constexpr (wrapped<T, Entry>)
-                state.tables.rows<T>()[row] = read<T>(element, property_path(path, element.first), row);
+                table.values[row] = read<T>(element, property_path(path, element.first), row);
             else
-                state.tables.rows<T>()[row] = read<T>(element, index_path(path, row - range.begin), row);
+                table.values[row] = read<T>(element, index_path(path, row - range.begin), row);
             ++row;
         }
         return range;
+    }
+
+    template<class T>
+    Table<T>& range_table()
+    {
+        if constexpr (HistoryPayload::contains<T>) {
+            if (payload) return payload->table<T>();
+        }
+        if constexpr (HotTables::contains<T>) return state.tables.table<T>();
+        throw std::logic_error("missing history payload");
     }
 
     template<class Key, class T, class M>
@@ -181,18 +195,31 @@ struct Import {
         return {row};
     }
 
-    template<class T, class M>
-    ColdRef<T> read_row(const M& source, const std::string& path, std::uint32_t, ColdRef<T>*)
+    template<class T, class Field, class M>
+    ColdRef<T, Field> read_row(const M& source, const std::string& path, std::uint32_t, ColdRef<T, Field>*)
     {
-        auto& rows = state.cold.rows<T>();
+        auto& rows = state.cold.rows<ColdValue<T, Field>>();
         const auto row = checked_index(rows.size(), path);
-        rows.push_back(source);
+        rows.emplace_back(source);
+        return {{row}};
+    }
+
+    template<class T, std::uint32_t Limit, class Field, class M>
+    HistoryRef<T, Limit, Field> read_row(const M& source, const std::string& path, std::uint32_t, HistoryRef<T, Limit, Field>*)
+    {
+        using Storage = History<T, Limit, Field>;
+        auto& rows = state.histories.rows<Storage>();
+        const auto row = checked_index(rows.size(), path);
+        rows.push_back(Storage::load(source.size(), [&](HistoryPayload& page, std::size_t index) {
+            return Import{content, state, &page}.read<T>(source[index], index_path(path, index));
+        }));
         return {{row}};
     }
 };
 
 struct Export {
     const RuntimeState& state;
+    const HistoryPayload* payload = nullptr;
 
     const auto& practiceStock(std::uint32_t row) const { return state.practiceStock.at(row); }
     double practiceCharge(std::uint32_t row) const { return state.practiceCharge.at(row); }
@@ -207,6 +234,8 @@ struct Export {
     {
         if constexpr (std::is_same_v<M, R>) {
             result = source;
+        } else if constexpr (std::is_same_v<R, HistoryTextId>) {
+            result = payload->text.at(source.value);
         } else if constexpr (wrapped<R, Id>) {
             result = state.name(source);
         } else if constexpr (std::is_same_v<R, std::uint32_t> || std::is_same_v<R, std::uint64_t>) {
@@ -243,7 +272,17 @@ struct Export {
     {
         result.reserve(range.size());
         auto row = range.begin;
-        for (const auto& element : state.tables.view(range)) write(result.emplace_back(), element, row++);
+        for (const auto& element : range_view(range)) write(result.emplace_back(), element, row++);
+    }
+
+    template<class T>
+    std::span<const T> range_view(Range<T> range) const
+    {
+        if constexpr (HistoryPayload::contains<T>) {
+            if (payload) return payload->view(range);
+        }
+        if constexpr (HotTables::contains<T>) return state.tables.view(range);
+        throw std::logic_error("missing history payload");
     }
 
     template<class M, class Key, class T>
@@ -259,10 +298,20 @@ struct Export {
         write(result, state.tables.at(index), index.value);
     }
 
-    template<class M, class T>
-    void write_row(M& result, ColdRef<T> ref, std::uint32_t) const
+    template<class M, class T, class Field>
+    void write_row(M& result, ColdRef<T, Field> ref, std::uint32_t) const
     {
-        result = state.cold.at(ref.row);
+        result = state.cold.at(ref.row).get();
+    }
+
+    template<class M, class T, std::uint32_t Limit, class Field>
+    void write_row(M& result, HistoryRef<T, Limit, Field> ref, std::uint32_t) const
+    {
+        const auto& history = state.histories.at(ref.row);
+        result.reserve(history.size());
+        history.for_each([&](const T& element, const HistoryPayload& page) {
+            Export{state, &page}.write(result.emplace_back(), element);
+        });
     }
 };
 

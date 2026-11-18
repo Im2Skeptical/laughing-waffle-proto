@@ -43,7 +43,8 @@ hot prematureDeaths oldAgeDeaths externalEmigrants internalMigrants prematureDea
 hot practiceEvents candidateDevelopment chaos history research phaseModifiers green vassalLegacy vassalLineage currentMoonTurn lastMoonTurn lastPopulationAgingYear prestige treasury nextPracticeInstanceId remnant
 RegionId capitalRegionId
 SiteId capitalSiteId
-cold retiredVassals heirloomVault
+cold heirloomVault
+history retiredVassals
 
 [CivilizationCandidateDevelopment]
 hot scholar warrior
@@ -101,7 +102,7 @@ BirthCreditId/FactionId birthAllegianceCredits
 practice_board practiceSlots
 structure_board structureSlots
 u32 unlockedPracticeSlots
-cold practiceActivationTrace
+history:100 practiceActivationTrace
 InstanceId politicalForce
 
 [DetailedSettlementControl]
@@ -136,7 +137,8 @@ hot villager stranger
 [GameState]
 hot gameStateSchemaVersion phase turn currentSeasonIndex year simStepIndex tSec seasonTimeRemaining seasonDurationSec simTime seasonClockSec paused actionPoints actionPointCap apCapOverride variantFlags world civilization nextGameEventFeedId skillRuntime rng rulesetId runStatus
 config gameConfig
-cold gameEventFeed skillProgressionDefs persistentKnowledge
+cold skillProgressionDefs persistentKnowledge
+history gameEventFeed
 SeasonId seasons
 
 [HappinessFloor]
@@ -153,10 +155,22 @@ joint_count count
 [LastMoonIncomeFaithPopulation]
 hot bronze silver gold diamond
 
+[LegacyFeedEntry]
+hot id
+
+[LifeEventsIntervention]
+HistoryTextId kind mode tier resultingTier
+RegionId targetRegionId
+PracticeId practiceId
+StructureId structureId
+InstanceId instanceId
+hot qualityBonus capacity
+
 [LifeMap]
 hot pendingResolution
 NodeId currentNodeId
-cold graph completedNodeIds availableNodeIds nodeStates
+history:NodeId completedNodeIds
+cold graph availableNodeIds nodeStates
 
 [LifeMapPendingResolution]
 hot kind startSec resolveSec phaseCost
@@ -297,8 +311,26 @@ payload:StructureId structureId
 payload:SymbolId activationType pool phase reason cause classId actionKind action outcome
 
 [PracticeEventJournal]
-hot nextId pending activeRoot activeEvent
-cold trace stockTransfers
+hot nextId pending activeRoot activeEvent stockTransfers
+history:100 trace
+
+[PracticeEventJournalStockTransfers]
+hot tSec
+history transfers
+
+[PracticeEventTrace]
+hot tSec slotIndex rootId parentId id amount scholarStaffed discharge premature military untilSec strengthBefore strengthAfter martial charge threshold
+EventKindId kind
+RegionId regionId targetRegionId sourceRegionId
+PracticeId targetPracticeId practiceId
+StructureId structureId
+FactionId faction controller previousController
+InstanceId instanceId
+HistoryTextId activationType pool phase reason cause classId actionKind action outcome destinationId
+history_range providers
+history_range:TraitId traits
+history_range:TagId tags
+history_range:RegionId sourceRegionIds
 
 [PracticeSlot]
 hot tier work
@@ -354,12 +386,18 @@ hot scholar warrior
 
 [StockProvider]
 hot slotIndex amount unitPrice
-SymbolId kind paymentFor
+SymbolId kind paymentFor label
 RegionId regionId
 PracticeId practiceId
 TraitId traits
 MarketStockId marketStockId
-cold label
+
+[StockTransfersTransfersEntry]
+HistoryTextId transferId systemId resourceId reason kind
+hot boundarySec slotIndex amount
+RegionId sourceRegionId destinationRegionId
+PracticeId practiceId
+history_range:TraitId traits
 
 [StructureCell]
 hot qualityBonus construction upkeepActive
@@ -386,7 +424,20 @@ hot classId prestige stats initialAge selectedSec selectedYear developmentProgre
 VassalId vassalId
 RegionId locationRegionId originRegionId
 SymbolId founderClassId archetype candidateId endedReason deathCause commissionHistory
-cold portrait signatureNode developmentChoiceQueue lifeEvents heirlooms
+cold portrait signatureNode developmentChoiceQueue heirlooms
+history lifeEvents
+
+[VassalLifeEventsEntry]
+EventKindId kind
+NodeId nodeId
+HistoryTextId eventId text offerId result choiceId statId causeOfDeath
+hot tSec intervention age
+
+[CivilizationRetiredVassalsEntry]
+VassalId vassalId
+RegionId retirementRegionId
+SymbolId classId
+hot completedCommissions finalCunning finalWisdom finalEffectiveness finalIntelligence
 
 [VassalLegacyFutureStartingStatBonuses]
 hot cunning wisdom effectiveness intelligence

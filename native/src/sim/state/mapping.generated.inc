@@ -205,6 +205,16 @@ template<> struct Mapping<MoonRegionResult> {
     static browser::MoonRegionResult write(const Export&, const MoonRegionResult&);
 };
 
+template<> struct Mapping<StockProvider> {
+    static StockProvider read(Import&, const browser::StockProvider&, const std::string&);
+    static browser::StockProvider write(const Export&, const StockProvider&);
+};
+
+template<> struct Mapping<PracticeEventTrace> {
+    static PracticeEventTrace read(Import&, const browser::PracticeEventTrace&, const std::string&);
+    static browser::PracticeEventTrace write(const Export&, const PracticeEventTrace&);
+};
+
 template<> struct Mapping<DetailedSettlementMealRelief> {
     static DetailedSettlementMealRelief read(Import&, const browser::DetailedSettlementMealRelief&, const std::string&);
     static browser::DetailedSettlementMealRelief write(const Export&, const DetailedSettlementMealRelief&);
@@ -290,14 +300,19 @@ template<> struct Mapping<World> {
     static browser::World write(const Export&, const World&);
 };
 
-template<> struct Mapping<StockProvider> {
-    static StockProvider read(Import&, const browser::StockProvider&, const std::string&);
-    static browser::StockProvider write(const Export&, const StockProvider&);
-};
-
 template<> struct Mapping<PracticeEvent> {
     static PracticeEvent read(Import&, const browser::PracticeEvent&, const std::string&, std::uint32_t);
     static browser::PracticeEvent write(const Export&, const PracticeEvent&, std::uint32_t);
+};
+
+template<> struct Mapping<StockTransfersTransfersEntry> {
+    static StockTransfersTransfersEntry read(Import&, const browser::StockTransfersTransfersEntry&, const std::string&);
+    static browser::StockTransfersTransfersEntry write(const Export&, const StockTransfersTransfersEntry&);
+};
+
+template<> struct Mapping<PracticeEventJournalStockTransfers> {
+    static PracticeEventJournalStockTransfers read(Import&, const browser::PracticeEventJournalStockTransfers&, const std::string&);
+    static browser::PracticeEventJournalStockTransfers write(const Export&, const PracticeEventJournalStockTransfers&);
 };
 
 template<> struct Mapping<PracticeEventJournal> {
@@ -345,6 +360,11 @@ template<> struct Mapping<CivilizationResearch> {
     static browser::CivilizationResearch write(const Export&, const CivilizationResearch&);
 };
 
+template<> struct Mapping<CivilizationRetiredVassalsEntry> {
+    static CivilizationRetiredVassalsEntry read(Import&, const browser::CivilizationRetiredVassalsEntry&, const std::string&);
+    static browser::CivilizationRetiredVassalsEntry write(const Export&, const CivilizationRetiredVassalsEntry&);
+};
+
 template<> struct Mapping<PhaseModifiers> {
     static PhaseModifiers read(Import&, const browser::PhaseModifiers&, const std::string&);
     static browser::PhaseModifiers write(const Export&, const PhaseModifiers&);
@@ -378,6 +398,16 @@ template<> struct Mapping<LifeMapPendingResolution> {
 template<> struct Mapping<LifeMap> {
     static LifeMap read(Import&, const browser::LifeMap&, const std::string&);
     static browser::LifeMap write(const Export&, const LifeMap&);
+};
+
+template<> struct Mapping<LifeEventsIntervention> {
+    static LifeEventsIntervention read(Import&, const browser::LifeEventsIntervention&, const std::string&);
+    static browser::LifeEventsIntervention write(const Export&, const LifeEventsIntervention&);
+};
+
+template<> struct Mapping<VassalLifeEventsEntry> {
+    static VassalLifeEventsEntry read(Import&, const browser::VassalLifeEventsEntry&, const std::string&);
+    static browser::VassalLifeEventsEntry write(const Export&, const VassalLifeEventsEntry&);
 };
 
 template<> struct Mapping<CommissionOffer> {
@@ -423,6 +453,11 @@ template<> struct Mapping<CivilizationRemnant> {
 template<> struct Mapping<Civilization> {
     static Civilization read(Import&, const browser::Civilization&, const std::string&);
     static browser::Civilization write(const Export&, const Civilization&);
+};
+
+template<> struct Mapping<LegacyFeedEntry> {
+    static LegacyFeedEntry read(Import&, const browser::LegacyFeedEntry&, const std::string&);
+    static browser::LegacyFeedEntry write(const Export&, const LegacyFeedEntry&);
 };
 
 template<> struct Mapping<SkillModifiersGlobal> {
@@ -517,7 +552,7 @@ Region Mapping<Region>::read(Import& codec, const browser::Region& source, const
 {
     Region result{};
     result.id = codec.region(source.id, property_path(path, "id"));
-    result.colour = codec.read<ColdRef<std::string>>(source.colour, property_path(path, "colour"));
+    result.colour = codec.read<ColdRef<std::string, Region_colour>>(source.colour, property_path(path, "colour"));
     result.controller = codec.read<FactionId>(source.controller, property_path(path, "controller"));
     result.structureCapacity = codec.read<std::uint32_t>(source.structureCapacity, property_path(path, "structureCapacity"));
     result.detailedSettlementEnabled = codec.read<bool>(source.detailedSettlementEnabled, property_path(path, "detailedSettlementEnabled"));
@@ -1329,6 +1364,132 @@ browser::MoonRegionResult Mapping<MoonRegionResult>::write(const Export& codec, 
     return result;
 }
 
+StockProvider Mapping<StockProvider>::read(Import& codec, const browser::StockProvider& source, const std::string& path)
+{
+    StockProvider result{};
+    result.kind = codec.read<SymbolId>(source.kind, property_path(path, "kind"));
+    result.regionId = codec.read<RegionId>(source.regionId, property_path(path, "regionId"));
+    result.slotIndex = codec.read<double>(source.slotIndex, property_path(path, "slotIndex"));
+    result.practiceId = codec.read<std::optional<PracticeId>>(source.practiceId, property_path(path, "practiceId"));
+    result.amount = codec.read<double>(source.amount, property_path(path, "amount"));
+    result.traits = codec.read<Range<TraitId>>(source.traits, property_path(path, "traits"));
+    result.paymentFor = codec.read<std::optional<SymbolId>>(source.paymentFor, property_path(path, "paymentFor"));
+    result.marketStockId = codec.read<std::optional<MarketStockId>>(source.marketStockId, property_path(path, "marketStockId"));
+    result.label = codec.read<std::optional<SymbolId>>(source.label, property_path(path, "label"));
+    result.unitPrice = codec.read<std::optional<double>>(source.unitPrice, property_path(path, "unitPrice"));
+    return result;
+}
+
+browser::StockProvider Mapping<StockProvider>::write(const Export& codec, const StockProvider& source)
+{
+    browser::StockProvider result{};
+    codec.write(result.kind, source.kind);
+    codec.write(result.regionId, source.regionId);
+    codec.write(result.slotIndex, source.slotIndex);
+    codec.write(result.practiceId, source.practiceId);
+    codec.write(result.amount, source.amount);
+    codec.write(result.traits, source.traits);
+    codec.write(result.paymentFor, source.paymentFor);
+    codec.write(result.marketStockId, source.marketStockId);
+    codec.write(result.label, source.label);
+    codec.write(result.unitPrice, source.unitPrice);
+    return result;
+}
+
+PracticeEventTrace Mapping<PracticeEventTrace>::read(Import& codec, const browser::PracticeEventTrace& source, const std::string& path)
+{
+    PracticeEventTrace result{};
+    result.tSec = codec.read<double>(source.tSec, property_path(path, "tSec"));
+    result.kind = codec.read<EventKindId>(source.kind, property_path(path, "kind"));
+    result.regionId = codec.read<std::optional<RegionId>>(source.regionId, property_path(path, "regionId"));
+    result.targetPracticeId = codec.read<std::optional<PracticeId>>(source.targetPracticeId, property_path(path, "targetPracticeId"));
+    result.slotIndex = codec.read<std::optional<double>>(source.slotIndex, property_path(path, "slotIndex"));
+    result.rootId = codec.read<double>(source.rootId, property_path(path, "rootId"));
+    result.parentId = codec.read<std::optional<double>>(source.parentId, property_path(path, "parentId"));
+    result.providers = codec.read<std::optional<Range<StockProvider>>>(source.providers, property_path(path, "providers"));
+    result.practiceId = codec.read<std::optional<PracticeId>>(source.practiceId, property_path(path, "practiceId"));
+    result.activationType = codec.read<std::optional<HistoryTextId>>(source.activationType, property_path(path, "activationType"));
+    result.id = codec.read<std::optional<double>>(source.id, property_path(path, "id"));
+    result.amount = codec.read<std::optional<double>>(source.amount, property_path(path, "amount"));
+    result.traits = codec.read<std::optional<Range<TraitId>>>(source.traits, property_path(path, "traits"));
+    result.tags = codec.read<std::optional<Range<TagId>>>(source.tags, property_path(path, "tags"));
+    result.pool = codec.read<std::optional<HistoryTextId>>(source.pool, property_path(path, "pool"));
+    result.scholarStaffed = codec.read<std::optional<bool>>(source.scholarStaffed, property_path(path, "scholarStaffed"));
+    result.discharge = codec.read<std::optional<bool>>(source.discharge, property_path(path, "discharge"));
+    result.phase = codec.read<std::optional<HistoryTextId>>(source.phase, property_path(path, "phase"));
+    result.premature = codec.read<std::optional<bool>>(source.premature, property_path(path, "premature"));
+    result.faction = codec.read<browser::OptionalNullable<FactionId>>(source.faction, property_path(path, "faction"));
+    result.controller = codec.read<browser::OptionalNullable<FactionId>>(source.controller, property_path(path, "controller"));
+    result.instanceId = codec.read<browser::OptionalNullable<InstanceId>>(source.instanceId, property_path(path, "instanceId"));
+    result.reason = codec.read<std::optional<HistoryTextId>>(source.reason, property_path(path, "reason"));
+    result.cause = codec.read<std::optional<HistoryTextId>>(source.cause, property_path(path, "cause"));
+    result.targetRegionId = codec.read<browser::OptionalNullable<RegionId>>(source.targetRegionId, property_path(path, "targetRegionId"));
+    result.structureId = codec.read<std::optional<StructureId>>(source.structureId, property_path(path, "structureId"));
+    result.previousController = codec.read<browser::OptionalNullable<FactionId>>(source.previousController, property_path(path, "previousController"));
+    result.military = codec.read<std::optional<bool>>(source.military, property_path(path, "military"));
+    result.untilSec = codec.read<std::optional<double>>(source.untilSec, property_path(path, "untilSec"));
+    result.classId = codec.read<browser::OptionalNullable<HistoryTextId>>(source.classId, property_path(path, "classId"));
+    result.actionKind = codec.read<std::optional<HistoryTextId>>(source.actionKind, property_path(path, "actionKind"));
+    result.action = codec.read<std::optional<HistoryTextId>>(source.action, property_path(path, "action"));
+    result.outcome = codec.read<std::optional<HistoryTextId>>(source.outcome, property_path(path, "outcome"));
+    result.sourceRegionId = codec.read<browser::OptionalNullable<RegionId>>(source.sourceRegionId, property_path(path, "sourceRegionId"));
+    result.strengthBefore = codec.read<browser::OptionalNullable<double>>(source.strengthBefore, property_path(path, "strengthBefore"));
+    result.strengthAfter = codec.read<browser::OptionalNullable<double>>(source.strengthAfter, property_path(path, "strengthAfter"));
+    result.martial = codec.read<std::optional<bool>>(source.martial, property_path(path, "martial"));
+    result.destinationId = codec.read<std::optional<HistoryTextId>>(source.destinationId, property_path(path, "destinationId"));
+    result.sourceRegionIds = codec.read<std::optional<Range<RegionId>>>(source.sourceRegionIds, property_path(path, "sourceRegionIds"));
+    result.charge = codec.read<std::optional<double>>(source.charge, property_path(path, "charge"));
+    result.threshold = codec.read<std::optional<double>>(source.threshold, property_path(path, "threshold"));
+    return result;
+}
+
+browser::PracticeEventTrace Mapping<PracticeEventTrace>::write(const Export& codec, const PracticeEventTrace& source)
+{
+    browser::PracticeEventTrace result{};
+    codec.write(result.tSec, source.tSec);
+    codec.write(result.kind, source.kind);
+    codec.write(result.regionId, source.regionId);
+    codec.write(result.targetPracticeId, source.targetPracticeId);
+    codec.write(result.slotIndex, source.slotIndex);
+    codec.write(result.rootId, source.rootId);
+    codec.write(result.parentId, source.parentId);
+    codec.write(result.providers, source.providers);
+    codec.write(result.practiceId, source.practiceId);
+    codec.write(result.activationType, source.activationType);
+    codec.write(result.id, source.id);
+    codec.write(result.amount, source.amount);
+    codec.write(result.traits, source.traits);
+    codec.write(result.tags, source.tags);
+    codec.write(result.pool, source.pool);
+    codec.write(result.scholarStaffed, source.scholarStaffed);
+    codec.write(result.discharge, source.discharge);
+    codec.write(result.phase, source.phase);
+    codec.write(result.premature, source.premature);
+    codec.write(result.faction, source.faction);
+    codec.write(result.controller, source.controller);
+    codec.write(result.instanceId, source.instanceId);
+    codec.write(result.reason, source.reason);
+    codec.write(result.cause, source.cause);
+    codec.write(result.targetRegionId, source.targetRegionId);
+    codec.write(result.structureId, source.structureId);
+    codec.write(result.previousController, source.previousController);
+    codec.write(result.military, source.military);
+    codec.write(result.untilSec, source.untilSec);
+    codec.write(result.classId, source.classId);
+    codec.write(result.actionKind, source.actionKind);
+    codec.write(result.action, source.action);
+    codec.write(result.outcome, source.outcome);
+    codec.write(result.sourceRegionId, source.sourceRegionId);
+    codec.write(result.strengthBefore, source.strengthBefore);
+    codec.write(result.strengthAfter, source.strengthAfter);
+    codec.write(result.martial, source.martial);
+    codec.write(result.destinationId, source.destinationId);
+    codec.write(result.sourceRegionIds, source.sourceRegionIds);
+    codec.write(result.charge, source.charge);
+    codec.write(result.threshold, source.threshold);
+    return result;
+}
+
 DetailedSettlementMealRelief Mapping<DetailedSettlementMealRelief>::read(Import& codec, const browser::DetailedSettlementMealRelief& source, const std::string& path)
 {
     DetailedSettlementMealRelief result{};
@@ -1552,7 +1713,7 @@ DetailedSettlement Mapping<DetailedSettlement>::read(Import& codec, const browse
     result.elderOrder = codec.read<DetailedSettlementElderOrder>(source.elderOrder, property_path(path, "elderOrder"));
     result.lastMeal = codec.read<std::optional<Index<MealResult>>>(source.lastMeal, property_path(path, "lastMeal"));
     result.lastMoonResult = codec.read<std::optional<Index<MoonRegionResult>>>(source.lastMoonResult, property_path(path, "lastMoonResult"));
-    result.practiceActivationTrace = codec.read<std::optional<ColdRef<browser::DetailedSettlementPracticeActivationTrace>>>(source.practiceActivationTrace, property_path(path, "practiceActivationTrace"));
+    result.practiceActivationTrace = codec.read<std::optional<HistoryRef<PracticeEventTrace, 100, DetailedSettlement_practiceActivationTrace>>>(source.practiceActivationTrace, property_path(path, "practiceActivationTrace"));
     result.mealRelief = codec.read<std::optional<DetailedSettlementMealRelief>>(source.mealRelief, property_path(path, "mealRelief"));
     result.history = codec.read<std::optional<DetailedSettlementHistory>>(source.history, property_path(path, "history"));
     result.control = codec.read<std::optional<DetailedSettlementControl>>(source.control, property_path(path, "control"));
@@ -1603,7 +1764,7 @@ NeutralStock Mapping<NeutralStock>::read(Import& codec, const browser::NeutralSt
 {
     NeutralStock result{};
     result.id = codec.read<MarketStockId>(source.id, property_path(path, "id"));
-    result.label = codec.read<ColdRef<std::string>>(source.label, property_path(path, "label"));
+    result.label = codec.read<ColdRef<std::string, NeutralStock_label>>(source.label, property_path(path, "label"));
     result.traits = codec.read<Range<TraitId>>(source.traits, property_path(path, "traits"));
     result.price = codec.read<double>(source.price, property_path(path, "price"));
     result.capacity = codec.read<double>(source.capacity, property_path(path, "capacity"));
@@ -1628,7 +1789,7 @@ browser::NeutralStock Mapping<NeutralStock>::write(const Export& codec, const Ne
 NeutralMarket Mapping<NeutralMarket>::read(Import& codec, const browser::NeutralMarket& source, const std::string& path)
 {
     NeutralMarket result{};
-    result.template_ = codec.read<ColdRef<std::string>>(source.template_, property_path(path, "template"));
+    result.template_ = codec.read<ColdRef<std::string, NeutralMarket_template>>(source.template_, property_path(path, "template"));
     result.defense = codec.read<double>(source.defense, property_path(path, "defense"));
     result.housing = codec.read<double>(source.housing, property_path(path, "housing"));
     result.currencyStock = codec.read<double>(source.currencyStock, property_path(path, "currencyStock"));
@@ -1673,7 +1834,7 @@ Site Mapping<Site>::read(Import& codec, const browser::Site& source, const std::
     result.id = codec.site(source.id, property_path(path, "id"));
     result.regionId = codec.region(source.regionId, property_path(path, "regionId"));
     result.simulationMode = codec.read<SiteModeId>(source.simulationMode, property_path(path, "simulationMode"));
-    result.name = codec.read<ColdRef<std::string>>(source.name, property_path(path, "name"));
+    result.name = codec.read<ColdRef<std::string, Site_name>>(source.name, property_path(path, "name"));
     result.detailedState = codec.read<DetailedSettlement>(source.detailedState, property_path(path, "detailedState"));
     result.town = codec.read<std::optional<Town>>(source.town, property_path(path, "town"));
     result.neutral = codec.read<std::optional<Index<NeutralMarket>>>(source.neutral, property_path(path, "neutral"));
@@ -1696,7 +1857,7 @@ browser::Site Mapping<Site>::write(const Export& codec, const Site& source)
 World Mapping<World>::read(Import& codec, const browser::World& source, const std::string& path)
 {
     World result{};
-    result.definitionId = codec.read<ColdRef<std::string>>(source.definitionId, property_path(path, "definitionId"));
+    result.definitionId = codec.read<ColdRef<std::string, World_definitionId>>(source.definitionId, property_path(path, "definitionId"));
     result.regions = codec.read<Range<Region>>(source.regions, property_path(path, "regions"));
     result.connections = codec.read<Range<Connection>>(source.connections, property_path(path, "connections"));
     result.sites = codec.read<Range<Site>>(source.sites, property_path(path, "sites"));
@@ -1710,38 +1871,6 @@ browser::World Mapping<World>::write(const Export& codec, const World& source)
     codec.write(result.regions, source.regions);
     codec.write(result.connections, source.connections);
     codec.write(result.sites, source.sites);
-    return result;
-}
-
-StockProvider Mapping<StockProvider>::read(Import& codec, const browser::StockProvider& source, const std::string& path)
-{
-    StockProvider result{};
-    result.kind = codec.read<SymbolId>(source.kind, property_path(path, "kind"));
-    result.regionId = codec.read<RegionId>(source.regionId, property_path(path, "regionId"));
-    result.slotIndex = codec.read<double>(source.slotIndex, property_path(path, "slotIndex"));
-    result.practiceId = codec.read<std::optional<PracticeId>>(source.practiceId, property_path(path, "practiceId"));
-    result.amount = codec.read<double>(source.amount, property_path(path, "amount"));
-    result.traits = codec.read<Range<TraitId>>(source.traits, property_path(path, "traits"));
-    result.paymentFor = codec.read<std::optional<SymbolId>>(source.paymentFor, property_path(path, "paymentFor"));
-    result.marketStockId = codec.read<std::optional<MarketStockId>>(source.marketStockId, property_path(path, "marketStockId"));
-    result.label = codec.read<std::optional<ColdRef<std::string>>>(source.label, property_path(path, "label"));
-    result.unitPrice = codec.read<std::optional<double>>(source.unitPrice, property_path(path, "unitPrice"));
-    return result;
-}
-
-browser::StockProvider Mapping<StockProvider>::write(const Export& codec, const StockProvider& source)
-{
-    browser::StockProvider result{};
-    codec.write(result.kind, source.kind);
-    codec.write(result.regionId, source.regionId);
-    codec.write(result.slotIndex, source.slotIndex);
-    codec.write(result.practiceId, source.practiceId);
-    codec.write(result.amount, source.amount);
-    codec.write(result.traits, source.traits);
-    codec.write(result.paymentFor, source.paymentFor);
-    codec.write(result.marketStockId, source.marketStockId);
-    codec.write(result.label, source.label);
-    codec.write(result.unitPrice, source.unitPrice);
     return result;
 }
 
@@ -1839,13 +1968,65 @@ browser::PracticeEvent Mapping<PracticeEvent>::write(const Export& codec, const 
     return result;
 }
 
+StockTransfersTransfersEntry Mapping<StockTransfersTransfersEntry>::read(Import& codec, const browser::StockTransfersTransfersEntry& source, const std::string& path)
+{
+    StockTransfersTransfersEntry result{};
+    result.transferId = codec.read<HistoryTextId>(source.transferId, property_path(path, "transferId"));
+    result.boundarySec = codec.read<double>(source.boundarySec, property_path(path, "boundarySec"));
+    result.systemId = codec.read<HistoryTextId>(source.systemId, property_path(path, "systemId"));
+    result.resourceId = codec.read<HistoryTextId>(source.resourceId, property_path(path, "resourceId"));
+    result.reason = codec.read<HistoryTextId>(source.reason, property_path(path, "reason"));
+    result.kind = codec.read<HistoryTextId>(source.kind, property_path(path, "kind"));
+    result.sourceRegionId = codec.read<RegionId>(source.sourceRegionId, property_path(path, "sourceRegionId"));
+    result.destinationRegionId = codec.read<RegionId>(source.destinationRegionId, property_path(path, "destinationRegionId"));
+    result.slotIndex = codec.read<double>(source.slotIndex, property_path(path, "slotIndex"));
+    result.practiceId = codec.read<std::optional<PracticeId>>(source.practiceId, property_path(path, "practiceId"));
+    result.traits = codec.read<Range<TraitId>>(source.traits, property_path(path, "traits"));
+    result.amount = codec.read<double>(source.amount, property_path(path, "amount"));
+    return result;
+}
+
+browser::StockTransfersTransfersEntry Mapping<StockTransfersTransfersEntry>::write(const Export& codec, const StockTransfersTransfersEntry& source)
+{
+    browser::StockTransfersTransfersEntry result{};
+    codec.write(result.transferId, source.transferId);
+    codec.write(result.boundarySec, source.boundarySec);
+    codec.write(result.systemId, source.systemId);
+    codec.write(result.resourceId, source.resourceId);
+    codec.write(result.reason, source.reason);
+    codec.write(result.kind, source.kind);
+    codec.write(result.sourceRegionId, source.sourceRegionId);
+    codec.write(result.destinationRegionId, source.destinationRegionId);
+    codec.write(result.slotIndex, source.slotIndex);
+    codec.write(result.practiceId, source.practiceId);
+    codec.write(result.traits, source.traits);
+    codec.write(result.amount, source.amount);
+    return result;
+}
+
+PracticeEventJournalStockTransfers Mapping<PracticeEventJournalStockTransfers>::read(Import& codec, const browser::PracticeEventJournalStockTransfers& source, const std::string& path)
+{
+    PracticeEventJournalStockTransfers result{};
+    result.tSec = codec.read<double>(source.tSec, property_path(path, "tSec"));
+    result.transfers = codec.read<HistoryRef<StockTransfersTransfersEntry, 0, PracticeEventJournalStockTransfers_transfers>>(source.transfers, property_path(path, "transfers"));
+    return result;
+}
+
+browser::PracticeEventJournalStockTransfers Mapping<PracticeEventJournalStockTransfers>::write(const Export& codec, const PracticeEventJournalStockTransfers& source)
+{
+    browser::PracticeEventJournalStockTransfers result{};
+    codec.write(result.tSec, source.tSec);
+    codec.write(result.transfers, source.transfers);
+    return result;
+}
+
 PracticeEventJournal Mapping<PracticeEventJournal>::read(Import& codec, const browser::PracticeEventJournal& source, const std::string& path)
 {
     PracticeEventJournal result{};
     result.nextId = codec.read<double>(source.nextId, property_path(path, "nextId"));
     result.pending = codec.read<Range<PracticeEvent>>(source.pending, property_path(path, "pending"));
-    result.trace = codec.read<ColdRef<browser::DetailedSettlementPracticeActivationTrace>>(source.trace, property_path(path, "trace"));
-    result.stockTransfers = codec.read<std::optional<ColdRef<browser::PracticeEventJournalStockTransfers>>>(source.stockTransfers, property_path(path, "stockTransfers"));
+    result.trace = codec.read<HistoryRef<PracticeEventTrace, 100, PracticeEventJournal_trace>>(source.trace, property_path(path, "trace"));
+    result.stockTransfers = codec.read<std::optional<PracticeEventJournalStockTransfers>>(source.stockTransfers, property_path(path, "stockTransfers"));
     result.activeRoot = codec.read<std::optional<double>>(source.activeRoot, property_path(path, "activeRoot"));
     result.activeEvent = codec.read<std::optional<double>>(source.activeEvent, property_path(path, "activeEvent"));
     return result;
@@ -2065,6 +2246,34 @@ browser::CivilizationResearch Mapping<CivilizationResearch>::write(const Export&
     return result;
 }
 
+CivilizationRetiredVassalsEntry Mapping<CivilizationRetiredVassalsEntry>::read(Import& codec, const browser::CivilizationRetiredVassalsEntry& source, const std::string& path)
+{
+    CivilizationRetiredVassalsEntry result{};
+    result.vassalId = codec.read<VassalId>(source.vassalId, property_path(path, "vassalId"));
+    result.retirementRegionId = codec.read<RegionId>(source.retirementRegionId, property_path(path, "retirementRegionId"));
+    result.classId = codec.read<std::optional<SymbolId>>(source.classId, property_path(path, "classId"));
+    result.completedCommissions = codec.read<double>(source.completedCommissions, property_path(path, "completedCommissions"));
+    result.finalCunning = codec.read<double>(source.finalCunning, property_path(path, "finalCunning"));
+    result.finalWisdom = codec.read<double>(source.finalWisdom, property_path(path, "finalWisdom"));
+    result.finalEffectiveness = codec.read<double>(source.finalEffectiveness, property_path(path, "finalEffectiveness"));
+    result.finalIntelligence = codec.read<double>(source.finalIntelligence, property_path(path, "finalIntelligence"));
+    return result;
+}
+
+browser::CivilizationRetiredVassalsEntry Mapping<CivilizationRetiredVassalsEntry>::write(const Export& codec, const CivilizationRetiredVassalsEntry& source)
+{
+    browser::CivilizationRetiredVassalsEntry result{};
+    codec.write(result.vassalId, source.vassalId);
+    codec.write(result.retirementRegionId, source.retirementRegionId);
+    codec.write(result.classId, source.classId);
+    codec.write(result.completedCommissions, source.completedCommissions);
+    codec.write(result.finalCunning, source.finalCunning);
+    codec.write(result.finalWisdom, source.finalWisdom);
+    codec.write(result.finalEffectiveness, source.finalEffectiveness);
+    codec.write(result.finalIntelligence, source.finalIntelligence);
+    return result;
+}
+
 PhaseModifiers Mapping<PhaseModifiers>::read(Import& codec, const browser::PhaseModifiers& source, const std::string& path)
 {
     PhaseModifiers result{};
@@ -2178,11 +2387,11 @@ browser::LifeMapPendingResolution Mapping<LifeMapPendingResolution>::write(const
 LifeMap Mapping<LifeMap>::read(Import& codec, const browser::LifeMap& source, const std::string& path)
 {
     LifeMap result{};
-    result.graph = codec.read<ColdRef<browser::LifeMapGraph>>(source.graph, property_path(path, "graph"));
+    result.graph = codec.read<ColdRef<browser::LifeMapGraph, LifeMap_graph>>(source.graph, property_path(path, "graph"));
     result.currentNodeId = codec.read<std::optional<NodeId>>(source.currentNodeId, property_path(path, "currentNodeId"));
-    result.completedNodeIds = codec.read<ColdRef<browser::StringArray>>(source.completedNodeIds, property_path(path, "completedNodeIds"));
-    result.availableNodeIds = codec.read<ColdRef<browser::StringArray>>(source.availableNodeIds, property_path(path, "availableNodeIds"));
-    result.nodeStates = codec.read<ColdRef<browser::LifeMapNodeStates>>(source.nodeStates, property_path(path, "nodeStates"));
+    result.completedNodeIds = codec.read<HistoryRef<NodeId, 0, LifeMap_completedNodeIds>>(source.completedNodeIds, property_path(path, "completedNodeIds"));
+    result.availableNodeIds = codec.read<ColdRef<browser::StringArray, LifeMap_availableNodeIds>>(source.availableNodeIds, property_path(path, "availableNodeIds"));
+    result.nodeStates = codec.read<ColdRef<browser::LifeMapNodeStates, LifeMap_nodeStates>>(source.nodeStates, property_path(path, "nodeStates"));
     result.pendingResolution = codec.read<std::optional<LifeMapPendingResolution>>(source.pendingResolution, property_path(path, "pendingResolution"));
     return result;
 }
@@ -2199,25 +2408,93 @@ browser::LifeMap Mapping<LifeMap>::write(const Export& codec, const LifeMap& sou
     return result;
 }
 
+LifeEventsIntervention Mapping<LifeEventsIntervention>::read(Import& codec, const browser::LifeEventsIntervention& source, const std::string& path)
+{
+    LifeEventsIntervention result{};
+    result.kind = codec.read<HistoryTextId>(source.kind, property_path(path, "kind"));
+    result.targetRegionId = codec.read<RegionId>(source.targetRegionId, property_path(path, "targetRegionId"));
+    result.practiceId = codec.read<std::optional<PracticeId>>(source.practiceId, property_path(path, "practiceId"));
+    result.mode = codec.read<HistoryTextId>(source.mode, property_path(path, "mode"));
+    result.tier = codec.read<HistoryTextId>(source.tier, property_path(path, "tier"));
+    result.resultingTier = codec.read<std::optional<HistoryTextId>>(source.resultingTier, property_path(path, "resultingTier"));
+    result.instanceId = codec.read<std::optional<InstanceId>>(source.instanceId, property_path(path, "instanceId"));
+    result.structureId = codec.read<std::optional<StructureId>>(source.structureId, property_path(path, "structureId"));
+    result.qualityBonus = codec.read<std::optional<double>>(source.qualityBonus, property_path(path, "qualityBonus"));
+    result.capacity = codec.read<std::optional<double>>(source.capacity, property_path(path, "capacity"));
+    return result;
+}
+
+browser::LifeEventsIntervention Mapping<LifeEventsIntervention>::write(const Export& codec, const LifeEventsIntervention& source)
+{
+    browser::LifeEventsIntervention result{};
+    codec.write(result.kind, source.kind);
+    codec.write(result.targetRegionId, source.targetRegionId);
+    codec.write(result.practiceId, source.practiceId);
+    codec.write(result.mode, source.mode);
+    codec.write(result.tier, source.tier);
+    codec.write(result.resultingTier, source.resultingTier);
+    codec.write(result.instanceId, source.instanceId);
+    codec.write(result.structureId, source.structureId);
+    codec.write(result.qualityBonus, source.qualityBonus);
+    codec.write(result.capacity, source.capacity);
+    return result;
+}
+
+VassalLifeEventsEntry Mapping<VassalLifeEventsEntry>::read(Import& codec, const browser::VassalLifeEventsEntry& source, const std::string& path)
+{
+    VassalLifeEventsEntry result{};
+    result.eventId = codec.read<HistoryTextId>(source.eventId, property_path(path, "eventId"));
+    result.kind = codec.read<EventKindId>(source.kind, property_path(path, "kind"));
+    result.tSec = codec.read<double>(source.tSec, property_path(path, "tSec"));
+    result.text = codec.read<std::optional<HistoryTextId>>(source.text, property_path(path, "text"));
+    result.nodeId = codec.read<std::optional<NodeId>>(source.nodeId, property_path(path, "nodeId"));
+    result.offerId = codec.read<std::optional<HistoryTextId>>(source.offerId, property_path(path, "offerId"));
+    result.intervention = codec.read<std::optional<LifeEventsIntervention>>(source.intervention, property_path(path, "intervention"));
+    result.result = codec.read<std::optional<HistoryTextId>>(source.result, property_path(path, "result"));
+    result.age = codec.read<std::optional<double>>(source.age, property_path(path, "age"));
+    result.choiceId = codec.read<std::optional<HistoryTextId>>(source.choiceId, property_path(path, "choiceId"));
+    result.statId = codec.read<std::optional<HistoryTextId>>(source.statId, property_path(path, "statId"));
+    result.causeOfDeath = codec.read<browser::OptionalNullable<HistoryTextId>>(source.causeOfDeath, property_path(path, "causeOfDeath"));
+    return result;
+}
+
+browser::VassalLifeEventsEntry Mapping<VassalLifeEventsEntry>::write(const Export& codec, const VassalLifeEventsEntry& source)
+{
+    browser::VassalLifeEventsEntry result{};
+    codec.write(result.eventId, source.eventId);
+    codec.write(result.kind, source.kind);
+    codec.write(result.tSec, source.tSec);
+    codec.write(result.text, source.text);
+    codec.write(result.nodeId, source.nodeId);
+    codec.write(result.offerId, source.offerId);
+    codec.write(result.intervention, source.intervention);
+    codec.write(result.result, source.result);
+    codec.write(result.age, source.age);
+    codec.write(result.choiceId, source.choiceId);
+    codec.write(result.statId, source.statId);
+    codec.write(result.causeOfDeath, source.causeOfDeath);
+    return result;
+}
+
 CommissionOffer Mapping<CommissionOffer>::read(Import& codec, const browser::CommissionOffer& source, const std::string& path)
 {
     CommissionOffer result{};
     result.id = codec.read<SymbolId>(source.id, property_path(path, "id"));
     result.difficulty = codec.read<SymbolId>(source.difficulty, property_path(path, "difficulty"));
-    result.label = codec.read<ColdRef<std::string>>(source.label, property_path(path, "label"));
-    result.description = codec.read<ColdRef<std::string>>(source.description, property_path(path, "description"));
+    result.label = codec.read<ColdRef<std::string, CommissionOffer_label>>(source.label, property_path(path, "label"));
+    result.description = codec.read<ColdRef<std::string, CommissionOffer_description>>(source.description, property_path(path, "description"));
     result.event = codec.read<SymbolId>(source.event, property_path(path, "event"));
     result.prestige = codec.read<double>(source.prestige, property_path(path, "prestige"));
     result.offerId = codec.read<SymbolId>(source.offerId, property_path(path, "offerId"));
     result.parameter = codec.read<std::optional<SymbolId>>(source.parameter, property_path(path, "parameter"));
     result.tag = codec.read<std::optional<TagId>>(source.tag, property_path(path, "tag"));
     result.statId = codec.read<std::optional<SymbolId>>(source.statId, property_path(path, "statId"));
-    result.statLabel = codec.read<std::optional<ColdRef<std::string>>>(source.statLabel, property_path(path, "statLabel"));
+    result.statLabel = codec.read<std::optional<ColdRef<std::string, CommissionOffer_statLabel>>>(source.statLabel, property_path(path, "statLabel"));
     result.regionId = codec.read<std::optional<RegionId>>(source.regionId, property_path(path, "regionId"));
-    result.locationLabel = codec.read<std::optional<ColdRef<std::string>>>(source.locationLabel, property_path(path, "locationLabel"));
+    result.locationLabel = codec.read<std::optional<ColdRef<std::string, CommissionOffer_locationLabel>>>(source.locationLabel, property_path(path, "locationLabel"));
     result.minimumQuality = codec.read<std::optional<SymbolId>>(source.minimumQuality, property_path(path, "minimumQuality"));
     result.nodeFamily = codec.read<std::optional<SymbolId>>(source.nodeFamily, property_path(path, "nodeFamily"));
-    result.nodeLabel = codec.read<std::optional<ColdRef<std::string>>>(source.nodeLabel, property_path(path, "nodeLabel"));
+    result.nodeLabel = codec.read<std::optional<ColdRef<std::string, CommissionOffer_nodeLabel>>>(source.nodeLabel, property_path(path, "nodeLabel"));
     result.amount = codec.read<std::optional<double>>(source.amount, property_path(path, "amount"));
     return result;
 }
@@ -2250,20 +2527,20 @@ ActiveCommission Mapping<ActiveCommission>::read(Import& codec, const browser::A
     ActiveCommission result{};
     result.id = codec.read<SymbolId>(source.id, property_path(path, "id"));
     result.difficulty = codec.read<SymbolId>(source.difficulty, property_path(path, "difficulty"));
-    result.label = codec.read<ColdRef<std::string>>(source.label, property_path(path, "label"));
-    result.description = codec.read<ColdRef<std::string>>(source.description, property_path(path, "description"));
+    result.label = codec.read<ColdRef<std::string, ActiveCommission_label>>(source.label, property_path(path, "label"));
+    result.description = codec.read<ColdRef<std::string, ActiveCommission_description>>(source.description, property_path(path, "description"));
     result.event = codec.read<SymbolId>(source.event, property_path(path, "event"));
     result.prestige = codec.read<double>(source.prestige, property_path(path, "prestige"));
     result.offerId = codec.read<SymbolId>(source.offerId, property_path(path, "offerId"));
     result.parameter = codec.read<std::optional<SymbolId>>(source.parameter, property_path(path, "parameter"));
     result.tag = codec.read<std::optional<TagId>>(source.tag, property_path(path, "tag"));
     result.statId = codec.read<std::optional<SymbolId>>(source.statId, property_path(path, "statId"));
-    result.statLabel = codec.read<std::optional<ColdRef<std::string>>>(source.statLabel, property_path(path, "statLabel"));
+    result.statLabel = codec.read<std::optional<ColdRef<std::string, ActiveCommission_statLabel>>>(source.statLabel, property_path(path, "statLabel"));
     result.regionId = codec.read<std::optional<RegionId>>(source.regionId, property_path(path, "regionId"));
-    result.locationLabel = codec.read<std::optional<ColdRef<std::string>>>(source.locationLabel, property_path(path, "locationLabel"));
+    result.locationLabel = codec.read<std::optional<ColdRef<std::string, ActiveCommission_locationLabel>>>(source.locationLabel, property_path(path, "locationLabel"));
     result.minimumQuality = codec.read<std::optional<SymbolId>>(source.minimumQuality, property_path(path, "minimumQuality"));
     result.nodeFamily = codec.read<std::optional<SymbolId>>(source.nodeFamily, property_path(path, "nodeFamily"));
-    result.nodeLabel = codec.read<std::optional<ColdRef<std::string>>>(source.nodeLabel, property_path(path, "nodeLabel"));
+    result.nodeLabel = codec.read<std::optional<ColdRef<std::string, ActiveCommission_nodeLabel>>>(source.nodeLabel, property_path(path, "nodeLabel"));
     result.amount = codec.read<std::optional<double>>(source.amount, property_path(path, "amount"));
     result.acceptedSec = codec.read<double>(source.acceptedSec, property_path(path, "acceptedSec"));
     result.progress = codec.read<double>(source.progress, property_path(path, "progress"));
@@ -2308,22 +2585,22 @@ Vassal Mapping<Vassal>::read(Import& codec, const browser::Vassal& source, const
     result.originRegionId = codec.read<RegionId>(source.originRegionId, property_path(path, "originRegionId"));
     result.prestige = codec.read<double>(source.prestige, property_path(path, "prestige"));
     result.stats = codec.read<VassalStats>(source.stats, property_path(path, "stats"));
-    result.portrait = codec.read<ColdRef<browser::Portrait>>(source.portrait, property_path(path, "portrait"));
-    result.signatureNode = codec.read<std::optional<ColdRef<browser::SignatureNode>>>(source.signatureNode, property_path(path, "signatureNode"));
+    result.portrait = codec.read<ColdRef<browser::Portrait, Vassal_portrait>>(source.portrait, property_path(path, "portrait"));
+    result.signatureNode = codec.read<std::optional<ColdRef<browser::SignatureNode, Vassal_signatureNode>>>(source.signatureNode, property_path(path, "signatureNode"));
     result.vassalId = codec.read<VassalId>(source.vassalId, property_path(path, "vassalId"));
     result.initialAge = codec.read<double>(source.initialAge, property_path(path, "initialAge"));
     result.selectedSec = codec.read<double>(source.selectedSec, property_path(path, "selectedSec"));
     result.selectedYear = codec.read<double>(source.selectedYear, property_path(path, "selectedYear"));
     result.developmentProgress = codec.read<double>(source.developmentProgress, property_path(path, "developmentProgress"));
-    result.developmentChoiceQueue = codec.read<ColdRef<browser::VassalDevelopmentChoiceQueue>>(source.developmentChoiceQueue, property_path(path, "developmentChoiceQueue"));
+    result.developmentChoiceQueue = codec.read<ColdRef<browser::VassalDevelopmentChoiceQueue, Vassal_developmentChoiceQueue>>(source.developmentChoiceQueue, property_path(path, "developmentChoiceQueue"));
     result.nextDevelopmentChoiceId = codec.read<double>(source.nextDevelopmentChoiceId, property_path(path, "nextDevelopmentChoiceId"));
     result.lifeMap = codec.read<LifeMap>(source.lifeMap, property_path(path, "lifeMap"));
-    result.lifeEvents = codec.read<ColdRef<browser::VassalLifeEvents>>(source.lifeEvents, property_path(path, "lifeEvents"));
+    result.lifeEvents = codec.read<HistoryRef<VassalLifeEventsEntry, 0, Vassal_lifeEvents>>(source.lifeEvents, property_path(path, "lifeEvents"));
     result.isDead = codec.read<bool>(source.isDead, property_path(path, "isDead"));
     result.endedReason = codec.read<std::optional<SymbolId>>(source.endedReason, property_path(path, "endedReason"));
     result.deathCause = codec.read<std::optional<SymbolId>>(source.deathCause, property_path(path, "deathCause"));
     result.endSec = codec.read<std::optional<double>>(source.endSec, property_path(path, "endSec"));
-    result.heirlooms = codec.read<ColdRef<browser::VassalHeirlooms>>(source.heirlooms, property_path(path, "heirlooms"));
+    result.heirlooms = codec.read<ColdRef<browser::VassalHeirlooms, Vassal_heirlooms>>(source.heirlooms, property_path(path, "heirlooms"));
     result.commissionOffers = codec.read<std::optional<Range<CommissionOffer>>>(source.commissionOffers, property_path(path, "commissionOffers"));
     result.deathSec = codec.read<std::optional<double>>(source.deathSec, property_path(path, "deathSec"));
     result.discoveryAccess = codec.read<std::optional<bool>>(source.discoveryAccess, property_path(path, "discoveryAccess"));
@@ -2379,12 +2656,12 @@ Lineage Mapping<Lineage>::read(Import& codec, const browser::Lineage& source, co
     result.currentVassalId = codec.read<std::optional<VassalId>>(source.currentVassalId, property_path(path, "currentVassalId"));
     result.selectedVassalIds = codec.read<Range<VassalId>>(source.selectedVassalIds, property_path(path, "selectedVassalIds"));
     result.vassalsById = codec.read<Range<Entry<VassalId, Vassal>>>(source.vassalsById, property_path(path, "vassalsById"));
-    result.pendingCandidates = codec.read<ColdRef<browser::LineagePendingCandidates>>(source.pendingCandidates, property_path(path, "pendingCandidates"));
+    result.pendingCandidates = codec.read<ColdRef<browser::LineagePendingCandidates, Lineage_pendingCandidates>>(source.pendingCandidates, property_path(path, "pendingCandidates"));
     result.candidateRerollCount = codec.read<double>(source.candidateRerollCount, property_path(path, "candidateRerollCount"));
     result.nextHeirloomInstanceId = codec.read<double>(source.nextHeirloomInstanceId, property_path(path, "nextHeirloomInstanceId"));
     result.pendingHeirloomLoadout = codec.read<bool>(source.pendingHeirloomLoadout, property_path(path, "pendingHeirloomLoadout"));
-    result.pendingVaultOverflow = codec.read<std::optional<ColdRef<browser::HeirloomArray>>>(source.pendingVaultOverflow, property_path(path, "pendingVaultOverflow"));
-    result.lastInheritanceReport = codec.read<std::optional<ColdRef<browser::LineageLastInheritanceReport>>>(source.lastInheritanceReport, property_path(path, "lastInheritanceReport"));
+    result.pendingVaultOverflow = codec.read<std::optional<ColdRef<browser::HeirloomArray, Lineage_pendingVaultOverflow>>>(source.pendingVaultOverflow, property_path(path, "pendingVaultOverflow"));
+    result.lastInheritanceReport = codec.read<std::optional<ColdRef<browser::LineageLastInheritanceReport, Lineage_lastInheritanceReport>>>(source.lastInheritanceReport, property_path(path, "lastInheritanceReport"));
     return result;
 }
 
@@ -2501,11 +2778,11 @@ Civilization Mapping<Civilization>::read(Import& codec, const browser::Civilizat
     result.chaos = codec.read<CivilizationChaos>(source.chaos, property_path(path, "chaos"));
     result.history = codec.read<CivilizationHistory>(source.history, property_path(path, "history"));
     result.research = codec.read<CivilizationResearch>(source.research, property_path(path, "research"));
-    result.retiredVassals = codec.read<ColdRef<browser::CivilizationRetiredVassals>>(source.retiredVassals, property_path(path, "retiredVassals"));
+    result.retiredVassals = codec.read<HistoryRef<CivilizationRetiredVassalsEntry, 0, Civilization_retiredVassals>>(source.retiredVassals, property_path(path, "retiredVassals"));
     result.phaseModifiers = codec.read<PhaseModifiers>(source.phaseModifiers, property_path(path, "phaseModifiers"));
     result.green = codec.read<CivilizationGreen>(source.green, property_path(path, "green"));
     result.vassalLegacy = codec.read<CivilizationVassalLegacy>(source.vassalLegacy, property_path(path, "vassalLegacy"));
-    result.heirloomVault = codec.read<ColdRef<browser::VaultSlots>>(source.heirloomVault, property_path(path, "heirloomVault"));
+    result.heirloomVault = codec.read<ColdRef<browser::VaultSlots, Civilization_heirloomVault>>(source.heirloomVault, property_path(path, "heirloomVault"));
     result.vassalLineage = codec.read<Lineage>(source.vassalLineage, property_path(path, "vassalLineage"));
     result.currentMoonTurn = codec.read<std::optional<MoonTurn>>(source.currentMoonTurn, property_path(path, "currentMoonTurn"));
     result.lastMoonTurn = codec.read<std::optional<MoonTurn>>(source.lastMoonTurn, property_path(path, "lastMoonTurn"));
@@ -2543,6 +2820,20 @@ browser::Civilization Mapping<Civilization>::write(const Export& codec, const Ci
     return result;
 }
 
+LegacyFeedEntry Mapping<LegacyFeedEntry>::read(Import& codec, const browser::LegacyFeedEntry& source, const std::string& path)
+{
+    LegacyFeedEntry result{};
+    result.id = codec.read<double>(source.id, property_path(path, "id"));
+    return result;
+}
+
+browser::LegacyFeedEntry Mapping<LegacyFeedEntry>::write(const Export& codec, const LegacyFeedEntry& source)
+{
+    browser::LegacyFeedEntry result{};
+    codec.write(result.id, source.id);
+    return result;
+}
+
 SkillModifiersGlobal Mapping<SkillModifiersGlobal>::read(Import& codec, const browser::SkillModifiersGlobal& source, const std::string& path)
 {
     SkillModifiersGlobal result{};
@@ -2567,7 +2858,7 @@ SkillModifiers Mapping<SkillModifiers>::read(Import& codec, const browser::Skill
 {
     SkillModifiers result{};
     result.global = codec.read<SkillModifiersGlobal>(source.global, property_path(path, "global"));
-    result.pawnById = codec.read<ColdRef<browser::SkillModifiersPawnById>>(source.pawnById, property_path(path, "pawnById"));
+    result.pawnById = codec.read<ColdRef<browser::SkillModifiersPawnById, SkillModifiers_pawnById>>(source.pawnById, property_path(path, "pawnById"));
     return result;
 }
 
@@ -2583,7 +2874,7 @@ SkillRuntime Mapping<SkillRuntime>::read(Import& codec, const browser::SkillRunt
 {
     SkillRuntime result{};
     result.modifiers = codec.read<SkillModifiers>(source.modifiers, property_path(path, "modifiers"));
-    result.unlocks = codec.read<ColdRef<browser::SkillRuntimeUnlocks>>(source.unlocks, property_path(path, "unlocks"));
+    result.unlocks = codec.read<ColdRef<browser::SkillRuntimeUnlocks, SkillRuntime_unlocks>>(source.unlocks, property_path(path, "unlocks"));
     return result;
 }
 
@@ -2661,11 +2952,11 @@ HotState Mapping<HotState>::read(Import& codec, const browser::GameState& source
     result.variantFlags = codec.read<VariantFlags>(source.variantFlags, property_path(path, "variantFlags"));
     result.world = codec.read<World>(source.world, property_path(path, "world"));
     result.civilization = codec.read<Civilization>(source.civilization, property_path(path, "civilization"));
-    result.gameEventFeed = codec.read<ColdRef<browser::LegacyFeed>>(source.gameEventFeed, property_path(path, "gameEventFeed"));
+    result.gameEventFeed = codec.read<HistoryRef<LegacyFeedEntry, 0, GameState_gameEventFeed>>(source.gameEventFeed, property_path(path, "gameEventFeed"));
     result.nextGameEventFeedId = codec.read<double>(source.nextGameEventFeedId, property_path(path, "nextGameEventFeedId"));
-    result.skillProgressionDefs = codec.read<std::optional<ColdRef<core::json::Value>>>(source.skillProgressionDefs, property_path(path, "skillProgressionDefs"));
+    result.skillProgressionDefs = codec.read<std::optional<ColdRef<core::json::Value, GameState_skillProgressionDefs>>>(source.skillProgressionDefs, property_path(path, "skillProgressionDefs"));
     result.skillRuntime = codec.read<SkillRuntime>(source.skillRuntime, property_path(path, "skillRuntime"));
-    result.persistentKnowledge = codec.read<ColdRef<browser::PersistentKnowledge>>(source.persistentKnowledge, property_path(path, "persistentKnowledge"));
+    result.persistentKnowledge = codec.read<ColdRef<browser::PersistentKnowledge, GameState_persistentKnowledge>>(source.persistentKnowledge, property_path(path, "persistentKnowledge"));
     result.rng = codec.read<core::RngState>(source.rng, property_path(path, "rng"));
     result.rulesetId = codec.read<std::optional<browser::FullMapRuleset>>(source.rulesetId, property_path(path, "rulesetId"));
     result.runStatus = codec.read<std::optional<RunStatus>>(source.runStatus, property_path(path, "runStatus"));

@@ -21,7 +21,10 @@ execute_process(COMMAND "${parity}" runtime-stats "${input}"
 string(JSON sites GET "${stats}" sites)
 string(JSON hot_bytes GET "${stats}" hotBytes)
 string(JSON copies GET "${stats}" copySamples)
-if(NOT sites EQUAL 20 OR hot_bytes LESS 1 OR NOT copies EQUAL 101)
+string(JSON trace_cursors GET "${stats}" coldSubtrees PracticeEventJournal.trace cursors)
+string(JSON trace_bytes GET "${stats}" coldSubtrees PracticeEventJournal.trace liveBytes)
+if(NOT sites EQUAL 20 OR hot_bytes LESS 1 OR NOT copies EQUAL 101 OR
+		NOT trace_cursors EQUAL 1 OR trace_bytes LESS 1)
 	message(FATAL_ERROR "unexpected runtime statistics: ${stats}")
 endif()
 
