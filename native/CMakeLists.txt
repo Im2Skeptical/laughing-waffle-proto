@@ -33,6 +33,7 @@ if(NOT ANDROID)
 	enable_testing()
 endif()
 add_subdirectory(src/core)
+add_subdirectory(src/sim)
 
 include("${CMAKE_CURRENT_LIST_DIR}/cmake/dependencies.cmake")
 
