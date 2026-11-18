@@ -65,7 +65,7 @@ layers, filters and clip masks remain outside this bootstrap. It is not the
 final graphics-backend decision. N02 owns representative effects and Pixel 6
 proof. N03 owns arithmetic/serialization contracts and native simulation.
 
-## N02a - Representative presentation slice on Windows (active)
+## N02a - Representative presentation slice on Windows (done)
 
 Render existing map and card artwork and a representative inspector using
 RmlUi. Exercise layering, clipping, scrolling, long text, changing numbers,
@@ -78,6 +78,23 @@ Done when the slice runs on Windows from the documented commands, with
 reproducible startup/frame-time/memory baselines, and the backend decision and
 required effects are documented. Synthetic UI timings are not full-game
 performance measurements.
+
+Result, 19 Nov 2026 (merged from `t3/native-presentation-slice` 9b3da861).
+The slice shows a layered regional map with pan and zoom, five illustrated
+Practice cards and an RmlUi inspector. The inspector has long scrolling text,
+live numbers and a nested contribution ledger that restores scroll position on
+Back. Mouse and SDL finger input give press feedback, and resize works at
+844x390. Image decoding uses stb_image 2.30 (PNG only, pinned by SHA-256).
+Backend: SDL_Renderer is kept provisionally. The slice uses only transforms
+and scissors; the headless test recorded no clip-mask, layer or filter
+requests. The bridge passed smoke on D3D11 and on SDL's GPU-backed D3D12 and
+Vulkan. Direct SDL_GPU remains the path for stencil and shader effects.
+Optimized bench, 1120x510 on an i9-10900K with an RTX 3080, D3D11 x3:
+first present about 0.5 s. Frame p50/p95/p99 0.45/2.3/2.6 ms; CPU-side p99
+about 0.6 ms. Working set 131 MiB; estimated textures 83 MiB, of which the
+card atlas is about 60 MiB. The supervisor's merged optimized build passed
+6/6 CTests and `--smoke`. Unverified: the updated Android build, Pixel 6,
+lifecycle and sustained behavior (N02b). These are desktop baselines only.
 
 ## N02b - Pixel 6 device validation (blocked: needs Cam and the device)
 
