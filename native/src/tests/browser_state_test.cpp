@@ -1,5 +1,7 @@
 #include "sim/browser/generated/game_state.hpp"
+#include "sim/state/runtime_state.hpp"
 #include "tools/json_file.hpp"
+#include "core/sha256.hpp"
 
 #include <algorithm>
 #include <filesystem>
@@ -10,6 +12,8 @@
 namespace {
 
 namespace browser = waffle::sim::browser;
+namespace sim = waffle::sim;
+namespace runtime = waffle::sim::runtime;
 namespace fs = std::filesystem;
 namespace json = waffle::core::json;
 using json::Value;
@@ -35,11 +39,12 @@ Hashes read_hashes(const fs::path& path)
     return hashes;
 }
 
-void round_trip(const fs::path& path, const Hashes* trace)
+void round_trip(const fs::path& path, const Hashes* trace, bool throughRuntime)
 {
     const auto input = json::parse(read_file(path));
     const auto state = browser::import_game_state(input);
-    const auto output = browser::export_game_state(state);
+    const auto output = browser::export_game_state(
+        throughRuntime ? sim::export_runtime(sim::import_runtime(state)) : state);
     const auto observed = json::sha256_value(output);
     const auto original = json::sha256_value(input);
     expect(observed == original, "input hash " + original + " differs from round-trip hash " + observed);
@@ -64,7 +69,7 @@ void rejected(const Value& input, std::string_view path, std::string_view reason
     throw std::runtime_error("expected rejection at " + std::string(path));
 }
 
-void controls(const fs::path& path)
+void controls(const fs::path& path, bool throughRuntime)
 {
     const auto original = json::parse(read_file(path));
     auto changed = original;
@@ -120,7 +125,8 @@ void controls(const fs::path& path)
     expect(pending[2].targetRegionId.has_key() && pending[2].targetRegionId.value() == "region", "present tri-state value");
     expect(state.tSec == 9007199254740992.0, "wide integer remains binary64");
 
-    const auto exported = browser::export_game_state(state);
+    const auto exported = browser::export_game_state(
+        throughRuntime ? sim::export_runtime(sim::import_runtime(state)) : state);
     const auto& object = exported.as_object();
     expect(object[0].key == "gameStateSchemaVersion" && object[1].key == "phase", "schema record order");
     const auto& exported_civ = *exported.find("civilization");
@@ -134,7 +140,99 @@ void controls(const fs::path& path)
     expect(json::sha256_value(exported) == json::sha256_value(changed), "controls round-trip hash");
 }
 
+template<class Change>
+void rejected_runtime(browser::GameState state, Change change, std::string_view path)
+{
+    change(state);
+    try {
+        sim::import_runtime(state);
+    } catch (const std::invalid_argument& error) {
+        expect(std::string_view(error.what()).starts_with(std::string(path) + ": "),
+               "expected import error at " + std::string(path) + ", got " + error.what());
+        return;
+    }
+    throw std::runtime_error("expected runtime rejection at " + std::string(path));
+}
+
+void runtime_controls(const fs::path& path)
+{
+    controls(path, true);
+    const auto input = json::parse(read_file(path));
+    const auto mirror = browser::import_game_state(input);
+    const auto state = sim::import_runtime(mirror);
+    const auto hash = [](const sim::RuntimeState& value) {
+        return json::sha256_value(browser::export_game_state(sim::export_runtime(value)));
+    };
+    const auto expected = json::sha256_value(input);
+    expect(state.content->configHash ==
+           waffle::core::sha256_text(json::stringify(browser::export_game_config(mirror.gameConfig))),
+           "captured config hash");
+    expect(state.content->config.gamepieces.practices.front().first ==
+           state.name(runtime::PracticeId{0}), "definition ordinals follow config dictionary order");
+    expect(state.hot.rng.baseSeed == mirror.rng.baseSeed, "RNG provenance");
+    for (const auto& site : state.tables.view(state.hot.world.sites)) {
+        const auto& source = mirror.world.sites.at(site.id.value);
+        expect(state.name(site.id) == source.id, "authored site order");
+        expect(state.indexes.sitesByRegion.at(site.regionId.value) == site.id, "direct region to site index");
+        const auto& board = site.detailedState.structureSlots;
+        const auto cells = state.tables.view(board.footprint);
+        for (const auto& structure : state.tables.view(board.origins)) {
+            for (const auto cell : cells.subspan(structure.origin, structure.width))
+                expect(&state.tables.at(cell) == &structure, "structure footprint refers to its sole origin");
+        }
+    }
+
+    auto hot = state;
+    expect(hot.content == state.content, "copies share immutable captured content");
+    hot.hot.rng.seed += 1;
+    hot.practiceCharge.at(0) += 1;
+    hot.practiceStock.at(0) = hot.practiceStock.at(0).value_or(0) + 1;
+    hot.jointCounts.at(0) += 1;
+    hot.tables.rows<runtime::Region>().at(0).lostAtSec = 1;
+    const auto fresh = hot.intern<runtime::InstanceId>("runtime-copy-only", "$.test");
+    expect(hot.name(fresh) == "runtime-copy-only" && !state.find_id<runtime::InstanceId>("runtime-copy-only"),
+           "post-admission IDs are value-owned");
+    sim::rebuild_runtime_indexes(hot);
+    expect(hash(hot) != expected && hash(state) == expected, "hot copy is independent");
+
+    auto cold = state;
+    const auto& firstSite = cold.tables.view(cold.hot.world.sites).front();
+    cold.cold.at(firstSite.name.row) += " (copy)";
+    cold.cold.at(cold.hot.gameEventFeed.row).push_back({42});
+    expect(hash(cold) != expected && hash(state) == expected, "cold copy is independent");
+
+    auto legacy = mirror;
+    auto& residency = legacy.world.sites[0].detailedState.populationByClass.villager;
+    residency.joint.reset();
+    const auto importedLegacy = sim::import_runtime(legacy);
+    const auto& totals = importedLegacy.indexes.sites.at(0).byResidency[0];
+    expect(totals.children == residency.children && totals.adults == residency.adults,
+           "class-row totals survive an absent joint ledger");
+    expect(!sim::export_runtime(importedLegacy).world.sites[0].detailedState.populationByClass.villager.joint,
+           "absent joint ledger stays absent");
+
+    auto reordered = mirror;
+    auto& defs = reordered.gameConfig.gamepieces.practices;
+    std::swap(defs.at(0), defs.at(1));
+    const auto reorderedState = sim::import_runtime(reordered);
+    expect(reorderedState.content->configHash != state.content->configHash &&
+           reorderedState.name(runtime::PracticeId{0}) == defs.front().first,
+           "definition dictionary order participates in the content identity");
+
+    rejected_runtime(mirror, [](auto& changed) { changed.world.sites[0].regionId = "missing"; },
+                     "$.world.sites[0].regionId");
+    rejected_runtime(mirror, [](auto& changed) { changed.world.regions[0].structureCapacity = 0x1p32; },
+                     "$.world.regions[0].structureCapacity");
+    rejected_runtime(mirror, [](auto& changed) {
+        auto& board = changed.world.sites[0].detailedState.structureSlots;
+        auto slot = std::find_if(board.begin(), board.end(), [](const auto& cell) { return cell.has_value(); });
+        expect(slot == board.begin(), "fixture has an origin at cell zero");
+        (*slot)->width = 0;
+    }, "$.world.sites[0].detailedState.structureSlots[0].width");
+}
+
 struct Batch {
+    bool throughRuntime = false;
     std::size_t tried = 0;
     std::size_t passed = 0;
 
@@ -142,7 +240,7 @@ struct Batch {
     {
         ++tried;
         try {
-            round_trip(path, trace);
+            round_trip(path, trace, throughRuntime);
             ++passed;
         } catch (const std::exception& error) {
             if (tried - passed <= 12) std::cerr << path.string() << ": " << error.what() << '\n';
@@ -185,12 +283,12 @@ void print_batch(std::string_view label, const Batch& batch)
     std::cout << label << ": " << batch.passed << " passed of " << batch.tried << " tried.\n";
 }
 
-int corpus(int argc, char** argv)
+int corpus(int argc, char** argv, bool throughRuntime)
 {
-    Batch traces;
+    Batch traces{throughRuntime};
     check_traces(traces, argv[2]);
     print_batch("Trace states", traces);
-    Batch snapshots;
+    Batch snapshots{throughRuntime};
     for (int i = 3; i < argc; ++i) check_directory(snapshots, argv[i], nullptr);
     print_batch("Schema snapshots", snapshots);
     return traces.tried == traces.passed && snapshots.tried == snapshots.passed ? 0 : 1;
@@ -202,21 +300,26 @@ int main(int argc, char** argv)
 {
     try {
         const std::string_view command = argc > 1 ? argv[1] : "";
-        if (command == "fixtures" && argc == 5) {
+        if ((command == "fixtures" || command == "runtime-fixtures") && argc == 5) {
             const auto hashes = read_hashes(argv[4]);
-            Batch fixtures;
+            Batch fixtures{command == "runtime-fixtures"};
             fixtures.check(argv[2], &hashes);
             fixtures.check(argv[3], &hashes);
             print_batch("Checked-in states", fixtures);
             return fixtures.tried == fixtures.passed ? 0 : 1;
         }
         if (command == "controls" && argc == 3) {
-            controls(argv[2]);
+            controls(argv[2], false);
             return 0;
         }
-        if (command == "corpus" && argc >= 4) return corpus(argc, argv);
-        throw std::invalid_argument("expected fixtures <core-state> <trace-state> <hashes.tsv>, "
-                                    "controls <state>, or corpus <traces-dir> <snapshots-dir> [...]");
+        if (command == "runtime-controls" && argc == 3) {
+            runtime_controls(argv[2]);
+            return 0;
+        }
+        if ((command == "corpus" || command == "runtime-corpus") && argc >= 4)
+            return corpus(argc, argv, command == "runtime-corpus");
+        throw std::invalid_argument("expected fixtures or runtime-fixtures <core-state> <trace-state> <hashes.tsv>, "
+                                    "controls or runtime-controls <state>, or corpus or runtime-corpus <traces-dir> <snapshots-dir> [...]");
     } catch (const std::exception& error) {
         std::cerr << error.what() << '\n';
         return 1;

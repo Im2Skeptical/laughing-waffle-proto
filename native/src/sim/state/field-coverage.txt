@@ -1,0 +1,399 @@
+# Every field of each traversed mirror record has a mapping policy.
+# See ../README.md for the policy legend and how to update this map.
+
+[ActiveCommission]
+hot prestige amount acceptedSec progress startingStat
+cold label description statLabel locationLabel nodeLabel
+RegionId regionId
+TagId tag
+SymbolId id difficulty event offerId parameter statId minimumQuality nodeFamily
+
+[AgeCounts]
+hot eldersByAge
+u64 children adults
+
+[ApCapOverride]
+hot enabled cap points
+
+[BirthByClass]
+hot villager stranger
+
+[ByClassStranger]
+hot demand consumed ratio migrants
+SymbolId previousHappiness targetHappiness
+
+[ByClassVillager]
+hot demand consumed ratio migrants
+SymbolId previousHappiness targetHappiness
+
+[CandidateDevelopment]
+hot scholar warrior
+
+[ChaosLastMonsterSpawn]
+hot tSec cause outcome strengthBefore strengthAfter
+RegionId sourceRegionId targetRegionId
+
+[ChaosLastMoonIncome]
+hot prematureDeaths oldAgeDeaths externalEmigrants primordialPressure unrestPressure prematureDeathPressure prematureDeathMitigation externalEmigrationPressure oldAgeDeathPressure internalMigrationPressure rawPressure faithPopulation resistance populationResistance incomingChaos totalIncome accumulatedChaos spawned
+
+[ChaosPendingLosses]
+hot prematureDeaths oldAgeDeaths externalEmigrants internalMigrants prematureDeathMitigation
+
+[Civilization]
+hot practiceEvents candidateDevelopment chaos history research phaseModifiers green vassalLegacy vassalLineage currentMoonTurn lastMoonTurn lastPopulationAgingYear prestige treasury nextPracticeInstanceId remnant
+RegionId capitalRegionId
+SiteId capitalSiteId
+cold retiredVassals heirloomVault
+
+[CivilizationCandidateDevelopment]
+hot scholar warrior
+
+[CivilizationChaos]
+hot chaosPower monsterCount spatialSpawns monsterPressure expansionEvents lastMonsterSpawn lastMoonIncome pendingLosses pendingUnrestIncome
+RegionId lastPressureRegionId
+
+[CivilizationGreen]
+hot tier
+
+[CivilizationHistory]
+hot lostSettlements victories raids conquests monsterTrophies trades
+
+[CivilizationRemnant]
+RegionId capitalRegionId
+SymbolId classId
+FactionId faction
+
+[CivilizationResearch]
+hot total
+
+[CivilizationTreasury]
+hot grossIncome
+
+[CivilizationVassalLegacy]
+hot futureStartingPrestigeBonus futureStartingStatBonuses
+
+[ClassComposition]
+hot specialists eldersByAge
+u64 children adults
+joint joint
+
+[CommissionOffer]
+hot prestige amount
+cold label description statLabel locationLabel nodeLabel
+RegionId regionId
+TagId tag
+SymbolId id difficulty event offerId parameter statId minimumQuality nodeFamily
+
+[Connection]
+region_ref regionAId regionBId
+
+[ControlUnrest]
+hot startedSec untilSec
+FactionId previousController
+
+[DeathByClass]
+hot villager stranger
+
+[DetailedSettlement]
+hot populationByClass elderOrder mealRelief history control garrison lastDefense supportBank seasonalFoodBoost candidateDevelopment regionalChaos research previewBonus shopQualityBonus happinessFloor
+indexed lastMeal lastMoonResult
+BirthCreditId/FactionId birthAllegianceCredits
+practice_board practiceSlots
+structure_board structureSlots
+u32 unlockedPracticeSlots
+cold practiceActivationTrace
+InstanceId politicalForce
+
+[DetailedSettlementControl]
+hot unrest claimChecks
+FactionId claimant
+
+[DetailedSettlementElderOrder]
+SymbolId definitionId workerPolicyId
+
+[DetailedSettlementGarrison]
+hot supplied paid required tSec
+RegionId supportTargetRegionId
+
+[DetailedSettlementHistory]
+hot deaths springDeaths lastDeathSec lastDeathCount
+
+[DetailedSettlementLastDefense]
+hot tSec
+SymbolId result
+RegionId sourceRegionId
+
+[DetailedSettlementMealRelief]
+hot tSec amount shortage fullyFed
+FactionId faction
+
+[ElderCohort]
+u64 age count
+
+[FaithByClass]
+hot villager stranger
+
+[GameState]
+hot gameStateSchemaVersion phase turn currentSeasonIndex year simStepIndex tSec seasonTimeRemaining seasonDurationSec simTime seasonClockSec paused actionPoints actionPointCap apCapOverride variantFlags world civilization nextGameEventFeedId skillRuntime rng rulesetId runStatus
+config gameConfig
+cold gameEventFeed skillProgressionDefs persistentKnowledge
+SeasonId seasons
+
+[HappinessFloor]
+hot remainingResolutions
+SymbolId status
+
+[JointCohort]
+FactionId allegiance
+SpecialtyId specialty
+LifeStageId kind
+u64 age
+joint_count count
+
+[LastMoonIncomeFaithPopulation]
+hot bronze silver gold diamond
+
+[LifeMap]
+hot pendingResolution
+NodeId currentNodeId
+cold graph completedNodeIds availableNodeIds nodeStates
+
+[LifeMapPendingResolution]
+hot kind startSec resolveSec phaseCost
+NodeId nodeId
+
+[Lineage]
+hot tenuresRemaining nextVassalId founderClassId establishedClassId candidateRerollCount nextHeirloomInstanceId pendingHeirloomLoadout
+VassalId currentVassalId selectedVassalIds vassalsById
+cold pendingCandidates pendingVaultOverflow lastInheritanceReport
+
+[MealResult]
+hot tSec demand savedStock consumed ratio byClass migration
+
+[MealResultByClass]
+hot villager stranger
+
+[MigrationIntent]
+hot composition requested
+SymbolId reason
+RegionId sourceId
+ResidencyId sourceClassId
+
+[MigrationIntentSummary]
+hot requested eligible admitted external unresolved
+SymbolId reason unresolvedOutcome
+RegionId sourceRegionId
+ResidencyId sourceClassId
+
+[MigrationMovement]
+hot amount survivors arrivalDeaths external composition survivorComposition originalIndex
+SymbolId reason
+RegionId sourceRegionId destinationRegionId
+ResidencyId sourceClassId
+TransferId transferId
+
+[MigrationReport]
+hot intents outbound inbound sourceLosses tSec
+
+[MigrationSourceLoss]
+hot count composition
+SymbolId reason
+RegionId sourceRegionId
+ResidencyId sourceClassId
+
+[MoonRegionResult]
+hot currencySpent
+indexed birth food housing faith migration death
+RegionId regionId
+
+[MoonRegionResultBirth]
+hot tSec year byClass
+
+[MoonRegionResultBirthByClassStranger]
+hot births matured newElders ageAdvance birthRate childToAdultRate adultToElderRate
+
+[MoonRegionResultBirthByClassVillager]
+hot births matured newElders ageAdvance birthRate childToAdultRate adultToElderRate
+
+[MoonRegionResultDeath]
+hot tSec byClass hardshipDeaths arrivalDeaths storedFoodRot looseFoodRot
+
+[MoonRegionResultDeathByClassStranger]
+hot naturalDeaths
+
+[MoonRegionResultDeathByClassVillager]
+hot naturalDeaths
+
+[MoonRegionResultFaith]
+hot tSec byClass
+
+[MoonRegionResultFaithByClassStranger]
+hot faithShifted faithStreak collapseEntered displaced
+SymbolId previousHappiness happiness previousFaith faith faithTrend
+
+[MoonRegionResultFaithByClassVillager]
+hot faithShifted faithStreak collapseEntered displaced
+SymbolId previousHappiness happiness previousFaith faith faithTrend
+
+[MoonRegionResultHousing]
+hot tSec population capacity overflow migrants
+SymbolId happinessCap
+
+[MoonTurn]
+hot moonIndex startedSec phaseIndex migrationIntents movements unresolved migrationIntentSummaries
+SymbolId phaseId
+RegionId regions
+
+[NeutralMarket]
+hot defense housing currencyStock stocks
+cold template
+PracticeId practices
+
+[NeutralStock]
+hot price capacity replenishment stock
+MarketStockId id
+cold label
+TraitId traits
+
+[PhaseModifiers]
+hot faithResistance
+RegionId housingByRegion foodByRegion
+
+[PoliticalForceEntry]
+hot amount defenseOnly untilSec
+FactionId allegiance
+
+[PopulationByClass]
+hot villager stranger
+
+[PopulationClass]
+hot specialists eldersByAge faith happiness
+u64 children adults
+joint joint
+
+[PopulationClassFaith]
+hot streak collapseActive
+SymbolId tier trend
+
+[PopulationClassHappiness]
+hot fullFeedStreak missedFeedStreak partialFeedRatios
+SymbolId status
+
+[PopulationComposition]
+hot villager stranger
+
+[PracticeEvent]
+hot tSec rootId parentId id
+EventKindId kind
+RegionId regionId
+payload:hot slotIndex providers amount scholarStaffed discharge premature military untilSec strengthBefore strengthAfter martial charge threshold
+payload:PracticeId targetPracticeId practiceId
+payload:RegionId targetRegionId sourceRegionId destinationId sourceRegionIds
+payload:TraitId traits
+payload:TagId tags
+payload:FactionId faction controller previousController
+payload:InstanceId instanceId
+payload:StructureId structureId
+payload:SymbolId activationType pool phase reason cause classId actionKind action outcome
+
+[PracticeEventJournal]
+hot nextId pending activeRoot activeEvent
+cold trace stockTransfers
+
+[PracticeSlot]
+hot tier work
+PracticeId practiceId
+stock stock
+charge charge
+InstanceId instanceId
+FactionId allegiance
+
+[Region]
+hot detailedSettlementEnabled monster lostAtSec
+region_def id
+cold colour
+FactionId controller
+PracticeId installedPracticeIds
+u32 structureCapacity
+
+[RegionMonster]
+hot defense cleared
+
+[RngSeeds]
+hot seed baseSeed vassalSeed vassalDevelopmentSeed vassalLifeMapSeed vassalPortraitSeed
+
+[RunStatus]
+hot complete reason year tSec
+
+[SeasonalFoodBoost]
+hot year amount
+SeasonId seasons
+PracticeId practiceId
+
+[Site]
+hot detailedState town
+indexed neutral
+site_def id
+region_ref regionId
+SiteModeId simulationMode
+cold name
+
+[SkillModifiers]
+hot global
+cold pawnById
+
+[SkillModifiersGlobal]
+hot apCapBonus editableHistoryWindowBonusSec projectionHorizonBonusSec populationFoodMult
+
+[SkillRuntime]
+hot modifiers
+cold unlocks
+
+[Specialists]
+hot scholar warrior
+
+[StockProvider]
+hot slotIndex amount unitPrice
+SymbolId kind paymentFor
+RegionId regionId
+PracticeId practiceId
+TraitId traits
+MarketStockId marketStockId
+cold label
+
+[StructureCell]
+hot qualityBonus construction upkeepActive
+StructureId structureId
+u32 origin width
+InstanceId placementId
+
+[StructureCellConstruction]
+hot completedCycles
+
+[SupportBank]
+hot formation siege mobility coordination greatHost
+
+[Town]
+hot activated
+indexed market
+SymbolId type
+
+[VariantFlags]
+hot actionPointCostsEnabled actionLogEnabled inventoryTransferPlannerEnabled inventoryTransferGhostPreviewEnabled showApHud settlementPrototypeEnabled
+
+[Vassal]
+hot classId prestige stats initialAge selectedSec selectedYear developmentProgress nextDevelopmentChoiceId lifeMap isDead endSec deathSec discoveryAccess commissionOffers completedCommissions commission
+VassalId vassalId
+RegionId locationRegionId originRegionId
+SymbolId founderClassId archetype candidateId endedReason deathCause commissionHistory
+cold portrait signatureNode developmentChoiceQueue lifeEvents heirlooms
+
+[VassalLegacyFutureStartingStatBonuses]
+hot cunning wisdom effectiveness intelligence
+
+[VassalStats]
+hot cunning wisdom effectiveness intelligence
+
+[World]
+hot regions connections sites
+cold definitionId

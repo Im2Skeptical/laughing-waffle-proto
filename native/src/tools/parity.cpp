@@ -1,8 +1,10 @@
 #include "sim/browser/detail/json_path.hpp"
 #include "sim/browser/generated/game_state.hpp"
+#include "sim/state/runtime_state.hpp"
 #include "tools/json_file.hpp"
 
 #include <algorithm>
+#include <chrono>
 #include <iostream>
 #include <map>
 
@@ -10,6 +12,8 @@ namespace {
 
 namespace json = waffle::core::json;
 namespace browser = waffle::sim::browser;
+namespace sim = waffle::sim;
+namespace runtime = waffle::sim::runtime;
 using browser::detail::index_path;
 using browser::detail::property_path;
 using waffle::tools::read_file;
@@ -96,17 +100,93 @@ int diff_files(const Value& left, const Value& right)
     return 1;
 }
 
+double median_copy_us(const sim::RuntimeState& state, std::size_t samples)
+{
+    using Clock = std::chrono::steady_clock;
+    std::vector<double> timings;
+    timings.reserve(samples);
+    constexpr std::size_t warmup = 5;
+    for (std::size_t i = 0; i < samples + warmup; ++i) {
+        const auto begin = Clock::now();
+        const auto copy = state;
+        const auto elapsed = Clock::now() - begin;
+        if (copy.content != state.content) throw std::logic_error("runtime copy changed captured content");
+        if (i >= warmup) timings.push_back(std::chrono::duration<double, std::micro>(elapsed).count());
+    }
+    std::ranges::sort(timings);
+    return timings[timings.size() / 2];
+}
+
+void runtime_stats(const sim::RuntimeState& state)
+{
+    const auto& hot = state.hot;
+    const auto& tables = state.tables;
+    std::size_t markets = 0;
+    std::uint64_t population = 0;
+    std::size_t populationBins = 0;
+    std::size_t elderBins = 0;
+    std::size_t practiceRows = 0;
+    std::size_t structureOrigins = 0;
+    std::size_t marketRows = 0;
+    const auto elder = state.find_id<runtime::LifeStageId>("elder");
+    for (const auto& site : tables.view(hot.world.sites)) {
+        const auto& settlement = site.detailedState;
+        practiceRows += settlement.practiceSlots.rows.size();
+        structureOrigins += settlement.structureSlots.origins.size();
+        for (const auto* residency : {&settlement.populationByClass.villager, &settlement.populationByClass.stranger}) {
+            if (residency->joint) {
+                populationBins += residency->joint->size();
+                elderBins += std::ranges::count(tables.view(*residency->joint), elder, &runtime::JointCohort::kind);
+            }
+        }
+        if (site.neutral) {
+            ++markets;
+            marketRows += tables.at(*site.neutral).stocks.size();
+        }
+        for (const auto& totals : state.indexes.sites.at(site.id.value).byResidency) population += totals.total();
+    }
+    constexpr std::size_t samples = 101;
+    const Value result(Value::Object{
+        {"tSec", Value(hot.tSec)},
+        {"year", Value(hot.year)},
+        {"regions", Value(static_cast<double>(hot.world.regions.size()))},
+        {"sites", Value(static_cast<double>(hot.world.sites.size()))},
+        {"activeSites", Value(static_cast<double>(state.indexes.activeSites.size()))},
+        {"roads", Value(static_cast<double>(hot.world.connections.size()))},
+        {"practices", Value(static_cast<double>(practiceRows))},
+        {"structureOrigins", Value(static_cast<double>(structureOrigins))},
+        {"markets", Value(static_cast<double>(markets))},
+        {"marketRows", Value(static_cast<double>(marketRows))},
+        {"marketTableRows", Value(static_cast<double>(tables.rows<runtime::NeutralStock>().size()))},
+        {"populationBins", Value(static_cast<double>(populationBins))},
+        {"elderBins", Value(static_cast<double>(elderBins))},
+        {"population", Value(static_cast<double>(population))},
+        {"pendingEvents", Value(static_cast<double>(hot.civilization.practiceEvents.pending.size()))},
+        {"hotBytes", Value(static_cast<double>(state.hot_bytes()))},
+        {"copySamples", Value(static_cast<double>(samples))},
+        {"medianCopyUs", Value(median_copy_us(state, samples))}
+    });
+    std::cout << json::stringify(result) << '\n';
+}
+
 }
 
 int main(int argc, char** argv)
 {
     try {
         const std::string_view command = argc > 1 ? argv[1] : "";
-        if (command == "roundtrip" && (argc == 3 || (argc == 5 && std::string_view(argv[3]) == "--out"))) {
+        if ((command == "roundtrip" || command == "runtime-roundtrip") &&
+            (argc == 3 || (argc == 5 && std::string_view(argv[3]) == "--out"))) {
             const auto input = json::parse(read_file(argv[2]));
-            const auto output = json::stringify(browser::export_game_state(browser::import_game_state(input)));
+            auto state = browser::import_game_state(input);
+            if (command == "runtime-roundtrip") state = sim::export_runtime(sim::import_runtime(state));
+            const auto output = json::stringify(browser::export_game_state(state));
             if (argc == 5) write_file(argv[4], output);
             else std::cout << output;
+            return 0;
+        }
+        if (command == "runtime-stats" && argc == 3) {
+            runtime_stats(sim::import_runtime(browser::import_game_state(json::parse(read_file(argv[2])))));
             return 0;
         }
         if (command == "hash" && argc == 3) {
@@ -116,7 +196,8 @@ int main(int argc, char** argv)
         if (command == "diff" && argc == 4)
             return diff_files(json::parse(read_file(argv[2])), json::parse(read_file(argv[3])));
 
-        throw std::invalid_argument("Usage: waffle_parity roundtrip <state.json> [--out <path>] | "
+        throw std::invalid_argument("Usage: waffle_parity (roundtrip | runtime-roundtrip) <state.json> [--out <path>] | "
+                                    "runtime-stats <state.json> | "
                                     "hash <state.json> | diff <a.json> <b.json>");
     } catch (const std::exception& error) {
         std::cerr << error.what() << '\n';

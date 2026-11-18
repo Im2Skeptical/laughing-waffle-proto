@@ -2711,5 +2711,6 @@ struct GameState {
 // Throws std::invalid_argument with a JSON path if the value fails the schema.
 GameState import_game_state(const core::json::Value& value);
 core::json::Value export_game_state(const GameState& state);
+core::json::Value export_game_config(const GameConfig& config);
 
 }
