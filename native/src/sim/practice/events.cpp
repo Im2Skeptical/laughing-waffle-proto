@@ -241,13 +241,13 @@ void trace_pending(RuntimeState& state, PracticeEvent event, std::size_t index)
     });
 }
 
-void trace_phase(RuntimeState& state, SymbolId phase)
+void trace_phase(RuntimeState& state, SymbolId phase, std::span<const SiteId> sites)
 {
     auto& journal = state.hot.civilization.practiceEvents;
     const auto kind = event_id(state, EventKind::phaseResolved);
     const auto phaseRef = phase.value < history_symbol_bit - 1
         ? std::optional{HistoryTextId{phase.value | history_symbol_bit}} : std::nullopt;
-    for (const auto siteId : settlement::detailed_sites(state)) {
+    for (const auto siteId : sites) {
         const auto region = settlement::site_at(state, siteId).regionId;
         const auto id = journal.nextId++;
         const PracticeEvent event{state.hot.tSec, kind, region, id, {}, id};
