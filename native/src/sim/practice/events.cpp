@@ -75,30 +75,52 @@ PracticeEventTrace trace_fields(PracticeEvent event, const PracticeEventPayload&
     };
 }
 
-void trace_text(const RuntimeState& state, HistoryPayload& page, PracticeEventTrace& row,
-                const PracticeEventPayload& p, std::string_view reason)
+// Encode page-independent symbols once for the civilization and site traces.
+// Oversized symbol ordinals, region names and generated reasons use each
+// page's own text table.
+template<class Encode>
+void trace_symbols(PracticeEventTrace& row, const PracticeEventPayload& p, Encode encode)
 {
-    auto text = [&](const auto& id) -> std::optional<HistoryTextId> {
-        if (!id) return {};
-        if constexpr (std::is_same_v<std::remove_cvref_t<decltype(*id)>, SymbolId>)
-            if (id->value < history_symbol_bit - 1) return HistoryTextId{id->value | history_symbol_bit};
-        return page.intern_text(state.name(*id), "Practice trace");
-    };
-    row.activationType = text(p.activationType);
-    row.pool = text(p.pool);
-    row.phase = text(p.phase);
-    row.reason = reason.empty() ? text(p.reason) : page.intern_text(reason, "Practice trace reason");
-    row.cause = text(p.cause);
-    row.actionKind = text(p.actionKind);
-    row.action = text(p.action);
-    row.outcome = text(p.outcome);
-    row.destinationId = text(p.destinationId);
+    if (p.activationType) row.activationType = encode(*p.activationType);
+    if (p.pool) row.pool = encode(*p.pool);
+    if (p.phase) row.phase = encode(*p.phase);
+    if (p.reason) row.reason = encode(*p.reason);
+    if (p.cause) row.cause = encode(*p.cause);
+    if (p.actionKind) row.actionKind = encode(*p.actionKind);
+    if (p.action) row.action = encode(*p.action);
+    if (p.outcome) row.outcome = encode(*p.outcome);
     if (p.classId.has_key()) {
-        const auto id = text(p.classId.value());
-        row.classId = id ? browser::OptionalNullable<HistoryTextId>{*id}
+        const auto id = p.classId.value();
+        row.classId = id ? browser::OptionalNullable<HistoryTextId>{encode(*id)}
                          : browser::OptionalNullable<HistoryTextId>{std::nullopt};
     }
 }
+
+struct TraceFields {
+    PracticeEventTrace row;
+    bool needsLocalSymbols{};
+
+    TraceFields(PracticeEvent event, const PracticeEventPayload& p, bool includeId)
+        : row(trace_fields(event, p, includeId))
+    {
+        trace_symbols(row, p, [&](SymbolId id) {
+            if (id.value >= history_symbol_bit - 1) needsLocalSymbols = true;
+            return HistoryTextId{id.value | history_symbol_bit};
+        });
+    }
+
+    void write(const RuntimeState& state, HistoryPayload& page, PracticeEventTrace& target,
+               const PracticeEventPayload& p, std::string_view reason = {}) const
+    {
+        target = row;
+        if (needsLocalSymbols) trace_symbols(target, p, [&](SymbolId id) {
+            return id.value < history_symbol_bit - 1 ? HistoryTextId{id.value | history_symbol_bit}
+                                                     : page.intern_text(state.name(id), "Practice trace");
+        });
+        if (p.destinationId) target.destinationId = page.intern_text(state.name(*p.destinationId), "Practice trace");
+        if (!reason.empty()) target.reason = page.intern_text(reason, "Practice trace reason");
+    }
+};
 
 template<class Build>
 void append_trace(RuntimeState& state, PracticeEvent event, const Build& build)
@@ -186,10 +208,9 @@ void admit(RuntimeState& state)
 void trace(RuntimeState& state, PracticeEvent event, const EventData& data,
            bool includeId, std::string_view dynamicReason)
 {
-    const auto fields = trace_fields(event, data.fields, includeId);
+    const TraceFields fields(event, data.fields, includeId);
     append_trace(state, event, [&](PracticeEventTrace& row, HistoryPayload& page) {
-        row = fields;
-        trace_text(state, page, row, data.fields, dynamicReason);
+        fields.write(state, page, row, data.fields, dynamicReason);
         if (data.providers) row.providers = store_providers(page, *data.providers);
         if (data.traits) row.traits = store(page, *data.traits);
         if (data.tags) row.tags = store(page, *data.tags);
@@ -201,10 +222,9 @@ void trace_pending(RuntimeState& state, PracticeEvent event, std::size_t index)
 {
     const auto& p = state.eventPayloads[index];
     const auto& payload = state.pendingPracticePayload;
-    const auto fields = trace_fields(event, p, true);
+    const TraceFields fields(event, p, true);
     append_trace(state, event, [&](PracticeEventTrace& row, HistoryPayload& page) {
-        row = fields;
-        trace_text(state, page, row, p, {});
+        fields.write(state, page, row, p);
         if (p.providers) {
             auto& providers = page.rows<StockProvider>();
             const auto start = checked_index(providers.size(), "Practice providers");
@@ -221,13 +241,13 @@ void trace_pending(RuntimeState& state, PracticeEvent event, std::size_t index)
     });
 }
 
-void trace_phase(RuntimeState& state, SymbolId phase)
+void trace_phase(RuntimeState& state, SymbolId phase, std::span<const SiteId> sites)
 {
     auto& journal = state.hot.civilization.practiceEvents;
     const auto kind = event_id(state, EventKind::phaseResolved);
     const auto phaseRef = phase.value < history_symbol_bit - 1
         ? std::optional{HistoryTextId{phase.value | history_symbol_bit}} : std::nullopt;
-    for (const auto siteId : settlement::detailed_sites(state)) {
+    for (const auto siteId : sites) {
         const auto region = settlement::site_at(state, siteId).regionId;
         const auto id = journal.nextId++;
         const PracticeEvent event{state.hot.tSec, kind, region, id, {}, id};

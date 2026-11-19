@@ -277,6 +277,19 @@ void prepare(RuntimeState& state)
     c.unrest.reserve(count);
     c.transfers.reserve(count);
     c.marketSpare.resize(count);
+    // A town may reopen as a storefront. Its first transition clones stock
+    // rows; subsequent control changes recycle the spare market.
+    std::size_t markets = 0, stocks = 0;
+    for (const auto& site : state.tables.view(state.hot.world.sites)) {
+        if (!site.town || !site.town->market) continue;
+        ++markets;
+        stocks += state.tables.at(*site.town->market).stocks.size();
+    }
+    auto& stockRows = state.tables.rows<NeutralStock>();
+    auto& marketRows = state.tables.rows<NeutralMarket>();
+    stockRows.reserve(stockRows.size() + stocks);
+    marketRows.reserve(marketRows.size() + markets);
+    state.practiceVocabulary.marketLabels.reserve(stockRows.size() + stocks);
     c.supportSources.reserve(state.hot.world.regions.size());
     state.indexes.detailedSites.reserve(count);
     state.indexes.activeSites.reserve(count);

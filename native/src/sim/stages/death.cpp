@@ -400,12 +400,35 @@ MoonRegionResult& moon_result(RuntimeState& state, MoonTurn& turn, RegionId regi
     return found->value;
 }
 
+thread_local Workspace scratchForDeath;
+
 } // namespace
+
+void prepare_death(RuntimeState& state)
+{
+    if (!state.hot.variantFlags.settlementPrototypeEnabled) return;
+    state.deathReports = state.tables.table<MoonRegionResultDeath>().append(
+        3 * state.hot.world.sites.size(), "Death reports");
+    auto& scratch = scratchForDeath;
+    const auto bins = state.birthStorage.binCapacityHint;
+    scratch.ledger.reserve(bins);
+    scratch.cohort.reserve(bins);
+    for (auto& part : scratch.parts) part.elders.reserve(bins);
+    scratch.residents.reserve(2 * bins);
+    scratch.composition.reserve(bins);
+    scratch.selection.reserve(bins);
+    scratch.binOrder.reserve(bins);
+    scratch.arrivalBins.reserve(2 * bins);
+    scratch.ranked.reserve(2 * bins);
+    scratch.arrivals.reserve(state.hot.world.sites.size());
+    scratch.firstMovement.reserve(state.hot.world.regions.size());
+    scratch.hardship.reserve(state.hot.world.regions.size());
+}
 
 bool death(RuntimeState& state, StageContext& context)
 {
     auto& turn = set_moon_turn_phase(state, context.lunar);
-    thread_local Workspace scratch;
+    auto& scratch = scratchForDeath;
     const bool fullMap = state.hot.rulesetId.has_value();
     const double arrivalDeaths = turn.movements.size() ? resolve_arrivals(state, turn, scratch) : 0;
     const auto& settings = state.compiledContent->settings();

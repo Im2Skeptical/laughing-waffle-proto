@@ -105,13 +105,14 @@ double consume_meal_stock(RuntimeState& state, const Site& site, double amount, 
     const auto& edible = state.practiceVocabulary.edible;
     auto remaining = amount;
     if (localOnly) {
+        const auto& ediblePractices = state.content->migration.ediblePractices;
         const auto& board = site.detailedState.practiceSlots;
         for (const auto slot : board.slots) {
             if (remaining <= 0) break;
             if (!slot) continue;
             auto& stock = state.practiceStock[slot.value];
             if (stock.value_or(0) <= 0 ||
-                !has(state.compiledContent->tables.view(definition(state, state.tables.at(slot).practiceId).stockTraits), edible))
+                !ediblePractices.at(state.tables.at(slot).practiceId.value))
                 continue;
             const auto taken = std::min(remaining, *stock);
             *stock -= taken;
@@ -128,7 +129,8 @@ double consume_meal_stock(RuntimeState& state, const Site& site, double amount, 
         (site.detailedState.control && site.detailedState.control->unrest) ||
         roads(state, site.regionId).empty()) return 0;
 
-    auto sources = stock_sources(state, site, false);
+    // Payment emits events into the FIFO; it never re-enters Stock planning.
+    auto& sources = stock_sources(state, site, false);
     Buffer<MealTransfer, 128> transfers;
     for (auto& source : sources) {
         if (remaining <= 0) break;

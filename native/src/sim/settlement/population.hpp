@@ -53,6 +53,10 @@ struct LedgerScratch {
         std::size_t index;
         double remainder;
     };
+    struct KeyOrder {
+        std::size_t index, prefix;
+    };
+    std::vector<KeyOrder> keyOrder;
     std::vector<Rank> ranks;
     std::vector<PopulationBin> merged;
     std::array<std::array<Cohort, 3>, 2> summaries;

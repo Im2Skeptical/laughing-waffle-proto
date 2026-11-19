@@ -5,6 +5,7 @@
 #include "sim/settlement/prelude.hpp"
 #include "sim/world/generate.hpp"
 #include "sim/world/topology.hpp"
+#include "sim/stages/entries.hpp"
 #include "sim/stages/faith.hpp"
 #include "sim/stages/food.hpp"
 #include "sim/stages/housing.hpp"
@@ -593,7 +594,8 @@ RuntimeState import_live_state(const browser::GameState& state, std::shared_ptr<
     RuntimeState result;
     // A forecast and its anchors can recycle Practice journal pages from
     // the same pool. A larger first slab covers bursts across the board.
-    result.practiceRecipeStorage.historyArena = std::make_shared<HistoryArena>(std::max<std::size_t>(8, 2 * state.world.sites.size()));
+    result.practiceRecipeStorage.historyArena = std::make_shared<HistoryArena>(
+        std::max<std::size_t>(8, 2 * state.world.sites.size()), 32 * state.world.sites.size());
     Import codec{*content, result};
     result.hot = codec.read<HotState>(state, "$");
     result.content = std::move(content);
@@ -603,9 +605,7 @@ RuntimeState import_live_state(const browser::GameState& state, std::shared_ptr<
     settlement::prepare_prelude(result);
     settlement::prepare_birth(result);
     settlement::prepare_migration(result);
-    if (result.hot.variantFlags.settlementPrototypeEnabled)
-        result.deathReports = result.tables.table<MoonRegionResultDeath>().append(
-            3 * result.hot.world.sites.size(), "Death reports");
+    stages::prepare_death(result);
     stages::prepare_faith(result);
     stages::prepare_food(result);
     stages::prepare_housing(result);

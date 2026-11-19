@@ -343,7 +343,7 @@ struct PipelineAllocations {
     }
 };
 
-bool pipeline_allocations(const char* fixture, const char* topologies, double start)
+bool pipeline_allocations(const char* fixture, const char* topologies, double start, int seconds)
 {
     const auto input = json::parse(waffle::tools::read_file(fixture));
     const auto mirror = browser::import_game_state(input);
@@ -352,7 +352,6 @@ bool pipeline_allocations(const char* fixture, const char* topologies, double st
     expect(state.hot.tSec == start, "unexpected allocation fixture second");
 
     constexpr int warmup = 512;
-    constexpr int seconds = 3200;
     for (int i = 0; i < warmup; ++i)
         expect(sim::advance_one_second(state), "allocation fixture stopped during warmup");
 
@@ -384,8 +383,9 @@ int main(int argc, char** argv)
         if (argc == 2 && std::string_view(argv[1]) == "--bench") {
             benchmark();
         } else if (argc == 5 && std::string_view(argv[1]) == "--pipeline-allocations") {
-            const bool opening = pipeline_allocations(argv[2], argv[4], 0);
-            const bool late = pipeline_allocations(argv[3], argv[4], 3200);
+            const bool opening = pipeline_allocations(argv[2], argv[4], 0, 3200);
+            // End at 5632, before the deterministic Monster Overrun at 5676.
+            const bool late = pipeline_allocations(argv[3], argv[4], 3200, 1920);
             return opening && late ? 0 : 1;
         } else {
             expect(argc == 2, "usage: waffle_history_test <fixture> | --bench");

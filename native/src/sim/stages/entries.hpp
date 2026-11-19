@@ -16,6 +16,7 @@ bool housing(RuntimeState&, StageContext&);
 bool faith(RuntimeState&, StageContext&);
 bool migration_practices(RuntimeState&, StageContext&);
 bool migration(RuntimeState&, StageContext&);
+void prepare_death(RuntimeState&);
 bool death(RuntimeState&, StageContext&);
 bool death_practices(RuntimeState&, StageContext&);
 bool control_and_spatial_pressure(RuntimeState&, StageContext&);

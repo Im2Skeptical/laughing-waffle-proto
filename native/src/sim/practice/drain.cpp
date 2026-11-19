@@ -158,7 +158,9 @@ void handle_charge(RuntimeState& state, std::uint32_t listener, std::optional<Ev
     auto& charge = state.practiceCharge[site.detailedState.practiceSlots.slots[candidate.slot].value];
     const bool gain = kind && (candidate.triggerKinds & mask_bit(*kind)) &&
         matches_event(state, site, *slot, def, *kind, event, fields);
-    if (!gain && charge == 0) return;
+    // With no matching trigger, the only operation is a downward clamp.
+    // The indexed lower bound is valid even for staff-dependent thresholds.
+    if (!gain && charge <= state.practiceListeners.fixedThresholds[listener].limit) return;
     const auto worker = workers(state, site)[candidate.slot];
     const auto limit = threshold(state, site, def, worker.scholar);
     charge = std::min(limit, charge);
@@ -395,18 +397,35 @@ void resolve_phase(RuntimeState& state, SymbolId phase)
     const auto cap = static_cast<unsigned>(state.compiledContent->settings().practiceReactionResolutionCap);
     // PhaseResolved has no Charge trigger. The regular FIFO is still required
     // for earlier work, threshold clamps, ready Discharges and safety caps.
+    auto sites = settlement::detailed_sites(state);
     if (!journal.activeRoot && !journal.activeEvent && journal.pending.size() == 0 && cap > 1 &&
-        journal.nextId >= 0 && journal.nextId + state.indexes.detailedSites.size() < 0x1p53 &&
-        std::ranges::none_of(index.fixedThresholds, [&](const auto& entry) {
-            return state.practiceCharge[entry.slot.value] >= entry.limit;
-        })) {
-        detail::trace_phase(state, phase);
-        territory::synchronize_sites(state);
-        return;
+        journal.nextId >= 0 && journal.nextId + sites.size() < 0x1p53) {
+        const auto ready = [&](const auto& entry) { return state.practiceCharge[entry.slot.value] >= entry.limit; };
+        if (std::ranges::none_of(index.fixedThresholds, ready)) {
+            detail::trace_phase(state, phase, sites);
+            territory::synchronize_sites(state);
+            return;
+        }
+        // A phase event can clamp a remote dynamic threshold, but only a
+        // local listener may Discharge. Until the first possible reaction,
+        // roots produce just their two trace rows and no descendant IDs.
+        if (std::ranges::none_of(index.dynamicThreshold, [&](auto listener) {
+                const auto& entry = index.fixedThresholds[listener];
+                return state.practiceCharge[entry.slot.value] > entry.limit;
+            })) {
+            const auto first = std::ranges::find_if(sites, [&](SiteId id) {
+                const auto region = settlement::site_at(state, id).regionId;
+                const auto local = index.local[region.value];
+                return std::ranges::any_of(std::span(index.fixedThresholds).subspan(local.begin, local.size()), ready);
+            });
+            const auto prefix = static_cast<std::size_t>(first - sites.begin());
+            detail::trace_phase(state, phase, sites.first(prefix));
+            sites = sites.subspan(prefix);
+        }
     }
     EventData event{};
     event.fields.phase = phase;
-    for (const auto id : settlement::detailed_sites(state))
+    for (const auto id : sites)
         emit(state, EventKind::phaseResolved, settlement::site_at(state, id).regionId, event);
     drain(state);
 }

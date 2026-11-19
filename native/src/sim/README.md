@@ -476,8 +476,9 @@ with separate controls for the lunar schedule, clocks, gates, wildcard
 matching, cut owners and unmasked diagnostics.
 
 The `pipeline_steady_state_allocations` CTest measures global `operator new`
-calls over 3,200 unbroken advances after 512 warmup advances from each of
-`seed-1/0` and `seed-2026-late/3200`. It reuses the generated late anchor
+calls after 512 warmup advances. It measures 3,200 unbroken advances from
+the warmed opening and 1,920 from the warmed `seed-2026-late/3200` anchor
+through second 5632, before Monster Overrun at 5676. It reuses the generated late anchor
 when its canonical hash matches the reference, or generates it on first use.
 Failed counts are attributed to their pipeline stage.
 
