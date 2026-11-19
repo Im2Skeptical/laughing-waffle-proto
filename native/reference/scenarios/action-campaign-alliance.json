@@ -1,6 +1,6 @@
 {
   "id": "action-campaign-alliance",
-  "start": {"kind":"actionExhibit","variant":"choice-campaign-attack","seed":1},
+  "start": {"kind":"actionExhibit","variant":"choice-campaign-alliance","seed":1},
   "actions": [
     {"tSec":0,"kind":"vassalEnterLifeNode","payload":{"nodeId":"life-d02-r02"}},
     {"tSec":1,"kind":"vassalSelectLifeOption","payload":{"nodeId":"life-d02-r02","optionId":"attack:R08"}},

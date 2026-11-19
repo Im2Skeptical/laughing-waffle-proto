@@ -1,6 +1,7 @@
 import { ensureCommissionOffers } from "../../src/model/vassal-life-map/commissions.js";
 import { confirmVassalLifeNode, enterVassalLifeNode, selectLifeMapVassal, selectVassalNodeOption } from "../../src/model/vassal-life-map.js";
 import { VASSAL_SIGNATURE_NODE_VARIANTS } from "../../src/defs/gamepieces/vassal-life-map-defs.js";
+import { trainSpecialists } from "../../src/model/detailed-settlements/stock.js";
 
 const definitions = ["abacus", "foxMask", "minorSeal", "signetRing", "tutorsNotebook", "hourglass", "travellersBoots"];
 const relic = (index) => ({
@@ -113,6 +114,7 @@ export function prepareActionExhibit(state, variant) {
       choices[mode].time = .0625;
       choices[mode].risk = outcome === "defeat" ? 1 : 0;
       if (outcome === "nest") state.world.regions.find(region => region.monster).monster.cleared = true;
+      if (outcome === "alliance") trainSpecialists(site.detailedState, "warrior", 10);
     }
     map.availableNodeIds = [node.id];
     return state;
