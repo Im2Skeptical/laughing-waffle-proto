@@ -35,6 +35,23 @@ struct LifeCandidate {
     LifeCommand command;
 };
 
+struct ShopSpan {
+    std::size_t origin{}, width{};
+    std::string replacement;
+};
+
+struct ShopItem {
+    std::string id, label, art, description, cost, reason;
+    std::vector<ShopSpan> spans;
+    LifeCommand command;
+};
+
+struct ShopReading {
+    std::string region, funds, total;
+    std::vector<ShopItem> offers, staged;
+    std::vector<std::string> cells;
+};
+
 struct LifeReading {
     std::string actor, name, location, summary, succession;
     std::string current, decision, decisionDetail;
@@ -45,6 +62,7 @@ struct LifeReading {
     std::vector<LifeChoice> choices;
     std::vector<std::pair<Second, std::string>> events;
     std::optional<std::pair<Second, Second>> progress;
+    std::optional<ShopReading> shop;
     bool canReroll{};
 };
 

@@ -23,6 +23,9 @@ void View::setLifeOpen(bool open)
     lifeDirty_ = markersDirty_ = true;
     lifeNode_.clear();
     heirloomPicks_.clear();
+    lifeOffer_.clear();
+    lifeOrigin_.reset();
+    lifeRoute_ = false;
     lifeConfirm_.reset();
     life_ = {};
     lifeRevision_ = ~std::uint64_t{};
@@ -76,9 +79,13 @@ void View::refreshLife(const Snapshot& snapshot)
     if (!rebuild && !lifeDirty_ && lifeBusy_ == busy) return;
     if (rebuild) {
         const auto actor = life_.actor, current = life_.current, decision = life_.decision;
+        const bool wasShop = life_.shop.has_value();
         life_ = session_.lifeMap(true);
         lifeRevision_ = session_.viewRevision();
-        if (actor != life_.actor || current != life_.current || decision != life_.decision) {
+        if (actor != life_.actor || current != life_.current || decision != life_.decision || wasShop != life_.shop.has_value()) {
+            lifeOffer_.clear();
+            lifeOrigin_.reset();
+            lifeRoute_ = false;
             heirloomPicks_.clear();
             if (!life_.current.empty()) lifeNode_ = life_.current;
             else if (actor != life_.actor) lifeNode_.clear();
@@ -102,9 +109,12 @@ void View::refreshLife(const Snapshot& snapshot)
     const auto focusId = focus ? focus->GetAttribute<Rml::String>("data-id", "") : "";
     const bool restoreFocus = focusOp.starts_with("life-") && focus->IsPseudoClassSet("focus-visible") && !dialog_;
 
+    const bool showShop = life_.shop && !lifeRoute_ && !choosing;
     chart.SetClass("candidates", choosing);
+    chart.SetClass("shop-floor", showShop);
     std::string graph = "<h2 class=\"life-chart-title\">" + std::string(choosing ? "Choose a Vassal" : "Life Map") + "</h2>";
-    if (choosing) {
+    if (showShop) graph = shopOffers();
+    else if (choosing) {
         graph += "<div class=\"life-candidates\">";
         for (std::size_t i = 0; i < life_.candidates.size(); ++i) {
             const auto& candidate = life_.candidates[i];
@@ -149,12 +159,13 @@ void View::refreshLife(const Snapshot& snapshot)
             html += "<p class=\"life-summary\">Free · " + number(life_.rerolls) + " used</p>";
         }
         html += "</div>";
-    } else if (!life_.name.empty()) {
+    } else if (!showShop && !life_.name.empty()) {
         html += "<div class=\"life-brief\"><h2>" + escape(life_.name) + "</h2><p class=\"quiet\">" +
             escape(life_.location) + "</p><p class=\"life-summary\">" + escape(life_.summary) + "</p></div>";
     }
     const auto node = std::ranges::find(life_.nodes, lifeNode_, &LifeNode::id);
-    if (!choosing && node != life_.nodes.end() && node->status != NodeStatus::current) {
+    if (showShop) html += shopDetail(disabled);
+    else if (!choosing && node != life_.nodes.end() && node->status != NodeStatus::current) {
         html += "<h2>" + escape(node->label) + "</h2>";
         if (!node->detail.empty()) html += "<p class=\"quiet life-state\">" + escape(node->detail) + "</p>";
         if (node->status == NodeStatus::available)
@@ -164,8 +175,9 @@ void View::refreshLife(const Snapshot& snapshot)
         else if (!life_.decision.empty())
             html += "<div class=\"life-brief\"></div>";
     }
-    if (choosing || node == life_.nodes.end() || node->status == NodeStatus::current || life_.current.empty()) {
+    if (!showShop && (choosing || node == life_.nodes.end() || node->status == NodeStatus::current || life_.current.empty())) {
         if (!life_.decision.empty()) html += "<h2>" + escape(life_.decision) + "</h2>";
+        if (life_.shop) html += button("life-route", {}, "Return to shop");
         if (!life_.decisionDetail.empty())
             html += "<p class=\"quiet life-state\">" + escape(life_.decisionDetail) + "</p>";
         if (life_.progress) {
@@ -176,7 +188,7 @@ void View::refreshLife(const Snapshot& snapshot)
                 number(100 * fraction) + "%;\"></div></div><p class=\"life-summary\">" +
                 std::to_string(start) +  " s to " + std::to_string(end) + " s · At " + std::to_string(snapshot.second) + " s</p>";
         }
-        for (std::size_t i = 0; i < life_.choices.size(); ++i) {
+        for (std::size_t i = 0; !life_.shop && i < life_.choices.size(); ++i) {
             const auto& choice = life_.choices[i];
             html += lifeControl(i, choice, choice.selected || std::ranges::find(heirloomPicks_, i) != heirloomPicks_.end(), disabled, sprites_);
         }
@@ -186,7 +198,7 @@ void View::refreshLife(const Snapshot& snapshot)
                 "decision primary", {}, disabled || (overflow && heirloomPicks_.size() != 6));
         }
     }
-    if (!life_.events.empty()) {
+    if (!showShop && !life_.events.empty()) {
         html += "<div class=\"life-brief\"></div><p class=\"gold\">Life events</p>";
         for (const auto& [second, event] : life_.events)
             html += "<p class=\"quiet life-entry\">" + std::to_string(second) + " s · " + escape(event) + "</p>";
@@ -212,9 +224,89 @@ void View::refreshLife(const Snapshot& snapshot)
     }
 }
 
+const ShopItem* View::selectedOffer() const
+{
+    if (!life_.shop) return nullptr;
+    const auto found = std::ranges::find(life_.shop->offers, lifeOffer_, &ShopItem::id);
+    return found == life_.shop->offers.end() ? nullptr : &*found;
+}
+
+const ShopSpan* View::selectedSpan(const ShopItem& offer) const
+{
+    if (offer.spans.empty()) return nullptr;
+    if (!lifeOrigin_) return &offer.spans.front();
+    const auto found = std::ranges::find(offer.spans, *lifeOrigin_, &ShopSpan::origin);
+    return found == offer.spans.end() ? &offer.spans.front() : &*found;
+}
+
+std::string View::shopOffers() const
+{
+    const auto& shop = *life_.shop;
+    std::string html = "<div class=\"shop-heading\"><h2>" + escape(life_.decision) +
+        "</h2><p class=\"quiet\">" + escape(shop.region) + "</p></div>";
+    if (shop.offers.empty()) return html + "<p class=\"quiet\">No offers remain.</p>";
+    html += "<div class=\"shop-grid\">";
+    for (const auto& item : shop.offers) {
+        const bool chosen = item.id == lifeOffer_;
+        html += "<button class=\"button shop-offer" + std::string(chosen ? " chosen" : "") +
+            (item.reason.empty() ? "" : " blocked") + "\" data-op=\"life-offer\" data-id=\"" + escape(item.id) +
+            "\" data-help=\"" + escape(item.reason.empty() ? item.label : item.reason) +
+            "\" aria-pressed=\"" + (chosen ? "true" : "false") + "\">";
+        if (const auto art = sprites_.find(item.art); art != sprites_.end())
+            html += "<div class=\"shop-art\" style=\"decorator:image(" + art->second + " fill);\"></div>";
+        html += "<div class=\"shop-offer-text\"><div>" + escape(item.label) + "</div><p class=\"life-summary\">" +
+            escape(item.cost) + "</p>";
+        if (!item.reason.empty()) html += "<p class=\"blocked-reason\">Unavailable</p>";
+        html += "</div></button>";
+    }
+    return html + "</div>";
+}
+
+std::string View::shopDetail(bool disabled) const
+{
+    const auto& shop = *life_.shop;
+    std::string html = "<div class=\"life-brief\"><p class=\"life-summary\">" + escape(shop.funds) + "</p>" +
+        button("life-route", {}, "Life route") + button("life-board", {}, "Settlement") + "</div>";
+    if (const auto* offer = selectedOffer()) {
+        html += "<h2>" + escape(offer->label) + "</h2><p class=\"life-summary\">" + escape(offer->cost) + "</p>";
+        if (!offer->description.empty()) html += "<p class=\"quiet\">" + escape(offer->description) + "</p>";
+        if (!offer->reason.empty()) html += "<p class=\"blocked-reason\">" + escape(offer->reason) + "</p>";
+        if (const auto* span = selectedSpan(*offer)) {
+            html += "<p class=\"gold\">Construction strip</p><div class=\"shop-strip\">";
+            for (std::size_t cell = 0; cell < shop.cells.size(); ++cell) {
+                const bool inSpan = cell >= span->origin && cell < span->origin + span->width;
+                const bool valid = std::ranges::find(offer->spans, cell, &ShopSpan::origin) != offer->spans.end();
+                const auto help = "Space " + std::to_string(cell + 1) + " · " +
+                    (shop.cells[cell].empty() ? "Empty" : shop.cells[cell]);
+                html += button("life-origin", std::to_string(cell), std::to_string(cell + 1),
+                    inSpan ? "shop-cell chosen" : shop.cells[cell].empty() ? "shop-cell" : "shop-cell occupied",
+                    help, disabled || !valid);
+            }
+            html += "</div><p class=\"life-summary\">Preview · Space " + std::to_string(span->origin + 1);
+            if (span->width > 1) html += "–" + std::to_string(span->origin + span->width);
+            if (!span->replacement.empty()) html += " · Replaces " + escape(span->replacement);
+            html += "</p>";
+        }
+        html += button("life-purchase", {}, offer->reason.empty() ? "Review purchase" : "Why unavailable?",
+            offer->reason.empty() ? "decision primary" : "decision", offer->reason, disabled);
+        html += "<div class=\"life-brief\"></div>";
+    }
+    if (!shop.staged.empty()) {
+        html += "<p class=\"gold\">Staged purchases</p>";
+        for (const auto& item : shop.staged) {
+            html += "<div class=\"shop-receipt\"><div>" + escape(item.label) + "<p class=\"life-summary\">" +
+                escape(item.cost) + (item.description.empty() ? "" : " · " + escape(item.description)) + "</p></div>" +
+                button("life-undo-purchase", item.id, "Undo", "decision", "Remove " + item.label, disabled) + "</div>";
+        }
+    }
+    for (std::size_t i = 0; i < life_.choices.size(); ++i)
+        html += lifeControl(i, life_.choices[i], false, disabled, sprites_);
+    return html;
+}
+
 void View::drawLifePaths()
 {
-    if (!life_.candidates.empty()) return;
+    if (!life_.candidates.empty() || (life_.shop && !lifeRoute_)) return;
     const auto area = bounds("life-chart");
     SDL_SetRenderDrawColor(renderer_, 28, 33, 25, 255);
     SDL_RenderFillRect(renderer_, &area);
@@ -249,6 +341,7 @@ void View::submitLife(const LifeCommand& command)
     pendingAction_ = "life";
     pendingGeneration_ = session_.generation();
     lifeFeedback_ = command.feedback;
+    lifeActionKind_ = command.kind;
     notify("");
 }
 
@@ -266,7 +359,41 @@ void View::activateLife(std::string_view op, const std::string& id)
         return;
     }
     using core::json::Value;
-    if (op == "life-reroll") {
+    if (op == "life-route") {
+        lifeRoute_ = !lifeRoute_;
+        if (life_.shop) lifeNode_ = life_.current;
+        lifeDirty_ = true;
+        element("life-inspector").SetScrollTop(0);
+    } else if (op == "life-board") {
+        if (const auto* view = session_.liveSnapshot(); view && !view->vassalRegion.empty()) selectRegion(view->vassalRegion);
+        setLifeOpen(false);
+    } else if (op == "life-offer") {
+        lifeOffer_ = id;
+        lifeOrigin_.reset();
+        lifeDirty_ = true;
+        element("life-inspector").SetScrollTop(0);
+    } else if (op == "life-origin") {
+        lifeOrigin_ = std::stoul(id);
+        lifeDirty_ = true;
+    } else if (op == "life-purchase") {
+        const auto* offer = selectedOffer();
+        if (!offer) return;
+        if (!offer->reason.empty()) {
+            notify(offer->reason, true);
+            return;
+        }
+        lifeConfirm_ = offer->command;
+        std::string copy = "Stage this offer for checkout.";
+        if (const auto* span = selectedSpan(*offer)) {
+            lifeConfirm_->payload.emplace_back("origin", Value(double(span->origin)));
+            copy = "Place at space " + std::to_string(span->origin + 1) + ".";
+            if (!span->replacement.empty()) copy += " Replaces " + span->replacement + " at checkout.";
+        }
+        confirm(Confirmation::life, offer->label, copy, offer->cost, "Stage offer");
+    } else if (op == "life-undo-purchase" && life_.shop) {
+        const auto item = std::ranges::find(life_.shop->staged, id, &ShopItem::id);
+        if (item != life_.shop->staged.end()) submitLife(item->command);
+    } else if (op == "life-reroll") {
         lifeConfirm_ = LifeCommand{"settlementRerollVassals", {}, "New candidates have arrived"};
         confirm(Confirmation::life, "Reroll candidates?", "The current candidates will leave.", "Free · unlimited", "Reroll");
     } else if (op == "life-candidate") {
@@ -305,7 +432,7 @@ void View::activateLife(std::string_view op, const std::string& id)
                 heirloomPicks_.push_back(index);
             else notify("The selection is full. Deselect an Heirloom to make room.", true);
             lifeDirty_ = true;
-        } else if (choice.command.kind == "vassalConfirmLifeNode") {
+        } else if (choice.command.kind == "vassalConfirmLifeNode" || choice.command.kind == "vassalRerollShop") {
             lifeConfirm_ = choice.command;
             confirm(Confirmation::life, choice.label + "?", "Commit this decision and update the forecast.",
                 choice.detail, "Confirm");

@@ -41,6 +41,10 @@ private:
     void activateLife(std::string_view op, const std::string& id);
     void submitLife(const LifeCommand& command);
     void drawLifePaths();
+    const ShopItem* selectedOffer() const;
+    const ShopSpan* selectedSpan(const ShopItem& offer) const;
+    std::string shopOffers() const;
+    std::string shopDetail(bool disabled) const;
     void refreshMarkers(const Snapshot* snapshot);
     void positionMarkers();
     void refreshHelp();
@@ -99,12 +103,14 @@ private:
     std::uint64_t lifeRevision_ = ~std::uint64_t{};
     LifeReading life_;
     std::string lifeChartMarkup_, lifeInspectorMarkup_;
-    std::string lifeNode_, lifeFeedback_;
+    std::string lifeNode_, lifeOffer_, lifeFeedback_, lifeActionKind_;
+    std::optional<std::size_t> lifeOrigin_;
+    bool lifeRoute_{};
     std::vector<std::size_t> heirloomPicks_;
     std::optional<LifeCommand> lifeConfirm_;
     RegionalMap map_;
     SDL_FPoint pointer_{}, last_{}, pressed_{};
-    enum class Drag { none, map, graph, card, panel, shell, lifePanel, pinch };
+    enum class Drag { none, map, graph, card, panel, shell, lifePanel, lifeOffers, pinch };
     float density_ = 1;
     Drag drag_ = Drag::none;
     std::size_t draggedCard_{};

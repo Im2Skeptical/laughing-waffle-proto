@@ -1,6 +1,8 @@
 #include "life_map.hpp"
 
 #include "sim/step/replay.hpp"
+#include "sim/settlement/site_access.hpp"
+#include "sim/vassal/action_structures.hpp"
 #include "sim/vassal/action_choices.hpp"
 #include "sim/territory/detail.hpp"
 #include "sim/vassal/detail.hpp"
@@ -156,6 +158,134 @@ void confirmChoice(LifeReading& view, const RuntimeState& state, const Vassal& a
     commands("Decline relic", {{"destination", Value("decline")}});
 }
 
+std::string shopCost(double prestige, double currency, double pressure, double seconds)
+{
+    std::string cost;
+    const auto append = [&](double amount, std::string_view unit) {
+        if (!amount) return;
+        if (!cost.empty()) cost += " · ";
+        cost += decimal(amount) + " " + std::string(unit);
+    };
+    append(prestige, "Prestige");
+    append(currency, "Currency");
+    append(pressure, "Monster pressure");
+    append(seconds, "s");
+    return cost.empty() ? "Free" : cost;
+}
+
+std::string structureLabel(const RuntimeState& state, std::string_view id)
+{
+    const auto& defs = state.content->config.gamepieces.structures;
+    const auto found = std::ranges::find(defs, id, &sim::browser::GamepiecesStructures::value_type::first);
+    return found == defs.end() ? title(id) : found->second.label;
+}
+
+void readShop(LifeReading& view, const RuntimeState& state, const Vassal& actor,
+              const sim::browser::LifeMapNodeState& node, bool actionable)
+{
+    auto& shop = view.shop.emplace();
+    shop.region = view.location;
+    const auto phase = state.compiledContent->settings().phaseDurationSec;
+    if (const auto* site = sim::settlement::detailed_site(state, actor.locationRegionId)) {
+        const auto draft = structure_draft(state, *site, node);
+        shop.cells.resize(draft.slots.size());
+        for (const auto& cell : draft.slots) {
+            if (!cell) continue;
+            const auto origin = static_cast<std::size_t>(cell->placement.origin);
+            const auto width = static_cast<std::size_t>(cell->placement.width);
+            std::fill_n(shop.cells.begin() + origin, width, structureLabel(state, cell->placement.structureId));
+        }
+        shop.funds = decimal(state.hot.civilization.prestige.value_or(actor.prestige)) + " Prestige · " +
+            decimal(std::floor(action_stock_total(state, site, state.practiceVocabulary.currency) * 10) / 10) + " Currency";
+    }
+    for (const auto& quote : sim::vassal::quote_shop(state, actor, node, actionable)) {
+        const auto& offer = quote.offer;
+        const auto& change = offer.intervention;
+        const auto& price = quote.price;
+        ShopItem item{offer.offerId, offer.label, change.structureId.value_or(change.practiceId.value_or(""))};
+        item.cost = shopCost(price.prestigeCost, price.currencyCost, price.monsterPressureCost, price.phaseCost * phase);
+        if (!quote.reason.empty()) item.reason = actionReason(quote.reason);
+        if (change.kind == "connection" && change.regionAId && change.regionBId) {
+            item.label = change.mode == "add" ? "Build road" : "Remove road";
+            item.description = title(change.mode) + " route · " + regionName(state, *change.regionAId) +
+                " to " + regionName(state, *change.regionBId);
+        } else if (change.kind == "practiceSlot") item.description = "Unlock a permanent space on this settlement's Practice board.";
+        else if (change.structureId) {
+            const auto& defs = state.content->config.gamepieces.structures;
+            const auto def = std::ranges::find(defs, *change.structureId, &sim::browser::GamepiecesStructures::value_type::first);
+            if (def != defs.end()) item.description = decimal(def->second.footprint) + "-space building";
+        } else if (change.practiceId) {
+            const auto& defs = state.content->config.gamepieces.practices;
+            const auto def = std::ranges::find(defs, *change.practiceId, &sim::browser::GamepiecesPractices::value_type::first);
+            if (def != defs.end()) item.description = def->second.ui.rule;
+        }
+        for (const auto& span : quote.placements) {
+            ShopSpan available{span.origin, span.width};
+            for (const auto& structure : span.demolished) {
+                if (!available.replacement.empty()) available.replacement += ", ";
+                available.replacement += structureLabel(state, structure);
+            }
+            item.spans.push_back(std::move(available));
+        }
+        item.command = nodeCommand("vassalPurchaseShopOffer", node.nodeId, "Staged " + item.label,
+            {{"offerId", Value(item.id)}});
+        shop.offers.push_back(std::move(item));
+    }
+    double prestige = 0, currency = 0, pressure = 0;
+    for (const auto& receipt : node.purchasedOffers) {
+        prestige += receipt.prestigeCost;
+        currency += receipt.currencyCost;
+        pressure += receipt.monsterPressureCost;
+        std::string label = receipt.label.value_or(receipt.intervention.kind == "practiceSlot"
+            ? "Unlock Practice slot " + decimal(receipt.intervention.capacity.value_or(0)) : title(receipt.intervention.kind));
+        ShopItem staged{receipt.offerId, std::move(label)};
+        staged.cost = shopCost(receipt.prestigeCost, receipt.currencyCost, receipt.monsterPressureCost, receipt.phaseCost * phase);
+        if (receipt.placement) {
+            staged.description = (receipt.placement->width == 1 ? "Space " : "Spaces ") + decimal(receipt.placement->origin + 1);
+            if (receipt.placement->width > 1)
+                staged.description += "–" + decimal(receipt.placement->origin + receipt.placement->width);
+        }
+        staged.command = nodeCommand("vassalUndoShopPurchase", node.nodeId, "Purchase removed",
+            {{"offerId", Value(receipt.offerId)}});
+        shop.staged.push_back(std::move(staged));
+    }
+    if (node.removalReceipts) {
+        for (const auto& receipt : *node.removalReceipts) {
+            prestige += receipt.prestigeCost.value_or(0);
+            pressure += receipt.monsterPressureCost.value_or(0);
+        }
+    }
+    auto confirm = nodeCommand("vassalConfirmLifeNode", node.nodeId, "Shop committed");
+    std::string error;
+    auto seconds = node.accumulatedPhaseCost * phase;
+    if (actionable) {
+        auto draft = state;
+        const auto result = sim::apply_action(draft, {state.hot.tSec, confirm.kind, Value(confirm.payload), {}});
+        if (!result) error = actionReason(result.reason);
+        else if (draft.indexes.currentVassal) {
+            const auto& pending = draft.tables.at(draft.indexes.currentVassal).value.lifeMap.pendingResolution;
+            if (pending) seconds = pending->resolveSec - state.hot.tSec;
+        }
+    }
+    shop.total = shopCost(prestige, currency, pressure, seconds);
+    if (!shop.staged.empty()) confirm.feedback = "Shop committed · " + shop.total;
+    view.choices.push_back({shop.staged.empty() ? "Leave shop" : "Review checkout", shop.total,
+        std::move(error), {}, std::move(confirm)});
+    if (class_name(actor) == "scholar") {
+        auto delve = nodeCommand("vassalRerollShop", node.nodeId, "Delve begun");
+        std::string reason;
+        std::string detail = "Spend time to refresh this shop.";
+        if (actionable) {
+            auto draft = state;
+            const auto result = sim::apply_action(draft, {state.hot.tSec, delve.kind, Value(delve.payload), {}});
+            if (!result) reason = actionReason(result.reason);
+            else if (const auto& pending = draft.tables.at(draft.indexes.currentVassal).value.lifeMap.pendingResolution)
+                detail = decimal(pending->resolveSec - state.hot.tSec) + " s · Refresh the offers.";
+        }
+        view.choices.push_back({"Delve", std::move(detail), std::move(reason), {}, std::move(delve)});
+    }
+}
+
 void activeChoices(LifeReading& view, const RuntimeState& state, const Vassal& actor,
                    const sim::browser::LifeMapNodeState& node, bool actionable)
 {
@@ -166,9 +296,7 @@ void activeChoices(LifeReading& view, const RuntimeState& state, const Vassal& a
                 addChoice(view, state, {option.label, option.description, option.enabled ? "" : "Specialty unavailable.",
                     {}, nodeCommand("vassalSelectLifeOption", node.nodeId, "Specialty chosen", {{"optionId", Value(option.id)}})});
         } else {
-            view.decisionDetail = "The settlement board shows the current Practices.";
-            addChoice(view, state, {"Leave shop", {}, {}, {},
-                nodeCommand("vassalConfirmLifeNode", node.nodeId, "Shop committed")}, actionable);
+            readShop(view, state, actor, node, actionable);
         }
         return;
     }

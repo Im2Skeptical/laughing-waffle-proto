@@ -381,8 +381,8 @@ void View::pointer(const SDL_Event& event)
             if (drag_ == Drag::card && touch_ && moved_ &&
                 !dropTarget_ && std::abs(pointer_.y - pressed_.y) > 1.4f * std::abs(pointer_.x - pressed_.x))
                 drag_ = Drag::panel;
-            if ((drag_ == Drag::panel || drag_ == Drag::shell || drag_ == Drag::lifePanel) && moved_) {
-                auto& panel = element(drag_ == Drag::panel ? "panel" : drag_ == Drag::lifePanel ? "life-inspector" : "shell-panel");
+            if ((drag_ == Drag::panel || drag_ == Drag::shell || drag_ == Drag::lifePanel || drag_ == Drag::lifeOffers) && moved_) {
+                auto& panel = element(drag_ == Drag::panel ? "panel" : drag_ == Drag::lifePanel ? "life-inspector" : drag_ == Drag::lifeOffers ? "life-chart" : "shell-panel");
                 panel.SetScrollTop(panel.GetScrollTop() + last_.y - pointer_.y);
             }
             last_ = pointer_;
@@ -419,6 +419,8 @@ void View::pointer(const SDL_Event& event)
                 if (!dialog_ && touch_) {
                     if (game && !lifeOpen_ && contains(bounds("panel"), pointer_)) drag_ = Drag::panel;
                     if (game && lifeOpen_ && contains(bounds("life-inspector"), pointer_)) drag_ = Drag::lifePanel;
+                    if (game && lifeOpen_ && life_.shop && !lifeRoute_ && contains(bounds("life-chart"), pointer_))
+                        drag_ = Drag::lifeOffers;
                     if (!game && contains(bounds("shell-panel"), pointer_)) drag_ = Drag::shell;
                 }
                 if (const auto slot = game && !lifeOpen_ ? cardAt(pointer_) : std::nullopt;

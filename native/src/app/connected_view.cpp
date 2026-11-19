@@ -588,6 +588,10 @@ void View::refresh()
                 dialogClosedAt_ = 0;
                 notify("Practice Reform complete. Updating the forecast.");
             } else if (pendingAction_ == "life") {
+                if (lifeActionKind_ == "vassalPurchaseShopOffer") {
+                    lifeOffer_.clear();
+                    lifeOrigin_.reset();
+                }
                 notify(lifeFeedback_ + ".");
             } else {
                 notify("Decision recorded.");

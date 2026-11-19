@@ -18,4 +18,20 @@ struct AgeRisk {
 
 AgeRisk mortality_at(const RuntimeState&, const runtime::Vassal&, double second);
 
+
+struct ShopPlacement {
+    std::size_t origin{}, width{};
+    std::vector<std::string> demolished;
+};
+
+struct ShopQuote {
+    browser::ShopOffer offer;
+    browser::PurchaseReceipt price;
+    std::string_view reason;
+    std::vector<ShopPlacement> placements;
+};
+
+std::vector<ShopQuote> quote_shop(const RuntimeState&, const runtime::Vassal&, const browser::LifeMapNodeState&,
+                                 bool validate);
+
 }
