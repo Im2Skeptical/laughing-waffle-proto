@@ -1,19 +1,4 @@
 {
   "formatVersion": 1,
-  "masks": [
-    { "path": "$.rng.vassalSeed", "owner": "N03e-9", "reason": "Timed resolution, Commission, inheritance and candidates draw from this stream." },
-    { "path": "$.civilization.prestige", "owner": "N03e-9", "reason": "Timed resolution credits civilization Prestige." },
-    { "path": "$.civilization.treasury.grossIncome", "owner": "N03e-9", "reason": "Timed resolution updates the treasury income ledger." },
-    { "path": "$.civilization.vassalLineage.vassalsById.*.developmentProgress", "owner": "N03e-9", "reason": "Resolution awards development progress." },
-    { "path": "$.civilization.vassalLineage.vassalsById.*.lifeEvents", "owner": "N03e-9", "reason": "Resolution, death and retirement append Life Events." },
-    { "path": "$.civilization.vassalLineage.vassalsById.*.lifeMap.currentNodeId", "owner": "N03e-9", "reason": "Ordinary resolution clears the current node." },
-    { "path": "$.civilization.vassalLineage.vassalsById.*.lifeMap.completedNodeIds", "owner": "N03e-9", "reason": "Ordinary resolution records completed nodes." },
-    { "path": "$.civilization.vassalLineage.vassalsById.*.lifeMap.availableNodeIds", "owner": "N03e-9", "reason": "Ordinary resolution exposes outgoing nodes." },
-    { "path": "$.civilization.vassalLineage.vassalsById.*.lifeMap.pendingResolution", "owner": "N03e-9", "reason": "Resolution clears the pending transaction." },
-    { "path": "$.civilization.vassalLineage.vassalsById.*.lifeMap.nodeStates.*.mortality", "owner": "N03e-9", "reason": "Resolution records its mortality roll." },
-    { "path": "$.civilization.vassalLineage.vassalsById.*.lifeMap.nodeStates.*.resolving", "owner": "N03e-9", "reason": "Resolution clears the resolving flag." },
-    { "path": "$.civilization.vassalLineage.vassalsById.*.lifeMap.nodeStates.*.resolved", "owner": "N03e-9", "reason": "Resolution updates the resolved flag." },
-    { "path": "$.civilization.vassalLineage.vassalsById.*.lifeMap.nodeStates.*.resolvedSec", "owner": "N03e-9", "reason": "Resolution records its second." },
-    { "path": "$.civilization.vassalLineage.vassalsById.*.lifeMap.nodeStates.*.resolutionResult", "owner": "N03e-9", "reason": "Resolution records the final mortality outcome." }
-  ]
+  "masks": []
 }

@@ -103,6 +103,12 @@ std::shared_ptr<const WorldTopology> load_world_topology(const RuntimeState& sta
         stored.name = field(row, "name", Value::Kind::string, definitionId).as_string();
         const auto& neutral = field(row, "neutralSettlementName", Value::Kind::string, definitionId, true);
         if (neutral.kind() == Value::Kind::string) stored.neutralSettlementName = neutral.as_string();
+        if (const auto* point = row.find("labelPoint")) {
+            stored.labelPoint = std::array{
+                field(*point, "x", Value::Kind::number, definitionId).as_number(),
+                field(*point, "y", Value::Kind::number, definitionId).as_number(),
+            };
+        }
         for (const auto& neighbor : field(row, "neighbors", Value::Kind::array, definitionId).as_array()) {
             const auto next = readRegion(neighbor);
             if (next == id || (!stored.neighbors.empty() && next <= stored.neighbors.back()))

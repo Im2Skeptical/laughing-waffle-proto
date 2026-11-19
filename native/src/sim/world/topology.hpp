@@ -2,6 +2,7 @@
 
 #include "sim/content/vocabulary.hpp"
 
+#include <array>
 #include <memory>
 #include <optional>
 #include <span>
@@ -34,6 +35,10 @@ public:
         return biome_component(region);
     }
     std::string_view region_name(runtime::RegionId region) const { return rows_.at(region.value).name; }
+    std::optional<std::array<double, 2>> label_point(runtime::RegionId region) const
+    {
+        return rows_.at(region.value).labelPoint;
+    }
     std::optional<std::string_view> neutral_settlement_name(runtime::RegionId region) const
     {
         return rows_.at(region.value).neutralSettlementName;
@@ -50,6 +55,7 @@ private:
         content::Biome biome{};
         std::string name;
         std::optional<std::string> neutralSettlementName;
+        std::optional<std::array<double, 2>> labelPoint;
         std::vector<runtime::RegionId> neighbors;
         std::size_t component{};
     };

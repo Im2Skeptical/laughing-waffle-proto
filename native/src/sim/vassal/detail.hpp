@@ -1,5 +1,6 @@
 #pragma once
 
+#include "sim/content/compiled_content.hpp"
 #include "sim/state/runtime_state.hpp"
 
 #include <algorithm>
@@ -13,7 +14,7 @@ using namespace std::literals;
 
 struct HeirloomDef {
     std::string_view id, label, quality;
-    double patronage, development, crossroads, cunning, wisdomMultiplier;
+    double patronage, development, crossroads, cunning, wisdomMultiplier, extraShopOffers;
     bool mandate;
 };
 struct SignatureDef {
@@ -21,6 +22,11 @@ struct SignatureDef {
     double color;
     std::string_view description, removal, tag;
 };
+struct CommissionDef {
+    std::string_view id, difficulty, label, description, event, parameter, minimumQuality;
+    double prestige, amount;
+};
+struct NodeFamilyLabel { std::string_view id, label; };
 #include "sim/vassal/tables.inc"
 
 inline constexpr std::array statIds{"cunning"sv, "wisdom"sv, "effectiveness"sv, "intelligence"sv};
@@ -89,6 +95,71 @@ Bonuses bonuses(const RuntimeState& state, const Vassal& actor);
 bool spend_mandate(RuntimeState& state, Vassal& actor);
 void inherit(RuntimeState& state, Vassal& actor);
 void generate_candidates(RuntimeState& state);
+browser::LifeMapNodeStateOptions campaign_options(const RuntimeState& state, const Vassal& actor,
+                                                   const browser::LifeMapNodeState& node);
+browser::LifeMapNodeStateInventory shop_inventory(RuntimeState& state, Vassal& actor, browser::LifeMapNodeState& node);
+bool apply_timed_class_action(RuntimeState& state, Vassal& actor, const browser::LifeMapOptionClassAction& action);
+bool commission_due(const RuntimeState& state, const Vassal& actor);
+void ensure_commission_offers(RuntimeState& state, Vassal& actor);
+void step_commission(RuntimeState& state, Vassal& actor);
+void credit_prestige(RuntimeState& state, Vassal& actor, double amount);
+
+inline constexpr std::array qualityIds{"bronze"sv, "silver"sv, "gold"sv, "diamond"sv};
+inline std::size_t quality_index(std::string_view quality)
+{
+    const auto found = std::ranges::find(qualityIds, quality);
+    return found == qualityIds.end() ? 0 : static_cast<std::size_t>(found - qualityIds.begin());
+}
+
+inline std::size_t research_unlock(const RuntimeState& state)
+{
+    const auto& settings = state.compiledContent->settings();
+    const auto research = std::max(0.0, state.hot.civilization.research.total);
+    if (research >= settings.researchDiamondThreshold) return 3;
+    if (research >= settings.researchGoldThreshold) return 2;
+    if (research >= settings.researchSilverThreshold) return 1;
+    return 0;
+}
+
+inline std::string_view practice_prototype_tag(const RuntimeState& state, std::string_view id)
+{
+    const auto& prototype = state.content->config.keywordPrototype;
+    if (!prototype) return {};
+    if (id == "barter") return "Economic Regions";
+    if (prototype->mode == "disciplines") {
+        if (id == "monsterHunting") return "Monster Trophies";
+        if (id == "copyingTexts") return "Synthesis";
+    } else if (id == "observation") return "Monster Trophies";
+    return {};
+}
+
+inline std::string_view practice_pool(const RuntimeState& state, const browser::PracticeDefinition& def)
+{
+    const auto& prototype = state.content->config.keywordPrototype;
+    return prototype && prototype->mode != "disciplines" && !practice_prototype_tag(state, def.id).empty()
+        ? "common"sv : std::string_view(def.pool);
+}
+
+template<class Bands>
+double balance_value(const content::BalanceValue& assignment, const Bands& bands)
+{
+    if (const auto* amount = std::get_if<double>(&assignment)) return *amount;
+    using enum browser::BalancePreset;
+    switch (std::get<browser::BalancePreset>(assignment)) {
+    case cheap: return bands.cheap;
+    case fair: return bands.fair;
+    case expensive: return bands.expensive;
+    default: return 0;
+    }
+}
+
+inline double year_phases(const RuntimeState& state, double years)
+{
+    const auto& settings = state.compiledContent->settings();
+    const auto seasons = state.hot.seasons.size() == 0 ? 4 : state.hot.seasons.size();
+    const auto phases = static_cast<double>(seasons) * settings.seasonDurationSec / settings.phaseDurationSec;
+    return std::max(years > 0 ? 1.0 : 0.0, core::js::round(years * phases));
+}
 
 std::vector<SiteId> player_sites(const RuntimeState& state);
 void add_event(RuntimeState& state, Vassal& actor, std::string_view kind,

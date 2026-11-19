@@ -865,3 +865,12 @@ void activate(RuntimeState& state, content::Activation activation, std::optional
 }
 
 }
+
+namespace waffle::sim::practice {
+
+void train_specialists(RuntimeState& state, runtime::Site& site, double amount, content::SpecialistClass specialty)
+{
+    detail::train(state, site.id, site, amount, specialty);
+}
+
+}

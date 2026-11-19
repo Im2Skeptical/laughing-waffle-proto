@@ -1004,6 +1004,81 @@ optimized drain and History path. The focused wrapper and raw measurements
 are in local `artifacts/n03e8-stage-timing.ps1`, `n03e8-timing-final.log`,
 and `n03e8-pipeline-timing.log`.
 
+**N03e-9 — Timed Vassal resolution (done, 19 Nov 2026).**
+`t3/native-timed-vassal-resolution-2` starts at `e6cef481` and merges the
+paused exhibits from `58f3feae`. The four implementation commits cover
+Campaign (`0ef2d7bd`), Delve (`9c1d1e19`), Founding (`f5ad7248`) and
+Commission (`e2d83364`), against browser baseline `496d9971`.
+
+Campaign refreshes the open visit after mortality, using current Force, costs
+and potential travel distances. The authored River Basin island probe matched
+distance 3 and Food cost 4 with the label-point fallback. Delve refreshes
+shop inventory after mortality, with the authored candidate order and captured
+shop, research and Discovery rules. Both keep the visit open and award zero
+node income. Founding uses the Practice training ledger and places a finished
+Lyceum in the first free span when applicable. Commission offers use the
+current actor and reachable node context. Permanent stat gains and gross
+Prestige income advance their corresponding goals. Scholar Founding generates
+offers before the mortality draw. The port consumes the serialized
+`vassalSeed` in browser order and publishes changes through the existing
+History and GameState schema.
+
+Optimized MSVC verification from `native/` passed 33/33 enabled CTests after
+`cmake --preset optimized`, `cmake --build --preset optimized` and
+`ctest --preset optimized --output-on-failure`. The preset disables
+`pipeline_steady_state_allocations`. From the repo root, with
+`$exe = 'native/build/optimized/src/sim/waffle_parity.exe'`:
+
+- `node native/reference/trace.mjs` generated the resumed corpus. Four
+  additional captures used the same command with
+  `seed-1-vassal-scholar-founding seed-1-vassal-commission-stat seed-1-vassal-commission-prestige seed-1-vassal-commission-progress`.
+  Browser JSON continuation and authoritative rebuild matched throughout.
+- `node native/reference/stage-probe.mjs --all` matched official and trace
+  hashes. `node native/reference/stage-pairs.mjs $exe vassal_check` passed
+  121/121 unmasked pairs, up from 114/121 on the resumed build with the same
+  captures. Across the other stages, 706/707 pairs passed on both builds.
+  Prelude at `death-committed-arrivals/2035` still differs first at
+  `$.civilization.practiceEvents.nextId` with 53 differing leaves.
+- `node native/reference/step-windows.mjs $exe` passed 30 windows and 153
+  comparisons (152 advancing, one gated) with zero masks. All 14 N03e-9
+  masks were individually omitted from the original set and tested against
+  all 30 windows before removing the entire set. The other 13 masks stayed
+  enabled in each individual audit.
+- Both schema generators and `node native/reference/export-vassal-tables.mjs --check`
+  passed `--check`. Native `run --seconds 256 --anchors` from the
+  Scholar Founding, stat Commission and Prestige payout captures verified
+  all 256 live advances and sampled value-copy and adapter restores for
+  each capture.
+
+Seven paired runs on the Windows i9-10900K measured the idle deadline path
+with `$exe step --from <window>/state-<start>.json --seconds <advances>
+--expect-dir <window> --masks artifacts/n03e-9/no-masks.json
+--report artifacts/n03e-9/time-step.json --time`.
+The median `vassal_check` stage costs include instrumentation:
+
+| Window | Advances per timed run | Before (µs/sim-s) | After (µs/sim-s) |
+| --- | ---: | ---: | ---: |
+| `seed-1/0` | 9,984 | 0.0166 | 0.0182 |
+| `seed-2026-late/3200` | 2,816 | 0.0196 | 0.0189 |
+| `seed-42-shops/80` (pending until 228) | 2,816 | 0.0163 | 0.0196 |
+
+Local evidence is in `artifacts/n03e-9/`. `node artifacts/n03e-9/audit.mjs masks`
+repeats the individual mask audit, `stages` compares the two executables, and
+`time` repeats the paired medians. The resumed executable and original masks
+are saved in that directory. The River Basin probe uses
+`node native/reference/export-topology.mjs --out-dir artifacts/n03e-9/river-basin-topology riverBasin01`,
+`node artifacts/n03e-9/campaign-island.mjs` and
+`$exe stage --stage vassal_check --before artifacts/n03e-9/campaign-island-before.json --after artifacts/n03e-9/campaign-island-after.json --topology-dir artifacts/n03e-9/river-basin-topology`.
+
+Cross-runtime handoff. Native evaluates the same timed operations at the
+browser's Vassal stage. The existing derived deadline covers both Commission
+and node work. The no-work stage reads only that deadline. N03f owns node
+entry, confirmation, Commission selection and its committed action events.
+When actions change the current actor, Commission, tracked stat or pending
+transaction, refresh the current actor index as needed and call
+`vassal::reindex`. Windows restore passed. Android hash agreement remains
+with N03g. Ownership returns to the supervising session.
+
 **N03e-3p — Practice engine and pipeline performance (19 Nov 2026).**
 Implementation on `t3/optimize-practice-recipe-engine` from `9a49365c`.
 `waffle_parity step --time` reports an uninstrumented pipeline average and a

@@ -99,6 +99,8 @@ const NeutralStock* stocked_goods(const RuntimeState& state, Index<NeutralMarket
     return goods == stocks.end() ? nullptr : &*goods;
 }
 
+}
+
 double available_warriors(const RuntimeState& state, RegionId region)
 {
     const auto* site = settlement::detailed_site(state, region);
@@ -134,6 +136,8 @@ double retinue(const RuntimeState& state, const Vassal& vassal)
     }
     return std::floor(std::max(0.0, prestige) / 10) + std::floor(bonus);
 }
+
+namespace {
 
 double martial_force(const RuntimeState& state)
 {

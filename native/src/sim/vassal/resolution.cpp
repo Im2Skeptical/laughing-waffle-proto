@@ -89,14 +89,16 @@ bool complete(RuntimeState& state, Vassal& actor)
     const auto found = std::ranges::find(states, key, &browser::LifeMapNodeStates::value_type::first);
     if (found == states.end()) return false;
     auto& node = found->second;
-    // Encounter refresh, Delve inventory and Founding complete at this seam.
-    if (pending.kind != browser::PendingLifeMapKind::nodeResolution) return false;
-    if (node.selectedOptionId) {
+    const bool encounter = pending.kind == browser::PendingLifeMapKind::campaignEncounter;
+    const bool delve = pending.kind == browser::PendingLifeMapKind::shopDelve;
+    const bool completesNode = !encounter && !delve;
+    if (!delve && node.selectedOptionId) {
         const auto option = std::ranges::find(node.options, *node.selectedOptionId, &browser::LifeMapOption::id);
-        if (option != node.options.end() && option->classAction && option->classAction->onCompletion.value_or(false))
-            return false;
+        if (option != node.options.end() && option->classAction && option->classAction->onCompletion.value_or(false)
+            && !apply_timed_class_action(state, actor, *option->classAction)) return false;
     }
-    {
+    ensure_commission_offers(state, actor);
+    if (completesNode) {
         const auto mods = bonuses(state, actor);
         double territory = 0;
         if (state.hot.rulesetId) {
@@ -108,10 +110,7 @@ bool complete(RuntimeState& state, Vassal& actor)
         const auto income = core::js::round((3 + (has_identity(state, actor, "scholar") ? 0
             : whole(whole(actor.stats.cunning) + mods.cunning)))
             + (node.family == "patronage" ? mods.patronage : 0) + territory);
-        if (state.hot.rulesetId) {
-            *state.hot.civilization.prestige += income;
-            state.hot.civilization.treasury->grossIncome += income;
-        } else actor.prestige += income;
+        credit_prestige(state, actor, income);
         actor.developmentProgress += 2 + whole(whole(actor.stats.wisdom) * mods.wisdomMultiplier)
             + mods.development + (node.family == "crossroads" ? mods.crossroads : 0);
     }
@@ -130,7 +129,7 @@ bool complete(RuntimeState& state, Vassal& actor)
     node.resolved = true;
     node.resolvedSec = whole(state.hot.tSec);
     map.pendingResolution.reset();
-    {
+    if (completesNode) {
         auto& completed = state.histories.at(map.completedNodeIds.row);
         bool recorded = false;
         completed.for_each([&](const NodeId& id, const HistoryPayload&) { recorded |= id == pending.nodeId; });
@@ -149,10 +148,26 @@ bool complete(RuntimeState& state, Vassal& actor)
             died = true;
         }
     }
-    add_event(state, actor, "nodeResolved", {}, pending.nodeId, *node.resolutionResult, age);
+    if (!delve) add_event(state, actor, "nodeResolved", {}, pending.nodeId, *node.resolutionResult, age);
     if (died) {
         replace(state, map.nodeStates, states);
         finish(state, actor, true);
+        return true;
+    }
+    if (encounter) {
+        node.resolved = false;
+        node.accumulatedPhaseCost = 0;
+        node.selectedOptionId.reset();
+        node.options = campaign_options(state, actor, node);
+        replace(state, map.nodeStates, states);
+        return true;
+    }
+    if (delve) {
+        node.resolved = false;
+        ++node.inventoryRoll;
+        node.inventory = shop_inventory(state, actor, node);
+        add_event(state, actor, "shopDelved", {}, pending.nodeId, {}, age);
+        replace(state, map.nodeStates, states);
         return true;
     }
     replace(state, map.nodeStates, states);
@@ -167,17 +182,6 @@ bool complete(RuntimeState& state, Vassal& actor)
         enqueue_development(state, actor, levels);
     }
     return true;
-}
-
-bool commission_due(const RuntimeState& state, const Vassal& actor)
-{
-    if (class_name(actor) != "scholar" || actor.isDead || actor.endedReason) return false;
-    const auto* goal = actor.commission.has_key() && actor.commission.value()
-        ? &*actor.commission.value() : nullptr;
-    if (!goal) return !actor.commissionOffers || actor.commissionOffers->size() == 0;
-    if (!goal->statId || !goal->startingStat) return false;
-    const auto stat = std::ranges::find(statIds, state.name(*goal->statId));
-    return stat != statIds.end() && whole(actor.stats.*statMembers[stat - statIds.begin()]) > *goal->startingStat;
 }
 
 }
@@ -197,11 +201,9 @@ bool resolve_due(RuntimeState& state)
 {
     auto* actor = current(state);
     if (actor) {
-        if (commission_due(state, *actor)) return false;
+        step_commission(state, *actor);
         if (actor->lifeMap.pendingResolution
             && whole(state.hot.tSec) >= core::js::floor(actor->lifeMap.pendingResolution->resolveSec)) {
-            if (actor->commission.has_key() && actor->commission.value()
-                && state.name(actor->commission.value()->event) == "prestigeGained") return false;
             if (!complete(state, *actor)) return false;
         }
     }

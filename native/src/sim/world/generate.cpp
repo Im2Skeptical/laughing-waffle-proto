@@ -506,7 +506,8 @@ RegionalWorld generate_regional_world(std::uint32_t seed)
         if (assigned == monster)
             regions[i].biome = hasFeature(ridge) ? mountains : hasFeature(river) ? swamp : plains;
         world.regions[i] = {std::string(i < 9 ? "R0" : "R") + std::to_string(i + 1), {},
-                            biomes[regions[i].biome], colours[assigned], {}};
+                            biomes[regions[i].biome], colours[assigned], {},
+                            {regions[i].centre.x, regions[i].centre.y}};
     }
     auto names = region_names(regions);
     for (int i = 0; i < regional_region_count; ++i) world.regions[i].name = std::move(names[i]);
@@ -532,11 +533,24 @@ core::json::Value RegionalWorld::topology_json() const
         for (const int ordinal : ordinals) values.emplace_back(regions[ordinal].id);
         return Value(std::move(values));
     };
+    std::array<bool, regional_region_count> seen{};
+    std::vector<int> reachable{0};
+    seen[0] = true;
+    for (std::size_t i = 0; i < reachable.size(); ++i) {
+        for (const auto next : regions[reachable[i]].neighbors) {
+            if (seen[next]) continue;
+            seen[next] = true;
+            reachable.push_back(next);
+        }
+    }
+    const bool disconnected = reachable.size() != regions.size();
     Value::Array rows, components;
     for (const auto& region : regions) {
         rows.emplace_back(Value::Object{{"id", Value(region.id)}, {"name", Value(region.name)},
             {"neutralSettlementName", Value(region.name + " Market")}, {"biome", Value(region.biome)},
             {"neighbors", ids(region.neighbors)}});
+        if (disconnected) rows.back().set("labelPoint",
+            Value(Value::Object{{"x", Value(region.labelPoint[0])}, {"y", Value(region.labelPoint[1])}}));
     }
     for (const auto& component : biomeComponents) components.push_back(ids(component));
     return Value(Value::Object{{"formatVersion", Value(1.0)}, {"definitionId", Value(definitionId)},
