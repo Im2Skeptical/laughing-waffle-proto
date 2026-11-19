@@ -1685,6 +1685,94 @@ Pop-Location
 **Supervisor disposition and cross-runtime handoff.** Publishing once removed roughly 0.45 opening Food and 0.47 late phase-drain µs/sim-s. The measured result covers building receipts, writing both cursor references, retaining chunks and evicting each window. Pass four's 8.6/8.2 trace-plus-enqueue estimate includes work this prototype still performs, including constructing reactive events. A follow-up would need a profile that separately prices enqueue, receipt construction and reference publication before funding a second layout. The browser can reuse the independent-window eviction and emit-time receipt oracles. The native timing and allocator results apply to this desktop workload. Ownership released.
 
 
+### N03e-3q pass 6 — exact-rule pipeline speedups
+
+**Complete.** Branch `t3/native-pipeline-performance-6`, base `6c803fd3`, final implementation `9a3cd7de`. Ownership released after the two requested phases. The [budget note](docs/n03e-3q-pass-4-budget.md#pass-six-on-the-merged-packed-trace-pipeline) gives the exclusive attribution, separate commit measurements, discarded Birth result, phone projection and proposals.
+
+| µs/sim-s | Opening base | Opening final | Late base | Late final |
+| --- | ---: | ---: | ---: | ---: |
+| **Pipeline** | 17.616 | 15.961 | 22.555 | 20.777 |
+| advance_clock | 0.132 | 0.137 | 0.154 | 0.159 |
+| prelude | 0.294 | 0.305 | 0.311 | 0.317 |
+| seasonal_practices | 1.041 | 0.932 | 1.728 | 1.604 |
+| spring_death_baseline | 0.003 | 0.003 | 0.010 | 0.011 |
+| birth | 2.975 | 2.965 | 6.018 | 6.003 |
+| food | 8.511 | 7.420 | 5.024 | 4.654 |
+| after_meals_practices | 0.066 | 0.068 | 0.125 | 0.108 |
+| garrison_upkeep | 0.089 | 0.088 | 0.045 | 0.049 |
+| housing | 0.091 | 0.092 | 0.200 | 0.209 |
+| faith | 0.066 | 0.066 | 0.114 | 0.126 |
+| migration_practices | 0.543 | 0.514 | 0.362 | 0.363 |
+| migration | 0.134 | 0.132 | 0.312 | 0.304 |
+| death | 0.158 | 0.155 | 0.388 | 0.384 |
+| death_practices | 0.835 | 0.756 | 0.903 | 0.836 |
+| control_and_spatial_pressure | 0.355 | 0.348 | 0.418 | 0.417 |
+| phase_events_and_drain | 2.396 | 2.145 | 4.578 | 4.152 |
+| vassal_check | 0.016 | 0.016 | 0.019 | 0.018 |
+| final_flush | 0.020 | 0.021 | 0.032 | 0.020 |
+
+The pipeline uses 256 reset-and-advance repetitions per trial (9,984 opening or 2,816 late advances). Each run first checked the window. Stage rows are medians of a separate observed pass, weighted per simulated second. Pipeline medians come from the unobserved pass. Five pairs alternated launch order on the i9-10900K using optimized MSVC, CPU 15, execution-speed throttling disabled. The final gap to 10 µs/sim-s is 5.961 opening and 10.777 late. All measured changes stayed within native simulation internals.
+
+**Verification.** Each selected implementation passed the following checks independently. MSVC matched 828 distinct stage pairs from the fresh 18-stage corpus and one extra hash-checked Birth at seed-1/43, for 829 total. The 30 step windows matched 153 comparisons with zero masks (152 advancing, one gated). All 33 journals matched 242 browser checkpoints in three replay modes and all 55 expected rejections. New Game matched five exact starts and 92 comparisons across ten windows. Continuous MSVC digests matched the base byte for byte at 3,713 opening and 2,433 late seconds, including the anchors.
+
+MSVC and llvm-mingw Clang each passed 42/42 optimized CTests per selected implementation. The cross-compiler fixture compared all 2,049 digest rows through second 2,048. The allocation gate recorded zero allocations over 3,200 opening and 1,920 late advances after a 512-second warmup. Each compiler also matched 32,001 summary hashes and 501 every-64-second anchor hashes on seed-1 longevity. The fresh serial oracle from the base matched the original N04a oracle byte for byte.
+
+**Commands.** Run from the repository root in PowerShell. The local directory `native/artifacts/n03e-3q-6/` contains the scripts, copied executables, raw stacks and symbols, paired timing JSON, host load, hash streams and test logs. The validation copy of this checkout's reference scripts writes its captures there and reads the supervisor's matching trace and window inputs. The JS model is linked from this checkout. The extra Birth directory was moved aside before running the 18 standard stage comparisons.
+
+```powershell
+$d = (Resolve-Path native/artifacts/n03e-3q-6).Path
+. native/tools/env.ps1
+Push-Location native
+foreach ($preset in 'optimized','optimized-clang') {
+    cmake --preset $preset
+    cmake --build --preset $preset
+    ctest --preset $preset --output-on-failure
+    ctest --preset $preset -V -R pipeline_steady_state_allocations
+}
+Pop-Location
+
+# On the base revision, save optimized waffle_parity as base.exe in $d.
+& "$d/sample.ps1"
+python "$d/attribute.py"
+& "$d/continuity.ps1" base
+& "$d/base.exe" run --from "$d/longevity.json" --seconds 32000 --hashes "$d/long-states.tsv" --timegraph-hashes "$d/serial.tsv"
+
+Push-Location "$d/validation"
+node native/reference/stage-probe.mjs --all
+node native/reference/export-new-game.mjs --windows
+node native/reference/stage-probe.mjs seed-1 43
+# On fresh capture, move artifacts/native-reference/stages/seed-1/43 to $d/extra-43.
+Pop-Location
+
+foreach ($label in 'owners','producer','scalar') {
+    # At the corresponding source revision, save optimized waffle_parity as "$d/$label.exe".
+    & "$d/pairs.ps1" $label
+    & "$d/tests.ps1" $label
+}
+python "$d/confirmation.py" base owners
+python "$d/confirmation.py" owners producer
+python "$d/confirmation.py" producer birth
+python "$d/confirmation.py" producer scalar
+python "$d/confirmation.py" base scalar
+python "$d/check.py" owners producer scalar
+```
+
+The pair script runs the following commands from the validation copy for each saved MSVC executable. The continuity and forecast commands run from the repository root. The two input windows are seed-1/0 (`N=3712`) and seed-2026-late/3200 (`N=2432`). The matching timing commands use `step --from <start> --seconds 39|11 --expect-dir <window> --masks native/reference/parity-masks.json --time --report <json>`.
+
+```powershell
+$stages = (Get-Content "$d/base_scalar-opening-base-0.json" -Raw | ConvertFrom-Json).stages.PSObject.Properties.Name
+foreach ($stage in $stages) { node native/reference/stage-pairs.mjs $exe $stage }
+node native/reference/step-windows.mjs $exe
+node native/reference/replay-windows.mjs $exe
+node native/reference/new-game-windows.mjs $exe
+& $exe stage --stage birth --before "$d/extra-43/after-advance_clock.json" --after "$d/extra-43/after-birth.json"
+& $exe run --from $start --seconds $N --hashes $output --expect $baseStream
+foreach ($preset in 'optimized','optimized-clang') {
+    & "native/build/$preset/src/sim/waffle_parity.exe" timegraph --from "$d/longevity.json" --seconds 32000 --repeats 1 --samples 0 --expect "$d/serial.tsv"
+}
+```
+
+
 ## N03f - Actions, replay and new game
 
 Action application and `rebuildStateAtSecond` (L2), then new game and world

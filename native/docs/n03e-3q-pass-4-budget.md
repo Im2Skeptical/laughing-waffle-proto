@@ -1,4 +1,56 @@
-# N03e-3q pass 4 — what a 10 µs second requires
+# N03e-3q pipeline budget
+
+## Pass six on the merged packed-trace pipeline
+
+Five fresh alternating pairs on logical CPU 15 measured **17.616 → 15.961 µs/sim-s opening** and **22.555 → 20.777 late** from `6c803fd3` to `9a3cd7de`. The remaining desktop-equivalent gap to 10 µs is **5.961 opening and 10.777 late**. These measurements use the 39-second and 11-second ordinary game windows described below.
+
+### Exclusive baseline attribution
+
+An optimized MSVC diagnostic linked the base simulation with line and inline debug information for Practice and Birth translation units. The pass-four sampler ran the simulation on CPU 15 and unwound it from CPU 12. It captured 1,600 stacks per window inside the advance loop, excluding anchor reset, admission and oracle reads. Return addresses were moved back one byte before symbolization. Each stack was assigned once, from the innermost recognizable operation outwards, using source lines, inline frames and the linker map. The estimates multiply sample fractions by each window's independently timed base pipeline median. Optimization can combine operations on one source line. Small differences between pools have limited resolution.
+
+| Exclusive pool | Opening samples | Opening µs | Late samples | Late µs |
+| --- | ---: | ---: | ---: | ---: |
+| Event enqueue (FIFO) | 68 | 0.75 | 55 | 0.78 |
+| Receipt and payload construction | 279 | 3.07 | 204 | 2.88 |
+| Practice history publication | 472 | 5.20 | 332 | 4.68 |
+| Listener matching and candidate traversal | 28 | 0.31 | 21 | 0.30 |
+| Recipe evaluation, including Stock planning | 351 | 3.86 | 351 | 4.95 |
+| Recipe effect application | 21 | 0.23 | 12 | 0.17 |
+| Population publication | 125 | 1.38 | 239 | 3.37 |
+| Other Birth cohort work | 42 | 0.46 | 61 | 0.86 |
+| Counted RNG | 40 | 0.44 | 48 | 0.68 |
+| Other reaction drain and retries | 30 | 0.33 | 59 | 0.83 |
+| Other stages and Stock work | 144 | 1.59 | 218 | 3.07 |
+| **All samples** | **1600** | **17.62** | **1600** | **22.55** |
+
+FIFO includes allocating an event ID and inserting the event and its payload row. Receipt construction includes captured metadata, provider lists, traits, tags and page-local texts. Publication includes packing and linking rows to the global and site histories, detaching shared pages, and retaining or releasing chunks. Listener matching covers candidate enumeration, scope and trigger tests. Recipe evaluation includes eligibility, staffing, quantity and capacity calculations, Stock plans and modifier scans. A deeper receipt or publication operation inside a recipe takes its own sample.
+
+### Experiments
+
+| Candidate | Opening µs/sim-s | Late µs/sim-s | Pipeline pairs faster, opening / late |
+| --- | ---: | ---: | ---: |
+| `d2fd15c6` Retain one chunk owner per consecutive run on a cursor page | 17.860 → 17.220 | 23.145 → 21.255 | 5/5 · 5/5 |
+| `3b7abb6c` Compile standalone scheduled Stock output | 17.159 → 16.655 | 21.305 → 20.739 | 4/5 · 3/5 |
+| Discarded, publish only the changed residency on canonical Birth | 16.714 → 16.762 | 21.878 → 21.352 | 1/5 · 3/5 |
+| `9a3cd7de` Pack scalar Practice receipts directly | 16.722 → 15.950 | 21.283 → 20.431 | 5/5 · 4/5 |
+
+Each row has its own five AB/BA pairs against the preceding accepted build. Host variation across rows makes their differences non-additive. In the fresh base-to-final comparison the candidate won 5/5 opening pairs and 4/5 late pairs. The medians of the paired savings were 1.665 and 1.305 µs/sim-s respectively.
+
+A cursor page keeps its prefix until the whole page is released. The first row of each consecutive run can therefore pin the immutable chunk for later rows on that page, including when an anchor detaches a partial page. The first change preserved independent evictions and the oversized-import path. The content compiler recognized one scheduled Stock output with empty inputs and no population operation or external action. Execution still reads live conditions, workers, modifiers and capacity and emits the ordinary receipts. Food fell 8.265 → 7.906 opening and 4.916 → 4.704 late in that experiment. The final change uses the existing schema field walk directly for receipts whose variable-length fields are absent or empty and whose text fits the shared symbol encoding. Present empty arrays retain their keys. Nonempty and page-local payloads still use the rich builder.
+
+All 48 opening and 16 late site reports with a nonzero Birth roll changed only villager rolls. The residency experiment kept aging and first-write normalization, then skipped collection and publication for an untouched canonical class. Birth itself measured 2.964 → 2.973 opening and 5.833 → 6.028 late. The changed side still required a table rebuild and index refresh, and both Birth medians regressed.
+
+### Remaining phone gap and proposals
+
+At the provisional 2.5–3× multiplier, the final pipeline alone projects **20.9–25.1k sim-s/s opening** and **16.0–19.3k late**. To reach 32k/s before paying for summaries and publication, the actual phone/desktop time ratio would have to be at most **1.96× opening or 1.50× late**. Pixel 6 throughput and thermal behavior remain unmeasured.
+
+1. Measure the physical Pixel on these two hash-checked windows, then on a sustained forecast with summary publication and UI load. The ordinary late window and the 64-second-phase longevity fixture exercise different phase densities.
+2. For the next exact-rule experiment, index the static trait equivalence of Stock sources for the diverse-Stock condition. Stop scanning after the first two distinct available unpriced trait sets. Keep live balances, road access, controller checks and market price ordering. Use contended meals and purchases as oracles. For Birth, test an existing-key update with no insertions, deletions or decimal-age reorder, and a full publication fallback. Measure the hit rate before extending the algorithm.
+3. A rule change needs a separate decision. A reduced observable Practice trace or a longer lunar interval could affect a larger pool. Sampling Birth by cohort changes the continuing RNG stream and has only the counted RNG pool as an upper bound on these windows. This pass retained the original rules.
+
+**Cross-runtime handoff.** Browser recipe compilation can use the same proof for a scheduled, single-output Stock producer and compare its live debit, capacity and ordered receipts against the ordinary path. Native cursor ownership savings depend on its arena and snapshots. The two-runtime comparison should reuse the contended Food and late Withheld Spoils captures. [Browser supply measurements](../../docs/research/settlement-supply-performance.md) · [Pass-six verification and all stages](../WORKPLAN.md#n03e-3q-pass-6--exact-rule-pipeline-speedups)
+
+## Pass four baseline
 
 The exact-rule pipeline costs **18.665 µs per simulated second at opening and 22.068 late** on the i9-10900K. Reaching 10 requires another **8.665 / 12.068 µs** respectively. The largest common cost is writing the two observable Practice traces. Late Birth also spends appreciable time rebuilding and growing population tables. Changing the clock or coarsening its dispatch cannot close either gap.
 
