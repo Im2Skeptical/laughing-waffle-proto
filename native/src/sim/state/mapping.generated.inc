@@ -3416,6 +3416,7 @@ void Mapping<VassalLifeEventsEntry>::digest(Digest& codec, const VassalLifeEvent
     codec.fields("choiceId", source.choiceId);
     codec.fields("statId", source.statId);
     codec.fields("causeOfDeath", source.causeOfDeath);
+    codec.fields("cause", source.cause);
     codec.fields("fromRegionId", source.fromRegionId);
     codec.fields("toRegionId", source.toRegionId);
 }

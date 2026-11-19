@@ -421,7 +421,9 @@ struct Digest : Export {
         } else if constexpr (std::is_same_v<T, std::string>) {
             add(std::string_view(value));
         } else if constexpr (std::is_same_v<T, HistoryTextId>) {
-            add(payload->text.at(value.value));
+            // Same encoding as Export: symbol-backed text carries the symbol bit.
+            if (value.value & history_symbol_bit) add(state.name(SymbolId{value.value & ~history_symbol_bit}));
+            else add(payload->text.at(value.value));
         } else if constexpr (wrapped<T, Id>) {
             add(state.name(value));
         } else if constexpr (wrapped<T, std::optional>) {
