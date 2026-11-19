@@ -3771,6 +3771,157 @@ regions first use of space, and leave ordinary names at their local anchors.
 The native test checks both pinned labels and pairwise collision on the
 live map at each desktop size. Browser applicability is unmeasured.
 
+### N04i - Forecast and timegraph experience
+
+Implemented on `t3/native-forecast-experience` from `6c2ddd26`. Two stacked
+lanes show People, Belief, Stock, Realm or Chaos. Civilization is the default.
+The scope button switches to the selected settlement or capital for People,
+Belief and Stock. Realm and Chaos use civilization totals. Belief values
+weight the existing Faith tiers and Happiness levels by population.
+
+Drag the plot to scrub. Use the zoom buttons or wheel, then drag the overview
+to pan. With the plot focused, arrows step one second. Shift steps one moon,
+Ctrl one season and Alt one year. Page Up and Page Down go to adjacent events.
+Touch and mouse event buttons are also available. Hover or hold an event marker
+for its details, and click or tap to restore its exact second. Home and
+Back to Live return to the committed snapshot and bring it into view.
+
+The previous revealed forecast begins at the decision second in faded ink.
+It remains readable ahead of the replacement's published coverage while the
+comparison is visible. The comparison clears after the replacement has stopped
+publishing and the short comparison window has elapsed. The presentation
+cache clears immediately. The worker retires its anchors at the next forecast
+transaction. A short gold trace shows elapsed game time after an action and
+amber ink tracks publications as they arrive. Reduced Motion removes those
+effects. A red stop, hatched future and reason label identify a terminal run.
+Event navigation includes smaller events that are grouped at wide zoom.
+New Game prepares the full opening forecast before play.
+
+Each chart caches min/max bands at 16-second blocks and successive powers of
+two. An update ingests at most eight 64-row pages. A wide draw reads one
+bounded level and keeps first, last and extrema. Close zoom reads exact rows
+into a window cache and grows that cache as rows arrive. A late restore poll
+before draw can pick up a completed scrub after RmlUi layout. RNG, game
+rules, state schemas and authoritative replay follow the existing paths.
+A display snapshot comes from a restore for its requested second and
+generation.
+
+#### Verification
+
+Run from the worktree root in PowerShell after creating the toolchain junction.
+The N04h browser reference corpus was reused from the same `src/` and
+`native/reference/` trees.
+
+```powershell
+. native/tools/env.ps1
+Push-Location native
+foreach ($preset in 'optimized','optimized-clang') {
+    cmake --preset $preset
+    cmake --build --preset $preset --parallel 6
+    ctest --preset $preset --output-on-failure
+}
+Pop-Location
+foreach ($preset in 'optimized','optimized-clang') {
+    $parity = "native/build/$preset/src/sim/waffle_parity.exe"
+    & "native/build/$preset/waffle_native_game.exe" --smoke --seed 42
+    node native/reference/step-windows.mjs $parity
+    node native/reference/replay-windows.mjs $parity
+}
+$game = 'native/build/optimized/waffle_native_game.exe'
+& $game --interaction-smoke --seed 42 --capture artifacts/n04i/1120x640 --record
+& $game --interaction-smoke --seed 42 --size 640 360 --capture artifacts/n04i/640x360
+```
+
+Both presets passed 52/52 CTests and the seed-42 smoke. Per preset, step
+parity passed 30 windows and 153 comparisons with zero masks. Replay passed
+34 journals, 252 checkpoints in three replay modes and 55 rejections.
+The SDL smokes switched series and scope, panned and zoomed, stepped through
+the calendar, jumped between events, retained the overlay after Reform and
+checked hover and finger hold on Monster Overrun. Clicking it restored second
+4,434 and matched `rebuildStateAtSecond` on both desktop layouts. The existing
+finger scrub also matched replay at second 227 and returned to Live at 148.
+
+The two N04c workloads reuse the seed-1 opening and seed-2026-late second-3,200
+fixture with `phaseDurationSec=64` and `monsterExpansionThreshold=1000000000`.
+For each fixture, the `6c2ddd26` MSVC serial oracle and both optimized N04i
+workers matched 32,001 summary hashes and 501 anchor hashes.
+
+```powershell
+$d = 'artifacts/n04i'
+$control = "$d/control-source/native/build/optimized/src/sim/waffle_parity.exe"
+foreach ($id in 'seed-1','late') {
+    $origin = if ($id -eq 'seed-1') { 'native/reference/fixtures/seed-1/state-0.json' } else {
+        'artifacts/native-reference/traces/seed-2026-late/state-3200.json'
+    }
+    node -e "const fs=require('fs'),s=JSON.parse(fs.readFileSync(process.argv[1])); Object.assign(s.gameConfig.settings.values,{phaseDurationSec:64,monsterExpansionThreshold:1000000000}); fs.writeFileSync(process.argv[2],JSON.stringify(s))" $origin "$d/$id-longevity.json"
+    & $control run --from "$d/$id-longevity.json" --seconds 32000 --hashes "$d/$id-states.tsv" --timegraph-hashes "$d/$id-oracle.tsv"
+    foreach ($preset in 'optimized','optimized-clang') {
+        $parity = "native/build/$preset/src/sim/waffle_parity.exe"
+        & $parity timegraph --from "$d/$id-longevity.json" --seconds 32000 --repeats 1 --samples 0 --expect "$d/$id-oracle.tsv"
+        & $parity timegraph --from "$d/$id-longevity.json" --seconds 32000 --memory-profile --report "$d/$preset-$id-memory.json"
+    }
+}
+```
+
+Screenshots of the comparison, settlement Belief lanes and terminal preview
+are in `artifacts/n04i/1120x640/` and `artifacts/n04i/640x360/`. Baseline
+captures are in `artifacts/n04i/before-1120x640/` and
+`artifacts/n04i/before-640x360/`. The desktop recording is
+`artifacts/n04i/forecast-experience.webp`. Physical Pixel validation remains
+pending.
+
+#### Performance and memory
+
+Seven alternating control/candidate pairs per compiler ran in one session
+on Windows x64 (i9-10900K, RTX 3080, Direct3D 11, vsync off), at 1120 × 640.
+The fresh control was built from `6c2ddd26` with the same pre-timing wait
+for the previous forecast to finish. Both used `--bench 2400 <json>
+--long-benchmark`. All 28 runs published to second 32,192, with 32,000
+seconds of forecast from the committed frontier. The table shows medians of
+per-run percentiles in milliseconds.
+
+| Preset | Build | Frame p50 / p95 / p99 | Loaded scrub p95 | Replacement forecast |
+| --- | --- | ---: | ---: | ---: |
+| optimized | Fresh control | 1.055 / 1.838 / 2.233 | 2.295 | 307.49 |
+| optimized | N04i | 1.541 / 1.927 / 2.553 | 2.046 | 301.88 |
+| optimized-clang | Fresh control | 0.815 / 2.103 / 2.494 | 2.649 | 233.37 |
+| optimized-clang | N04i | 1.333 / 2.014 / 2.573 | 2.280 | 246.10 |
+
+All 2,485 loaded N04i scrubs reached present within two harness frames.
+Median frame p99 was 0.321 ms above the fresh MSVC control and 0.080 ms
+above the fresh Clang control. Both N04i p99 figures were slightly above the
+archived 2.5 ms reference. The loaded scrub p95 improved on both compilers.
+
+| N04i zoomed-out chart | Read and ingest p50 / p95 / p99 (ms) | Per-frame envelope selection p50 / p95 / p99 (ms) |
+| --- | ---: | ---: |
+| optimized | 0.0680 / 0.1123 / 0.1754 | 0.0123 / 0.0171 / 0.0245 |
+| optimized-clang | 0.0570 / 0.1105 / 0.1978 | 0.0084 / 0.0140 / 0.0185 |
+
+Ingestion is measured on frames that read new rows. Envelope selection also
+includes the retained line and overview, and visits at most 224 columns
+per main lane plus an edge band. The rendering work is counted in the
+frame table. The paired benchmark runner and raw JSON are at
+`artifacts/n04i/run-paired-final.ps1` and `artifacts/n04i/paired-final/`.
+
+The chronicle header adds 24 bytes per second. At 32,001 published rows that
+is 0.73 MiB of header payload, measured against the same control on both
+fixtures and compilers. The largest standalone forecast charge was
+101.19 MiB across the two fixtures and compilers. The largest chart cache
+was 6.69 MiB. Their sum is below the 128 MiB single-generation budget.
+The connected benchmark peaked at 216.09 MiB of charged forecast
+and chart cache storage across the two generations.
+
+Named Vassal outcomes and per-region migration routes would
+benefit from sparse typed event details if the supervisor wants more specific
+tooltips. The current edition groups simultaneous events by second and uses
+the existing pending-resolution and tenure markers.
+
+**Cross-runtime handoff.** For wide interactive plots the browser can measure
+a persistent, incrementally built min/max pyramid. The native view preserves
+every published instant for readout and restoration while its wide draw
+visits a bounded number of bands. The Windows frame and memory measurements
+describe this runtime and the recorded seed-1 workload.
+
 ## N05 - Iteration and installed profiles (pending N04)
 
 Finish development, performance and full-art installed profiles sharing the same
