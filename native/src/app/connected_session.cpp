@@ -1,5 +1,6 @@
 #include "connected_session.hpp"
 
+#include "sdl_asset_file.hpp"
 #include "sim/world/generate.hpp"
 #include "sim/world/new_game.hpp"
 #include "sim/world/topology.hpp"
@@ -8,8 +9,6 @@
 #include <algorithm>
 #include <atomic>
 #include <cmath>
-#include <fstream>
-#include <iterator>
 
 namespace waffle::connected {
 namespace {
@@ -37,31 +36,11 @@ const Value& field(const Value& value, std::string_view key)
     throw std::invalid_argument("Missing browser field " + std::string(key));
 }
 
-Value readJson(const std::filesystem::path& path)
-{
-    std::ifstream stream(path, std::ios::binary);
-    if (!stream) throw std::invalid_argument("Could not open " + path.string());
-    return core::json::parse(std::string(std::istreambuf_iterator<char>(stream), {}));
-}
-
-Second readSecond(const Value& value)
-{
-    const auto number = value.as_number();
-    if (number < 0 || number > 0x1p53 - 1 || number != std::floor(number))
-        throw std::invalid_argument("Expected a nonnegative integer second");
-    return static_cast<Second>(number);
-}
-
-RuntimeState admit(const Value& wire)
-{
-    return sim::admit_runtime(sim::browser::import_game_state(wire), nullptr, &field(wire, "gameConfig"));
-}
-
 auto geometry(const RuntimeState& state)
 {
     auto shapes = std::make_shared<std::vector<RegionShape>>();
     const auto seed = sim::generated_regional_seed(state.topology->definition_id());
-    if (!seed) throw std::invalid_argument("The Windows slice requires a generated regional world");
+    if (!seed) throw std::invalid_argument("The connected game requires a generated regional world");
     sim::RegionalOutlines outlines;
     const auto world = sim::generate_regional_world(*seed, &outlines);
     Point min{1e9, 1e9}, max{-1e9, -1e9};
@@ -247,7 +226,7 @@ void addPoint(Chart& chart, Second second, float value)
 
 void Session::open(const Launch& launch)
 {
-    if (busy()) return;
+    if (busy() || suspended_) return;
     auto previous = std::move(run_);
     live();
     chart_ = {};
@@ -257,45 +236,78 @@ void Session::open(const Launch& launch)
     job_ = std::async(std::launch::async, [this, launch, previous = std::move(previous)] {
         if (previous) forecast_.cancel(previous->generation);
         auto run = std::make_shared<Run>();
-        if (launch.save.empty()) {
-            const auto data = readJson(WAFFLE_OPENING_CONFIG);
-            const auto& config = field(data, "gameConfig");
-            run->base = std::make_shared<RuntimeState>(sim::build_new_game(launch.seed,
-                sim::browser::import_game_config(config), &config));
-        } else {
-            const auto data = readJson(launch.save);
-            if (const auto* timeline = data.find("timeline")) {
-                if (field(field(data, "meta"), "schemaVersion").as_number() != 33)
-                    throw std::invalid_argument("Browser runner save must use schema 33");
-                const auto* base = timeline->find("baseStateData");
-                if (!base || base->kind() == Value::Kind::null) base = &field(data, "state");
-                run->base = std::make_shared<RuntimeState>(admit(*base));
-                run->journal = sim::ActionJournal::from_json(field(*timeline, "actions"));
-                const auto frontier = readSecond(field(*timeline, "historyEndSec"));
-                if (readSecond(field(*timeline, "cursorSec")) > frontier)
-                    throw std::invalid_argument("Browser cursor extends past its live frontier");
-                if (!run->journal.entries().empty() && run->journal.entries().front().tSec < run->base->hot.tSec)
-                    throw std::invalid_argument("Browser journal precedes its base");
-                if (!run->journal.entries().empty() && run->journal.entries().back().tSec > frontier)
-                    throw std::invalid_argument("Browser journal extends past its live frontier");
-                auto result = sim::rebuildStateAtSecond(*run->base, run->journal, static_cast<double>(frontier));
-                if (!result.result) throw std::invalid_argument("Browser journal failed replay: " + std::string(result.result.reason));
-                run->live = std::make_shared<RuntimeState>(std::move(*result.state));
-            } else {
-                run->base = std::make_shared<RuntimeState>(admit(data));
+        auto data = [&]() -> SavedRun {
+            if (launch.nativeSave) return readNativeSave(launch.save);
+            if (!launch.save.empty()) return readBrowserSave(core::json::parse(
+                readAsset(reinterpret_cast<const char*>(launch.save.u8string().c_str()))));
+            auto wire = core::json::parse(readAsset(WAFFLE_OPENING_CONFIG));
+            if (launch.longBenchmark) {
+                auto config = field(wire, "gameConfig");
+                auto settings = field(config, "settings");
+                auto values = field(settings, "values");
+                values.set("phaseDurationSec", Value(64.));
+                values.set("monsterExpansionThreshold", Value(1e9));
+                settings.set("values", std::move(values));
+                config.set("settings", std::move(settings));
+                wire.set("gameConfig", std::move(config));
+                return readBrowserSave(wire);
             }
-        }
-        if (!run->live) {
-            auto live = std::make_shared<RuntimeState>(*run->base);
-            sim::initialize_replay_clock(*live);
-            run->live = std::move(live);
-        }
+            const auto& config = field(wire, "gameConfig");
+            auto base = sim::build_new_game(launch.seed, sim::browser::import_game_config(config), &config);
+            auto live = base;
+            sim::initialize_replay_clock(live);
+            return {std::move(base), {}, std::move(live)};
+        }();
+        run->base = std::make_shared<RuntimeState>(std::move(data.base));
+        run->live = std::make_shared<RuntimeState>(std::move(data.live));
+        run->journal = std::move(data.journal);
         run->shapes = geometry(*run->live);
         run->snapshot = snapshot(*run->live, true);
         run->horizon = launch.horizon;
         run->generation = forecast_.start(*run->base, run->journal, run->snapshot.second + run->horizon);
         return std::shared_ptr<const Run>(std::move(run));
     });
+}
+
+void Session::suspend()
+{
+    if (suspended_) return;
+    // Finish any accepted action before saving its committed frontier.
+    if (job_.valid()) {
+        job_.wait();
+        update();
+    }
+    if (run_) forecast_.cancel(run_->generation);
+    live();
+    suspended_ = true;
+}
+
+void Session::resume()
+{
+    if (!suspended_) return;
+    suspended_ = false;
+    if (!run_) return;
+    auto run = std::make_shared<Run>(*run_);
+    run->generation = forecast_.start(*run->base, run->journal, run->snapshot.second + run->horizon);
+    run_ = std::move(run);
+    resetChart();
+}
+
+void Session::close()
+{
+    suspend();
+    run_.reset();
+    resetChart();
+    suspended_ = false;
+    opening_ = true;
+    error_.clear();
+}
+
+bool Session::save(const SaveSlots& slots, Slot slot) const
+{
+    if (!run_ || busy()) return false;
+    slots.write(slot, *run_->base, run_->journal, *run_->live);
+    return true;
 }
 
 void Session::transact(std::vector<sim::Action> actions, bool resolve)
@@ -337,7 +349,7 @@ void Session::transact(std::vector<sim::Action> actions, bool resolve)
 
 bool Session::choose(const Choice& choice)
 {
-    if (!run_ || busy() || opening_ || previewing()) return false;
+    if (!run_ || busy() || opening_ || previewing() || suspended_) return false;
     const auto& view = run_->snapshot;
     const auto valid = std::ranges::any_of(view.choices, [&](const Choice& option) {
         return choice.kind == option.kind && choice.id == option.id;
@@ -367,7 +379,7 @@ bool Session::choose(const Choice& choice)
 
 bool Session::reorder(std::string_view regionId, std::size_t from, std::size_t to)
 {
-    if (!run_ || busy() || opening_ || previewing() || from == to) return false;
+    if (!run_ || busy() || opening_ || previewing() || suspended_ || from == to) return false;
     const auto& view = run_->snapshot;
     if (regionId != view.vassalRegion || !std::ranges::any_of(view.choices, [](const Choice& choice) {
         return choice.kind == Decision::reorder;
@@ -384,15 +396,12 @@ bool Session::reorder(std::string_view regionId, std::size_t from, std::size_t t
 
 void Session::update()
 {
+    if (suspended_) return;
     if (ready(job_)) {
         try {
             run_ = job_.get();
             live();
-            const auto priorEnd = chart_.end;
-            chart_ = {};
-            chart_.start = static_cast<Second>(run_->base->hot.tSec);
-            chart_.end = priorEnd > chart_.start ? priorEnd : run_->snapshot.second + run_->horizon;
-            samples_.clear();
+            resetChart(chart_.end);
         } catch (const std::exception& failure) {
             error_ = failure.what();
             opening_ = false;
@@ -419,6 +428,16 @@ void Session::update()
             live();
             error_ = result.error.empty() ? "That second is unavailable" : result.error;
         }
+    }
+}
+
+void Session::resetChart(Second end)
+{
+    chart_ = {};
+    samples_.clear();
+    if (run_) {
+        chart_.start = static_cast<Second>(run_->base->hot.tSec);
+        chart_.end = end > chart_.start ? end : run_->snapshot.second + run_->horizon;
     }
 }
 
@@ -453,7 +472,7 @@ void Session::readChart(const timegraph::Coverage& info)
 
 bool Session::scrub(Second second)
 {
-    if (!run_ || opening_ || busy() || !chart_.through) return false;
+    if (!run_ || opening_ || busy() || suspended_ || !chart_.through) return false;
     second = std::clamp(second, chart_.start, *chart_.through);
     if (requested_ == second) return false;
     requested_ = second;

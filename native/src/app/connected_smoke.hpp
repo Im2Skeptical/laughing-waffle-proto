@@ -1,6 +1,6 @@
 #pragma once
 
-#include "connected_session.hpp"
+#include "connected_shell.hpp"
 
 #include <functional>
 
@@ -14,5 +14,7 @@ using SmokeFrame = std::function<void(const char* capture)>;
 void preparePracticeShop(Session& session, Selection& selection, const SmokeFrame& frame);
 void waitFor(Session& session, const std::function<bool()>& condition, const SmokeFrame& frame);
 void smoke(Session& session, Selection& selection, const SmokeFrame& frame, View* view = nullptr);
+void shellSmoke(Session& session, View& view, const SmokeFrame& frame, const SaveSlots& store);
+void saveSmoke(const Launch& launch, const std::filesystem::path& directory);
 
 }

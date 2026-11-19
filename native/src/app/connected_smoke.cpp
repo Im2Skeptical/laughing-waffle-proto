@@ -1,8 +1,11 @@
 #include "connected_smoke.hpp"
 #include "connected_view.hpp"
+#include "sdl_asset_file.hpp"
 
 #include <algorithm>
+#include <cmath>
 #include <cstdio>
+#include <fstream>
 #include <thread>
 
 namespace waffle::connected {
@@ -68,6 +71,19 @@ struct InteractionProbe {
         require(view.input(event), "Keyboard release closed the connected view");
     }
 
+    void finger(Uint32 type, SDL_FingerID id, SDL_FPoint point)
+    {
+        int width{}, height{};
+        require(SDL_GetWindowSize(SDL_GetRenderWindow(view.renderer_), &width, &height), "Missing touch window size");
+        SDL_RenderCoordinatesToWindow(view.renderer_, point.x, point.y, &point.x, &point.y);
+        SDL_Event event{};
+        event.type = type;
+        event.tfinger.fingerID = id;
+        event.tfinger.x = point.x / width;
+        event.tfinger.y = point.y / height;
+        require(view.input(event), "Finger closed the connected view");
+    }
+
     void click(const char* selector, bool touch = false)
     {
         auto& button = control(selector);
@@ -82,7 +98,7 @@ struct InteractionProbe {
     void scrub(Second second, Uint32 type)
     {
         const auto area = view.plot();
-        pointer(type, {view.xAt(second), area.y + area.h / 2});
+        finger(type, 1, {view.xAt(second), area.y + area.h / 2});
     }
 
     void touchHelp()
@@ -91,11 +107,11 @@ struct InteractionProbe {
         card.ScrollIntoView(Rml::ScrollAlignment::Nearest);
         present(nullptr);
         const auto at = center(card);
-        pointer(SDL_EVENT_MOUSE_BUTTON_DOWN, at, true);
+        finger(SDL_EVENT_FINGER_DOWN, 1, at);
         SDL_Delay(460);
         present(nullptr);
         require(view.longPress_ && !view.currentHelp_.empty(), "Touch hold did not expose Practice help");
-        pointer(SDL_EVENT_MOUSE_BUTTON_UP, at, true);
+        finger(SDL_EVENT_FINGER_UP, 1, at);
         present(nullptr);
     }
 
@@ -106,11 +122,35 @@ struct InteractionProbe {
         require(capital != regions.end(), "Capital marker is missing");
         const auto i = static_cast<std::size_t>(capital - regions.begin());
         const auto point = view.map_.project(session.shapes()[i].label, view.bounds("map"));
-        pointer(SDL_EVENT_MOUSE_BUTTON_DOWN, point);
-        pointer(SDL_EVENT_MOUSE_BUTTON_UP, point);
+        finger(SDL_EVENT_FINGER_DOWN, 1, point);
+        finger(SDL_EVENT_FINGER_UP, 1, point);
         pointer(SDL_EVENT_MOUSE_MOTION, {5, 5});
         require(selection.region == capital->id, "Map selection did not open the capital");
     }
+
+    void touchCamera()
+    {
+        const auto area = view.bounds("map");
+        const SDL_FPoint left{area.x + area.w * .35f, area.y + area.h * .4f};
+        const SDL_FPoint right{area.x + area.w * .65f, left.y};
+        const auto original = view.map_.project({.2, .2}, area);
+        finger(SDL_EVENT_FINGER_DOWN, 1, left);
+        finger(SDL_EVENT_FINGER_MOTION, 1, {left.x + 25, left.y});
+        require(std::abs(view.map_.project({.2, .2}, area).x - original.x) > 15, "Finger pan did not move the camera");
+        finger(SDL_EVENT_FINGER_DOWN, 2, right);
+        const auto before = view.map_.project({.8, .2}, area).x - view.map_.project({.2, .2}, area).x;
+        finger(SDL_EVENT_FINGER_MOTION, 2, {right.x + 30, right.y});
+        const auto after = view.map_.project({.8, .2}, area).x - view.map_.project({.2, .2}, area).x;
+        require(after > before + 10, "Pinch did not increase camera scale");
+        finger(SDL_EVENT_FINGER_UP, 1, {left.x + 25, left.y});
+        finger(SDL_EVENT_FINGER_UP, 2, {right.x + 30, right.y});
+        require(view.drag_ == View::Drag::none && view.selection_.region.empty(), "Pinch release selected a region");
+        view.map_.reset();
+        view.markersDirty_ = true;
+        present(nullptr);
+    }
+
+    void shell(Session& session, const SaveSlots& store);
 
     void reform(Session& session, Selection& selection)
     {
@@ -217,7 +257,11 @@ void smoke(Session& session, Selection& selection, const SmokeFrame& frame, View
     require(session.displayedDigest() == session.replayDigest(openingSecond), "Opening differs from authoritative replay");
     if (frame) frame("01-regional-map");
     if (frame) {
-        if (view) InteractionProbe{*view, frame}.selectCapital(session, selection);
+        if (view) {
+            InteractionProbe probe{*view, frame};
+            probe.touchCamera();
+            probe.selectCapital(session, selection);
+        }
         else selection.select(session.displayed()->capital);
         frame("02-settlement");
         if (view) {
@@ -269,7 +313,11 @@ void smoke(Session& session, Selection& selection, const SmokeFrame& frame, View
     require(*session.chart().through >= liveSecond + 2, "Forecast stopped before a second can be scrubbed");
     const auto target = std::min(liveSecond + 79, *session.chart().through);
     require(session.scrub(liveSecond + 1), "Scrub initiation failed");
-    if (view) InteractionProbe{*view, frame}.scrub(target, SDL_EVENT_MOUSE_BUTTON_DOWN);
+    if (view) {
+        InteractionProbe probe{*view, frame};
+        probe.scrub(liveSecond, SDL_EVENT_FINGER_DOWN);
+        probe.scrub(target, SDL_EVENT_FINGER_MOTION);
+    }
     else require(session.scrub(target), "Scrub replacement failed");
     waitFor(session, [&] { return session.previewReady(); }, frame);
     require(session.displayed()->second == target, "Obsolete scrub won");
@@ -277,7 +325,7 @@ void smoke(Session& session, Selection& selection, const SmokeFrame& frame, View
     require(!session.reorder(selection.region, 1, 0), "Forecast preview accepted a live edit");
     require(selection.inspect(session.displayed(), 1), "Preview Practice inspection failed");
     if (frame) frame("07-forecast-preview");
-    if (view) InteractionProbe{*view, frame}.scrub(target, SDL_EVENT_MOUSE_BUTTON_UP);
+    if (view) InteractionProbe{*view, frame}.scrub(target, SDL_EVENT_FINGER_UP);
     require(session.scrub(liveSecond + 1), "Return-to-live cancellation setup failed");
     if (view) InteractionProbe{*view, frame}.click("#live");
     else session.live();
@@ -293,11 +341,162 @@ void smoke(Session& session, Selection& selection, const SmokeFrame& frame, View
         InteractionProbe probe{*view, frame};
         probe.click("#motion");
         require(probe.reduced(), "Motion toggle did not update the presentation");
-        probe.click("#new-game");
-        require(session.opening(), "New Game did not start a fresh run");
-        waitFor(session, [&] { return !session.opening(); }, frame);
-        require(session.actionCount() == 0 && selection.region.empty(), "New Game retained the prior decisions or selection");
+        probe.click("#motion");
     }
+}
+
+void InteractionProbe::shell(Session& session, const SaveSlots& store)
+{
+    auto& shell = view.shell_;
+    const auto live = session.liveSnapshot()->second;
+    click("#title-game");
+    require(view.dialog_ && shell.screen() == Screen::game, "Title bypassed confirmation for unsaved progress");
+    present("09-return-confirm");
+    key(SDLK_ESCAPE);
+    require(!view.dialog_ && session.liveSnapshot()->second == live, "Cancel did not preserve the run");
+    click("#save-game");
+    present("10-save");
+    click("[data-op=slot][data-id='1']");
+    require(shell.screen() == Screen::game && !shell.hasUnsavedProgress() && !view.noticeError_,
+        "Manual save did not return to the game");
+    present("11-save-feedback");
+    click("#save-game");
+    click("[data-op=slot][data-id='1']");
+    require(view.dialog_ && shell.overwrite() == Slot::first, "Occupied slot bypassed confirmation");
+    present("12-overwrite-confirm");
+    click("#dialog-back");
+    require(!view.dialog_ && !shell.overwrite() && shell.screen() == Screen::save,
+        "Cancel did not return to the save list");
+    click("[data-op=slot][data-id='1']");
+    click("#dialog-confirm");
+    require(shell.screen() == Screen::game, "Overwrite did not save");
+    click("#title-game");
+    require(shell.screen() == Screen::title, "Saved run did not return to title");
+    present("13-title");
+    std::ofstream(store.path(Slot::second), std::ios::binary) << "not a save";
+    const auto path = store.path(Slot::first).u8string();
+    auto incompatible = readAsset(reinterpret_cast<const char*>(path.c_str()));
+    const auto stamp = incompatible.find("\"saveVersion\":1");
+    require(stamp != std::string::npos, "Missing slot version");
+    incompatible[stamp + std::string_view("\"saveVersion\":").size()] = '2';
+    std::ofstream(store.path(Slot::third), std::ios::binary) << incompatible;
+    click("[data-op=load]");
+    present("14-load");
+    for (const auto selector : {"[data-op=slot][data-id='2']", "[data-op=slot][data-id='3']"})
+        require(control(selector).HasAttribute("disabled"), "Invalid slot can be loaded");
+    click("[data-op=slot][data-id='1']");
+    waitFor(session, [&] { return !session.opening(); }, present);
+    shell.update();
+    require(session.liveSnapshot()->second == live, "Load did not resume the saved frontier");
+    click("#title-game");
+    click("[data-op=continue]");
+    waitFor(session, [&] { return !session.opening(); }, present);
+    shell.update();
+    require(session.liveSnapshot()->second == live, "Continue did not resume the latest save");
+    click("#title-game");
+    control("#seed").Focus(true);
+    SDL_Event text{};
+    text.type = SDL_EVENT_TEXT_INPUT;
+    text.text.text = "42";
+    view.input(text);
+    key(SDLK_RETURN);
+    require(session.opening(), "New Game did not start a fresh run");
+    waitFor(session, [&] { return !session.opening(); }, present);
+    require(shell.seedInput() == "42" && session.actionCount() == 0 && view.selection_.region.empty(),
+        "New Game did not use the entered seed or clear the previous run");
+    click("#title-game");
+    click("#dialog-confirm");
+    const auto autosaved = store.inspect(Slot::autosave).metadata;
+    require(shell.screen() == Screen::title && autosaved && autosaved->second == 0,
+        "Confirming title did not autosave the new run");
+    std::puts("Connected shell passed: title, seed entry, save and overwrite, load, Continue and autosave confirmation");
+}
+
+void shellSmoke(Session& session, View& view, const SmokeFrame& frame, const SaveSlots& store)
+{
+    InteractionProbe{view, frame}.shell(session, store);
+}
+
+void saveSmoke(const Launch& launch, const std::filesystem::path& directory)
+{
+    SaveSlots store(directory);
+    for (auto slot : slots) std::filesystem::remove(store.path(slot));
+    Session session;
+    Selection selection;
+    Shell shell(session, selection, store);
+    shell.open(launch);
+    smoke(session, selection, {});
+    const auto digest = session.displayedDigest();
+    const auto live = session.liveSnapshot()->second;
+    const auto count = session.actionCount();
+    const auto generation = session.generation();
+    require(session.scrub(live + 1), "Could not enter preview before saving");
+    waitFor(session, [&] { return session.previewReady(); }, {});
+    require(session.displayedDigest() != digest, "Save test requires a distinct preview");
+    shell.show(Screen::save);
+    shell.selectSlot(Slot::first);
+    require(shell.screen() == Screen::game, "Manual save failed");
+    shell.show(Screen::save);
+    shell.selectSlot(Slot::first);
+    require(shell.overwrite() == Slot::first && shell.screen() == Screen::save, "Overwrite confirmation missing");
+    shell.confirmOverwrite();
+    require(shell.screen() == Screen::game, "Atomic overwrite failed");
+    const auto manual = store.inspect(Slot::first).metadata;
+    require(manual && manual->regions == 20 && manual->second == live &&
+        manual->year == session.liveSnapshot()->year && !manual->savedAt.empty() && !manual->version.empty(),
+        "Manual metadata does not describe the live state");
+    session.suspend();
+    require(session.suspended() && !session.coverage() && !session.previewing(), "Suspend left forecast or preview active");
+    require(shell.autosave(), "Background autosave failed");
+    session.resume();
+    waitFor(session, [&] { return session.chart().through.has_value(); }, {});
+    require(session.generation() > generation && session.displayedDigest() == digest, "Resume changed the live state");
+
+    const auto verifyReopened = [&] {
+        waitFor(session, [&] { return session.liveSnapshot() && !session.opening(); }, {});
+        require(session.liveSnapshot()->second == live && session.actionCount() == count &&
+            session.displayedDigest() == digest && session.replayDigest(live) == digest, "Loaded state differs from live digest");
+        require(session.chart().through && *session.chart().through > live, "Load did not restart the forecast");
+    };
+    require(shell.returnToTitle(), "Could not return to title");
+    shell.show(Screen::load);
+    shell.selectSlot(Slot::first);
+    verifyReopened();
+    require(shell.returnToTitle(), "Could not return to title after load");
+    shell.continueGame();
+    verifyReopened();
+
+    const auto manualPath = store.path(Slot::first).u8string();
+    auto bytes = readAsset(reinterpret_cast<const char*>(manualPath.c_str()));
+    const auto version = bytes.find("\"saveVersion\":1");
+    require(version != std::string::npos, "Save version stamp is missing");
+    bytes[version + std::string_view("\"saveVersion\":").size()] = '2';
+    std::ofstream(store.path(Slot::second), std::ios::binary) << bytes;
+    bytes[version + std::string_view("\"saveVersion\":").size()] = '1';
+    bytes.back() = '!';
+    std::ofstream(store.path(Slot::third), std::ios::binary) << bytes;
+    for (const auto& [slot, expected] : {std::pair{Slot::second, "Incompatible save version"},
+                                       std::pair{Slot::third, "Corrupt save data"}}) {
+        require(store.inspect(slot).error == expected, "Slot list did not report the expected error");
+        session.close();
+        shell.open(Launch{.save = store.path(slot), .nativeSave = true});
+        const auto deadline = std::chrono::steady_clock::now() + std::chrono::seconds(10);
+        while (session.busy() && std::chrono::steady_clock::now() < deadline) {
+            shell.update();
+            std::this_thread::sleep_for(std::chrono::milliseconds(1));
+        }
+        require(shell.screen() == Screen::title && shell.message().find(expected) != std::string::npos &&
+            !session.liveSnapshot(), "Invalid save was not reported to the title screen");
+    }
+    shell.open(launch);
+    waitFor(session, [&] { return !session.opening(); }, {});
+    Shell unableToSave(session, selection, SaveSlots(store.path(Slot::first)));
+    unableToSave.show(Screen::save);
+    unableToSave.selectSlot(Slot::first);
+    if (unableToSave.overwrite()) unableToSave.confirmOverwrite();
+    require(unableToSave.screen() == Screen::save && unableToSave.messageError() && session.liveSnapshot(),
+        "Failed save lost the run or hid its error");
+    std::puts("Native save slots passed: live digest, overwrite, load, autosave, continue, suspend/resume, invalid files and write failure");
 }
 
 }

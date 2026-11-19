@@ -3363,6 +3363,135 @@ physical-phone validation are separate work. Packaging the connected
 document requires both `interaction.rcss` and `connected-layout.rcss` alongside
 `connected.rml`. The Motion setting lasts for the current application run.
 
+### N04e - Native app shell, save slots and Android package
+
+Implemented on `t3/native-app-shell` from `f781c456`. Launch without arguments
+to reach the title. Enter a uint32 seed or leave it blank for a random seed.
+Continue opens the newest readable slot, and Load displays the autosave and
+three manual slots. In a run, Save opens the manual slots and asks for
+confirmation before overwriting. Title saves the live run before leaving it.
+The load list shows year, live second, region count, UTC wall-clock save time
+and save/GameState versions.
+
+The native v1 save records the browser v53 replay base, the action journal and
+the live second. Loading replays that boundary and checks its digest before
+starting a fresh forecast. Taking a save while scrubbing records the committed
+frontier. The app validates the envelope and payload checksum, and replaces
+each slot atomically from a temporary file in the same directory. Windows
+uses `%APPDATA%\Laughing Waffle\Native Game\saves`. Android uses the app's
+internal files directory. Files and clocks stay in `native/src/app`. Simulation rules,
+RNG, schema and replay ordering follow the existing native port.
+
+Windows minimize and Android backgrounding cancel the forecast, clear the
+preview, release RmlUi textures and autosave the committed run. Returning
+rebuilds the forecast from the same live frontier and reloads textures with
+SDL's restored renderer. A process restart can recover via Continue.
+
+#### Android run and measurement
+
+The existing SDL3 activity loads the connected game from `libmain.so`. The
+debug-signed APK uses optimized arm64 native code and packages the RML,
+font, sprite sheets and opening config for offline use. It allows both
+landscape orientations, so the cable or cutout can sit on either side. The
+layout follows SDL's safe rectangle and Android display scale. Buttons and
+the graph scrub area are at least about 48 dp. Tap selects, drag on the plot
+scrubs, and one or two fingers pan or pinch the map.
+
+From the worktree root:
+
+```powershell
+$tools = (Get-Item native/.tools).Target[0]
+powershell -NoProfile -ExecutionPolicy Bypass -File native/tools/bootstrap-android.ps1 -ToolsRoot $tools -OutputDirectory artifacts/n04e/android-build
+$adb = 'native/.tools/android-sdk/platform-tools/adb.exe'
+$activity = 'org.waffle.nativedemo/.WaffleActivity'
+& $adb devices -l
+& $adb install -r native/android/app/build/outputs/apk/debug/app-debug.apk
+& $adb shell am start -W -n $activity
+# Play, save to a slot, press Home, and relaunch the same activity to check resume.
+& $adb shell input keyevent KEYCODE_HOME
+& $adb shell am start -W -n $activity
+cmd /d /c 'native\.tools\android-sdk\platform-tools\adb.exe exec-out screencap -p > artifacts\n04e\pixel-resumed.png'
+& $adb shell dumpsys meminfo org.waffle.nativedemo > artifacts/n04e/pixel-meminfo.txt
+& $adb shell am force-stop org.waffle.nativedemo
+& $adb shell am start -W -n $activity --ei waffle_bench 2400
+& $adb logcat -d -s SDL:I > artifacts/n04e/pixel-logcat.txt
+& $adb shell am force-stop org.waffle.nativedemo
+```
+
+The debug benchmark uses the N04c seed-1 longevity fixture and restarts its
+forecast after a real Practice reorder. It logs startup to playable, frame
+p50/p95/p99 while forecasting, scrub input to present, reconstruction plus
+render, RSS, forecast storage and texture bytes. The ordinary app logs the
+pause autosave, released texture bytes and the first playable resume present.
+
+The Windows host built the optimized arm64 package with NDK r30
+(`30.0.16248370`) and the project-local debug key. The verified APK is
+`artifacts/n04e/android-build/app-debug.apk` (42,199,423 bytes, SHA-256
+`c57c4915886362dd5690c434716b671f77ad3b37dac70964292fb1cdce873354`).
+APK Signature Scheme v2, the AArch64 `SDL_main` export and the packaged
+offline assets passed inspection.
+The successful bootstrap used `-ToolsRoot` with the resolved shared toolchain
+path. On this host the generated native and Gradle build directories were
+junctions to the toolchain drive after the worktree drive ran out of space.
+
+**Pixel 6 Pro (`raven`)** appeared in the initial ADB inventory. Later ADB
+queries returned `no devices/emulators found`, consistent with the HiSuite
+conflict flagged for this work item. The device list was still empty after
+packaging. Physical runtime, touch, save/relaunch, lifecycle timings, benchmarks
+and device captures await a working ADB connection. No app was launched on
+the phone during this attempt.
+
+#### Verification
+
+```powershell
+. native/tools/env.ps1
+Push-Location native
+foreach ($preset in 'optimized','optimized-clang') {
+    cmake --preset $preset
+    cmake --build --preset $preset
+    ctest --preset $preset --output-on-failure
+}
+Pop-Location
+# Reuse same-baseline captures or generate them with node native/reference/trace.mjs.
+foreach ($preset in 'optimized','optimized-clang') {
+    $parity = "native/build/$preset/src/sim/waffle_parity.exe"
+    node native/reference/step-windows.mjs $parity
+    node native/reference/replay-windows.mjs $parity
+    & "native/build/$preset/waffle_native_game.exe" --smoke --seed 42
+}
+& native/build/optimized/waffle_native_game.exe --seed 42 --capture artifacts/n04e/windows-after
+npm.cmd run verify
+```
+
+Both Windows presets passed 46/46 CTests, including the save/load digest at
+second 148 after a five-action journal, saving from a read-only preview,
+overwriting a manual slot, Continue, suspend/resume and rejection of corrupt
+and incompatible files. On each preset, step parity passed 30 windows and 153
+comparisons with zero masks. Replay parity passed 33 journals, 242 browser
+checkpoints in three modes and 55 rejections. The browser verification suite
+also passed. An actual Windows minimize/restore
+round trip wrote the per-user autosave, logged zero RmlUi texture bytes during
+pause and presented the same live second with a new forecast generation after
+about 10 ms. Evidence is in `artifacts/n04e/windows-lifecycle-stderr.log`.
+
+One optimized Windows Direct3D 11 run of the same harness reached second
+32,192, the full 1,000 years from the live frontier at 192. Startup to playable
+was 841 ms. The replacement forecast took 313 ms. Across 200 forecast frames,
+frame p50/p95/p99 were 1.52/2.17/2.87 ms. Loaded scrub input-to-present p95 was
+4.55 ms (99 scrubs), reconstruction plus render p95 was 2.43 ms, and the
+working set was 203.7 MiB. This is a desktop sample.
+
+```powershell
+& native/build/optimized/waffle_native_game.exe --bench 2400 artifacts/n04e/windows-bench.json --long-benchmark
+```
+
+Windows captures are in `artifacts/n04e/windows-before` and
+`artifacts/n04e/windows-after`. Both contain the regional map, inspector and
+forecast preview. The after set adds `05-save.png`, `06-title.png` and
+`07-load.png`. The existing connected gameplay scope stays at the Practice
+Reform slice. Full Life Map and shops, art and interaction redesign, cloud saves
+and old save migration are outside N04e.
+
 ## N05 - Iteration and installed profiles (pending N04)
 
 Finish development, performance and full-art installed profiles sharing the same

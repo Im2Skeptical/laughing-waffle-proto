@@ -1,23 +1,18 @@
 #include "connected_view.hpp"
+#include "sdl_asset_file.hpp"
+
+#include <RmlUi/Core/Elements/ElementFormControl.h>
 
 #include <algorithm>
 #include <array>
 #include <cmath>
 #include <cstdio>
-#include <fstream>
-#include <iterator>
+#include <utility>
 
 namespace waffle::connected {
 namespace {
 
 using Colour = std::array<Uint8, 4>;
-
-std::string readText(const std::filesystem::path& path)
-{
-    std::ifstream file(path, std::ios::binary);
-    if (!file) throw std::runtime_error("Could not open " + path.string());
-    return {std::istreambuf_iterator<char>(file), {}};
-}
 
 std::string escape(std::string_view text)
 {
@@ -76,9 +71,9 @@ void show(Rml::Element& element, bool visible)
 
 }
 
-View::View(Rml::Context& context, SDL_Renderer* renderer, Session& session, Selection& selection, Launch launch,
+View::View(Rml::Context& context, SDL_Renderer* renderer, Session& session, Selection& selection, Shell& shell,
            Artwork art)
-    : context_(context), renderer_(renderer), session_(session), selection_(selection), launch_(std::move(launch)),
+    : context_(context), renderer_(renderer), session_(session), selection_(selection), shell_(shell),
       sprites_(std::move(art.sprites))
 {
     if (!Rml::LoadFontFace(WAFFLE_CONNECTED_FONT, "Lato", Rml::Style::FontStyle::Normal,
@@ -89,21 +84,24 @@ View::View(Rml::Context& context, SDL_Renderer* renderer, Session& session, Sele
         !model.Bind("progress", &currentProgress_))
         throw std::runtime_error("Could not bind the connected view");
     bindings_ = model.GetModelHandle();
-    const std::filesystem::path source = WAFFLE_CONNECTED_RML;
-    auto rml = readText(source);
+    auto rml = waffle::readAsset(WAFFLE_CONNECTED_RML);
     constexpr std::string_view styles = "<!-- interaction styles -->";
-    const auto directory = source.parent_path();
-    rml.replace(rml.find(styles), styles.size(), "<style>" + readText(directory / "interaction.rcss") +
-        readText(directory / "connected-layout.rcss") + "</style>");
+    std::string directory = WAFFLE_CONNECTED_RML;
+    directory.resize(directory.find_last_of('/') + 1);
+    rml.replace(rml.find(styles), styles.size(), "<style>" + waffle::readAsset((directory + "interaction.rcss").c_str()) +
+        waffle::readAsset((directory + "connected-layout.rcss").c_str()) + "</style>");
     constexpr std::string_view marker = "<!-- atlas styles -->";
     rml.replace(rml.find(marker), marker.size(), art.css);
     rml.insert(rml.find("</body>"),
         "<div style=\"position:absolute;width:1px;height:1px;decorator:image(card0 fill);\"></div>");
     document_ = context.LoadDocumentFromMemory(rml, "connected.rml");
     if (!document_) throw std::runtime_error("Could not load the connected view");
+#if defined(__ANDROID__)
+    document_->SetClass("touch-screen", true);
+#endif
     document_->AddEventListener(Rml::EventId::Click, this);
     document_->Show(Rml::ModalFlag::None, Rml::FocusFlag::Document);
-    resize();
+    syncWindow();
 }
 
 View::~View()
@@ -123,15 +121,146 @@ SDL_FRect View::bounds(const char* id) const
 
 SDL_FRect View::plot() const { return bounds("plot"); }
 
-void View::resize()
+void View::syncWindow()
 {
     int width = 0, height = 0;
     SDL_GetRenderOutputSize(renderer_, &width, &height);
     if (width <= 0 || height <= 0) return;
     context_.SetDimensions({width, height});
-    context_.SetDensityIndependentPixelRatio(std::clamp(std::min(width / 1120.f, height / 640.f), .78f, 1.5f));
+    const auto window = SDL_GetRenderWindow(renderer_);
+#if defined(__ANDROID__)
+    density_ = std::max(1.f, SDL_GetWindowDisplayScale(window));
+#else
+    density_ = std::clamp(std::min(width / 1120.f, height / 640.f), .78f, 1.5f);
+#endif
+    context_.SetDensityIndependentPixelRatio(density_);
+    SDL_Rect safe{};
+    SDL_FPoint start{}, end{static_cast<float>(width), static_cast<float>(height)};
+    if (SDL_GetWindowSafeArea(window, &safe) && safe.w > 0 && safe.h > 0) {
+        SDL_RenderCoordinatesFromWindow(renderer_, static_cast<float>(safe.x), static_cast<float>(safe.y),
+            &start.x, &start.y);
+        SDL_RenderCoordinatesFromWindow(renderer_, static_cast<float>(safe.x + safe.w),
+            static_cast<float>(safe.y + safe.h), &end.x, &end.y);
+    }
+    auto& root = element("safe-content");
+    root.SetProperty("left", number(start.x) + "px");
+    root.SetProperty("top", number(start.y) + "px");
+    root.SetProperty("width", number(end.x - start.x) + "px");
+    root.SetProperty("height", number(end.y - start.y) + "px");
     markersDirty_ = true;
     context_.Update();
+}
+
+void View::refreshShell()
+{
+    if (shellRevision_ == shell_.revision()) return;
+    shellRevision_ = shell_.revision();
+    if (runRevision_ != shell_.runRevision()) {
+        runRevision_ = shell_.runRevision();
+        map_.reset();
+        refreshMarkers(nullptr);
+        hoveredRegion_.clear();
+        hoverSecond_.reset();
+        pendingAction_.clear();
+        notify("");
+    }
+
+    const auto screen = shell_.screen();
+    const bool game = screen == Screen::game;
+    auto& overlay = element("shell");
+    auto& panel = element("shell-panel");
+    if (shownScreen_ != screen) {
+        if (dialogClosedAt_) {
+            show(element("reform-dialog"), false);
+            dialogClosedAt_ = 0;
+        }
+        hoverSecond_.reset();
+        hoveredRegion_.clear();
+        shownScreen_ = screen;
+        show(overlay, !game);
+        show(element("play"), game || screen == Screen::save);
+        overlay.SetClass("over-game", screen == Screen::save);
+        panel.SetClass("front-door", screen == Screen::title);
+        panel.SetClass("slot-book", screen == Screen::load || screen == Screen::save);
+        panel.SetClass("panel", !game);
+        const auto* focus = context_.GetFocusElement();
+        const bool keyboard = focus && focus != document_ && focus->IsPseudoClassSet("focus-visible");
+
+        std::string html;
+        if (screen == Screen::title) {
+            std::string mural;
+            if (const auto sprite = sprites_.find("titleArtwork"); sprite != sprites_.end())
+                mural = " style=\"decorator:image(" + sprite->second + " cover);\"";
+            html = "<div class=\"title-mural\"" + mural + "><div class=\"mural-border\"></div></div>"
+                "<div class=\"title-menu enter\"><h1>Laughing Waffle</h1>"
+                "<p class=\"title-motto\">The empire fell. What will you build?</p>"
+                "<div class=\"title-rule\"></div>";
+
+            if (const auto latest = shell_.latest()) {
+                const auto& meta = *shell_.list().at(static_cast<std::size_t>(*latest)).metadata;
+                html += button("continue", {}, "Continue", "primary menu-choice", "Resume the most recent save.");
+                html += "<p class=\"continue-note quiet\">" + std::string(*latest == Slot::autosave ? "Autosave" :
+                    "Slot " + std::to_string(static_cast<int>(*latest))) + " · Year " + number(meta.year) +
+                    " · " + std::to_string(meta.second) + " s</p>";
+            } else {
+                html += button("continue", {}, "Continue", "menu-choice", {}, true);
+                html += "<p class=\"continue-note quiet\">No saved run yet</p>";
+            }
+            html += "<div class=\"seed-row\"><label for=\"seed\">World seed</label>"
+                "<input id=\"seed\" type=\"text\" maxlength=\"10\" placeholder=\"Random\" "
+                "data-help=\"Leave blank to start with a random world seed.\" value=\"" +
+                escape(shell_.seedInput()) + "\" /></div><div class=\"shell-actions\">";
+            html += button("start", {}, "New Game", shell_.latest() ? "menu-choice" : "primary menu-choice",
+                        "Start a new world with the seed above.") +
+                button("load", {}, "Load", "menu-choice", "Browse Autosave and the manual slots.") + "</div>"
+                "<p id=\"shell-status\" class=\"toast\" role=\"status\"></p></div>";
+        } else if (!game) {
+            const bool saving = screen == Screen::save;
+            html = "<div class=\"slot-page enter\"><div class=\"slot-head\"><h2>" +
+                std::string(saving ? "Save Game" : "Load Game") + "</h2>" +
+                button(saving ? "back-game" : "back-title", {}, "Back", "slot-action") + "</div><div class=\"slot-list\">";
+            for (const auto& row : shell_.list()) {
+                const auto index = static_cast<int>(row.slot);
+                if (saving && row.slot == Slot::autosave) continue;
+                const auto name = index ? "Slot " + std::to_string(index) : "Autosave";
+                const bool unavailable = !saving && !row.metadata;
+                const bool recent = !saving && shell_.latest() == row.slot;
+                const std::string label = saving ? (row.metadata || !row.error.empty() ? "Replace" : "Save") : "Load";
+                html += "<div class=\"slot " + std::string(recent ? "latest-slot" : "") +
+                    "\"><div class=\"slot-info\"><div class=\"slot-name\">" + name +
+                    (recent ? " <span class=\"quiet gold\">· Most recent</span>" : "") + "</div>";
+                if (const auto& meta = row.metadata) {
+                    html += "<p class=\"quiet\">Year " + number(meta->year) + " · " + std::to_string(meta->second) +
+                        " s · " + std::to_string(meta->regions) + " regions</p><p class=\"quiet\">" +
+                        escape(meta->savedAt) + " · " + escape(meta->version) + "</p>";
+                } else html += row.error.empty() ? "<p class=\"quiet\">Empty</p>" :
+                    "<p class=\"error\">" + escape(row.error) + "</p>";
+                html += "</div>" + button("slot", std::to_string(index), label, "slot-action",
+                    unavailable ? "" : label + " " + name + ".", unavailable) + "</div>";
+            }
+            html += "</div><p id=\"shell-status\" class=\"toast\" role=\"status\"></p></div>";
+        }
+        panel.SetInnerRML(html);
+        panel.SetScrollTop(0);
+        if (game) {
+            if (keyboard) element("map").Focus(true);
+            else document_->Focus(false);
+        }
+        else if (auto* first = panel.QuerySelector(screen == Screen::title ?
+            (shell_.latest() ? "[data-op=continue]" : "[data-op=start]") : ".slot-head button"))
+            first->Focus(keyboard);
+        markersDirty_ = true;
+    }
+
+    if (game) {
+        if (!shell_.message().empty()) notify(shell_.message(), shell_.messageError());
+    } else {
+        auto& status = element("shell-status");
+        status.SetClass("error", shell_.messageError());
+        status.SetInnerRML(escape(shell_.message()));
+        show(status, !shell_.message().empty());
+        notify("");
+    }
 }
 
 std::optional<std::string> View::hit(SDL_FPoint point) const
@@ -176,18 +305,49 @@ bool View::canStage(const Snapshot& snapshot, const Region* site) const
         std::ranges::any_of(snapshot.choices, [](const auto& choice) { return choice.kind == Decision::reorder; });
 }
 
+namespace {
+
+std::string regionLabel(const Region& region)
+{
+    if (region.name.empty()) return region.id;
+    constexpr std::pair<std::string_view, std::string_view> directions[] = {
+        {"Northwestern ", "NW "}, {"Northeastern ", "NE "},
+        {"Southwestern ", "SW "}, {"Southeastern ", "SE "}
+    };
+    for (const auto& [prefix, abbreviation] : directions)
+        if (region.name.starts_with(prefix)) return std::string(abbreviation) + region.name.substr(prefix.size());
+    return region.name;
+}
+
+}
+
 void View::refreshMarkers(const Snapshot* snapshot)
 {
-    std::string markup;
-    if (snapshot) {
-        for (const auto& region : snapshot->regions) {
-            markup += "<div class=\"marker " + std::string(holderClass[static_cast<std::size_t>(region.holder)]) +
-                (region.id == selection_.region ? " selected" : "") + "\">" + escape(region.id) + "</div>";
-        }
+    auto& markers = element("markers");
+    if (!snapshot) {
+        if (markers.HasChildNodes()) markers.SetInnerRML("");
+        return;
     }
-    if (markerMarkup_ != markup) {
-        element("markers").SetInnerRML(markerMarkup_ = std::move(markup));
-        markersDirty_ = true;
+    if (!markers.HasChildNodes()) {
+        std::string markup;
+        for (const auto& region : snapshot->regions)
+            markup += "<div class=\"marker\">" + escape(regionLabel(region)) + "</div>";
+        markers.SetInnerRML(markup);
+        markersDirty_ = markerSizesDirty_ = true;
+    }
+    for (std::size_t i = 0; i < snapshot->regions.size(); ++i) {
+        const auto& region = snapshot->regions[i];
+        auto& marker = *markers.GetChild(static_cast<int>(i));
+        const auto change = [&](const char* name, bool on) {
+            if (marker.IsClassSet(name) == on) return false;
+            marker.SetClass(name, on);
+            return true;
+        };
+        for (std::size_t holder = 0; holder < holderClass.size(); ++holder) {
+            const bool changed = change(holderClass[holder], holder == static_cast<std::size_t>(region.holder));
+            if (holder == static_cast<std::size_t>(Holder::player)) markersDirty_ |= changed;
+        }
+        markersDirty_ |= change("selected", region.id == selection_.region);
     }
 }
 
@@ -195,13 +355,38 @@ void View::positionMarkers()
 {
     auto& markers = element("markers");
     if (!markers.GetNumChildren()) return;
+    if (markerSizesDirty_) {
+        context_.Update();
+        markerSizesDirty_ = false;
+    }
     const auto area = bounds("map");
     const auto& shapes = session_.shapes();
-    for (int i = 0; i < markers.GetNumChildren(); ++i) {
-        auto& marker = *markers.GetChild(i);
-        const auto point = map_.project(shapes[static_cast<std::size_t>(i)].label, area);
-        marker.SetProperty("left", number(point.x - area.x) + "px");
-        marker.SetProperty("top", number(point.y - area.y + 7) + "px");
+    std::vector<SDL_FRect> placed;
+    placed.reserve(markers.GetNumChildren());
+    for (int priority = 0; priority < 3; ++priority) {
+        for (int i = 0; i < markers.GetNumChildren(); ++i) {
+            auto& marker = *markers.GetChild(i);
+            if ((marker.IsClassSet("selected") ? 0 : marker.IsClassSet("player") ? 1 : 2) != priority) continue;
+            const auto point = map_.project(shapes[static_cast<std::size_t>(i)].label, area);
+            const auto size = marker.GetBox().GetSize(Rml::BoxArea::Border);
+            bool visible = false;
+            if (contains(area, point) && size.x + 4 < area.w) {
+                const float x = std::clamp(point.x - area.x - size.x / 2, 2.f, area.w - size.x - 2);
+                for (const float offset : {7.f, -size.y - 8}) {
+                    const float y = point.y - area.y + offset;
+                    const SDL_FRect label{x - 1, y - 1, size.x + 2, size.y + 2};
+                    if (y < 2 || y + size.y > area.h - 30 * density_ ||
+                        std::ranges::any_of(placed, [&](const auto& other) { return SDL_HasRectIntersectionFloat(&label, &other); }))
+                        continue;
+                    marker.SetProperty("left", number(x) + "px");
+                    marker.SetProperty("top", number(y) + "px");
+                    placed.push_back(label);
+                    visible = true;
+                    break;
+                }
+            }
+            marker.SetClass("occluded", !visible);
+        }
     }
 }
 
@@ -368,6 +553,15 @@ void View::refreshPanel(const Snapshot* snapshot)
 
 void View::refresh()
 {
+    refreshShell();
+    if (dialogClosedAt_ && (reduced_ || now_ - dialogClosedAt_ >= 90)) {
+        show(element("reform-dialog"), false);
+        dialogClosedAt_ = 0;
+    }
+    if (shell_.screen() == Screen::title || shell_.screen() == Screen::load) {
+        refreshHelp();
+        return;
+    }
     const auto* snapshot = session_.opening() ? nullptr : session_.displayed();
     if (session_.error() != lastError_) {
         lastError_ = session_.error();
@@ -400,7 +594,13 @@ void View::refresh()
         revision_ = session_.viewRevision();
         opening_ = session_.opening();
         busy_ = session_.busy();
-        previewing_ = session_.previewing();
+        if (previewing_ != session_.previewing()) {
+            previewing_ = session_.previewing();
+            element("timegraph").SetClass("preview", previewing_);
+            element("live").SetClass("on", !previewing_);
+            element("live").SetClass("primary", previewing_);
+            element("live").SetInnerRML(previewing_ ? "Back to Live" : "Live");
+        }
         selectedRegion_ = selection_.region;
         selectedCard_ = selection_.card;
         staged_ = selection_.destination;
@@ -410,19 +610,20 @@ void View::refresh()
             currentClock_ = clock;
             bindings_.DirtyVariable("clock");
         }
-        element("timegraph").SetClass("preview", previewing_);
-        element("live").SetClass("on", !previewing_);
-        element("live").SetClass("primary", previewing_);
-        element("live").SetInnerRML(previewing_ ? "Back to Live" : "Live");
-        element("new-game").SetClass("busy", busy_);
-        element("new-game").SetClass("disabled", busy_);
-        element("new-game").SetAttribute("data-help", busy_ ? "A decision is being applied." : "Start a fresh run with the current seed.");
     }
     if (map_.animate(now_, reduced_) || markersDirty_) {
         positionMarkers();
         markersDirty_ = false;
     }
     const bool loading = session_.opening() || !session_.displayed();
+    const auto setDisabled = [&](const char* id, bool disabled) {
+        auto& button = element(id);
+        if (disabled == button.HasAttribute("disabled")) return;
+        if (disabled) button.SetAttribute("disabled", "");
+        else button.RemoveAttribute("disabled");
+    };
+    setDisabled("save-game", session_.busy() || !session_.liveSnapshot());
+    setDisabled("title-game", session_.busy());
     if (loading != loadingVisible_) {
         show(element("opening"), loading);
         if (!loading) map_.reveal(now_);
@@ -471,10 +672,6 @@ void View::refresh()
     if (start != currentAxisStart_) element("axis-start").SetInnerRML(currentAxisStart_ = start);
     if (end != currentAxisEnd_) element("axis-end").SetInnerRML(currentAxisEnd_ = end);
     if (!notice_.empty() && !noticeError_ && now_ >= noticeUntil_) notify("");
-    if (dialogClosedAt_ && (reduced_ || now_ - dialogClosedAt_ >= 90)) {
-        show(element("reform-dialog"), false);
-        dialogClosedAt_ = 0;
-    }
     refreshReadout();
     refreshHelp();
 }
@@ -554,19 +751,21 @@ void View::drawFrame()
     SDL_SetRenderClipRect(renderer_, nullptr);
     colour(renderer_, {22, 24, 20, 255});
     SDL_RenderClear(renderer_);
-    if (const auto* snapshot = session_.displayed(); snapshot && !session_.opening())
+    const auto screen = shell_.screen();
+    if (const auto* snapshot = session_.displayed(); snapshot && !session_.opening() &&
+        (screen == Screen::game || screen == Screen::save))
         map_.draw(renderer_, bounds("map"), *snapshot, session_.shapes(), selection_.region, hoveredRegion_,
             drag_ == Drag::map && !moved_, now_, reduced_);
     SDL_SetRenderDrawBlendMode(renderer_, SDL_BLENDMODE_BLEND_PREMULTIPLIED);
     context_.Render();
     SDL_SetRenderDrawBlendMode(renderer_, SDL_BLENDMODE_NONE);
     SDL_SetRenderClipRect(renderer_, nullptr);
-    drawGraph();
+    if (screen == Screen::game) drawGraph();
 }
 
 bool View::scrubAt(float x)
 {
-    if (session_.busy() || session_.opening() || !session_.chart().through) return false;
+    if (shell_.screen() != Screen::game || session_.busy() || session_.opening() || !session_.chart().through) return false;
     selection_.destination.reset();
     return session_.scrub(secondAt(x));
 }

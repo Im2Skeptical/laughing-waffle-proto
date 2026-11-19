@@ -18,6 +18,7 @@ public:
     void zoom(float steps, SDL_FPoint anchor, SDL_FRect area);
     void beginPan();
     void pan(SDL_FPoint delta, SDL_FRect area);
+    void pinch(float factor, SDL_FPoint from, SDL_FPoint to, SDL_FRect area);
     void focus(Point point);
     SDL_FPoint project(Point point, SDL_FRect area) const;
     void draw(SDL_Renderer* renderer, SDL_FRect area, const Snapshot& snapshot,

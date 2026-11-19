@@ -101,6 +101,19 @@ void RegionalMap::pan(SDL_FPoint delta, SDL_FRect area)
     camera_ = target_;
 }
 
+void RegionalMap::pinch(float factor, SDL_FPoint from, SDL_FPoint to, SDL_FRect area)
+{
+    const auto old = target_.zoom;
+    target_.zoom = std::clamp(old * factor, 1.f, 3.5f);
+    const auto ratio = target_.zoom / old;
+    target_.x = target_.x * ratio + (to.x - from.x) / area.w +
+        ((from.x - area.x) / area.w - .5f) * (1 - ratio);
+    target_.y = target_.y * ratio + (to.y - from.y) / area.h +
+        ((from.y - area.y) / area.h - .46f) * (1 - ratio);
+    limitCamera();
+    camera_ = target_;
+}
+
 void RegionalMap::focus(Point point)
 {
     target_.zoom = std::max(1.03f, target_.zoom);

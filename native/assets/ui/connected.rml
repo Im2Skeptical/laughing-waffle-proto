@@ -5,12 +5,15 @@
 <!-- atlas styles -->
 </head>
 <body data-model="connected">
+<div id="safe-content">
+<div id="play">
 <div id="header">
   <h1>Regional Map</h1>
   <div id="header-controls">
     <div id="clock">{{clock}}</div>
     <button id="motion" class="toggle" data-op="motion" data-help="Reduce camera and interface motion.">Motion On</button>
-    <button id="new-game" class="button" data-op="new" data-help="Start a fresh run with the current seed.">New Game</button>
+    <button id="save-game" class="button" data-op="save" data-help="Save the current run to a manual slot.">Save</button>
+    <button id="title-game" class="button" data-op="title" data-help="Return to the title screen.">Title</button>
   </div>
 </div>
 <div id="map" role="group" aria-label="Regional map" data-help="Select a region. Drag to pan, or use the arrow keys to select a settlement.">
@@ -35,9 +38,11 @@
   <p id="loading-status" class="quiet">{{status}}</p>
   <div class="progress" role="progressbar"><div class="progress-fill" data-style-width="progress"></div></div>
 </div>
+</div>
+<div id="shell" class="shell-overlay"><div id="shell-panel"></div></div>
 <div id="modal-dimmer"></div>
-<div id="reform-dialog" class="dialog" role="dialog" aria-label="Confirm Practice Reform">
-  <h2>Confirm Practice Reform</h2>
+<div id="reform-dialog" class="dialog" role="dialog" aria-labelledby="dialog-title">
+  <h2 id="dialog-title">Confirm Practice Reform</h2>
   <p id="dialog-copy"></p>
   <p id="dialog-cost" class="gold"></p>
   <button id="dialog-back" class="button decision" data-op="back">Back</button>
@@ -45,5 +50,6 @@
 </div>
 <div id="notice" class="toast" role="status"></div>
 <div id="help" class="tooltip"></div>
+</div>
 </body>
 </rml>
