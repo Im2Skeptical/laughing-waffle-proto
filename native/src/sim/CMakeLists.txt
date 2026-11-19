@@ -14,6 +14,9 @@ add_library(waffle_sim STATIC
 	settlement/population.cpp
 	settlement/migration_reservation.cpp
 	settlement/prelude.cpp
+	territory/control.cpp
+	territory/spawn.cpp
+	territory/external.cpp
 	step/advance_second.cpp
 	step/stages.cpp
 	stages/advance_clock.cpp
@@ -139,5 +142,9 @@ if(NOT ANDROID)
 			COMMAND "${WAFFLE_NODE_EXECUTABLE}" "${native_dir}/src/tests/settlement-migration.mjs"
 				"$<TARGET_FILE:waffle_parity>" "${native_dir}" "${CMAKE_CURRENT_BINARY_DIR}/settlement-migration")
 		set_tests_properties(settlement_migration PROPERTIES TIMEOUT 60)
+		add_test(NAME territory_terminal_routing
+			COMMAND "${WAFFLE_NODE_EXECUTABLE}" "${native_dir}/src/tests/territory-stage.mjs"
+				"$<TARGET_FILE:waffle_parity>" "${native_dir}" "${CMAKE_CURRENT_BINARY_DIR}/territory-stage")
+		set_tests_properties(territory_terminal_routing PROPERTIES TIMEOUT 60)
 	endif()
 endif()

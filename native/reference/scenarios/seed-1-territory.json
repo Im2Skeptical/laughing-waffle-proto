@@ -1,0 +1,8 @@
+{
+  "id": "seed-1-territory",
+  "start": { "kind": "territoryExhibit", "seed": 1 },
+  "actions": [],
+  "horizonSec": 18,
+  "keepSeconds": [0, 6, 9, 17],
+  "windows": [{ "startSec": 5, "count": 2 }, { "startSec": 8, "count": 2 }, { "startSec": 16, "count": 2 }]
+}

@@ -749,6 +749,47 @@ The exact bulk RNG helper is reusable in Death when a roll has no observable
 per-person side effects. Browser speedup from the same arithmetic remains
 unmeasured.
 
+**N03e-8 result (19 Nov 2026).** `t3/territory-phase-drain` ports
+the Death-seam holding and Creep check, town board and storefront transitions,
+garrison defense, terminal routing, Vassal evacuation, and lunar journal
+production and drain. Unrest expiry refunds bookings before clearing control
+and reopening the storefront. The new [territory interface](src/sim/territory/territory.hpp)
+is available through `practice.hpp`. The recipe engine calls
+`plan_external` after stock and population preflight, `commit_external`
+inside the same root before effects, and adds the planned bonus only to
+generated Stock. The two pressure effects call `add_pressure` and
+`trigger_spawn` synchronously. Ruin invalidates by-region eligibility
+immediately. `synchronize_sites` refreshes dense site and listener orders
+after the root's activation and drain complete. The additive
+`emit(EventKindId)` overload journals events without a compiled trigger.
+Persistent schema additions cover partial garrison records, local victories,
+nullable Spawn outcomes, and evacuation endpoints. Death's local count
+updates must preserve the newly optional `history.deaths` field.
+
+Optimized Windows build and 31/31 CTests passed. Unmasked stage pairs passed
+prelude 73/73 (including the original 67/67 and seed-1/1598), control 8/8,
+phase epilogue 73/73, seasonal 14/14, and Faith 29/29. The prepared
+`seed-1-territory` probes cover first activation, threshold Creep and ruin,
+Vassal evacuation, incoming garrison defense, a same-root direct Spawn
+reaction, and successful external Hunt. The terminal test compares both
+loss reasons unmasked. All 17 step windows passed (123 comparisons) with
+134 masks, down from 156. Remaining overlapping masks document input from
+the unported Birth, Food and Death stages. In particular, Death input at
+`seed-42-shops/84` changes whether a holding enters Unrest, so later
+whole-step income is still masked while the isolated prelude and control
+checks are unmasked. No JS fidelity divergence was adopted.
+
+Timing on the i9-10900K used seven-run medians of `waffle_parity step --time`
+over `seed-1/0` (39 advances) and `seed-2026-late/3200` (11 advances).
+Focused dispatch timers measured control at 0.54 and 0.52 µs/sim-s,
+and phase production plus drain at 10.97 and 16.11. Combined medians were
+11.51 and 16.65. The untouched timing build measured 26.37 and 34.25 for
+the full pipeline. The ≤1 µs/sim-s target remains open. Resume by merging
+the additive recipe calls with N03e-3p and timing the same windows with its
+optimized drain and History path. The focused wrapper and raw measurements
+are in local `artifacts/n03e8-stage-timing.ps1`, `n03e8-timing-final.log`,
+and `n03e8-pipeline-timing.log`.
+
 ## N03f - Actions, replay and new game (pending N03e)
 
 Action application and `rebuildStateAtSecond` (L2), then new game and world

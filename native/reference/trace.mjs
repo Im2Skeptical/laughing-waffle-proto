@@ -22,6 +22,7 @@ import {
 import { configIdentity, readRunnerSaveSchema, REPO_ROOT, sha256Value } from "./corpus-lib.mjs";
 import { diffStates, formatStateDiff, HASHES_FILE, HASHES_HEADER, stateFile } from "./diff.mjs";
 import { createFoodContention } from "./food-contention.mjs";
+import { prepareTerritoryExhibit } from "./territory-exhibit.mjs";
 
 const here = fileURLToPath(new URL(".", import.meta.url));
 const scenariosDir = join(here, "scenarios");
@@ -50,8 +51,8 @@ export function loadScenario(id) {
   requireThat(scenario.id === id, id + ": scenario id must match its file name");
   requireThat(start && integerInRange(start.seed, 1, 0xffffffff), id + ": expected a nonzero uint32 seed");
   requireThat(start.kind === "newGame" || start.kind === "chargeExhibit" || start.kind === "foodContention" ||
-    (start.kind === "performanceAnchor" && integerInRange(start.anchorSec, 1)),
-  id + ": expected newGame, chargeExhibit, foodContention, or performanceAnchor with an anchorSec");
+    start.kind === "territoryExhibit" || (start.kind === "performanceAnchor" && integerInRange(start.anchorSec, 1)),
+  id + ": expected newGame, chargeExhibit, foodContention, territoryExhibit, or performanceAnchor with an anchorSec");
   const startSec = start.kind === "performanceAnchor" ? start.anchorSec : 0;
   const endSec = startSec + horizonSec;
   requireThat(integerInRange(horizonSec, 1) && Number.isSafeInteger(endSec + minLastContinuationSec),
@@ -88,6 +89,7 @@ export function createStart({ start }, startSec) {
   const state = createNewGameState(start.seed);
   if (start.kind === "foodContention") return createFoodContention(state);
   if (start.kind === "newGame") return state;
+  if (start.kind === "territoryExhibit") return prepareTerritoryExhibit(state);
 
   // The prepared performance fixture bakes anchors from this model path.
   // Capture the requested anchor directly, without the UI's baked gzip.

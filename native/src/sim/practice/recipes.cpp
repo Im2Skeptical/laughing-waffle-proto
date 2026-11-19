@@ -144,9 +144,9 @@ double amount(const RuntimeState& state, SiteId siteId, const Site& site, const 
                 value += std::min(3 + sum_modifier(state, def, mods, ModifierKind::scalingCap, worker.scholar),
                                   std::floor(population(state, siteId) / *e.populationBand));
             if (e.historyScale == HistoryScale::losses) value += std::min(4.0, state.hot.civilization.history.lostSettlements);
-            if (e.historyScale == HistoryScale::deaths) value += std::min(2.0, deaths.deaths);
+            if (e.historyScale == HistoryScale::deaths) value += std::min(2.0, deaths.deaths.value_or(0));
             if (e.historyScale == HistoryScale::deathsSinceSpring && activation == Activation::season)
-                value += std::min(1.0, std::max(0.0, deaths.deaths - deaths.springDeaths.value_or(0)));
+                value += std::min(1.0, std::max(0.0, deaths.deaths.value_or(0) - deaths.springDeaths.value_or(0)));
             if (e.localDeathScale.value_or(false))
                 value += std::min(e.localDeathCap.value_or(2), deaths.lastDeathCount.value_or(0));
             if (e.externalConnectionScale.value_or(false))
@@ -358,7 +358,7 @@ void apply_population(RuntimeState& state, SiteId siteId, Site& site, const Prac
         if (deaths > 0) {
             auto& history = site.detailedState.history;
             if (!history) history.emplace();
-            history->deaths += deaths;
+            history->deaths = history->deaths.value_or(0) + deaths;
             history->lastDeathSec = state.hot.tSec;
             history->lastDeathCount = deaths;
             EventData event{};
@@ -494,12 +494,10 @@ void apply_effect(RuntimeState& state, SiteId siteId, Site& site, Index<Practice
         } else d.regionalChaos = d.regionalChaos.value_or(0) + amount;
         break;
     case EffectOp::addMonsterPressure:
-        if (!terminal(state))
-            civ.chaos.monsterPressure = core::js::round((civ.chaos.monsterPressure + amount) * 1e9) / 1e9;
-        // N03e-8 resolves thresholds immediately after the meter write.
+        territory::add_pressure(state, amount);
         break;
     case EffectOp::triggerMonsterSpawn:
-        // N03e-8 owns immediate world mutation and its nested events.
+        territory::trigger_spawn(state, amount);
         break;
     case EffectOp::politicalForce: {
         if (!slot.instanceId) break;
@@ -596,7 +594,8 @@ struct RootScope {
 
 void resolve(RuntimeState& state, Candidate candidate, Site& site, Index<PracticeSlot> index,
              const PracticeDefinition& def, Assignment worker, const StockPlan& stock,
-             const PopulationPlan& population, const ModifierList& mods, Activation activation, bool discharge)
+             const PopulationPlan& population, const ModifierList& mods, Activation activation, bool discharge,
+             territory::ExternalPlan external)
 {
     const auto& slot = state.tables.at(index);
     const auto& v = state.practiceVocabulary;
@@ -627,10 +626,14 @@ void resolve(RuntimeState& state, Candidate candidate, Site& site, Index<Practic
         event.fields.pool = v.pools[static_cast<std::size_t>(def.pool)];
         emit(state, EventKind::stockConsumed, site.regionId, event);
     }
+    if (def.externalAction) territory::commit_external(state, site, *def.externalAction, def.id, external);
     if (discharge) state.practiceCharge[index.value] = 0;
-    for (std::size_t i = 0; i < effects.size(); ++i)
-        if (!site.neutral || opcode(effects[i]) == EffectOp::generateStock)
-            apply_effect(state, candidate.site, site, index, def, effects[i], amounts[i], worker.scholar);
+    for (std::size_t i = 0; i < effects.size(); ++i) {
+        const bool generate = opcode(effects[i]) == EffectOp::generateStock;
+        if (!site.neutral || generate)
+            apply_effect(state, candidate.site, site, index, def, effects[i],
+                         generate ? amounts[i] + external.bonus : amounts[i], worker.scholar);
+    }
     auto& boost = site.detailedState.seasonalFoodBoost;
     if (def.activation.type == Activation::season && boost && boost->practiceId == def.id &&
         !has(state.tables.view(boost->seasons), season_id(state)))
@@ -772,7 +775,6 @@ bool attempt(RuntimeState& state, Candidate candidate, Activation activation, bo
                 return fail(v.noTraining);
         }
     }
-    if (def.externalAction) return fail(v.noExternalTarget); // N03e-8 target preflight.
     const auto mods = modifiers(state, site);
     PopulationPlan population;
     auto& scratch = population_scratch();
@@ -785,6 +787,9 @@ bool attempt(RuntimeState& state, Candidate candidate, Activation activation, bo
                            population.extraConsume.view(), population.extraRequire.view());
         if (!stock.ok) return fail(v.unmetCondition, stock.missing);
     }
+    const auto external = def.externalAction ? territory::plan_external(state, site, *def.externalAction)
+                                             : territory::ExternalPlan{};
+    if (!external.ok) return fail(v.noExternalTarget);
     auto root = parent ? *parent : [&] {
         EventData event{};
         event.fields.practiceId = def.id;
@@ -792,7 +797,7 @@ bool attempt(RuntimeState& state, Candidate candidate, Activation activation, bo
         return emit(state, EventKind::scheduledActivation, site.regionId, event);
     }();
     RootScope scope(state.hot.civilization.practiceEvents, root);
-    resolve(state, candidate, site, index, def, worker, stock, population, mods, activation, parent.has_value());
+    resolve(state, candidate, site, index, def, worker, stock, population, mods, activation, parent.has_value(), external);
     return true;
 }
 
@@ -839,6 +844,7 @@ void activate(RuntimeState& state, content::Activation activation, std::optional
         }
     }
     drain_retries(state, retries.view(), activation);
+    territory::synchronize_sites(state);
 }
 
 }

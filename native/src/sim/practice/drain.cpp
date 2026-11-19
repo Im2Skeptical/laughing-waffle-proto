@@ -351,6 +351,7 @@ void drain_retries(RuntimeState& state, std::span<const Candidate> retries, Acti
 void drain(RuntimeState& state)
 {
     detail::drain_retries(state, {}, content::Activation::charge);
+    if (!state.hot.civilization.practiceEvents.activeRoot) territory::synchronize_sites(state);
 }
 
 }

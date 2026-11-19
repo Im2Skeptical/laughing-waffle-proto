@@ -526,7 +526,8 @@ struct DetailedSettlementMealRelief {
 };
 
 struct DetailedSettlementHistory {
-    double deaths{};
+    std::optional<double> deaths{};
+    std::optional<double> victories{};
     std::optional<double> springDeaths{};
     std::optional<double> lastDeathSec{};
     std::optional<double> lastDeathCount{};
@@ -545,10 +546,10 @@ struct DetailedSettlementControl {
 };
 
 struct DetailedSettlementGarrison {
-    bool supplied{};
-    double paid{};
-    double required{};
-    double tSec{};
+    std::optional<bool> supplied{};
+    std::optional<double> paid{};
+    std::optional<double> required{};
+    std::optional<double> tSec{};
     browser::OptionalNullable<RegionId> supportTargetRegionId{};
 };
 
@@ -743,10 +744,10 @@ struct ChaosLastMonsterSpawn {
     double tSec{};
     browser::SpawnCause cause{};
     browser::SpawnOutcome outcome{};
-    RegionId sourceRegionId{};
-    RegionId targetRegionId{};
-    double strengthBefore{};
-    double strengthAfter{};
+    std::optional<RegionId> sourceRegionId{};
+    std::optional<RegionId> targetRegionId{};
+    std::optional<double> strengthBefore{};
+    std::optional<double> strengthAfter{};
 };
 
 struct LastMoonIncomeFaithPopulation {
@@ -894,6 +895,8 @@ struct VassalLifeEventsEntry {
     std::optional<HistoryTextId> choiceId{};
     std::optional<HistoryTextId> statId{};
     browser::OptionalNullable<HistoryTextId> causeOfDeath{};
+    std::optional<RegionId> fromRegionId{};
+    std::optional<RegionId> toRegionId{};
 };
 
 struct CommissionOffer {

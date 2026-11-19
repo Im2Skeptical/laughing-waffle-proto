@@ -6,9 +6,10 @@ import { getMoonPhaseAtSecond } from "../../../src/model/moon-phases.js";
 import { deserializeGameState, serializeGameState } from "../../../src/model/state.js";
 import { getDetailedSettlement, getHousingCapacity, refreshGreenAscendancy } from "../../../src/model/detailed-settlements/queries.js";
 import { populationBins, writePopulationBins } from "../../../src/model/detailed-settlements/population-ledger.js";
-import { addMoonMigrationIntent, cancelMoonMigrationForRegion, runMigrationPhase } from "../../../src/model/detailed-settlements/phases/migration.js";
+import { addMoonMigrationIntent, runMigrationPhase } from "../../../src/model/detailed-settlements/phases/migration.js";
 import { createMoonTurn } from "../../../src/model/detailed-settlements/phases/moon-turn.js";
 import { resetEmptyStrangerCohort } from "../../../src/model/detailed-settlements/phases/shared.js";
+import { stepUnrest } from "../../../src/model/detailed-settlements/territory.js";
 
 const [parity, nativeDir, output] = process.argv.slice(2);
 const opening = JSON.parse(readFileSync(join(nativeDir, "reference/fixtures/seed-1/state-0.json"), "utf8"));
@@ -68,20 +69,22 @@ checkStage("contested", "migration", contested, () => {
     [["R11", 1], ["R10", 2]]);
 });
 
-// Exercise the expiry handoff with pending bookings. Town restoration and
-// event emission are separate work, so compare the browser cancellation seam.
+// Expiry refunds pending bookings before reopening the storefront.
 const { currentMoonTurn: turn } = contested.civilization;
 const closing = contested.world.sites.find(site => site.regionId === "R03");
+contested.world.regions.find(region => region.id === "R03").controller = "frontier";
 closing.detailedState.control = {
   unrest: { startedSec: 0, untilSec: 6, previousController: "external-a" }, claimant: null, claimChecks: 0,
 };
 contested.tSec = 6;
 checkStage("refund", "prelude", contested, () => {
-  contested.civilization.chaos.pendingUnrestIncome = 1 / 32;
-  cancelMoonMigrationForRegion(contested, "R03");
+  stepUnrest(contested);
   refreshGreenAscendancy(contested);
   for (const site of contested.world.sites) resetEmptyStrangerCohort(site.detailedState);
   assert.equal(turn.movements.length, 0);
+  assert.equal(closing.detailedState.control.unrest, null);
+  assert.ok(closing.neutral);
+  assert.equal(contested.civilization.practiceEvents.pending.at(-1).kind, "unrestEnded");
   assert.deepEqual(turn.migrationIntentSummaries.map(item => [item.admitted, item.unresolved]), [[0, 3], [0, 3]]);
   for (const region of ["R10", "R11"]) {
     const source = getDetailedSettlement(contested, region);

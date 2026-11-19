@@ -5,6 +5,7 @@
 #include "sim/settlement/migration.hpp"
 #include "sim/settlement/migration_reservation.hpp"
 #include "sim/practice/runtime.hpp"
+#include "sim/territory/cache.hpp"
 
 #include <memory>
 
@@ -115,6 +116,7 @@ struct RuntimeState {
     practice::Vocabulary practiceVocabulary;
     practice::ListenerIndex practiceListeners;
     practice::RecipeStorage practiceRecipeStorage;
+    territory::Cache territory;
     // The browser omits this latch on export and clears it on import.
     bool seasonChanged{};
     // Derived from tSec and immutable settings. Zero triggers calculation.
