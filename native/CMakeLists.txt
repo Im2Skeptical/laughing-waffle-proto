@@ -34,6 +34,7 @@ if(NOT ANDROID)
 endif()
 add_subdirectory(src/core)
 add_subdirectory(src/sim)
+add_subdirectory(src/timegraph)
 add_subdirectory(src/bench)
 
 if(NOT ANDROID)
