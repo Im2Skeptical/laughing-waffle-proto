@@ -169,6 +169,7 @@ function declaration(name, fields) {
   const extras = {
     PracticeSlot: ["    std::uint32_t slot{}, version{};"],
     StructureCell: ["    std::uint32_t version{};"],
+    MigrationMovement: ["    double transferSecond{};", "    std::uint32_t transferOrdinal{};"],
   }[name] ?? [];
   return [
     "struct " + runtimeName(name) + " {",
@@ -235,7 +236,9 @@ function readField({ key, member, type, policy, payload }) {
   return ["    " + target + "." + member + " = codec." + (custom ?? "read<" + type + ">") + "(" + value + ", " + path + ");"];
 }
 
-function writeField({ member, policy, payload }) {
+function writeField({ member, policy, payload }, record) {
+  if (record === "MigrationMovement" && member === "transferId")
+    return ["    codec.migration_transfer_id(result.transferId, source);"];
   if (policy === "config") return ["    result." + member + " = codec.state.content->config;"];
   const custom = { practice_board: "practices", structure_board: "structures" }[policy];
   const value = splitColumns.has(policy) ? "codec." + splitColumns.get(policy).column + "(row)"
@@ -260,7 +263,7 @@ const mapping = [
     mirrorName(name) + " Mapping<" + runtimeName(name) + ">::write(" + parameters(name, false, true) + ")",
     "{",
     "    " + mirrorName(name) + " result{};",
-    ...fields.flatMap(writeField),
+    ...fields.flatMap(field => writeField(field, name)),
     "    return result;", "}", "",
   ]),
 ].join("\n");

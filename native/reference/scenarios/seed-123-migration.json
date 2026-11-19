@@ -1,0 +1,7 @@
+{
+  "id": "seed-123-migration",
+  "start": { "kind": "performanceAnchor", "seed": 123, "anchorSec": 2032 },
+  "actions": [],
+  "horizonSec": 98,
+  "keepSeconds": [2032]
+}

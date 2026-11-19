@@ -5,6 +5,7 @@
 namespace waffle::sim::settlement {
 
 enum class Residency { villager, stranger };
+enum class PopulationTie { ledger_key, input_order };
 
 struct PopulationBin {
     Residency residency{};
@@ -66,7 +67,8 @@ PopulationBinView population_bins(const RuntimeState& state, const runtime::Popu
 // Allocation returns nonzero bins in input order. Largest-remainder ties use
 // the browser ledger key and then input position. Input and output must be disjoint.
 void allocate_population(const RuntimeState& state, std::span<const PopulationBin> bins,
-                         double requested, std::vector<PopulationBin>& output, LedgerScratch& scratch);
+                         double requested, std::vector<PopulationBin>& output, LedgerScratch& scratch,
+                         PopulationTie tie = PopulationTie::ledger_key);
 void collect_population(const RuntimeState& state, const runtime::PopulationByClass& population,
                         std::vector<PopulationBin>& output, const PopulationFilter& filter = {},
                         runtime::FactionId beneficiary = {});
@@ -76,7 +78,10 @@ void collect_population(const RuntimeState& state, const runtime::PopulationByCl
 void remove_population(std::span<PopulationBin> bins, std::span<const PopulationBin> selected,
                        std::vector<PopulationBin>& removed);
 void write_population_bins(RuntimeState& state, runtime::SiteId site,
-                           std::span<const PopulationBin> bins, LedgerScratch& scratch);
+                           std::span<const PopulationBin> bins, LedgerScratch& scratch, bool joint = true);
+runtime::PopulationComposition write_population_composition(
+    RuntimeState& state, std::span<const PopulationBin> bins, bool joint, LedgerScratch& scratch,
+    std::uint32_t& jointCursor, std::uint32_t& elderCursor);
 
 CohortView cohort_view(const RuntimeState& state, const runtime::AgeCounts& counts);
 CohortView cohort_view(const RuntimeState& state, const runtime::PopulationClass& population);

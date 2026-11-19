@@ -321,6 +321,8 @@ struct MigrationMovement {
     PopulationComposition composition{};
     std::optional<PopulationComposition> survivorComposition{};
     std::optional<double> originalIndex{};
+    double transferSecond{};
+    std::uint32_t transferOrdinal{};
 };
 
 struct MigrationSourceLoss {
