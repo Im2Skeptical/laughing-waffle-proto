@@ -239,20 +239,20 @@
         "prematureDeaths": { "type": "integer", "optional": false, "nullable": false },
         "oldAgeDeaths": { "type": "integer", "optional": false, "nullable": false },
         "externalEmigrants": { "type": "integer", "optional": false, "nullable": false },
-        "primordialPressure": { "type": "number", "optional": false, "nullable": false },
+        "primordialPressure": { "type": "number", "optional": false, "nullable": true },
         "unrestPressure": { "type": "number", "optional": false, "nullable": false },
         "prematureDeathPressure": { "type": "number", "optional": false, "nullable": false },
-        "prematureDeathMitigation": { "type": "integer", "optional": false, "nullable": false },
+        "prematureDeathMitigation": { "type": "number", "optional": false, "nullable": false },
         "externalEmigrationPressure": { "type": "number", "optional": false, "nullable": false },
-        "oldAgeDeathPressure": { "type": "integer", "optional": false, "nullable": false },
-        "internalMigrationPressure": { "type": "integer", "optional": false, "nullable": false },
-        "rawPressure": { "type": "number", "optional": false, "nullable": false },
+        "oldAgeDeathPressure": { "type": "number", "optional": false, "nullable": false },
+        "internalMigrationPressure": { "type": "number", "optional": false, "nullable": false },
+        "rawPressure": { "type": "number", "optional": false, "nullable": true },
         "faithPopulation": { "type": "LastMoonIncomeFaithPopulation", "optional": false, "nullable": false },
         "resistance": { "type": "number", "optional": false, "nullable": false },
         "populationResistance": { "type": "number", "optional": false, "nullable": false },
-        "incomingChaos": { "type": "number", "optional": false, "nullable": false },
-        "totalIncome": { "type": "number", "optional": false, "nullable": false },
-        "accumulatedChaos": { "type": "number", "optional": false, "nullable": false },
+        "incomingChaos": { "type": "number", "optional": false, "nullable": true },
+        "totalIncome": { "type": "number", "optional": false, "nullable": true },
+        "accumulatedChaos": { "type": "number", "optional": false, "nullable": true },
         "spawned": { "type": "integer", "optional": false, "nullable": false }
       }
     },
@@ -263,7 +263,7 @@
         "oldAgeDeaths": { "type": "integer", "optional": false, "nullable": false },
         "externalEmigrants": { "type": "integer", "optional": false, "nullable": false },
         "internalMigrants": { "type": "integer", "optional": false, "nullable": false },
-        "prematureDeathMitigation": { "type": "integer", "optional": true, "nullable": false }
+        "prematureDeathMitigation": { "type": "number", "optional": true, "nullable": false }
       }
     },
     "ChargeTrigger": {
@@ -309,7 +309,7 @@
     "CivilizationChaos": {
       "kind": "record",
       "fields": {
-        "chaosPower": { "type": "number", "optional": false, "nullable": false },
+        "chaosPower": { "type": "number", "optional": false, "nullable": true },
         "monsterCount": { "type": "integer", "optional": false, "nullable": false },
         "spatialSpawns": { "type": "integer", "optional": false, "nullable": false },
         "monsterPressure": { "type": "number", "optional": false, "nullable": false },
@@ -1864,7 +1864,7 @@
       "fields": {
         "housingByRegion": { "type": "PhaseModifiersHousingByRegion", "optional": false, "nullable": false },
         "foodByRegion": { "type": "PhaseModifiersFoodByRegion", "optional": false, "nullable": false },
-        "faithResistance": { "type": "integer", "optional": false, "nullable": false }
+        "faithResistance": { "type": "number", "optional": false, "nullable": false }
       }
     },
     "PhaseModifiersFoodByRegion": {

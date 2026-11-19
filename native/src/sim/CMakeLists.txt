@@ -7,6 +7,7 @@ add_library(waffle_sim STATIC
 	state/runtime_state.cpp
 	world/topology.cpp
 	settlement/population.cpp
+	settlement/migration_reservation.cpp
 	settlement/prelude.cpp
 	step/advance_second.cpp
 	step/stages.cpp
@@ -52,6 +53,8 @@ if(NOT ANDROID)
 	target_link_libraries(waffle_history_test PRIVATE waffle_sim)
 	add_executable(waffle_world_topology_test ../tests/world_topology_test.cpp)
 	target_link_libraries(waffle_world_topology_test PRIVATE waffle_sim)
+	add_executable(waffle_faith_stage_test ../tests/faith_stage_test.cpp)
+	target_link_libraries(waffle_faith_stage_test PRIVATE waffle_sim)
 	if(MINGW)
 		target_link_options(waffle_parity PRIVATE -static)
 		target_link_options(waffle_browser_tests PRIVATE -static)
@@ -60,6 +63,7 @@ if(NOT ANDROID)
 		target_link_options(waffle_settlement_ledger_test PRIVATE -static)
 		target_link_options(waffle_history_test PRIVATE -static)
 		target_link_options(waffle_world_topology_test PRIVATE -static)
+		target_link_options(waffle_faith_stage_test PRIVATE -static)
 	endif()
 
 	set(native_dir "${CMAKE_CURRENT_SOURCE_DIR}/../..")
@@ -93,8 +97,11 @@ if(NOT ANDROID)
 	add_test(NAME step_clock COMMAND waffle_step_clock_test)
 	add_test(NAME runtime_history_appends COMMAND waffle_history_test
 		"${native_dir}/reference/fixtures/seed-1/state-0.json")
+	add_test(NAME faith_collapse_restore COMMAND waffle_faith_stage_test
+		"${native_dir}/reference/fixtures/seed-1/state-0.json")
 	set_tests_properties(browser_state_l0 browser_state_controls runtime_state_l0 runtime_state_controls
-		parity_cli step_parity step_clock captured_content runtime_history_appends PROPERTIES TIMEOUT 60)
+		parity_cli step_parity step_clock captured_content runtime_history_appends faith_collapse_restore
+		PROPERTIES TIMEOUT 60)
 
 	find_program(WAFFLE_NODE_EXECUTABLE NAMES node)
 	if(WAFFLE_NODE_EXECUTABLE)

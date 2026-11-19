@@ -3,6 +3,7 @@
 #include "sim/settlement/population.hpp"
 #include "sim/settlement/prelude.hpp"
 #include "sim/world/topology.hpp"
+#include "sim/stages/faith.hpp"
 
 #include "core/js_number.hpp"
 #include "core/sha256.hpp"
@@ -411,6 +412,7 @@ RuntimeState import_live_state(const browser::GameState& state, std::shared_ptr<
     rebuild_runtime_indexes(result);
     settlement::prepare_prelude(result);
     settlement::prepare_migration(result);
+    stages::prepare_faith(result);
     return result;
 }
 

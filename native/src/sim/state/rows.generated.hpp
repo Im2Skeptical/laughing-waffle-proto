@@ -758,20 +758,20 @@ struct ChaosLastMoonIncome {
     double prematureDeaths{};
     double oldAgeDeaths{};
     double externalEmigrants{};
-    double primordialPressure{};
+    std::optional<double> primordialPressure{};
     double unrestPressure{};
     double prematureDeathPressure{};
     double prematureDeathMitigation{};
     double externalEmigrationPressure{};
     double oldAgeDeathPressure{};
     double internalMigrationPressure{};
-    double rawPressure{};
+    std::optional<double> rawPressure{};
     LastMoonIncomeFaithPopulation faithPopulation{};
     double resistance{};
     double populationResistance{};
-    double incomingChaos{};
-    double totalIncome{};
-    double accumulatedChaos{};
+    std::optional<double> incomingChaos{};
+    std::optional<double> totalIncome{};
+    std::optional<double> accumulatedChaos{};
     double spawned{};
 };
 
@@ -784,7 +784,7 @@ struct ChaosPendingLosses {
 };
 
 struct CivilizationChaos {
-    double chaosPower{};
+    std::optional<double> chaosPower{};
     double monsterCount{};
     double spatialSpawns{};
     double monsterPressure{};

@@ -2112,20 +2112,20 @@ ChaosLastMoonIncome Mapping<ChaosLastMoonIncome>::read(Import& codec, const brow
     result.prematureDeaths = codec.read<double>(source.prematureDeaths, property_path(path, "prematureDeaths"));
     result.oldAgeDeaths = codec.read<double>(source.oldAgeDeaths, property_path(path, "oldAgeDeaths"));
     result.externalEmigrants = codec.read<double>(source.externalEmigrants, property_path(path, "externalEmigrants"));
-    result.primordialPressure = codec.read<double>(source.primordialPressure, property_path(path, "primordialPressure"));
+    result.primordialPressure = codec.read<std::optional<double>>(source.primordialPressure, property_path(path, "primordialPressure"));
     result.unrestPressure = codec.read<double>(source.unrestPressure, property_path(path, "unrestPressure"));
     result.prematureDeathPressure = codec.read<double>(source.prematureDeathPressure, property_path(path, "prematureDeathPressure"));
     result.prematureDeathMitigation = codec.read<double>(source.prematureDeathMitigation, property_path(path, "prematureDeathMitigation"));
     result.externalEmigrationPressure = codec.read<double>(source.externalEmigrationPressure, property_path(path, "externalEmigrationPressure"));
     result.oldAgeDeathPressure = codec.read<double>(source.oldAgeDeathPressure, property_path(path, "oldAgeDeathPressure"));
     result.internalMigrationPressure = codec.read<double>(source.internalMigrationPressure, property_path(path, "internalMigrationPressure"));
-    result.rawPressure = codec.read<double>(source.rawPressure, property_path(path, "rawPressure"));
+    result.rawPressure = codec.read<std::optional<double>>(source.rawPressure, property_path(path, "rawPressure"));
     result.faithPopulation = codec.read<LastMoonIncomeFaithPopulation>(source.faithPopulation, property_path(path, "faithPopulation"));
     result.resistance = codec.read<double>(source.resistance, property_path(path, "resistance"));
     result.populationResistance = codec.read<double>(source.populationResistance, property_path(path, "populationResistance"));
-    result.incomingChaos = codec.read<double>(source.incomingChaos, property_path(path, "incomingChaos"));
-    result.totalIncome = codec.read<double>(source.totalIncome, property_path(path, "totalIncome"));
-    result.accumulatedChaos = codec.read<double>(source.accumulatedChaos, property_path(path, "accumulatedChaos"));
+    result.incomingChaos = codec.read<std::optional<double>>(source.incomingChaos, property_path(path, "incomingChaos"));
+    result.totalIncome = codec.read<std::optional<double>>(source.totalIncome, property_path(path, "totalIncome"));
+    result.accumulatedChaos = codec.read<std::optional<double>>(source.accumulatedChaos, property_path(path, "accumulatedChaos"));
     result.spawned = codec.read<double>(source.spawned, property_path(path, "spawned"));
     return result;
 }
@@ -2179,7 +2179,7 @@ browser::ChaosPendingLosses Mapping<ChaosPendingLosses>::write(const Export& cod
 CivilizationChaos Mapping<CivilizationChaos>::read(Import& codec, const browser::CivilizationChaos& source, const std::string& path)
 {
     CivilizationChaos result{};
-    result.chaosPower = codec.read<double>(source.chaosPower, property_path(path, "chaosPower"));
+    result.chaosPower = codec.read<std::optional<double>>(source.chaosPower, property_path(path, "chaosPower"));
     result.monsterCount = codec.read<double>(source.monsterCount, property_path(path, "monsterCount"));
     result.spatialSpawns = codec.read<double>(source.spatialSpawns, property_path(path, "spatialSpawns"));
     result.monsterPressure = codec.read<double>(source.monsterPressure, property_path(path, "monsterPressure"));
