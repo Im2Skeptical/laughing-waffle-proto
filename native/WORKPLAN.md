@@ -698,6 +698,22 @@ exports for 13 seeds. The new-game state builder had not started. The
 supervisor's merged build passed 32/32 enabled CTests and 19/19 step windows.
 `std::unordered_set` in biome generation is used only for membership; order
 comes from vectors.
+N03g stopped with its verified MSVC harness merged
+(`t3/native-cross-compiler-determinism` d7758c35): `waffle_parity run`,
+per-second hashes, 64 s anchors, and adapter save and restore. The merged
+build passed 33/33 enabled CTests, including the 256-second seed-1 hash
+fixture, and 19/19 step windows.
+
+256-second smoke runs from seed-1/0 and seed-2026-late/3200:
+- State stayed finite throughout.
+- Anchor replay reproduced the live hashes, and adapter saves were lossless.
+- Throughput was 21,764 and 17,849 sim-s/s, including hashing and anchors.
+- Copy plus 63 s replay took 3.5–3.7 ms at p50 and 7.3–8.6 ms at p95. The
+  p95 exceeds the scaled desktop target and needs attention with N04.
+
+The clang preset, Android target and resume commands are WIP in 2131c16b,
+not merged. Still open: clang versus MSVC agreement, the 32,000-second
+runs, 1000-year growth, and execution on a device.
 
 **N03e-3 result (19 Nov 2026).** `t3/native-scheduled-recipe-engine` resumes
 `ba7abdc3` with the seed-1 topology stub still isolated at `c40df7fd`.
