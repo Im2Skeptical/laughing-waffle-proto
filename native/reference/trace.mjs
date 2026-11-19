@@ -21,6 +21,7 @@ import {
 } from "../../src/model/timeline/index.js";
 import { configIdentity, readRunnerSaveSchema, REPO_ROOT, sha256Value } from "./corpus-lib.mjs";
 import { diffStates, formatStateDiff, HASHES_FILE, HASHES_HEADER, stateFile } from "./diff.mjs";
+import { createFoodContention } from "./food-contention.mjs";
 
 const here = fileURLToPath(new URL(".", import.meta.url));
 const scenariosDir = join(here, "scenarios");
@@ -48,9 +49,9 @@ export function loadScenario(id) {
   const { start, actions, horizonSec, keepSeconds, windows = [] } = scenario;
   requireThat(scenario.id === id, id + ": scenario id must match its file name");
   requireThat(start && integerInRange(start.seed, 1, 0xffffffff), id + ": expected a nonzero uint32 seed");
-  requireThat(start.kind === "newGame" || start.kind === "chargeExhibit" ||
+  requireThat(start.kind === "newGame" || start.kind === "chargeExhibit" || start.kind === "foodContention" ||
     (start.kind === "performanceAnchor" && integerInRange(start.anchorSec, 1)),
-  id + ": expected newGame, chargeExhibit, or performanceAnchor with an anchorSec");
+  id + ": expected newGame, chargeExhibit, foodContention, or performanceAnchor with an anchorSec");
   const startSec = start.kind === "performanceAnchor" ? start.anchorSec : 0;
   const endSec = startSec + horizonSec;
   requireThat(integerInRange(horizonSec, 1) && Number.isSafeInteger(endSec + minLastContinuationSec),
@@ -85,6 +86,7 @@ export function loadScenario(id) {
 export function createStart({ start }, startSec) {
   if (start.kind === "chargeExhibit") return createLabFixture("charge", start.seed);
   const state = createNewGameState(start.seed);
+  if (start.kind === "foodContention") return createFoodContention(state);
   if (start.kind === "newGame") return state;
 
   // The prepared performance fixture bakes anchors from this model path.

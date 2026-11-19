@@ -12,7 +12,13 @@ namespace {
 using namespace runtime;
 using Bin = MigrationReservationCache::Bin;
 namespace js = core::js;
-constexpr auto storagePath = "Faith migration reservations";
+constexpr auto storagePath = "Moon migration reservations";
+constexpr std::size_t reservationPhases = 3;
+
+std::size_t payload_index(SiteId site, Residency residency, std::size_t phase)
+{
+    return (site.value * 2 + static_cast<std::size_t>(residency)) * reservationPhases + phase;
+}
 
 template<class T>
 void ensure_capacity(RuntimeState& state, Range<T>& range, std::size_t count)
@@ -214,8 +220,8 @@ void prepare_migration_reservations(RuntimeState& state)
     const auto imported = state.hot.civilization.currentMoonTurn
         ? state.hot.civilization.currentMoonTurn->migrationIntents.size() : 0;
     for (auto& bank : cache.banks) {
-        ensure_capacity(state, bank.intents, sites.size() * 2 + imported);
-        bank.payloads.resize(sites.size() * 2);
+        ensure_capacity(state, bank.intents, sites.size() * 2 * reservationPhases + imported);
+        bank.payloads.resize(sites.size() * 2 * reservationPhases);
     }
     for (const auto& site : sites) {
         for (const auto residency : {Residency::villager, Residency::stranger}) {
@@ -226,9 +232,11 @@ void prepare_migration_reservations(RuntimeState& state)
             constexpr std::size_t headroom = 8;
             prepare_scratch(cache, bins + headroom);
             for (auto& bank : cache.banks) {
-                auto& payload = bank.payloads[site.id.value * 2 + static_cast<std::size_t>(residency)];
-                if (population.joint) ensure_capacity(state, payload.joint, joints + headroom);
-                ensure_capacity(state, payload.elders, 3 * (std::max(joints, elders) + headroom));
+                for (std::size_t phase = 0; phase < reservationPhases; ++phase) {
+                    auto& payload = bank.payloads[payload_index(site.id, residency, phase)];
+                    if (population.joint) ensure_capacity(state, payload.joint, joints + headroom);
+                    ensure_capacity(state, payload.elders, 3 * (std::max(joints, elders) + headroom));
+                }
             }
         }
     }
@@ -258,7 +266,11 @@ double reserve_migration(RuntimeState& state, MoonTurn& turn, SiteId siteId, Res
 
     auto& bank = cache.banks[state.settlementPrelude.nextMoonBuffer ^ 1];
     const auto classIndex = static_cast<std::size_t>(residency);
-    auto& payload = bank.payloads[siteId.value * 2 + classIndex];
+    // One source class can reserve again at Faith. Its earlier Food payload
+    // must stay immutable while both intents are visible in the moon ledger.
+    const auto phase = static_cast<std::size_t>(turn.phaseIndex) - 1;
+    if (phase >= reservationPhases) throw std::logic_error("unexpected migration reservation phase");
+    auto& payload = bank.payloads[payload_index(siteId, residency, phase)];
     PopulationComposition composition{};
     auto& source = residency == Residency::villager ? composition.villager : composition.stranger;
     auto& other = residency == Residency::villager ? composition.stranger : composition.villager;
