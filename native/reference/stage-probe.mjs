@@ -25,6 +25,7 @@ import { advance, applyActions, assertHash, createStart, groupReplayActions, loa
 import { checkFoodContention, checkSeasonalFoodBoost } from "./food-contention.mjs";
 import { checkHousingExhibit, checkHousingFaithExhibit } from "./housing-exhibit.mjs";
 import { deathExhibits } from "./scenarios/death-exhibits.mjs";
+import { checkVassalExhibit, vassalResolutionKinds } from "./vassal-exhibit.mjs";
 
 const here = fileURLToPath(new URL(".", import.meta.url));
 const artifactDir = join(REPO_ROOT, "artifacts", "native-reference", "stages");
@@ -51,6 +52,7 @@ const suite = {
   "seed-42-charge": [1, 19, ...chargeCascadeSeconds].sort((a, b) => a - b),
   "seed-123-migration": [2033, 2034, 2039, 2041, 2123, 2124, 2129, 2130, 2675, 2676],
   "seed-1-territory": [6, 9, 17],
+  ...Object.fromEntries(vassalResolutionKinds.map(kind => ["seed-1-vassal-" + kind, [1]])),
 };
 
 function requireThat(condition, message) {
@@ -212,6 +214,8 @@ function captureSecond(id, baseline, live, sec, actions, hashes) {
     const firstTick = name === "advance_clock" ? 1 : tick;
     const before = boundary("before-" + name, chaosBefore);
     execute();
+    if (name === "vassal_check" && id.startsWith("seed-1-vassal-"))
+      checkVassalExhibit(state, id.slice("seed-1-vassal-".length));
     if (id === "seed-1-housing" && name === "housing") checkHousingExhibit(state);
     if (id === "seed-1-housing" && sec === 4 && name === "faith") checkHousingFaithExhibit(state);
     tick = tickCount;

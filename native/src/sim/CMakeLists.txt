@@ -17,6 +17,9 @@ add_library(waffle_sim STATIC
 	territory/control.cpp
 	territory/spawn.cpp
 	territory/external.cpp
+	vassal/resolution.cpp
+	vassal/inheritance.cpp
+	vassal/candidates.cpp
 	step/advance_second.cpp
 	step/stages.cpp
 	stages/advance_clock.cpp

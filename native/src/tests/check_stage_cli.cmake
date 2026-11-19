@@ -36,12 +36,10 @@ execute_process(COMMAND "${parity}" stage --stage prelude --before "${stale_gree
 	COMMAND_ERROR_IS_FATAL ANY)
 
 execute_process(COMMAND "${parity}" stage --stage vassal_check --before "${after}" --after "${after}"
-	RESULT_VARIABLE status OUTPUT_VARIABLE difference ERROR_VARIABLE error)
-if(NOT status EQUAL 3 OR NOT difference MATCHES "not ported")
-	message(FATAL_ERROR "expected an unported stage, got ${status} ${difference} ${error}")
-endif()
+	COMMAND_ERROR_IS_FATAL ANY)
 execute_process(COMMAND "${parity}" stage --stage vassal_check --before "${after}" --after "${mismatch}"
 	RESULT_VARIABLE status OUTPUT_VARIABLE difference ERROR_VARIABLE error)
-if(NOT status EQUAL 1 OR NOT difference MATCHES "not ported")
-	message(FATAL_ERROR "expected an unported stage mismatch, got ${status} ${difference} ${error}")
+string(FIND "${difference}" [=[First divergent path: $.sidecar._seasonChanged]=] first_path)
+if(NOT status EQUAL 1 OR first_path LESS 0)
+	message(FATAL_ERROR "expected a Vassal stage sidecar mismatch, got ${status} ${difference} ${error}")
 endif()
