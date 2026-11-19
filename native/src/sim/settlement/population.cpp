@@ -343,6 +343,7 @@ void write_population_bins(RuntimeState& state, SiteId site, std::span<const Pop
         copy_cohort(cohort.specialists.warrior, summaries[2], ages[c][2], state);
     }
     refresh_site_population_index(state, site);
+    index.canonicalJoint = joint;
 }
 
 PopulationComposition write_population_composition(RuntimeState& state, std::span<const PopulationBin> bins,
