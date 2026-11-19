@@ -50,14 +50,18 @@ if(MSVC)
 	target_compile_options(waffle_sim PRIVATE /bigobj)
 endif()
 
+add_executable(waffle_parity ../tools/parity.cpp ../tools/parity_masks.cpp ../tools/parity_run.cpp)
+target_link_libraries(waffle_parity PRIVATE waffle_sim)
+target_compile_definitions(waffle_parity PRIVATE
+	"WAFFLE_REFERENCE_TOPOLOGY_DIR=\"${CMAKE_CURRENT_SOURCE_DIR}/../../reference/topology\"")
+if(WIN32)
+	target_link_libraries(waffle_parity PRIVATE psapi)
+endif()
+if(MINGW)
+	target_link_options(waffle_parity PRIVATE -static)
+endif()
+
 if(NOT ANDROID)
-	add_executable(waffle_parity ../tools/parity.cpp ../tools/parity_masks.cpp ../tools/parity_run.cpp)
-	target_link_libraries(waffle_parity PRIVATE waffle_sim)
-	target_compile_definitions(waffle_parity PRIVATE
-		"WAFFLE_REFERENCE_TOPOLOGY_DIR=\"${CMAKE_CURRENT_SOURCE_DIR}/../../reference/topology\"")
-	if(WIN32)
-		target_link_libraries(waffle_parity PRIVATE psapi)
-	endif()
 	add_executable(waffle_browser_tests ../tests/browser_state_test.cpp)
 	target_link_libraries(waffle_browser_tests PRIVATE waffle_sim)
 	add_executable(waffle_step_clock_test ../tests/step_clock_test.cpp)
@@ -75,7 +79,6 @@ if(NOT ANDROID)
 	add_executable(waffle_faith_stage_test ../tests/faith_stage_test.cpp)
 	target_link_libraries(waffle_faith_stage_test PRIVATE waffle_sim)
 	if(MINGW)
-		target_link_options(waffle_parity PRIVATE -static)
 		target_link_options(waffle_browser_tests PRIVATE -static)
 		target_link_options(waffle_step_clock_test PRIVATE -static)
 		target_link_options(waffle_content_tests PRIVATE -static)
@@ -120,6 +123,11 @@ if(NOT ANDROID)
 		--from "${native_dir}/reference/fixtures/seed-1/state-0.json" --seconds 256
 		--hashes "${CMAKE_CURRENT_BINARY_DIR}/native-run-smoke.tsv"
 		--expect "${native_dir}/src/tests/vectors/native-run-seed-1.tsv" --anchors)
+	add_test(NAME native_run_cross_compiler COMMAND waffle_parity run
+		--from "${native_dir}/reference/fixtures/seed-1/state-0.json" --seconds 2048
+		--hashes "${CMAKE_CURRENT_BINARY_DIR}/native-run-cross-compiler.tsv"
+		--expect "${native_dir}/src/tests/vectors/native-run-cross-compiler.tsv")
+	set_tests_properties(native_run_cross_compiler PROPERTIES TIMEOUT 120)
 	add_test(NAME step_clock COMMAND waffle_step_clock_test)
 	add_test(NAME runtime_history_appends COMMAND waffle_history_test
 		"${native_dir}/reference/fixtures/seed-1/state-0.json")

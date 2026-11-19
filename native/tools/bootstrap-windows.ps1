@@ -1,3 +1,5 @@
+param([switch]$WithClang)
+
 # Unpacks a project-local Windows toolchain into native/.tools.
 # Does not change machine-wide PATH, installers, or environment variables.
 $ErrorActionPreference = "Stop"
@@ -78,7 +80,8 @@ $vcvars = Join-Path $msvcRoot "VC\Auxiliary\Build\vcvars64.bat"
 if (Test-Path $vcvars) {
 	Write-Host "MSVC already installed at $msvcRoot"
 	Write-Host "vcvars: $vcvars"
-} else {
+}
+if ($WithClang -or -not (Test-Path $vcvars)) {
 	Save-Pinned "llvm-mingw-20261104-ucrt-x86_64.zip" `
 		"https://github.com/mstorsjo/llvm-mingw/releases/download/20261104/llvm-mingw-20261104-ucrt-x86_64.zip" `
 		"552191b5754c49a5a20723276a6fc56541ea1922c4c50b7b669022333fc1b40f"

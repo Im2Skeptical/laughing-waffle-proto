@@ -1225,6 +1225,260 @@ ordinary second-zero starts for all five scenario seeds, and run step windows
 from native-generated starts. This checkpoint contains no state builder or
 new-game parity result.
 
+## N03g - Cross-compiler determinism and long-run restore (Windows verified, Android runtime unrun)
+
+Worker branch `t3/native-cross-compiler-determinism-2` starts at
+`e6cef481` and merges the paused checkpoint `2131c16b`. The MSVC
+harness from `d7758c35` was already integrated. The Clang presets pin
+both compiler drivers and `windres.exe` to the same llvm-mingw
+installation. FreeType's resource build previously resolved a bare
+`windres` from PATH, which failed under the normal MSVC shell. The
+`dev-clang` preset shares that toolchain with `optimized-clang`.
+
+The implementation adds build configuration and CTest coverage.
+Generated commands for `advance_second.cpp` and `parity_run.cpp`
+use `/fp:precise` under MSVC 19.50.35730 and
+`-fno-fast-math -ffp-contract=off` under llvm-mingw 23.1.5 and NDK
+r30 Clang. Command evidence is in `artifacts/n03g/fp-<preset>.txt`.
+
+### Build and verify
+
+Run from the repository root in PowerShell. In a linked worktree use the
+primary checkout's `native/.tools` junction before bootstrap.
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File native/tools/bootstrap-windows.ps1 -WithClang
+. native/tools/env.ps1
+Push-Location native
+foreach ($preset in 'optimized','dev','optimized-clang','dev-clang') {
+    cmake --fresh --preset $preset
+    cmake --build --preset $preset --parallel 6
+    ctest --preset $preset --output-on-failure
+}
+Pop-Location
+node native/reference/trace.mjs
+node native/reference/step-windows.mjs native/build/optimized/src/sim/waffle_parity.exe
+node native/reference/step-windows.mjs native/build/optimized-clang/src/sim/waffle_parity.exe
+```
+
+`--fresh` clears CMake's cached bare resource compiler from the paused
+Clang build. MSVC and Clang optimized step windows each passed 23 windows
+and 138 comparisons (137 advancing, 1 gated), with the existing 14 masks.
+No simulation stage changed, so there are no new stage-pair measurements.
+The previously recorded prelude mismatch is still supervisor-owned.
+
+All 34 enabled CTests passed under `optimized` (41.90 s), `dev` (216.47 s), `optimized-clang` (14.06 s) and `dev-clang` (79.15 s). The existing
+`pipeline_steady_state_allocations` test remains disabled. Logs are
+`artifacts/n03g/ctest-<preset>.log`.
+
+`native_run_cross_compiler` pins the 2,049 hash rows at seconds 0–2,048
+of the unmodified seed-1 run. Its final digest is `7f4548db30e59d17`.
+Both toolchains can run this CTest independently against the
+[checked-in hash stream](src/tests/vectors/native-run-cross-compiler.tsv). The
+existing 256-second adapter and replay smoke is also enabled.
+
+### Unmodified saves and the 32,000-second workload
+
+Both unmodified saves end by Monster overrun in ordinary simulation, at
+absolute seconds 4,890 and 5,676. Requesting 32,000 advances from either
+save returns exit 2 at the corresponding terminal second in both
+optimized Windows builds. The terminal snapshots carry
+`runStatus.complete = true` and `reason = "monsterOverrun"`. Full
+per-second comparison on those inputs is therefore through the terminal
+second, including its digest. Keeping a holding alive from either exact
+start for 32,000 advances would need a player action journal.
+
+For the separate 32,000-second stability workload, derive each input
+from the same save and set the existing captured
+`settings.values.phaseDurationSec` to 64 (was 1) and
+`monsterExpansionThreshold` to 1000000000 (was 100). The lower lunar
+dispatch frequency and higher threshold keep both test runs alive.
+Changing only the threshold reached territorial loss at 6,516 and
+9,552, respectively. These variants are performance and replay
+fixtures. They use the normal clock and terminal rules and do not
+represent the default game balance.
+
+```powershell
+$out = 'artifacts/n03g'
+New-Item -ItemType Directory -Force $out | Out-Null
+$starts = [ordered]@{
+    'seed-1' = 'native/reference/fixtures/seed-1/state-0.json'
+    'seed-2026-late' = 'artifacts/native-reference/traces/seed-2026-late/state-3200.json'
+}
+$untilTerminal = @{ 'seed-1' = 4890; 'seed-2026-late' = 2476 }
+@"
+import json
+from pathlib import Path
+starts = {
+    "seed-1": "$($starts['seed-1'])",
+    "seed-2026-late": "$($starts['seed-2026-late'])",
+}
+for seed, path in starts.items():
+    state = json.loads(Path(path).read_text(encoding="utf8"))
+    settings = state["gameConfig"]["settings"]["values"]
+    settings["phaseDurationSec"] = 64
+    settings["monsterExpansionThreshold"] = 1000000000
+    path = Path("$out") / f"{seed}-longevity.json"
+    path.write_text(json.dumps(state, ensure_ascii=False, separators=(",", ":")), encoding="utf8")
+"@ | python -
+foreach ($seed in $starts.Keys) {
+    foreach ($preset in 'optimized','optimized-clang') {
+        $exe = "native/build/$preset/src/sim/waffle_parity.exe"
+        & $exe run --from $starts[$seed] --seconds 32000 --anchors --hashes "$out/$seed-requested-$preset.tsv"
+        if ($LASTEXITCODE -ne 2) { throw "Expected a terminal run from $seed on $preset" }
+    }
+    foreach ($preset in 'optimized','dev','optimized-clang','dev-clang') {
+        $exe = "native/build/$preset/src/sim/waffle_parity.exe"
+        foreach ($suffix in '','-long') {
+            $case = "$seed$suffix"
+            $fixture = $starts[$seed]
+            $seconds = $untilTerminal[$seed]
+            if ($suffix) {
+                $fixture = "$out/$seed-longevity.json"
+                $seconds = 32000
+            }
+            $dest = "$out/$case-$preset"
+            $expect = @()
+            if ($preset -ne 'optimized') { $expect = @('--expect', "$out/$case-optimized.tsv") }
+            $snapshot = @()
+            if (!$suffix -and $preset -eq 'optimized') { $snapshot = @('--snapshot', "$dest-terminal.json") }
+            & $exe run --from $fixture --seconds $seconds --anchors --hashes "$dest.tsv" --report "$dest.json" @expect @snapshot
+            if ($LASTEXITCODE -ne 0) { throw "Determinism check failed for $case on $preset" }
+        }
+    }
+    foreach ($suffix in '','-long') {
+        $case = "$seed$suffix"
+        foreach ($pair in @(@('optimized','optimized-clang'), @('optimized','dev'), @('optimized-clang','dev-clang'))) {
+            cmake -E compare_files "$out/$case-$($pair[0]).tsv" "$out/$case-$($pair[1]).tsv"
+            if ($LASTEXITCODE -ne 0) { throw "Hash stream differs for $case on $($pair -join '/')" }
+        }
+    }
+}
+```
+
+The late input regenerated by `trace.mjs` has SHA-256
+`f838a38cfc48253018de948dbec84f7b44a3dbe63dbfbfd2e1e24493c1199f88`.
+For each row below the hash files and corresponding JSON reports are at
+`artifacts/n03g/<stem>-<preset>.tsv` and `.json`. Each hash stream
+includes the initial state. The four Windows builds agree byte for byte.
+
+| Stem | Advances | Final second | Final state digest | Stream SHA-256 |
+| --- | ---: | ---: | --- | --- |
+| `seed-1` | 4,890 | 4,890 | `bc067d238adbdd60` | `ef098951996dea25929c02d82b6fe51034ca08e3c3776ff3024579dd44b1ae6f` |
+| `seed-2026-late` | 2,476 | 5,676 | `aa23e7b7a8d799a0` | `0717830e69c75fe65f8e0e2955b133f3c51d3135d1de58409acb578195ec6a46` |
+| `seed-1-long` | 32,000 | 32,000 | `175541e792a97f0e` | `38ad36ef33f836cfca15a4e7929c6d2db5d366a073e1581a73a1b556aa7b28b5` |
+| `seed-2026-late-long` | 32,000 | 35,200 | `bdf6609165c4327b` | `7ffd04d52f8a729a99815ceba42a66e55fb8f8632fd97db2b95ed9fe7a49954e` |
+
+Each run digested finite reachable state each second and matched the
+independently advanced endpoint. The two long runs each held 501
+anchors. The harness verified every hash in 32 evenly spaced 64-state
+anchor windows and in five adapter reload windows. The adapter exports
+also matched byte for byte after reimport. Win x64 measurements on the
+i9-10900K, with rate timed on the uninterrupted advance pass and
+restore time covering a copy plus 63 advances across the 32 windows.
+The optimized measurements come from a serial rerun of the same
+commands with output prefixes `artifacts/n03g/<stem>-<preset>-measured`
+and `--expect` pointed at the first MSVC optimized stream. The dev
+runs overlapped build and test activity.
+
+| Workload | Preset | Sim-s/s | Anchor restore p50 ms | p95 ms |
+| --- | --- | ---: | ---: | ---: |
+| `seed-1` | MSVC optimized | 51,999 | 1.471 | 2.705 |
+| `seed-1` | Clang optimized | 68,157 | 1.220 | 1.987 |
+| `seed-1` | MSVC dev | 1,793 | 43.253 | 58.219 |
+| `seed-1` | Clang dev | 1,989 | 22.131 | 32.765 |
+| `seed-2026-late` | MSVC optimized | 23,840 | 1.801 | 3.207 |
+| `seed-2026-late` | Clang optimized | 30,677 | 2.597 | 4.081 |
+| `seed-2026-late` | MSVC dev | 791 | 54.066 | 68.109 |
+| `seed-2026-late` | Clang dev | 3,425 | 27.173 | 31.979 |
+| `seed-1-long` | MSVC optimized | 328,849 | 0.406 | 0.577 |
+| `seed-1-long` | Clang optimized | 401,596 | 0.367 | 0.513 |
+| `seed-1-long` | MSVC dev | 12,288 | 4.499 | 6.946 |
+| `seed-1-long` | Clang dev | 15,484 | 2.735 | 4.204 |
+| `seed-2026-late-long` | MSVC optimized | 257,701 | 0.320 | 0.542 |
+| `seed-2026-late-long` | Clang optimized | 379,927 | 0.276 | 0.390 |
+| `seed-2026-late-long` | MSVC dev | 17,977 | 3.261 | 5.217 |
+| `seed-2026-late-long` | Clang dev | 33,716 | 2.842 | 3.716 |
+
+MSVC optimized long-run live history grew to approximately 0.96 MiB on
+both cases. Process working set with all retained anchors reached about
+352 and 409 MiB, respectively. This CLI retains every anchor to validate
+restore over the whole horizon. Its memory use is separate from N04's
+budgeted forecast store. The browser timegraph's independent-copy replay
+contract is the corresponding invariant. The longevity timings reflect
+the less frequent lunar stages in these fixtures.
+
+The browser `npm run verify` passed documentation, architecture,
+reachability, assets and build, then stopped when the temporary
+`test:build-preview` server failed to start. The independently run
+`npm run check:docs` and `npm run test:native-reference` passed.
+`npm start` reported all default preview ports occupied. A checkout
+preview started with `node scripts/local-preview.mjs --serve 5211`
+served the index and build metadata successfully.
+
+### Android arm64
+
+The existing project-local NDK r30 (`30.0.16248370`) built
+`native/build/android/src/sim/waffle_parity`. `llvm-readelf -h -l -d`
+reported an AArch64 ELF64 PIE with `/system/bin/linker64`. The executable
+links Android's `libm.so`, `libdl.so` and `libc.so` and includes libc++
+statically. When the pinned NDK is missing, use
+`powershell -NoProfile -ExecutionPolicy Bypass -File native/tools/bootstrap-android.ps1`
+to install it. The build here used the NDK extracted from the cached
+archive with SHA-1 `9bf167a1985fa7d4a036186b78f702eab9179408`.
+
+```powershell
+. native/tools/env.ps1
+Push-Location native
+cmake --preset android
+cmake --build --preset android --target waffle_parity --parallel 6
+Pop-Location
+$ndkBin = 'native/.tools/android-sdk/ndk/30.0.16248370/toolchains/llvm/prebuilt/windows-x86_64/bin'
+& "$ndkBin/llvm-readelf.exe" -h -l -d native/build/android/src/sim/waffle_parity
+```
+
+Android execution and L4 are **unrun**. `adb devices -l` returned an
+empty list. From the repository root, use the `$starts`,
+`$untilTerminal` and `$out` above after generating the Windows streams
+and longevity inputs. Connect an API 31+ arm64 device or emulator, and
+then run the following commands. An existing SDK `adb.exe` can be used
+in place of the downloaded platform-tools.
+
+```powershell
+curl.exe -fsSL -o "$out/platform-tools-windows.zip" https://dl.google.com/android/repository/platform-tools-latest-windows.zip
+tar.exe -xf "$out/platform-tools-windows.zip" -C $out
+$adb = "$out/platform-tools/adb.exe"
+$remote = '/data/local/tmp/waffle-n03g'
+& $adb devices -l
+& $adb shell getprop ro.product.cpu.abi
+& $adb shell mkdir -p "$remote/topology"
+& $adb push native/build/android/src/sim/waffle_parity "$remote/waffle_parity"
+& $adb shell chmod 755 "$remote/waffle_parity"
+Get-ChildItem native/reference/topology/*.json | ForEach-Object {
+    & $adb push $_.FullName "$remote/topology/"
+    if ($LASTEXITCODE -ne 0) { throw "Topology push failed for $($_.Name)" }
+}
+foreach ($seed in $starts.Keys) {
+    foreach ($suffix in '','-long') {
+        $case = "$seed$suffix"
+        $fixture = $starts[$seed]
+        $seconds = $untilTerminal[$seed]
+        if ($suffix) {
+            $fixture = "$out/$seed-longevity.json"
+            $seconds = 32000
+        }
+        & $adb push $fixture "$remote/$case.json"
+        & $adb push "$out/$case-optimized.tsv" "$remote/$case-windows.tsv"
+        & $adb shell "$remote/waffle_parity run --from $remote/$case.json --topology-dir $remote/topology --seconds $seconds --anchors --hashes $remote/$case.tsv --expect $remote/$case-windows.tsv --report $remote/$case-report.json"
+        if ($LASTEXITCODE -ne 0) { throw "Android parity failed for $case" }
+        & $adb pull "$remote/$case.tsv" "$out/$case-android.tsv"
+        & $adb pull "$remote/$case-report.json" "$out/$case-android.json"
+        cmake -E compare_files "$out/$case-optimized.tsv" "$out/$case-android.tsv"
+        if ($LASTEXITCODE -ne 0) { throw "Android hash file differs for $case" }
+    }
+}
+```
+
 ## N04 - Connected playable slice (pending N02 and N03)
 
 This includes the native forecast/timegraph: worker threads, anchors, restore,
