@@ -13,7 +13,7 @@ const array = (type, name, rows) => [
 ].join('\n');
 
 const heirlooms = array('HeirloomDef', 'heirloomDefs', Object.values(VASSAL_HEIRLOOM_DEFS).map(def => [
-  def.id, def.label, def.quality,
+  def.id, def.label, def.quality, def.description,
   ...['patronageNodePrestige', 'nodeDevelopment', 'crossroadsNodeDevelopment',
     'bonusCunning', 'wisdomDevelopmentMultiplier', 'extraShopOffers',
     'mandateOfHeaven'].map(key => def.effects?.[key] ?? (key === 'mandateOfHeaven' ? false : 0)),

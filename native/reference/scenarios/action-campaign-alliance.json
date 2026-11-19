@@ -1,0 +1,14 @@
+{
+  "id": "action-campaign-alliance",
+  "start": {"kind":"actionExhibit","variant":"choice-campaign-alliance","seed":1},
+  "actions": [
+    {"tSec":0,"kind":"vassalEnterLifeNode","payload":{"nodeId":"life-d02-r02"}},
+    {"tSec":1,"kind":"vassalSelectLifeOption","payload":{"nodeId":"life-d02-r02","optionId":"attack:R08"}},
+    {"tSec":6,"kind":"vassalConfirmLifeNode","payload":{"nodeId":"life-d02-r02"}}
+  ],
+  "horizonSec": 68,
+  "keepSeconds": [0,1,6,7,8,9,64,68],
+  "rejections": [
+    {"action":{"tSec":0,"kind":"vassalSelectLifeOption","payload":{"nodeId":"life-d02-r02","optionId":"invalid"}},"reason":"invalidOption"}
+  ]
+}

@@ -1,0 +1,16 @@
+{
+  "id": "action-legacy-plus",
+  "start": {"kind":"actionExhibit","variant":"choice-legacyPlus","seed":1},
+  "actions": [
+    {"tSec":0,"kind":"vassalEnterLifeNode","payload":{"nodeId":"life-d14-boss"}},
+    {"tSec":1,"kind":"vassalSelectLifeOption","payload":{"nodeId":"life-d14-boss","optionId":"humbleRemembrance"}},
+    {"tSec":2,"kind":"vassalConfirmLifeNode","payload":{"nodeId":"life-d14-boss"}}
+  ],
+  "horizonSec": 68,
+  "keepSeconds": [0,1,2,3,64,68],
+  "rejections": [
+    {"action":{"tSec":0,"kind":"vassalEnterLifeNode","payload":{"nodeId":"missing-node"}},"reason":"nodeAlreadyActive"},
+    {"action":{"tSec":0,"kind":"vassalSelectLifeOption","payload":{"nodeId":"life-d14-boss","optionId":"missing-option"}},"reason":"invalidOption"},
+    {"action":{"tSec":0,"kind":"vassalConfirmLifeNode","payload":{"nodeId":"life-d14-boss"}},"reason":"optionRequired"}
+  ]
+}

@@ -1,5 +1,7 @@
 import { ensureCommissionOffers } from "../../src/model/vassal-life-map/commissions.js";
-import { enterVassalLifeNode, selectLifeMapVassal, selectVassalNodeOption } from "../../src/model/vassal-life-map.js";
+import { confirmVassalLifeNode, enterVassalLifeNode, selectLifeMapVassal, selectVassalNodeOption } from "../../src/model/vassal-life-map.js";
+import { VASSAL_SIGNATURE_NODE_VARIANTS } from "../../src/defs/gamepieces/vassal-life-map-defs.js";
+import { trainSpecialists } from "../../src/model/detailed-settlements/stock.js";
 
 const definitions = ["abacus", "foxMask", "minorSeal", "signetRing", "tutorsNotebook", "hourglass", "travellersBoots"];
 const relic = (index) => ({
@@ -26,8 +28,97 @@ export function prepareActionExhibit(state, variant) {
     state.world.regions.find(region => region.controller === "player").installedPracticeIds = [];
     return state;
   }
-  const { vassal } = requireAction(selectLifeMapVassal(state, 0));
+  if (variant === "legacy-selection" || variant === "legacy-successor") {
+    state.gameConfig.lifeMapGenerator.design.enabled = false;
+    if (variant === "legacy-selection") return state;
+    const { vassal } = requireAction(selectLifeMapVassal(state, 0));
+    vassal.classId = lineage.establishedClassId = "scholar";
+    const id = vassal.lifeMap.graph.bossNodeId;
+    vassal.lifeMap.availableNodeIds = [id];
+    const { nodeState } = requireAction(enterVassalLifeNode(state, id));
+    const free = nodeState.options.find(option => option.phaseCost === 0 && option.prestigeCost === 0);
+    requireAction(selectVassalNodeOption(state, id, free.id));
+    requireAction(confirmVassalLifeNode(state, id));
+    civ.candidateDevelopment.scholar = 4;
+    return state;
+  }
+  const martial = variant === "choice-challenge" || variant.startsWith("choice-campaign");
+  const { vassal } = requireAction(selectLifeMapVassal(state, martial ? 1 : 0));
   const map = vassal.lifeMap;
+  if (["shop-unlocks", "shop-currency", "shop-connections"].includes(variant)) {
+    const graphNode = map.graph.nodes.find(node => node.family === "publicWorks");
+    civ.prestige = 80;
+    if (variant === "shop-currency") {
+      for (const price of Object.values(state.gameConfig.lifeMapGenerator.design.shopPricing.prices.structure)) {
+        price.currency = 1;
+      }
+    }
+    map.availableNodeIds = [graphNode.id];
+    const { nodeState } = requireAction(enterVassalLifeNode(state, graphNode.id));
+    requireAction(selectVassalNodeOption(state, graphNode.id, "Housing"));
+    if (variant === "shop-currency") {
+      nodeState.inventory[1].baseCurrencyCost = 999;
+    }
+    if (variant === "shop-connections") {
+      const connection = (offerId, mode, regionAId, regionBId, inventoryIndex) => ({
+        offerId, label: offerId, basePrestigeCost: 1, basePhaseCost: 0, inventoryIndex,
+        intervention: { kind: "connection", mode, regionAId, regionBId },
+      });
+      nodeState.inventory = [
+        connection("legacy-route-add", "add", "R08", "R09", 0),
+        connection("legacy-route-remove", "remove", "R09", "R16", 1),
+        connection("legacy-route-existing", "add", "R02", "R09", 2),
+      ];
+    }
+    return state;
+  }
+  if (variant.startsWith("choice-")) {
+    const [family, outcome] = variant.slice("choice-".length).split("-");
+    const node = map.graph.nodes.find(node => family === "legacyPlus" ? node.id === map.graph.bossNodeId : node.depth === 1);
+    node.family = ["legacyPlus", "specialRelic"].includes(family) ? (family === "legacyPlus" ? "legacy" : "relic") : family;
+    if (family === "legacyPlus") {
+      const { id, groupId, label, glyph, color, description } = VASSAL_SIGNATURE_NODE_VARIANTS.legacyPlus;
+      node.signatureNode = { variantId: id, id, groupId, label, glyph, color, description };
+    }
+    if (family === "specialRelic") node.specialRelic = true;
+    if (family === "specialRelic" && outcome === "mandate") {
+      vassal.heirlooms.equipped[0] = relic(0);
+      vassal.heirlooms.equipped[0].definitionId = "mandateOfHeaven";
+      lineage.nextHeirloomInstanceId = 2;
+    }
+    if (family === "crossroads" && outcome === "reward") state.rng.vassalSeed = 7;
+    const site = state.world.sites.find(site => site.regionId === vassal.locationRegionId);
+    if (family === "crisis") {
+      site.detailedState.practiceSlots[0].stock = site.detailedState.practiceSlots[1].stock = 0;
+      if (outcome === "delay" || outcome === "rescue") {
+        state.world.regions.find(region => region.id === "R08").monster = { defense: 2 };
+        state.civilization.chaos.monsterCount += 1;
+        state.civilization.chaos.monsterPressure = 4;
+      }
+      if (outcome === "rescue") {
+        site.detailedState.practiceSlots[0].stock = 1;
+        state.gameConfig.gamepieces.practices.fm_fallowFields.stockTraits.push("Mobility");
+        const slot = site.detailedState.practiceSlots[2];
+        slot.practiceId = "rescueParties";
+        slot.stock = 0;
+      }
+    }
+    if (family === "challenge" || family === "campaign") {
+      vassal.classId = lineage.establishedClassId = "warrior";
+      vassal.founderClassId = null;
+    }
+    if (family === "campaign" && outcome) {
+      site.detailedState.practiceSlots[1].stock = 6;
+      const choices = state.gameConfig.lifeMapGenerator.design.optionCosts.campaign;
+      const mode = outcome === "quest" ? "quest" : outcome === "defeat" ? "duel" : "attack";
+      choices[mode].time = .0625;
+      choices[mode].risk = outcome === "defeat" ? 1 : 0;
+      if (outcome === "nest") state.world.regions.find(region => region.monster).monster.cleared = true;
+      if (outcome === "alliance") trainSpecialists(site.detailedState, "warrior", 10);
+    }
+    map.availableNodeIds = [node.id];
+    return state;
+  }
   if (variant === "founding") {
     map.availableNodeIds = [map.graph.foundingNodeId];
     return state;

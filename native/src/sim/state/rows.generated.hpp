@@ -871,13 +871,15 @@ struct LifeMap {
 
 struct LifeEventsIntervention {
     HistoryTextId kind{};
-    RegionId targetRegionId{};
+    std::optional<RegionId> targetRegionId{};
     std::optional<PracticeId> practiceId{};
     HistoryTextId mode{};
-    HistoryTextId tier{};
+    std::optional<HistoryTextId> tier{};
     std::optional<HistoryTextId> resultingTier{};
     std::optional<InstanceId> instanceId{};
     std::optional<StructureId> structureId{};
+    std::optional<RegionId> regionAId{};
+    std::optional<RegionId> regionBId{};
     std::optional<double> qualityBonus{};
     std::optional<double> capacity{};
 };

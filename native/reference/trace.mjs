@@ -164,7 +164,7 @@ export function groupReplayActions(live, { id, actions }) {
 }
 
 function capture({ scenario, startSec, endSec }, baseline) {
-  const { id, keepSeconds } = scenario;
+  const { id, keepSeconds, rejections = [] } = scenario;
   const live = createStart(scenario, startSec);
   const config = configIdentity(serializeGameState(live));
   requireThat(config.gameStateSchemaVersion === baseline.gameStateSchemaVersion,
@@ -184,18 +184,29 @@ function capture({ scenario, startSec, endSec }, baseline) {
     files.set("actions.json", JSON.stringify(timeline.actions, null, 2) + "\n");
   }
   const rejectionsPath = join(fixturesDir, id, "rejections.json");
+  const rejectionsAt = new Map();
+  for (const entry of rejections) {
+    const sec = entry.action.tSec;
+    requireThat(keepSeconds.includes(sec), id + ": rejection needs a checkpoint at " + sec);
+    if (!rejectionsAt.has(sec)) rejectionsAt.set(sec, []);
+    rejectionsAt.get(sec).push(entry);
+  }
+  function checkRejections(cases, snapshot, hash, sec) {
+    for (const { action, reason } of cases) {
+      requireThat(action.tSec === sec, id + ": rejection fixture uses the wrong second");
+      const copy = deserializeGameState(snapshot);
+      const rejected = applyReplayActionsAtSecond(copy, [action], sec);
+      requireThat(!rejected.ok && rejected.reason === reason,
+        id + ": expected " + action.kind + " to reject with " + reason + ", got " + rejected.reason);
+      assertHash(id, "rejected " + action.kind, sec, snapshot, serializeGameState(copy), hash);
+    }
+  }
+  if (rejections.length) files.set("rejections.json", JSON.stringify(rejections, null, 2) + "\n");
   if (existsSync(rejectionsPath)) {
     const raw = readFileSync(rejectionsPath, "utf8");
     const before = serializeGameState(live);
     const hash = sha256Value(before);
-    for (const { action, reason } of JSON.parse(raw)) {
-      requireThat(action.tSec === startSec, id + ": rejection fixture must use the initial second");
-      const copy = deserializeGameState(before);
-      const rejected = applyReplayActionsAtSecond(copy, [action], startSec);
-      requireThat(!rejected.ok && rejected.reason === reason,
-        id + ": expected " + action.kind + " to reject with " + reason + ", got " + rejected.reason);
-      assertHash(id, "rejected " + action.kind, startSec, before, serializeGameState(copy), hash);
-    }
+    checkRejections(JSON.parse(raw), before, hash, startSec);
     files.set("rejections.json", raw);
   }
   const windows = (scenario.windows ?? []).map(window => ({
@@ -235,6 +246,7 @@ function capture({ scenario, startSec, endSec }, baseline) {
     }
 
     if (sec === keepSeconds[checkpointIndex]) {
+      checkRejections(rejectionsAt.get(sec) ?? [], snapshot, hash, sec);
       replayRows.push(sec + "\t" + hash);
       const text = JSON.stringify(snapshot);
       files.set(stateFile(sec), text);

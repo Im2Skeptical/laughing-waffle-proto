@@ -1,0 +1,14 @@
+{
+  "id": "action-shop-connections",
+  "start": {"kind":"actionExhibit","variant":"shop-connections","seed":1},
+  "actions": [
+    {"tSec":1,"kind":"vassalPurchaseShopOffer","payload":{"nodeId":"life-d03-r03","offerId":"legacy-route-remove"}},
+    {"tSec":2,"kind":"vassalPurchaseShopOffer","payload":{"nodeId":"life-d03-r03","offerId":"legacy-route-add"}},
+    {"tSec":3,"kind":"vassalConfirmLifeNode","payload":{"nodeId":"life-d03-r03"}}
+  ],
+  "horizonSec": 68,
+  "keepSeconds": [0, 1, 2, 3, 4, 5, 64, 68],
+  "rejections": [
+    {"action":{"tSec":0,"kind":"vassalPurchaseShopOffer","payload":{"nodeId":"life-d03-r03","offerId":"legacy-route-existing"}},"reason":"connectionUnavailable"}
+  ]
+}

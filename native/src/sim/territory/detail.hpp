@@ -56,7 +56,8 @@ using SupportVisitor = void (*)(RegionId, double, void*);
 
 Resistance resistance(const RuntimeState& state, const Site& site, FactionId holder);
 Force military(const RuntimeState& state, RegionId region, FactionId faction,
-               SupportVisitor visitor = nullptr, void* context = nullptr);
+               SupportVisitor visitor = nullptr, void* context = nullptr, bool assumeSupplied = false);
+void occupy_campaign_site(RuntimeState& state, Site& site);
 double holding_pressure(Resistance population);
 double available_warriors(const RuntimeState& state, RegionId region);
 double retinue(const RuntimeState& state, const Vassal& vassal);

@@ -121,16 +121,16 @@ void transition_town(RuntimeState& state, Site& site, FactionId faction)
     install_board(state, site, state.tables.at(*storefront), faction);
 }
 
-void emit_control(RuntimeState& state, RegionId id, FactionId previous, FactionId faction)
+void emit_control(RuntimeState& state, RegionId id, FactionId previous, FactionId faction, bool military = false)
 {
     practice::EventData event{};
     event.fields.previousController = browser::OptionalNullable<FactionId>{previous};
     event.fields.faction = browser::OptionalNullable<FactionId>{faction};
-    event.fields.military = false;
+    event.fields.military = military;
     practice::emit(state, state.territory.controlChanged, id, event);
 }
 
-void change_controller(RuntimeState& state, Site& site, FactionId faction)
+void change_controller(RuntimeState& state, Site& site, FactionId faction, bool military = false)
 {
     auto& region = region_at(state, site.regionId);
     if (region.controller == faction) return;
@@ -138,7 +138,7 @@ void change_controller(RuntimeState& state, Site& site, FactionId faction)
     region.controller = faction;
     transition_town(state, site, faction);
     site.detailedState.control = DetailedSettlementControl{};
-    emit_control(state, site.regionId, previous, faction);
+    emit_control(state, site.regionId, previous, faction, military);
 }
 
 void begin_unrest(RuntimeState& state, Site& site)
@@ -166,7 +166,7 @@ struct LocalForce {
     double adjacentBonus{};
 };
 
-LocalForce local_force(const RuntimeState& state, RegionId region, FactionId faction)
+LocalForce local_force(const RuntimeState& state, RegionId region, FactionId faction, bool assumeSupplied = false)
 {
     const auto* site = site_at_region(state, region);
     if (!site) return {};
@@ -186,7 +186,7 @@ LocalForce local_force(const RuntimeState& state, RegionId region, FactionId fac
             if (bin.kind == state.populationVocabulary.stages[0]) force.adultWarriors += static_cast<double>(bins.counts[i]);
         }
     }
-    result.supplied = local.garrison && local.garrison->supplied == true;
+    result.supplied = assumeSupplied || (local.garrison && local.garrison->supplied == true);
     double arms = 0;
     if (force.warriors > 0 && result.supplied) {
         for (const auto row : local.practiceSlots.slots) {
@@ -323,9 +323,20 @@ SiteId first_player_site(const RuntimeState& state)
     return {};
 }
 
-Force military(const RuntimeState& state, RegionId region, FactionId faction, SupportVisitor visitor, void* context)
+void occupy_campaign_site(RuntimeState& state, Site& site)
 {
-    const auto base = local_force(state, region, faction);
+    if (site.simulationMode != state.territory.detailed) state.territory.sitesDirty = true;
+    site.simulationMode = state.territory.detailed;
+    region_at(state, site.regionId).detailedSettlementEnabled = true;
+    change_controller(state, site, state.practiceVocabulary.player, true);
+    synchronize_sites(state);
+    ++state.hot.civilization.history.conquests;
+}
+
+Force military(const RuntimeState& state, RegionId region, FactionId faction, SupportVisitor visitor, void* context,
+               bool assumeSupplied)
+{
+    const auto base = local_force(state, region, faction, assumeSupplied);
     auto result = base.military;
     const auto sent = sent_force(state, region, support_target(state, region), base);
     result.sentWarriors = sent.warriors;

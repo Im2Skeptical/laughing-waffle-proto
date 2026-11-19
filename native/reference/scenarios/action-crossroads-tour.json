@@ -1,0 +1,16 @@
+{
+  "id": "action-crossroads-tour",
+  "start": {"kind":"actionExhibit","variant":"choice-crossroads","seed":1},
+  "actions": [
+    {"tSec":0,"kind":"vassalEnterLifeNode","payload":{"nodeId":"life-d02-r02"}},
+    {"tSec":1,"kind":"vassalSelectLifeOption","payload":{"nodeId":"life-d02-r02","optionId":"tour"}},
+    {"tSec":2,"kind":"vassalConfirmLifeNode","payload":{"nodeId":"life-d02-r02"}}
+  ],
+  "horizonSec": 110,
+  "keepSeconds": [0,1,2,3,64,110],
+  "rejections": [
+    {"action":{"tSec":0,"kind":"vassalEnterLifeNode","payload":{"nodeId":"missing-node"}},"reason":"nodeAlreadyActive"},
+    {"action":{"tSec":0,"kind":"vassalSelectLifeOption","payload":{"nodeId":"life-d02-r02","optionId":"missing-option"}},"reason":"invalidOption"},
+    {"action":{"tSec":0,"kind":"vassalConfirmLifeNode","payload":{"nodeId":"life-d02-r02"}},"reason":"optionRequired"}
+  ]
+}

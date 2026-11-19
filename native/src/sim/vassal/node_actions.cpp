@@ -50,10 +50,11 @@ double prestige_cost(const RuntimeState& state, const Vassal& actor, double base
     return cost;
 }
 
-double phase_cost(const RuntimeState& state, const Vassal& actor, const Node& node, double base)
+double phase_cost(const RuntimeState& state, const Vassal& actor, const Node& node, double base, bool travel = false)
 {
     if (base <= 0) return 0;
     auto cost = std::max(1.0, std::ceil(base * (1 - std::min(.6, whole(actor.stats.effectiveness) * .08))));
+    if (travel && has_heirloom(state, actor, "travellersBoots")) cost = std::ceil(cost * .7);
     if (!node.heirloomTimeActionUsed.value_or(false) && has_heirloom(state, actor, "hourglass"))
         cost = std::ceil(cost * .5);
     if (has_heirloom(state, actor, "crownOfAges")) cost = std::ceil(cost * .5);
@@ -94,6 +95,7 @@ ActionResult enter(RuntimeState& state, Vassal* actor, std::string_view id)
     if (std::ranges::find(nodes, id, &browser::LifeMapNodeStates::value_type::first) == nodes.end()) {
         Node node{.nodeId = card->id, .family = card->family, .signatureNode = card->signatureNode,
             .contentMode = "choice", .entered = true, .enteredSec = state.hot.tSec, .stockOutput = card->stockOutput};
+        if (node.family == "relic") node.specialRelic = card->specialRelic.value_or(false);
         if (is_shop(node)) {
             node.contentMode = "shop";
             node.shopSelection = shop_specialties(state, *actor, node);
@@ -153,7 +155,7 @@ ActionResult select_option(RuntimeState& state, Vassal& actor, Node& node, std::
     }
     const auto option = std::ranges::find(node.options, id, &browser::LifeMapOption::id);
     if (option == node.options.end()) return {"invalidOption"};
-    if (node.family == "campaign" && option->id != "campaign-leave") return {"campaignOptionNotPorted"};
+    if (node.family == "campaign" && campaign_blocked(state, actor, *option)) return {"campaignUnavailable"};
     if (prestige_cost(state, actor, option->prestigeCost) > prestige(state, actor) &&
         !(state.hot.rulesetId && node.family == "campaign")) return {"insufficientPrestige"};
     node.selectedOptionId = id;
@@ -290,7 +292,7 @@ void reprice(RuntimeState& state, Vassal& actor, const Site& site, Node& node, c
     for (std::size_t i = 0; i < cards.size(); ++i) {
         auto& p = *cards[i];
         const auto& change = p.intervention;
-        p.removalReceipts.clear();
+        auto& receipts = p.removalReceipts.emplace();
         for (auto& victim : victims) {
             if (victim.charged || change.kind != "practice") continue;
             const bool matched = change.mode == "remove" ? change.practiceId == victim.practice :
@@ -298,13 +300,13 @@ void reprice(RuntimeState& state, Vassal& actor, const Site& site, Node& node, c
                     std::ranges::find(*p.displacedInstanceIds, victim.instance) != p.displacedInstanceIds->end()));
             if (!matched) continue;
             victim.charged = true;
-            p.removalReceipts.push_back({.instanceId = victim.instance, .allegiance = victim.allegiance,
+            receipts.push_back({.instanceId = victim.instance, .allegiance = victim.allegiance,
                 .prestigeTax = 5, .pressureTax = 10});
         }
         const auto base = change.mode == "adopt" ? 10 : prestige_cost(state, actor, p.basePrestigeCost, i == 0);
-        const auto charge = base + 5 * p.removalReceipts.size();
+        const auto charge = base + 5 * receipts.size();
         p.prestigeCost = charge > available ? 0 : charge;
-        p.monsterPressureCost = 10 * p.removalReceipts.size() + (charge > available ? charge : 0);
+        p.monsterPressureCost = 10 * receipts.size() + (charge > available ? charge : 0);
         available -= p.prestigeCost;
     }
     auto& extra = node.removalReceipts.emplace();
@@ -444,7 +446,7 @@ ActionResult undo_purchase(RuntimeState& state, Vassal& actor, Node& node, const
     }
     refresh_receipt_ids(node);
     node.accumulatedPhaseCost = std::max(0.0, node.accumulatedPhaseCost - std::max(0.0, purchase.phaseCost));
-    if (purchase.hourglassApplied) node.heirloomTimeActionUsed = false;
+    if (purchase.hourglassApplied.value_or(false)) node.heirloomTimeActionUsed = false;
     const auto after = practice_draft(state, site, node);
     if (!after.result) return after.result;
     reprice(state, actor, site, node, after);
@@ -516,12 +518,60 @@ ActionResult reorder_purchase(RuntimeState& state, Vassal& actor, Node& node, co
     return {};
 }
 
+ActionResult validate_connections(const RuntimeState& state, const Node& node)
+{
+    std::vector<std::pair<RegionId, RegionId>> connections;
+    for (const auto& edge : state.tables.view(state.hot.world.connections))
+        connections.emplace_back(std::min(edge.regionAId, edge.regionBId), std::max(edge.regionAId, edge.regionBId));
+    for (const auto& purchase : node.purchasedOffers) {
+        const auto& change = purchase.intervention;
+        if (change.kind != "connection") continue;
+        const auto a = state.find_id<RegionId>(change.regionAId.value_or(""));
+        const auto b = state.find_id<RegionId>(change.regionBId.value_or(""));
+        const auto key = std::pair(std::min(a, b), std::max(a, b));
+        const auto existing = std::ranges::find(connections, key);
+        if ((change.mode == "add") == (existing != connections.end())) return {"connectionUnavailable"};
+        if (change.mode == "add") connections.push_back(key);
+        else connections.erase(existing);
+    }
+    return {};
+}
+
+double next_purchase_sequence(const Node& node)
+{
+    double sequence = 1;
+    for (const auto& receipt : node.purchasedOffers) sequence = std::max(sequence, receipt.purchaseSequence + 1);
+    return sequence;
+}
+
+ActionResult stage_unlock(RuntimeState& state, Vassal& actor, Node& node, const Site& site, std::string_view offerId)
+{
+    if (!state.hot.rulesetId || site.neutral) return {"practiceUnlockUnavailable"};
+    auto reserved = std::accumulate(node.purchasedOffers.begin(), node.purchasedOffers.end(), 0.0,
+        [](double sum, const auto& receipt) { return sum + receipt.prestigeCost; });
+    if (node.removalReceipts) for (const auto& receipt : *node.removalReceipts) reserved += receipt.prestigeCost.value_or(0);
+    const auto staged = std::ranges::count_if(node.purchasedOffers,
+        [](const auto& receipt) { return receipt.intervention.kind == "practiceSlot"; });
+    const auto capacity = site.detailedState.unlockedPracticeSlots + staged + 1;
+    const double price = capacity == 4 ? 10 : capacity == 5 ? 30 : 0;
+    if (capacity > 5 || offerId != "practice-slot:" + std::to_string(capacity) || price > prestige(state, actor) - reserved)
+        return {"practiceUnlockUnavailable"};
+    node.purchasedOffers.push_back({.offerId = std::string(offerId), .basePrestigeCost = price,
+        .intervention = {.kind = "practiceSlot", .targetRegionId = std::string(state.name(actor.locationRegionId)),
+            .mode = "unlock", .capacity = static_cast<double>(capacity)},
+        .prestigeCost = price, .purchasedSec = state.hot.tSec, .purchaseSequence = next_purchase_sequence(node)});
+    refresh_receipt_ids(node);
+    const auto draft = practice_draft(state, site, node);
+    if (draft.result) reprice(state, actor, site, node, draft);
+    return {};
+}
+
 ActionResult purchase(RuntimeState& state, Vassal& actor, Node& node, const Value& payload)
 {
     const auto wanted = string(payload, "offerId");
     const auto* site = settlement::detailed_site(state, actor.locationRegionId);
     if (!site) return {"shopUnavailable"};
-    if (wanted.starts_with("practice-slot:")) return {"practiceUnlockNotPorted"};
+    if (wanted.starts_with("practice-slot:")) return stage_unlock(state, actor, node, *site, wanted);
     const auto offer = std::ranges::find(node.inventory, wanted, &browser::ShopOffer::offerId);
     if (offer == node.inventory.end()) return {"offerUnavailable"};
     const auto before = practice_draft(state, *site, node);
@@ -530,20 +580,21 @@ ActionResult purchase(RuntimeState& state, Vassal& actor, Node& node, const Valu
     const auto* rawIndex = payload.find("toIndex");
     if (offer->intervention.kind == "practice" && rawIndex && rawIndex->kind() != Kind::null &&
         (!to || *to != std::floor(*to) || *to < 0 || *to >= before.capacity)) return {"invalidPurchaseOrder"};
-    if (site->neutral) return {"neutralStorefront"};
+    const bool practice = offer->intervention.kind == "practice";
     const bool structure = offer->intervention.kind == "structure";
-    if (!structure && offer->intervention.kind != "practice") return {"shopOfferNotPorted"};
+    if (state.hot.rulesetId && site->neutral && (practice || structure)) return {"neutralStorefront"};
     const auto priorPrestige = std::accumulate(node.purchasedOffers.begin(), node.purchasedOffers.end(), 0.0,
         [](double sum, const auto& receipt) { return sum + std::max(0.0, receipt.prestigeCost); });
     const auto cost = prestige_cost(state, actor, offer->basePrestigeCost,
         std::ranges::none_of(node.purchasedOffers, [](const auto& p) { return p.intervention.kind != "practiceSlot"; }));
-    const bool pressure = cost > std::max(0.0, prestige(state, actor) - priorPrestige) &&
+    const bool pressure = (practice || structure) && cost > std::max(0.0, prestige(state, actor) - priorPrestige) &&
         (state.hot.rulesetId || offer->intervention.mode != "remove");
     if (!pressure && cost > prestige(state, actor) - priorPrestige) return {"insufficientPrestige"};
     const auto currency = std::max(0.0, offer->baseCurrencyCost.value_or(0));
-    if (currency > 0) return {"shopCurrencyNotPorted"};
-    double sequence = 1;
-    for (const auto& p : node.purchasedOffers) sequence = std::max(sequence, p.purchaseSequence + 1);
+    const auto priorCurrency = std::accumulate(node.purchasedOffers.begin(), node.purchasedOffers.end(), 0.0,
+        [](double sum, const auto& receipt) { return sum + std::max(0.0, receipt.currencyCost); });
+    if (currency > action_stock_total(state, site, state.practiceVocabulary.currency) - priorCurrency)
+        return {"insufficientCurrency"};
     const auto time = state.hot.rulesetId && offer->intervention.mode == "adopt" ? offer->basePhaseCost :
         phase_cost(state, actor, node, offer->basePhaseCost);
     Receipt receipt{
@@ -551,8 +602,9 @@ ActionResult purchase(RuntimeState& state, Vassal& actor, Node& node, const Valu
         .basePhaseCost = offer->basePhaseCost, .intervention = offer->intervention, .baseCurrencyCost = offer->baseCurrencyCost,
         .priceQuality = offer->priceQuality, .inventoryIndex = offer->inventoryIndex, .prestigeCost = pressure ? 0 : cost,
         .monsterPressureCost = pressure ? cost : 0, .phaseCost = time, .currencyCost = currency,
-        .purchasedSec = state.hot.tSec, .purchaseSequence = sequence, .sourceInventoryRoll = whole(node.inventoryRoll),
-        .sourceInventoryIndex = whole(offer->inventoryIndex), .hourglassApplied = time > 0 && !node.heirloomTimeActionUsed.value_or(false),
+        .purchasedSec = state.hot.tSec, .purchaseSequence = next_purchase_sequence(node), .sourceInventoryRoll = whole(node.inventoryRoll),
+        .sourceInventoryIndex = whole(offer->inventoryIndex), .hourglassApplied = time > 0 ?
+            std::optional(!node.heirloomTimeActionUsed.value_or(false)) : std::nullopt,
     };
     const auto& change = receipt.intervention;
     const auto id = change.practiceId.value_or("");
@@ -562,7 +614,7 @@ ActionResult purchase(RuntimeState& state, Vassal& actor, Node& node, const Valu
     } else if (state.hot.rulesetId && change.mode == "learn") {
         receipt.intervention.instanceId = std::string(state.name(actor.vassalId)) + ":" + receipt.offerId;
     }
-    if (!structure && change.mode != "remove") {
+    if (practice && change.mode != "remove") {
         const auto& cards = state.content->config.gamepieces.practices;
         const auto def = std::ranges::find(cards, id, &browser::GamepiecesPractices::value_type::first);
         if (def == cards.end()) return {"practiceUnavailable"};
@@ -597,7 +649,7 @@ ActionResult purchase(RuntimeState& state, Vassal& actor, Node& node, const Valu
         node.practiceDraftOrder = std::move(order);
     }
     std::size_t insert = 0;
-    if (!structure && to) {
+    if (practice && to) {
         auto remaining = *to;
         for (; insert < node.purchasedOffers.size(); ++insert)
             if (node.purchasedOffers[insert].intervention.kind == "practice" && remaining-- == 0) break;
@@ -612,12 +664,13 @@ ActionResult purchase(RuntimeState& state, Vassal& actor, Node& node, const Valu
         const auto lattice = structure_draft(state, *site, node);
         if (!lattice.result) return lattice.result;
         ++node.nextCommissionId;
-    } else if (state.hot.rulesetId) {
+    } else if (practice && state.hot.rulesetId) {
         auto& displaced = node.purchasedOffers[insert].displacedInstanceIds.emplace();
         const auto kept = std::span(after.pool).first(after.capacity);
         for (const auto& old : oldInstances)
             if (std::ranges::find(kept, old, &DraftSlot::instance) == kept.end()) displaced.push_back(old);
     }
+    if (const auto connections = validate_connections(state, node); !connections) return connections;
     if (!structure) node.inventory.erase(offer);
     refresh_receipt_ids(node);
     node.accumulatedPhaseCost += time;
@@ -685,29 +738,74 @@ void intervention_event(RuntimeState& state, Vassal& actor, NodeId node, const R
         const auto text = [&](std::string_view value) { return page.intern_text(value, "shop intervention"); };
         return VassalLifeEventsEntry{.eventId = text(id), .kind = event, .tSec = state.hot.tSec, .nodeId = node,
             .offerId = text(purchase.offerId), .intervention = LifeEventsIntervention{
-                .kind = text(change.kind), .targetRegionId = actor.locationRegionId,
+                .kind = text(change.kind), .targetRegionId = change.targetRegionId ?
+                    std::optional(state.find_id<RegionId>(*change.targetRegionId)) : std::nullopt,
                 .practiceId = change.practiceId ? std::optional(state.find_id<PracticeId>(*change.practiceId)) : std::nullopt,
-                .mode = text(change.mode), .tier = text(change.tier.value_or("bronze")),
+                .mode = text(change.mode), .tier = change.tier ? std::optional(text(*change.tier)) : std::nullopt,
                 .resultingTier = change.resultingTier ? std::optional(text(*change.resultingTier)) : std::nullopt,
                 .instanceId = instance,
                 .structureId = change.structureId ? std::optional(state.find_id<StructureId>(*change.structureId)) : std::nullopt,
+                .regionAId = change.regionAId ? std::optional(state.find_id<RegionId>(*change.regionAId)) : std::nullopt,
+                .regionBId = change.regionBId ? std::optional(state.find_id<RegionId>(*change.regionBId)) : std::nullopt,
                 .qualityBonus = change.qualityBonus, .capacity = change.capacity,
             }};
     });
 }
 
-ActionResult confirm(RuntimeState& state, Vassal& actor, Node& node, NodeId id)
+ActionResult confirm(RuntimeState& state, Vassal& actor, Node& node, NodeId id, const Value& payload)
 {
     if (needs_specialty(node)) return {"shopSpecialtyRequired"};
     if (!is_shop(node)) {
         const auto selected = std::ranges::find(node.options, node.selectedOptionId.value_or(""), &browser::LifeMapOption::id);
-        const auto* option = node.rewardAcquisition ? &*node.rewardAcquisition :
+        auto* option = node.rewardAcquisition ? &*node.rewardAcquisition :
             selected == node.options.end() ? nullptr : &*selected;
         if (!option) return {"optionRequired"};
-        const auto time = phase_cost(state, actor, node, option->phaseCost);
+        if (option->randomReward.has_key() && option->randomReward.value()) {
+            roll_tour_reward(state, actor, *option);
+            if (option->definitionId) {
+                node.rewardAcquisition = *option;
+                return {};
+            }
+        }
+        if (node.family == "campaign" && option->id != "campaign-leave" && !node.rewardAcquisition) {
+            const auto fresh = campaign_options(state, actor, node);
+            const auto match = std::ranges::find_if(fresh, [&](const auto& candidate) {
+                return candidate.id == option->id && candidate.stage == option->stage;
+            });
+            if (match == fresh.end() || campaign_blocked(state, actor, *match)) return {"campaignUnavailable"};
+            const auto time = state.compiledContent->values.lifeMapGenerator.design.enabled
+                ? phase_cost(state, actor, node, match->phaseCost) : match->phaseCost;
+            const auto result = commit_campaign(state, actor, node, *match, prestige_cost(state, actor, match->prestigeCost), time);
+            if (!result || node.rewardAcquisition) return result;
+            node.resolving = true;
+            if (!state.hot.runStatus || !state.hot.runStatus->complete)
+                begin_resolution(state, actor, node, id, browser::PendingLifeMapKind::campaignEncounter, time);
+            return {};
+        }
+        const bool relic = node.family == "relic" || node.rewardAcquisition.has_value();
+        const auto* acquisition = payload.find("acquire");
+        const bool empty = option->emptyRelic.value_or(false);
+        if (relic && !empty && (!acquisition || string(*acquisition, "destination").empty())) return {"acquireRequired"};
+        if (relic && option->definitionId && acquisition) {
+            const auto result = acquire_relic(state, actor, *option->definitionId, *acquisition, false);
+            if (!result) return result;
+        }
+        auto time = phase_cost(state, actor, node, option->phaseCost, option->locationRegionId.has_value());
+        if (state.hot.rulesetId && settlement::detailed_site(state, actor.locationRegionId)) node.removalReceipts.emplace();
         const auto result = commit_node_choice(state, actor, node, *option, prestige_cost(state, actor, option->prestigeCost));
-        if (!result) return result;
-        if (state.hot.rulesetId) node.removalReceipts.emplace();
+        if (!result || actor.endedReason) return result;
+        if (!relic && !state.compiledContent->values.lifeMapGenerator.design.enabled)
+            time = phase_cost(state, actor, node, option->phaseCost, option->locationRegionId.has_value());
+        if (relic && option->definitionId && acquisition) {
+            const auto result = acquire_relic(state, actor, *option->definitionId, *acquisition, true);
+            if (!result) return result;
+        }
+        node.rewardAcquisition.reset();
+        if (node.family == "campaign" && relic) {
+            if (time > 0) node.heirloomTimeActionUsed = true;
+            begin_resolution(state, actor, node, id, browser::PendingLifeMapKind::campaignEncounter, time);
+            return {};
+        }
         node.accumulatedPhaseCost += time;
         if (time > 0) node.heirloomTimeActionUsed = true;
         begin_resolution(state, actor, node, id, browser::PendingLifeMapKind::nodeResolution, whole(node.accumulatedPhaseCost));
@@ -715,28 +813,31 @@ ActionResult confirm(RuntimeState& state, Vassal& actor, Node& node, NodeId id)
     }
     auto* site = settlement::detailed_site(state, actor.locationRegionId);
     if (!site) return {"shopUnavailable"};
-    if (site->neutral && !node.purchasedOffers.empty()) return {"neutralStorefront"};
-    for (const auto& purchase : node.purchasedOffers) {
-        if (purchase.intervention.kind != "practice" && purchase.intervention.kind != "practiceSlot" &&
-            purchase.intervention.kind != "structure")
-            return {"shopConfirmationNotPorted"};
-        if (purchase.currencyCost > 0) return {"shopCurrencyNotPorted"};
-    }
+    if (state.hot.rulesetId && site->neutral && std::ranges::any_of(node.purchasedOffers, [](const auto& purchase) {
+        return purchase.intervention.kind == "practice" || purchase.intervention.kind == "practiceSlot" || purchase.intervention.kind == "structure";
+    })) return {"neutralStorefront"};
     const auto draft = practice_draft(state, *site, node);
     if (!draft.result) return draft.result;
     const auto structures = structure_draft(state, *site, node);
     if (!structures.result) return structures.result;
+    if (const auto connections = validate_connections(state, node); !connections) return connections;
     reprice(state, actor, *site, node, draft);
-    double charge = 0, pressure = 0;
+    double charge = 0, pressure = 0, currency = 0;
     for (const auto& purchase : node.purchasedOffers) {
         charge += purchase.prestigeCost;
         pressure += purchase.monsterPressureCost;
+        currency += std::max(0.0, purchase.currencyCost);
     }
     if (node.removalReceipts) for (const auto& receipt : *node.removalReceipts) {
         charge += receipt.prestigeCost.value_or(0);
         pressure += receipt.monsterPressureCost.value_or(0);
     }
     if (charge > prestige(state, actor)) return {"insufficientPrestige"};
+    if (currency > 0) {
+        const auto& trait = state.practiceVocabulary.currency;
+        if (currency > action_stock_total(state, site, trait) ||
+            !practice::apply_stock(state, *site, action_stock_plan(state, site, trait, currency))) return {"insufficientCurrency"};
+    }
     prestige(state, actor) -= charge;
     const auto practicesChanged = commit_practice_draft(state, *site, draft);
     const auto structuresChanged = commit_structure_draft(state, *site, structures);
@@ -752,6 +853,9 @@ ActionResult confirm(RuntimeState& state, Vassal& actor, Node& node, NodeId id)
         }
         if (change.kind == "structure" && purchase.placement && change.structureId)
             record_commission_event(state, actor, "structureStarted", *change.structureId);
+        if (change.kind == "connection") {
+            if (const auto result = change_connection(state, actor, change); !result) return result;
+        }
         intervention_event(state, actor, id, purchase);
     }
     if (!node.purchasedOffers.empty() || practicesChanged || structuresChanged) {
@@ -822,10 +926,11 @@ ActionResult dispatch_node_action(RuntimeState& state, const Action& action)
         result = kind == "vassalUndoShopPurchase"
             ? undo_purchase(state, *actor, node, *site, string(action.payload, "offerId"))
             : reorder_purchase(state, *actor, node, *site, action.payload);
-    } else result = confirm(state, *actor, node, *actor->lifeMap.currentNodeId);
+    } else result = confirm(state, *actor, node, *actor->lifeMap.currentNodeId, action.payload);
     if (result) {
         replace(state, actor->lifeMap.nodeStates, nodes);
         if (kind == "vassalConfirmLifeNode" && actor->lifeMap.pendingResolution &&
+            actor->lifeMap.pendingResolution->kind == browser::PendingLifeMapKind::nodeResolution &&
             actor->lifeMap.pendingResolution->resolveSec <= state.hot.tSec && !resolve_due(state))
             return {"resolutionFailed"};
         reindex(state);

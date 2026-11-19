@@ -136,10 +136,12 @@ void apply_columns(LifeMapGraph& graph, std::string_view id, std::string_view id
 {
     const auto& config = graph.generatorConfig;
     const auto& design = config.design;
-    auto columns = design.columns;
+    auto columns = design.enabled ? design.columns : decltype(design.columns){};
     const auto& founding = design.bookends.founding;
-    columns.insert(columns.begin() + std::min<std::size_t>(founding.priority, columns.size()),
-        {"founding", "Founding", founding.enabled, founding.depth, "", "", "specialist", "firstLife"});
+    const auto priority = design.enabled ? std::min<std::size_t>(founding.priority, columns.size()) : 0;
+    columns.insert(columns.begin() + priority,
+        {"founding", "Founding", !design.enabled || founding.enabled, design.enabled ? founding.depth : 0,
+            "", "", "specialist", "firstLife"});
     std::vector<double> used;
     const auto replace_depth = [&](Node node) {
         browser::StringArray removed;
@@ -173,8 +175,8 @@ void apply_columns(LifeMapGraph& graph, std::string_view id, std::string_view id
         }
         replace_depth(std::move(node));
     }
-    if (design.bookends.legacy.enabled) {
-        const auto* fixed = std::get_if<double>(&design.bookends.legacy.depth);
+    if (!design.enabled || design.bookends.legacy.enabled) {
+        const auto* fixed = design.enabled ? std::get_if<double>(&design.bookends.legacy.depth) : nullptr;
         const int depth = fixed ? static_cast<int>(*fixed) - 1 : static_cast<int>(config.normalDepthCount);
         graph.bossNodeId = "life-d" + pad(depth + 1) + "-boss";
         replace_depth({.id = graph.bossNodeId, .depth = double(depth), .lane = std::floor((config.laneCount - 1) / 2),
@@ -288,6 +290,120 @@ auto weighted(const Range& entries, double& seed, Weight weight)
         if (draw < 0) return entry;
     }
     return entries.back();
+}
+
+bool roll_legacy_families(LifeMapGraph& graph, double& seed)
+{
+    using Weights = browser::NodeFamilyWeights;
+    constexpr std::array members{&Weights::patronage, &Weights::development, &Weights::crossroads,
+        &Weights::practiceReform, &Weights::publicWorks, &Weights::crisis, &Weights::relic, &Weights::specialRelic,
+        &Weights::training, &Weights::discovery, &Weights::campaign, &Weights::challenge, &Weights::neutralMarket,
+        &Weights::classMarket, &Weights::foodShop, &Weights::housingShop};
+    const auto& config = graph.generatorConfig;
+    auto& nodes = graph.nodes;
+    std::size_t entries = 0;
+    for (auto& node : nodes) {
+        std::vector<std::string_view> excluded;
+        for (const auto& edge : graph.edges) {
+            if (edge.toNodeId != node.id) continue;
+            const auto parent = std::ranges::find(nodes, edge.fromNodeId, &Node::id);
+            const auto family = node_type(*parent);
+            if (contains(config.nonRepeatFamilyIds, family)) excluded.push_back(family);
+        }
+        if (node.depth == 0) {
+            if (entries == 1) excluded.push_back(node_type(nodes.front()));
+            ++entries;
+        }
+        const auto& weights = node.band == "early" ? config.weights.early : node.band == "mid" ? config.weights.mid : config.weights.late;
+        const auto weight = [&](std::size_t i) { return weights.*members[i]; };
+        std::vector<std::size_t> eligible;
+        for (std::size_t i = 0; i < members.size(); ++i)
+            if (weight(i) > 0 && !contains(excluded, families[i])) eligible.push_back(i);
+        if (eligible.empty()) return false;
+        const auto family = families[weighted(eligible, seed, weight)];
+        node.family = family == "specialRelic" ? "relic" : family;
+        if (node.family == "relic") node.specialRelic = family == "specialRelic";
+    }
+    return true;
+}
+
+void place_legacy_rooms(LifeMapGraph& graph, double& seed, const browser::Candidate& candidate,
+                        const StockOutputs& output, std::string_view identity)
+{
+    auto& nodes = graph.nodes;
+    if (const auto& signature = candidate.signatureNode) {
+        if (signature->variantId == "legacyPlus") {
+            const auto boss = std::ranges::find(nodes, graph.bossNodeId, &Node::id);
+            if (boss != nodes.end()) boss->signatureNode = signature;
+        } else if (std::ranges::find(signatureDefs, signature->variantId, &SignatureDef::id) != std::end(signatureDefs)) {
+            std::vector<Node*> eligible;
+            for (auto& node : nodes)
+                if (node.band == "mid" && node.family != "legacy") eligible.push_back(&node);
+            if (!eligible.empty()) {
+                auto& node = *eligible[graph_pick(seed, eligible.size())];
+                node.family = "signature";
+                node.signatureNode = signature;
+            }
+        }
+    }
+    const bool founder = candidate.founderClassId.has_value();
+    const auto founding = graph.foundingNodeId ? std::ranges::find(nodes, *graph.foundingNodeId, &Node::id) : nodes.end();
+    const auto after_founding = [&](const Node& node) { return founding != nodes.end() && node.depth >= founding->depth; };
+    const bool eligibleClassRooms = founding != nodes.end() && std::ranges::any_of(nodes, [&](const auto& node) {
+        return after_founding(node) && !node.bookend && !node.signatureNode && node.family != "legacy";
+    });
+    const auto can_use_output = [&](std::string_view trait) {
+        return !founder || contains(output.common, trait) || eligibleClassRooms;
+    };
+    auto pool = output.classed;
+    std::erase_if(pool, [&](const auto& trait) { return !can_use_output(trait); });
+    browser::StringArray chosen;
+    while (!pool.empty() && chosen.size() < 2) {
+        const auto picked = pool.begin() + graph_pick(seed, pool.size());
+        chosen.push_back(*picked);
+        pool.erase(picked);
+    }
+    auto unmet = output.unmet;
+    std::erase_if(unmet, [&](const auto& trait) { return !can_use_output(trait); });
+    if (!unmet.empty() && std::ranges::none_of(chosen, [&](const auto& trait) { return contains(unmet, trait); }))
+        chosen.insert(chosen.begin(), unmet[graph_pick(seed, unmet.size())]);
+    const auto is_tagged = [](const Node& node) { return node.family == "foodShop" || node.family == "housingShop"; };
+    const auto can_replace = [](const Node& node) {
+        return node.depth > 0 && !node.bookend && !node.signatureNode && node.family != "legacy" && node.family != "signature";
+    };
+    std::vector<Node*> targets;
+    for (auto& node : nodes)
+        if (can_replace(node) && !is_tagged(node)) targets.push_back(&node);
+    if (targets.size() < chosen.size()) for (auto& node : nodes)
+        if (can_replace(node) && is_tagged(node)) targets.push_back(&node);
+    for (const auto& trait : chosen) {
+        std::vector<Node*> eligible;
+        for (auto* node : targets)
+            if (!founder || after_founding(*node) || contains(output.common, trait)) eligible.push_back(node);
+        if (eligible.empty()) continue;
+        auto* node = eligible[graph_pick(seed, eligible.size())];
+        std::erase(targets, node);
+        node->family = "stockShop";
+        node->stockOutput = trait;
+    }
+
+    std::vector<Node*> ordinary;
+    for (auto& node : nodes) {
+        if (node.signatureNode || node.bookend || node.family == "legacy" || node.family == "signature") continue;
+        ordinary.push_back(&node);
+        if (node.family == "classMarket" && identity.empty()) node.family = "neutralMarket";
+        if ((node.family == "training" && identity.empty()) || (node.family == "discovery" && identity != "scholar") ||
+            ((node.family == "campaign" || node.family == "challenge") && identity != "warrior")) node.family = "development";
+    }
+    if (identity.empty() || ordinary.empty()) return;
+    if (candidate.classId) ordinary.front()->family = "training";
+    auto remaining = identity == "warrior" ? 1 : 2;
+    for (auto* node : std::span(ordinary).subspan(1)) {
+        if (remaining == 0) break;
+        if (node->family != "patronage" && node->family != "development") continue;
+        node->family = identity == "scholar" ? "discovery" : "campaign";
+        --remaining;
+    }
 }
 
 bool populate(LifeMapGraph& graph, double& seed, const browser::Candidate& candidate, const StockOutputs& outputs,
@@ -608,16 +724,19 @@ std::optional<LifeMapGraph> action_graph(const RuntimeState& state, const browse
                                         std::string_view id, double& seed)
 {
     const auto& config = state.content->config.lifeMapGenerator;
-    if (!config.design.enabled) return std::nullopt;
     const auto identity = candidate.founderClassId.value_or(!candidate.classId ? "" :
         *candidate.classId == browser::SpecialistClass::scholar ? "scholar" : "warrior");
     LifeMapGraph graph{.schemaVersion = 9, .graphId = std::string(id) + "-life-map",
         .generationSeed = core::js::floor(seed), .generatorConfig = config,
         .generationContext = {identity.empty() ? std::nullopt : std::optional(identity), candidate.founderClassId}};
     if (!draw_routes(graph, seed)) return std::nullopt;
+    if (!config.design.enabled && !roll_legacy_families(graph, seed)) return std::nullopt;
     apply_columns(graph, id, identity, candidate.founderClassId.has_value());
-    if (!populate(graph, seed, candidate, stock_outputs(state, identity), identity)) return std::nullopt;
+    const auto output = stock_outputs(state, identity);
+    if (config.design.enabled && !populate(graph, seed, candidate, output, identity)) return std::nullopt;
     dedupe(graph);
+    if (!config.design.enabled) place_legacy_rooms(graph, seed, candidate, output, identity);
+    for (auto& node : graph.nodes) if (node.family != "relic") node.specialRelic.reset();
     layout(graph);
     return graph;
 }

@@ -3318,13 +3318,15 @@ LifeEventsIntervention Mapping<LifeEventsIntervention>::read(Import& codec, cons
 {
     LifeEventsIntervention result{};
     result.kind = codec.read<HistoryTextId>(source.kind, property_path(path, "kind"));
-    result.targetRegionId = codec.read<RegionId>(source.targetRegionId, property_path(path, "targetRegionId"));
+    result.targetRegionId = codec.read<std::optional<RegionId>>(source.targetRegionId, property_path(path, "targetRegionId"));
     result.practiceId = codec.read<std::optional<PracticeId>>(source.practiceId, property_path(path, "practiceId"));
     result.mode = codec.read<HistoryTextId>(source.mode, property_path(path, "mode"));
-    result.tier = codec.read<HistoryTextId>(source.tier, property_path(path, "tier"));
+    result.tier = codec.read<std::optional<HistoryTextId>>(source.tier, property_path(path, "tier"));
     result.resultingTier = codec.read<std::optional<HistoryTextId>>(source.resultingTier, property_path(path, "resultingTier"));
     result.instanceId = codec.read<std::optional<InstanceId>>(source.instanceId, property_path(path, "instanceId"));
     result.structureId = codec.read<std::optional<StructureId>>(source.structureId, property_path(path, "structureId"));
+    result.regionAId = codec.read<std::optional<RegionId>>(source.regionAId, property_path(path, "regionAId"));
+    result.regionBId = codec.read<std::optional<RegionId>>(source.regionBId, property_path(path, "regionBId"));
     result.qualityBonus = codec.read<std::optional<double>>(source.qualityBonus, property_path(path, "qualityBonus"));
     result.capacity = codec.read<std::optional<double>>(source.capacity, property_path(path, "capacity"));
     return result;
@@ -3341,6 +3343,8 @@ browser::LifeEventsIntervention Mapping<LifeEventsIntervention>::write(const Exp
     codec.write(result.resultingTier, source.resultingTier);
     codec.write(result.instanceId, source.instanceId);
     codec.write(result.structureId, source.structureId);
+    codec.write(result.regionAId, source.regionAId);
+    codec.write(result.regionBId, source.regionBId);
     codec.write(result.qualityBonus, source.qualityBonus);
     codec.write(result.capacity, source.capacity);
     return result;
@@ -3356,6 +3360,8 @@ void Mapping<LifeEventsIntervention>::digest(Digest& codec, const LifeEventsInte
     codec.fields("resultingTier", source.resultingTier);
     codec.fields("instanceId", source.instanceId);
     codec.fields("structureId", source.structureId);
+    codec.fields("regionAId", source.regionAId);
+    codec.fields("regionBId", source.regionBId);
     codec.fields("qualityBonus", source.qualityBonus);
     codec.fields("capacity", source.capacity);
 }

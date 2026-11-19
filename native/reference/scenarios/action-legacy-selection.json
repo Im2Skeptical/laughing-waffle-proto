@@ -1,0 +1,15 @@
+{
+  "id": "action-legacy-selection",
+  "start": {"kind":"actionExhibit","variant":"legacy-selection","seed":1},
+  "actions": [
+    {"tSec":1,"kind":"settlementRerollVassals","payload":{}},
+    {"tSec":65,"kind":"settlementSelectVassal","payload":{"candidateIndex":0}}
+  ],
+  "horizonSec": 68,
+  "keepSeconds": [0,1,64,65,68],
+  "rejections": [
+    {"action":{"tSec":1,"kind":"settlementSelectVassal","payload":{"candidateIndex":0,"expectedPoolHash":"stale"}},"reason":"selectionPoolMismatch"},
+    {"action":{"tSec":1,"kind":"settlementSelectVassal","payload":{"candidateIndex":99}},"reason":"invalidCandidate"},
+    {"action":{"tSec":65,"kind":"settlementRerollVassals","payload":{}},"reason":"currentVassalAlive"}
+  ]
+}

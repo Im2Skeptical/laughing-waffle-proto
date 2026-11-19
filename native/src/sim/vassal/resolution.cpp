@@ -42,12 +42,14 @@ void enqueue_development(RuntimeState& state, Vassal& actor, std::size_t count)
     actor.nextDevelopmentChoiceId = next;
 }
 
-void finish(RuntimeState& state, Vassal& actor, bool died)
+}
+
+void detail::finish_vassal(RuntimeState& state, Vassal& actor, std::string_view cause)
 {
     auto& civ = state.hot.civilization;
     auto& lineage = civ.vassalLineage;
+    const bool died = !cause.empty();
     const auto kind = died ? "died"sv : "retired"sv;
-    const auto cause = died ? "naturalMortality"sv : ""sv;
     lineage.tenuresRemaining = std::max(0.0, lineage.tenuresRemaining - 1);
     actor.isDead = died;
     actor.endedReason = intern<SymbolId>(state, kind);
@@ -68,7 +70,7 @@ void finish(RuntimeState& state, Vassal& actor, bool died)
         });
     }
     add_event(state, actor, kind, {}, {}, {}, {},
-        died ? "Died: naturalMortality"sv : "Retired after completing the life map"sv, cause);
+        died ? "Died: " + std::string(cause) : "Retired after completing the life map", cause);
     inherit(state, actor);
     if (lineage.tenuresRemaining == 0) {
         state.hot.runStatus = RunStatus{true, browser::RunEndReason::tenuresExhausted, state.hot.year, state.hot.tSec};
@@ -79,6 +81,8 @@ void finish(RuntimeState& state, Vassal& actor, bool died)
         generate_candidates(state);
     }
 }
+
+namespace {
 
 bool complete(RuntimeState& state, Vassal& actor)
 {
@@ -151,7 +155,7 @@ bool complete(RuntimeState& state, Vassal& actor)
     if (!delve) add_event(state, actor, "nodeResolved", {}, pending.nodeId, *node.resolutionResult, age);
     if (died) {
         replace(state, map.nodeStates, states);
-        finish(state, actor, true);
+        finish_vassal(state, actor, "naturalMortality");
         return true;
     }
     if (encounter) {
@@ -176,7 +180,7 @@ bool complete(RuntimeState& state, Vassal& actor)
     const auto& graph = read(state, map.graph);
     for (const auto& edge : graph.edges)
         if (edge.fromNodeId == key) outgoing.push_back(edge.toNodeId);
-    if (outgoing.empty()) finish(state, actor, false);
+    if (outgoing.empty()) finish_vassal(state, actor);
     else {
         replace(state, map.availableNodeIds, outgoing);
         enqueue_development(state, actor, levels);
