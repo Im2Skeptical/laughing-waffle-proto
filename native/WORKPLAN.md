@@ -45,7 +45,14 @@
       browser's `moveVassalShopStructure`.
     - Pipeline is now **17.4 opening / 20.9 late** µs/sim-s.
     - Remaining action kinds have owners in the N03f section.
-- Active owners (wave started 19 Nov 2026 from 48302da1):
+- Active owners (wave started 19 Nov 2026 from 6c803fd3):
+  - N04d connected Windows slice (live sim and forecast drive the UI: map,
+    settlement, Practice change, forecast, scrub): sol 6.2 worker on
+    `t3/native-connected-slice`.
+  - N03e-3q pass 6 (trace and recipe attribution, then exact wins toward
+    the phone budget): Astra specialist on
+    `t3/native-pipeline-performance-6`. The supervisor audits it.
+- Wave started 19 Nov 2026 from 48302da1 (merged):
   - N04a headless forecast core (`waffle_timegraph`): merged from 6cd2f9d6.
     - Supervisor audit:
       - restores copy the anchor and journal under the lock and replay
