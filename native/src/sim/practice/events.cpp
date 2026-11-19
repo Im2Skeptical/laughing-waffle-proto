@@ -126,16 +126,19 @@ template<class Build>
 void append_trace(RuntimeState& state, PracticeEvent event, const Build& build)
 {
     const auto& arena = state.practiceRecipeStorage.historyArena;
-    state.histories.at(state.hot.civilization.practiceEvents.trace.row).append(build, arena);
-    if (!event.regionId || event.regionId->value >= state.indexes.sitesByRegion.size()) return;
-    const auto siteId = state.indexes.sitesByRegion[event.regionId->value];
-    if (!siteId) return;
+    auto& global = state.histories.at(state.hot.civilization.practiceEvents.trace.row);
+    const auto siteId = event.regionId && event.regionId->value < state.indexes.sitesByRegion.size()
+        ? state.indexes.sitesByRegion[event.regionId->value] : SiteId{};
+    if (!siteId) {
+        build(global, arena);
+        return;
+    }
     auto& reference = settlement::site_at(state, siteId).detailedState.practiceActivationTrace;
     if (!reference) {
         using Ref = std::remove_reference_t<decltype(reference)>::value_type;
         reference = Ref{{state.histories.table<typename Ref::Storage>().append(1, "Practice history").begin}};
     }
-    state.histories.at(reference->row).append(build, arena);
+    global.link(build(state.histories.at(reference->row), arena), arena);
 }
 
 }
@@ -209,13 +212,14 @@ void trace(RuntimeState& state, PracticeEvent event, const EventData& data,
            bool includeId, std::string_view dynamicReason)
 {
     const TraceFields fields(event, data.fields, includeId);
-    append_trace(state, event, [&](PracticeEventTrace& row, HistoryPayload& page) {
+    auto fill = [&](PracticeEventTrace& row, HistoryPayload& page) {
         fields.write(state, page, row, data.fields, dynamicReason);
         if (data.providers) row.providers = store_providers(page, *data.providers);
         if (data.traits) row.traits = store(page, *data.traits);
         if (data.tags) row.tags = store(page, *data.tags);
         if (data.sources) row.sourceRegionIds = store(page, *data.sources);
-    });
+    };
+    append_trace(state, event, [&](auto& history, const auto& arena) { return history.append(fill, arena); });
 }
 
 void trace_pending(RuntimeState& state, PracticeEvent event, std::size_t index)
@@ -223,7 +227,7 @@ void trace_pending(RuntimeState& state, PracticeEvent event, std::size_t index)
     const auto& p = state.eventPayloads[index];
     const auto& payload = state.pendingPracticePayload;
     const TraceFields fields(event, p, true);
-    append_trace(state, event, [&](PracticeEventTrace& row, HistoryPayload& page) {
+    auto fill = [&](PracticeEventTrace& row, HistoryPayload& page) {
         fields.write(state, page, row, p);
         if (p.providers) {
             auto& providers = page.rows<StockProvider>();
@@ -238,7 +242,8 @@ void trace_pending(RuntimeState& state, PracticeEvent event, std::size_t index)
         if (p.traits) row.traits = store(page, payload.view(*p.traits));
         if (p.tags) row.tags = store(page, payload.view(*p.tags));
         if (p.sourceRegionIds) row.sourceRegionIds = store(page, payload.view(*p.sourceRegionIds));
-    });
+    };
+    append_trace(state, event, [&](auto& history, const auto& arena) { return history.append(fill, arena); });
 }
 
 void trace_phase(RuntimeState& state, SymbolId phase, std::span<const SiteId> sites)
@@ -253,14 +258,13 @@ void trace_phase(RuntimeState& state, SymbolId phase, std::span<const SiteId> si
         const PracticeEvent event{state.hot.tSec, kind, region, id, {}, id};
         const auto controller = state.hot.rulesetId ? nullable(holder(state, region))
                                                    : browser::OptionalNullable<FactionId>{};
-        const PracticeEventTrace fields{.tSec = event.tSec, .kind = kind, .regionId = region,
-                                       .rootId = id, .id = id, .phase = phaseRef,
-                                       .faction = controller, .controller = controller,
-                                       .instanceId = state.hot.rulesetId ? nullable(InstanceId{})
-                                                                        : browser::OptionalNullable<InstanceId>{}};
-        append_trace(state, event, [&](PracticeEventTrace& row, HistoryPayload& page) {
-            row = fields;
-            if (!phaseRef) row.phase = page.intern_text(state.name(phase), "Practice trace");
+        append_trace(state, event, [&](auto& history, const auto& arena) {
+            PhaseTrace compact{event.tSec, id, region, kind, phaseRef.value_or(HistoryTextId{}), controller};
+            if (phaseRef) return history.append_phase(compact, arena);
+            return history.append([&](HistoryPayload& payload) {
+                compact.phase = payload.intern_text(state.name(phase), "Practice trace");
+                return compact.expand();
+            }, arena);
         });
     }
 }
