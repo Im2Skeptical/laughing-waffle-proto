@@ -52,6 +52,10 @@ using NodeId = Id<struct NodeDomain>;
 using SymbolId = Id<struct SymbolDomain>;
 using HistoryTextId = Id<struct HistoryTextDomain>;
 
+// History rows can reference text already interned by their owning state.
+// Page-local text keeps the low half of the ID space.
+inline constexpr std::uint32_t history_symbol_bit = 1u << 31;
+
 template<class T>
 struct Range {
     std::uint32_t begin{}, end{};

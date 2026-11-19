@@ -1070,6 +1070,86 @@ demand at an inspected anchor. That would change the trace availability
 contract and needs a measured prototype and approval. Android runtime
 parity and timing remain unverified.
 
+**N03e-3q — pipeline performance, second pass (paused 19 Nov 2026).**
+Implementation checkpoint on `t3/pipeline-performance-second-pass` from
+`3e88c583`. A lunar boundary publishes `phaseResolved` for each detailed
+site, with a civilization trace and a site trace. Those records account for
+work even when the FIFO starts empty. Phase events with no possible Charge
+activity can now write both traces directly, preserving IDs, faction fields
+and order. Other events still use the FIFO, with a cheap lower bound before
+checking a listener's live Discharge rules. Practice trace text already
+interned in the run can reference its symbol. Both exported trace streams
+and the browser save format are unchanged. Food now clears its transfer
+history in the shared arena, retaining recyclable pages across seconds.
+
+The optimized build passed all 31 enabled CTests. Ran
+`node native/reference/trace.mjs`, `node native/reference/stage-probe.mjs --all`,
+`node native/reference/stage-pairs.mjs <exe> <stage>` for all 18 stages,
+and `node native/reference/step-windows.mjs <exe>` against both binaries.
+Both matched all 19 step windows and 130 comparisons with the same 14
+Vassal masks. The 17 ported stages matched 621/622 unmasked pairs on both.
+The existing Prelude difference at `death-committed-arrivals/2035` starts
+at `$.civilization.practiceEvents.nextId`. Vassal remains unported and its
+106 pair outcomes were identical. The phase drain passed 106/106.
+
+Five alternating optimized measurements per binary and anchor used
+`waffle_parity step --time` on logical CPU 15 of the i9-10900K. Opening
+used 9,984 timed advances at `seed-1/0` and late used 2,816 at
+`seed-2026-late/3200`. The timing session overlapped verification jobs and
+had substantial spread, particularly late. Treat these medians as checkpoint
+observations and repeat with the host idle before claiming a floor or
+attributing a stage regression. Raw reports and the timing runner are under
+`artifacts/n03e-3q/`. The throughput target is still open.
+
+| µs/sim-second | Opening before | Opening checkpoint | Late before | Late checkpoint |
+| --- | ---: | ---: | ---: | ---: |
+| Pipeline | **58.451** | **43.077** | **80.217** | **70.517** |
+| advance_clock | 0.303 | 0.261 | 0.342 | 0.326 |
+| prelude | 0.481 | 0.454 | 0.504 | 0.488 |
+| seasonal_practices | 2.809 | 2.374 | 4.799 | 10.938 |
+| spring_death_baseline | 0.007 | 0.007 | 0.021 | 0.020 |
+| birth | 8.264 | 7.749 | 14.733 | 14.197 |
+| food | 23.619 | 21.402 | 24.076 | 10.981 |
+| after_meals_practices | 0.123 | 0.121 | 0.238 | 0.225 |
+| garrison_upkeep | 0.180 | 0.185 | 0.106 | 0.102 |
+| housing | 0.206 | 0.193 | 0.466 | 0.424 |
+| faith | 0.166 | 0.152 | 0.278 | 0.262 |
+| migration_practices | 1.678 | 1.387 | 0.939 | 0.834 |
+| migration | 0.262 | 0.247 | 0.659 | 0.646 |
+| death | 0.327 | 0.296 | 0.804 | 0.780 |
+| death_practices | 2.037 | 1.785 | 2.203 | 1.934 |
+| control_and_spatial_pressure | 0.836 | 0.791 | 0.936 | 0.891 |
+| phase_events_and_drain | 13.158 | 5.559 | 18.232 | 12.897 |
+| vassal_check | 0.034 | 0.028 | 0.039 | 0.038 |
+| final_flush | 0.040 | 0.038 | 0.043 | 0.040 |
+
+The warmed opening allocation run dropped from 1,014 to 263 calls over
+3,200 advances after 512 warmup advances. Food dropped from 760 to 9.
+Remaining calls at opening were Prelude 1, Seasonal Practices 2, Birth 12,
+Food 9, Migration 206 and Death 33. The late allocation test stopped before
+its measurement horizon on both builds. The checkpoint diagnostic ran
+1,964 measured advances, ending at second 5676 with Monster Overrun and
+13 allocations. Keep `pipeline_steady_state_allocations` disabled at this
+checkpoint. The ignored stack capture attributed 109 opening calls to
+Migration's per-site resident collection, followed by selection buffers,
+Elder summaries and report storage. See `artifacts/n03e-3q/alloc-diag.log`
+and `alloc-symbols.py`.
+
+At resumption, reserve the measured Migration, Birth, Death and recipe
+workspaces at admission, then resolve the late allocation fixture's
+terminal horizon and re-enable the original gate. The diagnostic timing
+scopes put most opening time in Practice activation and traces, and much
+of late Birth in population table updates. Food already skips shared
+routing for fully supplied sites. Its remaining routing and recipe work
+and the late drain fallback still need an exact-rule pass. Inverse-binomial
+Birth, Death sampling and deferred diagnostics remain proposals. No
+rule-level variant was benchmarked or adopted before the pause.
+
+Cross-runtime handoff. The browser has the same per-site phase event and
+trace contract. The native fast path is a candidate for a browser-specific
+measurement if its drain is revisited. Reuse the phase stage probes to
+check the queue, threshold and Discharge guards and verify trace ID order.
+
 ## N03f - Actions, replay and new game (pending N03e)
 
 Action application and `rebuildStateAtSecond` (L2), then new game and world

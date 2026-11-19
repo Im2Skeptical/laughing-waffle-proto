@@ -80,6 +80,8 @@ void trace_text(const RuntimeState& state, HistoryPayload& page, PracticeEventTr
 {
     auto text = [&](const auto& id) -> std::optional<HistoryTextId> {
         if (!id) return {};
+        if constexpr (std::is_same_v<std::remove_cvref_t<decltype(*id)>, SymbolId>)
+            if (id->value < history_symbol_bit - 1) return HistoryTextId{id->value | history_symbol_bit};
         return page.intern_text(state.name(*id), "Practice trace");
     };
     row.activationType = text(p.activationType);
@@ -219,25 +221,49 @@ void trace_pending(RuntimeState& state, PracticeEvent event, std::size_t index)
     });
 }
 
+void trace_phase(RuntimeState& state, SymbolId phase)
+{
+    auto& journal = state.hot.civilization.practiceEvents;
+    const auto kind = event_id(state, EventKind::phaseResolved);
+    const auto phaseRef = phase.value < history_symbol_bit - 1
+        ? std::optional{HistoryTextId{phase.value | history_symbol_bit}} : std::nullopt;
+    for (const auto siteId : settlement::detailed_sites(state)) {
+        const auto region = settlement::site_at(state, siteId).regionId;
+        const auto id = journal.nextId++;
+        const PracticeEvent event{state.hot.tSec, kind, region, id, {}, id};
+        const auto controller = state.hot.rulesetId ? nullable(holder(state, region))
+                                                   : browser::OptionalNullable<FactionId>{};
+        const PracticeEventTrace fields{.tSec = event.tSec, .kind = kind, .regionId = region,
+                                       .rootId = id, .id = id, .phase = phaseRef,
+                                       .faction = controller, .controller = controller,
+                                       .instanceId = state.hot.rulesetId ? nullable(InstanceId{})
+                                                                        : browser::OptionalNullable<InstanceId>{}};
+        append_trace(state, event, [&](PracticeEventTrace& row, HistoryPayload& page) {
+            row = fields;
+            if (!phaseRef) row.phase = page.intern_text(state.name(phase), "Practice trace");
+        });
+    }
+}
+
 }
 
 runtime::PracticeEvent emit(RuntimeState& state, EventKind kind,
-                            std::optional<runtime::RegionId> region, EventData data)
+                            std::optional<runtime::RegionId> region, const EventData& data)
 {
     return emit(state, detail::event_id(state, kind), region, data);
 }
 
 runtime::PracticeEvent emit(RuntimeState& state, runtime::EventKindId kind,
-                            std::optional<runtime::RegionId> region, EventData data)
+                            std::optional<runtime::RegionId> region, const EventData& data)
 {
     using namespace detail;
     auto& journal = state.hot.civilization.practiceEvents;
-    auto& p = data.fields;
+    auto p = data.fields;
     FactionId defaultFaction;
     if (state.hot.rulesetId) {
         const auto controller = region ? holder(state, *region) : FactionId{};
         const PracticeSlot* slot = nullptr;
-        if (region && region->value < state.indexes.sitesByRegion.size()) {
+        if ((p.slotIndex || p.practiceId) && region && region->value < state.indexes.sitesByRegion.size()) {
             const auto site = state.indexes.sitesByRegion[region->value];
             if (site) {
                 const auto& board = settlement::site_at(state, site).detailedState.practiceSlots;

@@ -28,14 +28,15 @@ struct EventData {
 };
 
 runtime::PracticeEvent emit(RuntimeState& state, EventKind kind,
-                            std::optional<runtime::RegionId> region = {}, EventData data = {});
+                            std::optional<runtime::RegionId> region = {}, const EventData& data = {});
 // Producers can journal event kinds that have no compiled Charge trigger.
 runtime::PracticeEvent emit(RuntimeState& state, runtime::EventKindId kind,
-                            std::optional<runtime::RegionId> region = {}, EventData data = {});
+                            std::optional<runtime::RegionId> region = {}, const EventData& data = {});
 
 // Reactions are synchronous. A call from inside a root leaves its work queued
 // for the outer drain. Call at the original browser phase seam.
 void drain(RuntimeState& state);
+void resolve_phase(RuntimeState& state, runtime::SymbolId phase);
 void activate(RuntimeState& state, content::Activation activation,
               std::optional<content::Stage> stage = {});
 // Rebuild after a Practice or Structure board change or site membership
