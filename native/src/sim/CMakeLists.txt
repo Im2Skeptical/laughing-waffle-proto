@@ -123,6 +123,11 @@ if(NOT ANDROID)
 		--from "${native_dir}/reference/fixtures/seed-1/state-0.json" --seconds 256
 		--hashes "${CMAKE_CURRENT_BINARY_DIR}/native-run-smoke.tsv"
 		--expect "${native_dir}/src/tests/vectors/native-run-seed-1.tsv" --anchors)
+	add_test(NAME native_run_cross_compiler COMMAND waffle_parity run
+		--from "${native_dir}/reference/fixtures/seed-1/state-0.json" --seconds 2048
+		--hashes "${CMAKE_CURRENT_BINARY_DIR}/native-run-cross-compiler.tsv"
+		--expect "${native_dir}/src/tests/vectors/native-run-cross-compiler.tsv")
+	set_tests_properties(native_run_cross_compiler PROPERTIES TIMEOUT 120)
 	add_test(NAME step_clock COMMAND waffle_step_clock_test)
 	add_test(NAME runtime_history_appends COMMAND waffle_history_test
 		"${native_dir}/reference/fixtures/seed-1/state-0.json")

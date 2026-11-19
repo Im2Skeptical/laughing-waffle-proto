@@ -27,7 +27,17 @@
       "binaryDir": "${sourceDir}/build/optimized-clang",
       "cacheVariables": {
         "CMAKE_C_COMPILER": "${sourceDir}/.tools/llvm-mingw/bin/clang.exe",
-        "CMAKE_CXX_COMPILER": "${sourceDir}/.tools/llvm-mingw/bin/clang++.exe"
+        "CMAKE_CXX_COMPILER": "${sourceDir}/.tools/llvm-mingw/bin/clang++.exe",
+        "CMAKE_RC_COMPILER": "${sourceDir}/.tools/llvm-mingw/bin/windres.exe"
+      }
+    },
+    {
+      "name": "dev-clang",
+      "displayName": "Development (llvm-mingw UCRT Clang)",
+      "inherits": "optimized-clang",
+      "binaryDir": "${sourceDir}/build/dev-clang",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug"
       }
     },
     {
@@ -48,6 +58,7 @@
     { "name": "dev", "configurePreset": "dev" },
     { "name": "optimized", "configurePreset": "optimized" },
     { "name": "optimized-clang", "configurePreset": "optimized-clang" },
+    { "name": "dev-clang", "configurePreset": "dev-clang" },
     { "name": "android", "configurePreset": "android" }
   ],
   "testPresets": [
@@ -64,6 +75,11 @@
     {
       "name": "optimized-clang",
       "configurePreset": "optimized-clang",
+      "output": { "outputOnFailure": true }
+    },
+    {
+      "name": "dev-clang",
+      "configurePreset": "dev-clang",
       "output": { "outputOnFailure": true }
     }
   ]
