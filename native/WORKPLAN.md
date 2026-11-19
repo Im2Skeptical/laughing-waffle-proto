@@ -33,9 +33,18 @@
   - v53 browser catch-up, after PR #107 merges.
 - Coordination: one supervising session sets design and reviews and integrates
   delegated items on its branch. Each item has one owner at a time.
-- Active owners: none. Paused 19 Nov 2026 with no workers running. On
-  resume, the supervising session on `t3/native-rebuild-planning` delegates
-  items to worktree workers and reviews and merges their results.
+- Active owners (resumed 19 Nov 2026 from e6cef481). Each worker branches
+  from e6cef481 and merges its WIP commit first:
+  - N03e-9 Vassal: sol 6.2 worker on `t3/native-timed-vassal-resolution-2`
+    (merges 58f3feae).
+  - N03g cross-compiler determinism: sol 6.2 worker on
+    `t3/native-cross-compiler-determinism-2` (merges 2131c16b).
+  - N03e-3q performance pass 3 and the allocation gate: Astra specialist on
+    `t3/native-pipeline-performance-3`. The supervisor audits it.
+  - N03f-3 new-game state builder: sol 6.2 worker on
+    `t3/native-new-game-state-builder`.
+  - The prelude `death-committed-arrivals/2035` mismatch: the supervisor,
+    on `t3/native-rebuild-planning`.
 - Accepted choices: [README](README.md), [ARCHITECTURE](ARCHITECTURE.md) and
   [THIRD_PARTY.md](THIRD_PARTY.md). C++/SDL3/RmlUi stays the stack. The
   bootstrap renderer is SDL3's default 2D renderer, not RmlUi's SDL_GPU/SDL_GL3 samples.
