@@ -2624,6 +2624,86 @@ No new browser defects were reproduced. The existing restored-ruin
 Housing issue is outside this baseline. No intentional divergence was
 introduced or proposed. The implementation is ready for supervisor review.
 
+## N03i - PR #108 catch-up
+
+Branch `t3/native-catch-up-108` starts at `f781c456` and merges browser
+`9123ed72` (v1.1.79). GameState v53, GameConfig v31 and runner saves v33
+remain the same. The browser fix is confined to the Moon report and its
+writers. Neither runtime changes the RNG, clock or gameplay layer boundaries.
+
+Campaign inserts the empty report row after marking the ruin detailed and
+before transferring control. The native report keeps an ordered range of
+entries keyed by region ID. It appends a missing row using the active Moon's
+bank and keeps the earlier rows in order. Birth, Food, Housing, Faith,
+Migration and Death all use that keyed lookup. The next Birth carries the
+previous row forward and builds the new report in detailed-site order.
+
+`action-campaign-nest-mid-moon` reuses the seed-1 nest exhibit and confirms
+the Campaign at second 2, after Food. It captures every second through 9,
+including Housing at 3 and the rollover at 7. The second-6 journal remains
+available as a separate boundary case.
+
+Verification from the repository root, using the shared toolchain junction:
+
+```powershell
+git diff --exit-code 9123ed72 -- src/
+node --test src/model/tests/detailed-settlements/campaign-ruin.js
+node native/reference/trace.mjs
+node native/reference/stage-probe.mjs --all
+node native/reference/stage-probe.mjs action-campaign-nest-mid-moon 3 7
+node artifacts/n03i/capture-missing-row.mjs
+node native/reference/export-new-game.mjs --windows
+node native/reference/generate.mjs --write
+node native/reference/verify.mjs
+. native/tools/env.ps1
+foreach ($preset in 'optimized','optimized-clang') {
+    Push-Location native
+    cmake --preset $preset
+    cmake --build --preset $preset --parallel 6
+    ctest --preset $preset --output-on-failure
+    Pop-Location
+    $exe = "native/build/$preset/src/sim/waffle_parity.exe"
+    node native/reference/step-windows.mjs $exe
+    $stages = 'advance_clock','prelude','seasonal_practices','spring_death_baseline',
+        'birth','food','after_meals_practices','garrison_upkeep','housing','faith',
+        'migration_practices','migration','death','death_practices','control_and_spatial_pressure',
+        'phase_events_and_drain','vassal_check','final_flush'
+    foreach ($stage in $stages) { node native/reference/stage-pairs.mjs $exe $stage }
+    node native/reference/replay-windows.mjs $exe
+    node native/reference/new-game-windows.mjs $exe
+}
+```
+
+`artifacts/n03i/run-parity.ps1` logs these comparisons. It also runs Housing
+against a browser capture with the row removed and compares the raw Moon
+report key order at seconds 2 and 7.
+
+The browser produced 55 traces and the older opening corpus verifier passed.
+Regenerating that corpus advanced its manifest pin only. Its nine state hashes
+and all 17 checked-in step, stage and replay fixtures matched the fresh browser
+captures. Windows CRLF checkout conversion affects the byte-for-byte
+`trace.mjs --check` comparison for the action-boundaries fixture. The Git
+blobs match the regenerated captures after normalizing the copied rejection
+input's line endings.
+
+MSVC and clang each passed 45 CTests, 30 step windows with 153 unmasked
+comparisons, 835 pairs across all 18 stages, and 34 replay journals with 252
+checkpoints in three replay modes and 55 rejection checks. Both passed five
+exact New Game starts and 92 comparisons across ten New Game windows. Housing
+matched with the row deliberately removed. Both executables exported identical
+snapshots and running hashes through seconds 2 and 7, and the report keys
+matched browser order. The browser Campaign, detailed-settlement and
+detailed-replay tests also passed.
+
+`npm run verify` hit the local HTTP deadline in the browser preview fixture.
+The standalone `npm run test:build-preview` passed on retry, as did
+`npm run test:graphics-options`. `npm test` reached the end of save recovery
+before C: filled. After moving generated output to D:, all remaining browser
+test groups passed in individual runs. The detailed-settlement and
+detailed-replay groups had already passed separately. `npm start` served the
+pinned browser source at the checkout's LAN preview. Logs are under
+`artifacts/n03i/`.
+
 ## N04 - Connected playable slice (pending N02 and N03)
 
 This includes the native forecast/timegraph: worker threads, anchors, restore,
