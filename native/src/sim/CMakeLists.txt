@@ -109,6 +109,10 @@ if(NOT ANDROID)
 
 	find_program(WAFFLE_NODE_EXECUTABLE NAMES node)
 	if(WAFFLE_NODE_EXECUTABLE)
+		add_test(NAME pipeline_steady_state_allocations
+			COMMAND "${WAFFLE_NODE_EXECUTABLE}" "${native_dir}/src/tests/pipeline-allocations.mjs"
+				$<TARGET_FILE:waffle_history_test> "${CMAKE_CURRENT_BINARY_DIR}/allocation-late-state.json")
+		set_tests_properties(pipeline_steady_state_allocations PROPERTIES TIMEOUT 240)
 		add_test(NAME browser_world_topology
 			COMMAND "${WAFFLE_NODE_EXECUTABLE}" "${native_dir}/reference/export-topology.mjs" --check)
 		set_tests_properties(browser_world_topology PROPERTIES TIMEOUT 60)

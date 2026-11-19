@@ -120,7 +120,6 @@ struct ReactionScratch {
     std::vector<Root> roots;
     std::vector<Resolved> resolved;
     std::vector<Deferred> deferred;
-    std::vector<Provider> providers;
 };
 
 ReactionScratch& reaction_scratch()
@@ -149,10 +148,12 @@ void handle_charge(RuntimeState& state, std::uint32_t listener, std::optional<Ev
     const auto candidate = state.practiceListeners.candidates[listener];
     const auto& site = settlement::site_at(state, candidate.site);
     const auto* slot = live_slot(state, candidate);
-    const auto controller = holder(state, site.regionId);
-    const auto& vocabulary = state.practiceVocabulary;
-    if (!slot || site.neutral || settlement::detailed_site(state, site.regionId) != &site ||
-        (!state.hot.rulesetId && controller != vocabulary.player && controller != vocabulary.external)) return;
+    if (!slot || site.neutral || settlement::detailed_site(state, site.regionId) != &site) return;
+    if (!state.hot.rulesetId) {
+        const auto controller = holder(state, site.regionId);
+        const auto& vocabulary = state.practiceVocabulary;
+        if (controller != vocabulary.player && controller != vocabulary.external) return;
+    }
     const auto& def = definition(state, slot->practiceId);
     auto& charge = state.practiceCharge[site.detailedState.practiceSlots.slots[candidate.slot].value];
     const bool gain = kind && (candidate.triggerKinds & mask_bit(*kind)) &&
@@ -191,24 +192,47 @@ void merge_listeners(std::span<const std::uint32_t> remote, Range<std::uint32_t>
 
 void rebuild_listeners(RuntimeState& state)
 {
+    static_assert(static_cast<std::size_t>(Activation::crisis) + 1 == activation_count);
+    static_assert(static_cast<std::size_t>(UpkeepActivation::spring) == activation_count);
+    static_assert(static_cast<std::size_t>(UpkeepActivation::winter) + 1 == activation_count + season_count);
     auto& index = state.practiceListeners;
     index.candidates.clear();
     index.local.assign(state.hot.world.regions.size(), {});
     index.dynamicThreshold.clear();
+    index.modifierKindsBySite.assign(state.hot.world.sites.size(), ~0u);
     for (auto& rows : index.remoteByKind) rows.clear();
+    for (auto& rows : index.scheduled) rows.clear();
+    for (auto& rows : index.upkeep) rows.clear();
     const auto& t = state.compiledContent->tables;
     for (const auto id : settlement::active_sites(state)) {
         const auto& site = settlement::site_at(state, id);
-        const bool dynamic = std::ranges::any_of(state.tables.view(site.detailedState.structureSlots.origins),
-            [&](const auto& cell) {
-                const auto& def = definition(state, cell.structureId);
-                return def.modifiers && std::ranges::any_of(t.view(*def.modifiers), [](const auto& mod) {
-                    return mod.kind == ModifierKind::chargeThresholdReduction;
-                });
-            });
+        const auto origins = site.detailedState.structureSlots.origins;
+        auto& kindsAtSite = index.modifierKindsBySite[id.value];
+        kindsAtSite = 0;
+        for (auto row = origins.begin; row < origins.end; ++row) {
+            const auto& cell = state.tables.at(Index<StructureCell>{row});
+            const auto& def = definition(state, cell.structureId);
+            if (def.modifiers)
+                for (const auto& mod : t.view(*def.modifiers)) kindsAtSite |= mask_bit(mod.kind);
+            if (def.upkeep) {
+                const auto when = def.upkeep->activation;
+                index.upkeep[static_cast<std::size_t>(when)].push_back({id, {row}});
+                if (when == UpkeepActivation::season)
+                    for (auto i = activation_count; i < index.upkeep.size(); ++i)
+                        index.upkeep[i].push_back({id, {row}});
+            }
+        }
+        for (const auto& slot : state.tables.view(site.detailedState.practiceSlots.rows)) {
+            const auto& def = definition(state, slot.practiceId);
+            if (def.mode != Mode::scheduled) continue;
+            for (std::size_t i = 0; i < activation_count; ++i)
+                if (def.activationMask & mask_bit(static_cast<Activation>(i)))
+                    index.scheduled[i].push_back({id, slot.slot, def.id});
+        }
         auto& local = index.local[site.regionId.value];
         local.begin = checked_index(index.candidates.size(), "Practice listeners");
         const auto& slots = site.detailedState.practiceSlots.slots;
+        const bool dynamic = kindsAtSite & mask_bit(ModifierKind::chargeThresholdReduction);
         for (std::uint32_t slot = 0; slot < slots.size(); ++slot) {
             if (!slots[slot]) continue;
             const auto& def = definition(state, state.tables.at(slots[slot]).practiceId);
@@ -244,9 +268,12 @@ void drain_retries(RuntimeState& state, std::span<const Candidate> retries, Acti
     roots.clear();
     resolved.clear();
     deferred.clear();
+    Root* previousRoot = nullptr;
     auto root_for = [&](double id) -> Root& {
+        if (previousRoot && previousRoot->id == id) return *previousRoot;
         const auto prior = std::ranges::lower_bound(roots, id, {}, &Root::id);
-        return prior != roots.end() && prior->id == id ? *prior : *roots.insert(prior, Root{id});
+        previousRoot = &*(prior != roots.end() && prior->id == id ? prior : roots.insert(prior, Root{id}));
+        return *previousRoot;
     };
     const auto cap = static_cast<unsigned>(state.compiledContent->settings().practiceReactionResolutionCap);
     auto discharge = [&](std::uint32_t row, PracticeEvent event, std::size_t payloadIndex, Root& root, bool local) {
@@ -282,13 +309,12 @@ void drain_retries(RuntimeState& state, std::span<const Candidate> retries, Acti
     while (true) {
         while (head < journal.pending.end) {
             const auto event = queue[head];
-            const auto fields = state.eventPayloads[head];
             auto& root = root_for(event.rootId);
             const auto row = head++;
             if (root.stopped) continue;
             journal.activeRoot = event.rootId;
             journal.activeEvent = event.id;
-            trace(state, event, read_event(state, row, scratch.providers), true);
+            trace_pending(state, event, row);
 
             const auto kind = event.kind.value < index.eventKinds.size() ? index.eventKinds[event.kind.value] : std::nullopt;
             const auto listeners = kind ? std::span<const std::uint32_t>(index.remoteByKind[static_cast<std::size_t>(*kind)])
@@ -297,14 +323,17 @@ void drain_retries(RuntimeState& state, std::span<const Candidate> retries, Acti
                                                                                             : Range<std::uint32_t>{};
             for (auto listener : index.dynamicThreshold)
                 if ((listener < local.begin || listener >= local.end) && !std::ranges::binary_search(listeners, listener))
-                    handle_charge(state, listener, {}, event, fields);
-            merge_listeners(listeners, local, [&](auto listener) { handle_charge(state, listener, kind, event, fields); });
+                    handle_charge(state, listener, {}, event, state.eventPayloads[row]);
+            merge_listeners(listeners, local, [&](auto listener) {
+                handle_charge(state, listener, kind, event, state.eventPayloads[row]);
+            });
             merge_listeners(listeners, local, [&](auto listener) {
                 if (listener < local.begin || listener >= local.end) {
                     const auto candidate = index.candidates[listener];
                     const auto* slot = live_slot(state, candidate);
                     const auto& site = settlement::site_at(state, candidate.site);
-                    if (!slot || !matches_event(state, site, *slot, definition(state, slot->practiceId), *kind, event, fields))
+                    if (!slot || !matches_event(state, site, *slot, definition(state, slot->practiceId), *kind,
+                                                event, state.eventPayloads[row]))
                         return;
                 }
                 discharge(listener, event, row, root, true);

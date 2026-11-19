@@ -6,6 +6,12 @@
 
 namespace waffle::sim::runtime {
 
+HistoryArena::HistoryArena(std::size_t firstSlabBlocks)
+{
+    for (auto& bucket : buckets_)
+        bucket.nextSlabBlocks = std::clamp(firstSlabBlocks, std::size_t{1}, slabBlocks);
+}
+
 HistoryArena::~HistoryArena()
 {
     while (slabs_) {

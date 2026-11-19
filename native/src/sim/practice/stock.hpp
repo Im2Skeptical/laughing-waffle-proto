@@ -2,6 +2,8 @@
 
 #include "sim/practice/detail.hpp"
 
+namespace waffle::sim::practice { struct StockPlan; }
+
 namespace waffle::sim::practice::detail {
 
 template<class T, std::size_t N>
@@ -38,9 +40,17 @@ struct Modifier {
 
 using ModifierList = Buffer<Modifier, 96>;
 using Assignments = std::array<Assignment, 5>;
+inline constexpr auto staffStockModifiers = content::mask_bit(content::ModifierKind::flexibleProvider) |
+    content::mask_bit(content::ModifierKind::consumeReduction);
 Assignments workers(const RuntimeState& state, const Site& site);
 double specialists(const RuntimeState& state, const Site& site, content::SpecialistClass kind);
-ModifierList modifiers(const RuntimeState& state, const Site& site);
+inline bool has_modifiers(const RuntimeState& state, const Site& site, unsigned kinds)
+{
+    const auto& siteKinds = state.practiceListeners.modifierKindsBySite;
+    return !site.neutral && (site.id.value >= siteKinds.size() || (siteKinds[site.id.value] & kinds));
+}
+
+ModifierList modifiers(const RuntimeState& state, const Site& site, unsigned kinds = ~0u);
 bool matches(const RuntimeState& state, const content::PracticeDefinition& def,
              const content::ModifiersQuery& query, bool scholar);
 double sum_modifier(const RuntimeState& state, const content::PracticeDefinition& def,
@@ -63,8 +73,19 @@ struct PlannedProvider {
 };
 
 using Sources = Buffer<Source, 128>;
-Sources stock_sources(const RuntimeState& state, const Site& site, bool localOnly,
-                      FactionId beneficiary = {});
+// Scratch is overwritten by the next Stock source query on this thread.
+Sources& stock_sources(const RuntimeState& state, const Site& site, bool localOnly,
+                       FactionId beneficiary = {});
+void plan_stock_into(StockPlan& result, const RuntimeState& state, const Site& site,
+                     std::span<const content::StockInput> consume,
+                     std::span<const content::StockInput> require,
+                     const PracticeSlot* consumer, bool scholar, bool localOnly,
+                     std::span<const content::StockInput> extraConsume = {},
+                     std::span<const content::StockInput> extraRequire = {});
+bool stock_available(const RuntimeState& state, const Site& site,
+                     std::span<const content::StockInput> consume,
+                     std::span<const content::StockInput> require,
+                     const PracticeSlot* consumer, bool scholar, bool localOnly);
 double stock_capacity(const RuntimeState& state, const Site& site, Index<PracticeSlot> slot,
                       bool scholar);
 double stock_output(const RuntimeState& state, const Site& site, const content::PracticeDefinition& def,

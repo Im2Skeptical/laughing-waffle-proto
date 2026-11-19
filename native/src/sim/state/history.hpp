@@ -148,6 +148,31 @@ public:
     using Name = Field;
     std::size_t size() const { return directory_ ? size_ : 0; }
 
+    // Drop the rows while retaining the arena for the next append. A
+    // published copy keeps its original directory and pages.
+    void clear()
+    {
+        if (!directory_ || size_ == 0) return;
+        if (directory_.unique()) {
+            auto& directory = directory_.write();
+            if constexpr (std::is_same_v<Payload, HistoryPayload> && std::is_trivially_destructible_v<Row>) {
+                if (directory.count == 1 && !directory.previous && directory.pages[0].unique()) {
+                    auto& page = directory.pages[0].write();
+                    page.payload.rollback({});
+                    page.count = 0;
+                    size_ = first_ = 0;
+                    return;
+                }
+            }
+            for (std::size_t i = 0; i < directory.count; ++i) directory.pages[i] = {};
+            directory.previous = {};
+            directory.count = 0;
+        } else {
+            directory_ = DirectoryHandle::make(directory_->arena);
+        }
+        size_ = first_ = 0;
+    }
+
     const Row& at(std::size_t index) const
     {
         if (index >= size()) throw std::out_of_range("runtime history index");
@@ -158,18 +183,19 @@ public:
     // Import preserves the exact input window, even for a capture larger than
     // the writer's retention limit. The next append applies that limit.
     template<class Build>
-    static History load(std::size_t count, Build build)
+    static History load(std::size_t count, Build build, const std::shared_ptr<HistoryArena>& emptyArena = {})
     {
         History result;
         for (std::size_t index = 0; index < count; ++index) {
             auto row = [&](Payload& payload) { return build(payload, index); };
-            result.append_record(row);
+            result.append_record(row, emptyArena ? &emptyArena : nullptr);
         }
         return result;
     }
 
+    // A builder returns a row or fills the unpublished row and its payload.
     template<class Build>
-    void append(Build build)
+    void append(Build build, const std::shared_ptr<HistoryArena>& emptyArena = {})
     {
         if constexpr (Limit != 0) {
             if (size() > Limit) {
@@ -179,7 +205,7 @@ public:
                 return;
             }
         }
-        append_record(build);
+        append_record(build, emptyArena ? &emptyArena : nullptr);
         if constexpr (Limit != 0) {
             if (size_ > Limit) {
                 --size_;
@@ -265,7 +291,8 @@ private:
         if (!directory_) newArena = inheritedArena ? *inheritedArena : std::make_shared<HistoryArena>();
         const auto& arena = directory_ ? directory_->arena : newArena;
         const auto oldSize = size();
-        const bool extend = directory_ && directory_->pages[directory_->count - 1]->count < pageSize;
+        const bool extend = directory_ && directory_->count != 0 &&
+            directory_->pages[directory_->count - 1]->count < pageSize;
         DirectoryHandle replacement;
         if (!directory_ || (!extend && directory_->count == directorySize)) {
             replacement = DirectoryHandle::make(arena);
@@ -279,8 +306,9 @@ private:
         if (extend && slot.unique()) {
             // A builder adds page-local payloads. Existing offsets and values
             // remain valid, including if a builder fails before publishing its row.
-            if constexpr (std::is_nothrow_invocable_r_v<Row, Build&, Payload&> &&
-                          std::is_nothrow_move_assignable_v<Row>) {
+            if constexpr ((std::is_nothrow_invocable_r_v<Row, Build&, Payload&> &&
+                           std::is_nothrow_move_assignable_v<Row>) ||
+                          std::is_nothrow_invocable_v<Build&, Row&, Payload&>) {
                 add_row(slot.write(), build);
             } else if constexpr (requires(Payload& payload) { payload.rollback(payload.checkpoint()); }) {
                 auto& page = slot.write();
@@ -311,7 +339,10 @@ private:
     template<class Build>
     static void add_row(Page& page, Build& build)
     {
-        page.rows[page.count] = build(page.payload);
+        if constexpr (std::is_invocable_v<Build&, Row&, Payload&>)
+            build(page.rows[page.count], page.payload);
+        else
+            page.rows[page.count] = build(page.payload);
         ++page.count;
     }
 };

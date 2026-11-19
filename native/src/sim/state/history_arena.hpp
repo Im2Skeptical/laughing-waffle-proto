@@ -12,6 +12,7 @@ namespace waffle::sim::runtime {
 // Page reads do not touch the allocator.
 class HistoryArena final : public std::pmr::memory_resource {
 public:
+    explicit HistoryArena(std::size_t firstSlabBlocks = 8);
     ~HistoryArena() override;
 
 private:

@@ -466,10 +466,20 @@ comparison counts and timing when requested on success.
 
 `--time` repeats the verified advancing portion of the window in batches.
 It reports microseconds per sim-second and the timed advance count. It excludes
-state copying, import, export, masking and hash comparison. CTest uses the
-existing seed-1 anchor and one additional full state,
+state copying, import, export, masking and hash comparison. A second pass times
+each Stage and reports its calls and total time divided by all simulated seconds
+in the window, including seconds where the stage did not run. This pass includes
+clock-read overhead per invocation, so use the first pass for pipeline throughput.
+The optional JSON report includes the breakdown in `stages`, keyed by stage name.
+Step parity in CTest uses the existing seed-1 anchor and one additional full state,
 with separate controls for the lunar schedule, clocks, gates, wildcard
 matching, cut owners and unmasked diagnostics.
+
+The `pipeline_steady_state_allocations` CTest measures global `operator new`
+calls over 3,200 unbroken advances after 512 warmup advances from each of
+`seed-1/0` and `seed-2026-late/3200`. It reuses the generated late anchor
+when its canonical hash matches the reference, or generates it on first use.
+Failed counts are attributed to their pipeline stage.
 
 The N03e-1 seed-1 opening window measured 0.159 µs per sim-second on the
 Intel Core i9-10900K with MSVC 19.50, using the median of three optimized
@@ -512,6 +522,11 @@ rollover. Food, Housing, Faith, Migration and Death each set the moon phase
 at the start of their entry. Full-map Migration Practices run before the
 Migration entry and see the previous phase header. Capture Chaos before
 any lunar work and pass it to the phase event drain after the phase.
+
+After changing a Practice or Structure board or site membership, update
+the site indexes as needed and call `practice::rebuild_listeners`.
+It refreshes the scheduled timings, upkeep and listener indexes. Stock,
+staffing and upkeep status are read live.
 
 From the repo root, capture inputs and check a single stage across the
 generated manifests.

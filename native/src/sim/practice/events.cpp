@@ -42,16 +42,9 @@ void reserve(std::vector<T, Allocator>& rows, std::size_t count)
     rows.reserve(rows.size() + count);
 }
 
-PracticeEventTrace make_trace(const RuntimeState& state, HistoryPayload& page,
-                              PracticeEvent event, const EventData& data, bool includeId,
-                              std::string_view reason)
+PracticeEventTrace trace_fields(PracticeEvent event, const PracticeEventPayload& p, bool includeId)
 {
-    auto text = [&](const auto& id) -> std::optional<HistoryTextId> {
-        if (!id) return {};
-        return page.intern_text(state.name(*id), "Practice trace");
-    };
-    const auto& p = data.fields;
-    PracticeEventTrace result{
+    return {
         .tSec = event.tSec,
         .kind = event.kind,
         .regionId = event.regionId,
@@ -60,45 +53,65 @@ PracticeEventTrace make_trace(const RuntimeState& state, HistoryPayload& page,
         .rootId = event.rootId,
         .parentId = event.parentId,
         .practiceId = p.practiceId,
-        .activationType = text(p.activationType),
         .id = includeId ? std::optional(event.id) : std::nullopt,
         .amount = p.amount,
-        .pool = text(p.pool),
         .scholarStaffed = p.scholarStaffed,
         .discharge = p.discharge,
-        .phase = text(p.phase),
         .premature = p.premature,
         .faction = p.faction,
         .controller = p.controller,
         .instanceId = p.instanceId,
-        .reason = reason.empty() ? text(p.reason) : page.intern_text(reason, "Practice trace reason"),
-        .cause = text(p.cause),
         .targetRegionId = p.targetRegionId,
         .structureId = p.structureId,
         .previousController = p.previousController,
         .military = p.military,
         .untilSec = p.untilSec,
-        .actionKind = text(p.actionKind),
-        .action = text(p.action),
-        .outcome = text(p.outcome),
         .sourceRegionId = p.sourceRegionId,
         .strengthBefore = p.strengthBefore,
         .strengthAfter = p.strengthAfter,
         .martial = p.martial,
-        .destinationId = text(p.destinationId),
         .charge = p.charge,
         .threshold = p.threshold,
     };
+}
+
+void trace_text(const RuntimeState& state, HistoryPayload& page, PracticeEventTrace& row,
+                const PracticeEventPayload& p, std::string_view reason)
+{
+    auto text = [&](const auto& id) -> std::optional<HistoryTextId> {
+        if (!id) return {};
+        return page.intern_text(state.name(*id), "Practice trace");
+    };
+    row.activationType = text(p.activationType);
+    row.pool = text(p.pool);
+    row.phase = text(p.phase);
+    row.reason = reason.empty() ? text(p.reason) : page.intern_text(reason, "Practice trace reason");
+    row.cause = text(p.cause);
+    row.actionKind = text(p.actionKind);
+    row.action = text(p.action);
+    row.outcome = text(p.outcome);
+    row.destinationId = text(p.destinationId);
     if (p.classId.has_key()) {
         const auto id = text(p.classId.value());
-        result.classId = id ? browser::OptionalNullable<HistoryTextId>{*id}
-                            : browser::OptionalNullable<HistoryTextId>{std::nullopt};
+        row.classId = id ? browser::OptionalNullable<HistoryTextId>{*id}
+                         : browser::OptionalNullable<HistoryTextId>{std::nullopt};
     }
-    if (data.providers) result.providers = store_providers(page, *data.providers);
-    if (data.traits) result.traits = store(page, *data.traits);
-    if (data.tags) result.tags = store(page, *data.tags);
-    if (data.sources) result.sourceRegionIds = store(page, *data.sources);
-    return result;
+}
+
+template<class Build>
+void append_trace(RuntimeState& state, PracticeEvent event, const Build& build)
+{
+    const auto& arena = state.practiceRecipeStorage.historyArena;
+    state.histories.at(state.hot.civilization.practiceEvents.trace.row).append(build, arena);
+    if (!event.regionId || event.regionId->value >= state.indexes.sitesByRegion.size()) return;
+    const auto siteId = state.indexes.sitesByRegion[event.regionId->value];
+    if (!siteId) return;
+    auto& reference = settlement::site_at(state, siteId).detailedState.practiceActivationTrace;
+    if (!reference) {
+        using Ref = std::remove_reference_t<decltype(reference)>::value_type;
+        reference = Ref{{state.histories.table<typename Ref::Storage>().append(1, "Practice history").begin}};
+    }
+    state.histories.at(reference->row).append(build, arena);
 }
 
 }
@@ -154,6 +167,16 @@ void admit(RuntimeState& state)
     auto& siteTraces = state.histories.rows<History<PracticeEventTrace, 100, DetailedSettlement_practiceActivationTrace>>();
     reserve(siteTraces, state.hot.world.sites.size());
     reserve(state.histories.rows<History<StockTransfersTransfersEntry, 0, PracticeEventJournalStockTransfers_transfers>>(), 1);
+    // Keep provider capacity for additional live trace pages as sparse site
+    // histories fill. Budget separate pages for site and civilization traces
+    // and for the writer to detach from an anchor.
+    const auto& historyArena = state.practiceRecipeStorage.historyArena;
+    std::vector<void*> providerBlocks(state.hot.world.sites.size() * 3);
+    for (std::size_t count = 1; count <= 16; count *= 2) {
+        const auto bytes = count * sizeof(StockProvider);
+        for (auto& block : providerBlocks) block = historyArena->allocate(bytes, alignof(StockProvider));
+        for (auto* block : providerBlocks) historyArena->deallocate(block, bytes, alignof(StockProvider));
+    }
     prepare_recipe_storage(state);
     rebuild_listeners(state);
 }
@@ -161,40 +184,39 @@ void admit(RuntimeState& state)
 void trace(RuntimeState& state, PracticeEvent event, const EventData& data,
            bool includeId, std::string_view dynamicReason)
 {
-    auto append = [&](auto& history) {
-        history.append([&](HistoryPayload& page) {
-            return make_trace(state, page, event, data, includeId, dynamicReason);
-        });
-    };
-    append(state.histories.at(state.hot.civilization.practiceEvents.trace.row));
-    if (!event.regionId || event.regionId->value >= state.indexes.sitesByRegion.size()) return;
-    const auto siteId = state.indexes.sitesByRegion[event.regionId->value];
-    if (!siteId) return;
-    auto& reference = settlement::site_at(state, siteId).detailedState.practiceActivationTrace;
-    if (!reference) {
-        using Ref = std::remove_reference_t<decltype(reference)>::value_type;
-        reference = Ref{{state.histories.table<typename Ref::Storage>().append(1, "Practice history").begin}};
-    }
-    append(state.histories.at(reference->row));
+    const auto fields = trace_fields(event, data.fields, includeId);
+    append_trace(state, event, [&](PracticeEventTrace& row, HistoryPayload& page) {
+        row = fields;
+        trace_text(state, page, row, data.fields, dynamicReason);
+        if (data.providers) row.providers = store_providers(page, *data.providers);
+        if (data.traits) row.traits = store(page, *data.traits);
+        if (data.tags) row.tags = store(page, *data.tags);
+        if (data.sources) row.sourceRegionIds = store(page, *data.sources);
+    });
 }
 
-EventData read_event(const RuntimeState& state, std::size_t index, std::vector<Provider>& providers)
+void trace_pending(RuntimeState& state, PracticeEvent event, std::size_t index)
 {
     const auto& p = state.eventPayloads[index];
     const auto& payload = state.pendingPracticePayload;
-    EventData result{};
-    result.fields = p;
-    providers.clear();
-    if (p.providers) {
-        for (const auto& row : payload.view(*p.providers))
-            providers.push_back({row, payload.view(row.traits),
-                                 row.substitution ? payload.view(*row.substitution) : std::span<const TraitId>{}});
-        result.providers = providers;
-    }
-    if (p.traits) result.traits = payload.view(*p.traits);
-    if (p.tags) result.tags = payload.view(*p.tags);
-    if (p.sourceRegionIds) result.sources = payload.view(*p.sourceRegionIds);
-    return result;
+    const auto fields = trace_fields(event, p, true);
+    append_trace(state, event, [&](PracticeEventTrace& row, HistoryPayload& page) {
+        row = fields;
+        trace_text(state, page, row, p, {});
+        if (p.providers) {
+            auto& providers = page.rows<StockProvider>();
+            const auto start = checked_index(providers.size(), "Practice providers");
+            for (auto provider : payload.view(*p.providers)) {
+                provider.traits = store(page, payload.view(provider.traits));
+                if (provider.substitution) provider.substitution = store(page, payload.view(*provider.substitution));
+                providers.push_back(provider);
+            }
+            row.providers = Range<StockProvider>{start, checked_index(providers.size(), "Practice providers")};
+        }
+        if (p.traits) row.traits = store(page, payload.view(*p.traits));
+        if (p.tags) row.tags = store(page, payload.view(*p.tags));
+        if (p.sourceRegionIds) row.sourceRegionIds = store(page, payload.view(*p.sourceRegionIds));
+    });
 }
 
 }

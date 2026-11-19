@@ -14,7 +14,7 @@ constexpr std::array residencies{Residency::villager, Residency::stranger};
 
 bool stocked(const RuntimeState& state, const Site& site, std::span<const TraitId> traits)
 {
-    for (auto slot : state.tables.view(site.detailedState.practiceSlots.rows))
+    for (const auto& slot : state.tables.view(site.detailedState.practiceSlots.rows))
         if (state.practiceStock[site.detailedState.practiceSlots.slots[slot.slot].value].value_or(0) > 0 &&
             intersects(traits, state.compiledContent->tables.view(definition(state, slot.practiceId).stockTraits)))
             return true;
@@ -54,6 +54,7 @@ void add_sources(Sources& sources, const RuntimeState& state, const Site& site, 
         const auto range = state.tables.at(*site.neutral).stocks;
         for (std::uint32_t i = range.begin; i < range.end; ++i) {
             const auto& stock = state.tables.rows<NeutralStock>()[i];
+            if (stock.stock <= 0) continue;
             sources.push_back({site.regionId, i - range.begin, {}, {i}, state.tables.view(stock.traits),
                                std::max(0.0, stock.stock), priced});
         }
@@ -62,10 +63,12 @@ void add_sources(Sources& sources, const RuntimeState& state, const Site& site, 
     const auto& board = site.detailedState.practiceSlots;
     for (const auto slot : board.slots) {
         if (!slot) continue;
+        const auto stock = state.practiceStock[slot.value].value_or(0);
+        if (stock <= 0) continue;
         const auto& row = state.tables.at(slot);
         const auto& def = definition(state, row.practiceId);
         sources.push_back({site.regionId, row.slot, slot, {}, state.compiledContent->tables.view(def.stockTraits),
-                           std::max(0.0, state.practiceStock[slot.value].value_or(0)), false});
+                           std::max(0.0, stock), false});
     }
 }
 
@@ -135,8 +138,8 @@ double multiplier(const RuntimeState& state, const Site& site, const PracticeDef
                     for (const auto& slot : state.tables.view(site.detailedState.practiceSlots.rows)) {
                         if (slot.practiceId == def.id || !assignments[slot.slot].scholar) continue;
                         const auto& other = definition(state, slot.practiceId);
-                        if (plan_stock(state, site, tables.view(other.consume), tables.view(other.require_),
-                                       &slot, true, false).ok) ++score;
+                        if (stock_available(state, site, tables.view(other.consume), tables.view(other.require_),
+                                            &slot, true, false)) ++score;
                     }
                 }
                 sum += std::min(scale->cap.value_or(INFINITY), std::floor(score / scale->per)) * scale->amount;
@@ -171,9 +174,10 @@ Assignments workers(const RuntimeState& state, const Site& site)
             const auto scholar = settlement::cohort_view(state, p.specialists.scholar);
             double remaining = settlement::cohort_total(scholar) - scholar.children;
             for (bool required : {true, false}) for (const auto& slot : board) {
+                if (remaining <= 0) break;
                 const auto& def = definition(state, slot.practiceId);
                 auto& worker = result[slot.slot];
-                if (remaining <= 0 || def.scholarRequired.value_or(false) != required ||
+                if (def.scholarRequired.value_or(false) != required ||
                     worker.scholar || worker.tokens >= def.workerCapacity) continue;
                 worker.scholar = true;
                 ++worker.tokens;
@@ -188,6 +192,7 @@ Assignments workers(const RuntimeState& state, const Site& site)
             double remaining = std::floor(std::max(0.0, settlement::cohort_total(total) - total.children -
                 (settlement::cohort_total(scholar) - scholar.children)) / per);
             for (const auto& slot : board) {
+                if (remaining <= 0) break;
                 auto& worker = result[slot.slot];
                 const auto capacity = definition(state, slot.practiceId).workerCapacity;
                 while (remaining > 0 && worker.tokens < capacity) {
@@ -221,13 +226,14 @@ Assignments workers(const RuntimeState& state, const Site& site)
                 += double(bin.count);
         }
     }
-    for (bool influence : {true, false}) for (bool scholar : {true, false}) for (auto& g : groups)
+    for (bool influence : {true, false}) for (bool scholar : {true, false}) for (auto& g : groups) {
+        const auto eff = effectiveness(settings, g.residency);
         for (const auto& slot : board) {
+            if (scholar ? g.scholars <= 0 : g.ordinary < per) break;
             const auto& def = definition(state, slot.practiceId);
             if ((def.category == Category::influence) != influence ||
                 (influence && (g.faction == state.practiceVocabulary.neutral || slot.allegiance != g.faction))) continue;
             auto& worker = result[slot.slot];
-            const auto eff = effectiveness(settings, g.residency);
             if (scholar) {
                 if (g.scholars > 0 && !worker.scholar && worker.tokens < def.workerCapacity) {
                     worker.scholar = true;
@@ -241,13 +247,14 @@ Assignments workers(const RuntimeState& state, const Site& site)
                 g.ordinary -= per;
             }
         }
+    }
     return result;
 }
 
-ModifierList modifiers(const RuntimeState& state, const Site& site)
+ModifierList modifiers(const RuntimeState& state, const Site& site, unsigned kinds)
 {
     ModifierList result;
-    if (site.neutral) return result;
+    if (!has_modifiers(state, site, kinds)) return result;
     for (const auto& cell : state.tables.view(site.detailedState.structureSlots.origins)) {
         if (cell.construction || cell.upkeepActive == false) continue;
         const auto& def = definition(state, cell.structureId);
@@ -258,6 +265,7 @@ ModifierList modifiers(const RuntimeState& state, const Site& site)
         }
         if (!def.modifiers) continue;
         for (const auto& mod : state.compiledContent->tables.view(*def.modifiers)) {
+            if (!(kinds & mask_bit(mod.kind))) continue;
             if (mod.query && !modifier_enabled(state, site, *mod.query)) continue;
             if (mod.query && mod.query->unique.value_or(false) && std::ranges::any_of(result, [&](const Modifier& prior) {
                 return prior.def->kind == mod.kind && prior.def->queryIdentity == mod.queryIdentity;
@@ -312,9 +320,10 @@ double sum_modifier(const RuntimeState& state, const PracticeDefinition& def,
     return amount;
 }
 
-Sources stock_sources(const RuntimeState& state, const Site& site, bool localOnly, FactionId beneficiary)
+Sources& stock_sources(const RuntimeState& state, const Site& site, bool localOnly, FactionId beneficiary)
 {
-    Sources result;
+    thread_local Sources result;
+    result.count = 0;
     add_sources(result, state, site, false);
     if (localOnly || (site.detailedState.control && site.detailedState.control->unrest)) return result;
     const auto held = holder(state, site.regionId);
@@ -335,25 +344,21 @@ Sources stock_sources(const RuntimeState& state, const Site& site, bool localOnl
     return result;
 }
 
-}
-
-namespace waffle::sim::practice {
-
-using namespace detail;
-using namespace content;
-
-StockPlan plan_stock(const RuntimeState& state, const Site& site,
+void plan_stock_into(StockPlan& result, const RuntimeState& state, const Site& site,
                      std::span<const StockInput> consume, std::span<const StockInput> require,
                      const PracticeSlot* consumer, bool scholar, bool localOnly,
                      std::span<const StockInput> extraConsume, std::span<const StockInput> extraRequire)
 {
-    StockPlan result;
+    result.providers.count = 0;
+    result.missing.reset();
     result.ok = true;
-    if (consume.empty() && require.empty() && extraConsume.empty() && extraRequire.empty()) return result;
+    if (consume.empty() && require.empty() && extraConsume.empty() && extraRequire.empty()) return;
     const auto* def = consumer ? &definition(state, consumer->practiceId) : nullptr;
     const auto beneficiary = def && def->category == Category::influence ? consumer->allegiance.value_or(FactionId{}) : FactionId{};
-    auto sources = stock_sources(state, site, localOnly, beneficiary);
-    const auto mods = modifiers(state, site);
+    auto& sources = stock_sources(state, site, localOnly, beneficiary);
+    constexpr auto stockModifiers = staffStockModifiers | mask_bit(ModifierKind::currencyWildcard) |
+        mask_bit(ModifierKind::requireSubstitution);
+    const auto mods = modifiers(state, site, stockModifiers);
     const auto& t = state.compiledContent->tables;
     const auto& v = state.practiceVocabulary;
     const bool flexible = def && std::ranges::any_of(mods, [&](const Modifier& mod) {
@@ -434,6 +439,31 @@ StockPlan plan_stock(const RuntimeState& state, const Site& site,
     result.ok = allocate(require, true) && allocate(extraRequire, true) &&
         allocate(consume, false) && allocate(extraConsume, false);
     if (!result.ok) result.providers.count = 0;
+}
+
+bool stock_available(const RuntimeState& state, const Site& site,
+                     std::span<const StockInput> consume, std::span<const StockInput> require,
+                     const PracticeSlot* consumer, bool scholar, bool localOnly)
+{
+    thread_local StockPlan check;
+    plan_stock_into(check, state, site, consume, require, consumer, scholar, localOnly);
+    return check.ok;
+}
+
+}
+
+namespace waffle::sim::practice {
+
+using namespace detail;
+using namespace content;
+
+StockPlan plan_stock(const RuntimeState& state, const Site& site,
+                     std::span<const StockInput> consume, std::span<const StockInput> require,
+                     const PracticeSlot* consumer, bool scholar, bool localOnly,
+                     std::span<const StockInput> extraConsume, std::span<const StockInput> extraRequire)
+{
+    StockPlan result;
+    plan_stock_into(result, state, site, consume, require, consumer, scholar, localOnly, extraConsume, extraRequire);
     return result;
 }
 
@@ -479,7 +509,7 @@ bool apply_stock(RuntimeState& state, const Site& site, const StockPlan& plan)
         auto& history = state.histories.at(transfers->transfers.row);
         if (transfers->tSec != state.hot.tSec) {
             transfers->tSec = state.hot.tSec;
-            history = {};
+            history.clear();
         }
         const auto& p = row.receipt.record;
         const auto requested = row.receipt.substitution.empty() ? row.receipt.traits : row.receipt.substitution;
@@ -498,7 +528,7 @@ bool apply_stock(RuntimeState& state, const Site& site, const StockPlan& plan)
                 text(trait == v.edible ? "food" : "stock"), text("practice"), text(state.name(p.kind)),
                 p.regionId, row.paymentFor ? row.paymentFor : site.regionId, p.slotIndex, p.practiceId,
                 store(page, trait ? std::span<const TraitId>(&trait, 1) : std::span<const TraitId>{}), p.amount};
-        });
+        }, state.practiceRecipeStorage.historyArena);
     }
     return true;
 }
@@ -512,8 +542,11 @@ double stock_capacity(const RuntimeState& state, const Site& site, Index<Practic
     const auto& row = state.tables.at(slot);
     const auto& def = definition(state, row.practiceId);
     if (def.stockCapacity <= 0) return 0;
-    return std::floor((def.stockCapacity + static_cast<double>(row.tier)) *
-                      multiplier(state, site, def, modifiers(state, site), ModifierKind::capacity, scholar));
+    const auto base = def.stockCapacity + static_cast<double>(row.tier);
+    constexpr auto kind = ModifierKind::capacity;
+    if (!def.stockMultipliers && !def.keywordCapacityScale && !has_modifiers(state, site, mask_bit(kind)))
+        return std::floor(base);
+    return std::floor(base * multiplier(state, site, def, modifiers(state, site, mask_bit(kind)), kind, scholar));
 }
 
 double stock_output(const RuntimeState& state, const Site& site, const PracticeDefinition& def,

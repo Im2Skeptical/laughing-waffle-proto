@@ -34,8 +34,8 @@ runtime::PracticeEvent emit(RuntimeState& state, EventKind kind,
 void drain(RuntimeState& state);
 void activate(RuntimeState& state, content::Activation activation,
               std::optional<content::Stage> stage = {});
-// Rebuild after a board or site membership change. Charge, staffing and
-// upkeep are read live and do not invalidate the index.
+// Rebuild after a Practice or Structure board change or site membership
+// change. Charge, staffing and upkeep status are read live.
 void rebuild_listeners(RuntimeState& state);
 
 }

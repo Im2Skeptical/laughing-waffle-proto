@@ -1,7 +1,9 @@
 #include "core/sha256.hpp"
 #include "sim/state/runtime_state.hpp"
 #include "sim/step/advance_second.hpp"
+#include "sim/step/stages.hpp"
 #include "tools/json_file.hpp"
+#include "tools/reference_topology.hpp"
 
 #include <charconv>
 #include <chrono>
@@ -107,6 +109,24 @@ void append_trace(Trace& history, int sequence)
         row.reason = payload.intern_text({text.data(), formatted.ptr}, "reason");
         return row;
     });
+}
+
+void clear_and_reuse()
+{
+    Trace live;
+    append_trace(live, 10);
+    const auto anchor = live;
+    live.clear();
+    expect(live.size() == 0 && anchor.size() == 1 && anchor.at(0).rootId == 10,
+           "clearing history must preserve published rows");
+    append_trace(live, 20);
+    live.clear();
+    append_trace(live, 30);
+    live.for_each([](const auto& row, const auto& page) {
+        expect(row.rootId == 30 && page.text.at(row.reason->value) == "30",
+               "reused history page must publish its new row and text");
+    });
+    expect(live.size() == 1, "reused history must publish only new rows");
 }
 
 void copy_isolation()
@@ -310,6 +330,52 @@ void benchmark()
               << samples[samples.size() / 2] << " [" << samples.front() << ", " << samples.back() << "]\n";
 }
 
+struct PipelineAllocations {
+    AllocationCalls calls;
+    unsigned start{};
+    std::array<unsigned, static_cast<std::size_t>(sim::Stage::final_flush) + 1> byStage{};
+
+    static void observe(void* context, sim::Stage stage, bool entering)
+    {
+        auto& counts = *static_cast<PipelineAllocations*>(context);
+        if (entering) counts.start = counts.calls.news;
+        else counts.byStage[static_cast<std::size_t>(stage)] += counts.calls.news - counts.start;
+    }
+};
+
+bool pipeline_allocations(const char* fixture, const char* topologies, double start)
+{
+    const auto input = json::parse(waffle::tools::read_file(fixture));
+    const auto mirror = browser::import_game_state(input);
+    const auto topology = waffle::tools::read_reference_topology(topologies, mirror.world.definitionId);
+    auto state = sim::admit_runtime(mirror, &topology, input.find("gameConfig"));
+    expect(state.hot.tSec == start, "unexpected allocation fixture second");
+
+    constexpr int warmup = 512;
+    constexpr int seconds = 3200;
+    for (int i = 0; i < warmup; ++i)
+        expect(sim::advance_one_second(state), "allocation fixture stopped during warmup");
+
+    PipelineAllocations counts;
+    struct Scope {
+        explicit Scope(AllocationCalls& calls) { countedCalls = &calls; }
+        ~Scope() { countedCalls = nullptr; }
+    };
+    {
+        Scope counting(counts.calls);
+        for (int i = 0; i < seconds; ++i)
+            expect(sim::advance_one_second(state, PipelineAllocations::observe, &counts),
+                   "allocation fixture stopped during measurement");
+    }
+    expect(state.hot.tSec == start + warmup + seconds, "allocation workload skipped seconds");
+    std::cout << fixture << " allocated " << counts.calls.news << " times in " << seconds
+              << " sim-seconds after " << warmup << " warmup seconds\n";
+    for (std::size_t i = 0; i < counts.byStage.size(); ++i)
+        if (counts.byStage[i])
+            std::cout << "  " << sim::stage_name(static_cast<sim::Stage>(i)) << ' ' << counts.byStage[i] << '\n';
+    return counts.calls.news == 0;
+}
+
 }
 
 int main(int argc, char** argv)
@@ -317,9 +383,14 @@ int main(int argc, char** argv)
     try {
         if (argc == 2 && std::string_view(argv[1]) == "--bench") {
             benchmark();
+        } else if (argc == 5 && std::string_view(argv[1]) == "--pipeline-allocations") {
+            const bool opening = pipeline_allocations(argv[2], argv[4], 0);
+            const bool late = pipeline_allocations(argv[3], argv[4], 3200);
+            return opening && late ? 0 : 1;
         } else {
             expect(argc == 2, "usage: waffle_history_test <fixture> | --bench");
             copy_isolation();
+            clear_and_reuse();
             failed_append();
             cross_thread_snapshot();
             allocation_control();

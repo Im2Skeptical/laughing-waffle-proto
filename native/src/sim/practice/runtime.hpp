@@ -2,7 +2,9 @@
 
 #include "sim/state/tables.hpp"
 
-namespace waffle::sim::runtime { struct PoliticalForceEntry; }
+#include <memory>
+
+namespace waffle::sim::runtime { class HistoryArena; struct PoliticalForceEntry; struct StructureCell; }
 
 namespace waffle::sim::practice {
 
@@ -25,12 +27,23 @@ struct Candidate {
 
 inline constexpr auto trigger_kind_count = static_cast<std::size_t>(EventKind::scheduledActivation);
 
+struct UpkeepCandidate {
+    runtime::SiteId site;
+    runtime::Index<runtime::StructureCell> cell;
+};
+
+inline constexpr std::size_t activation_count = 10;
+inline constexpr std::size_t season_count = 4;
+
 struct ListenerIndex {
     std::vector<Candidate> candidates;
     std::vector<runtime::Range<std::uint32_t>> local;
     std::array<std::vector<std::uint32_t>, trigger_kind_count> remoteByKind;
     std::vector<std::uint32_t> dynamicThreshold;
     std::vector<std::optional<EventKind>> eventKinds;
+    std::vector<unsigned> modifierKindsBySite;
+    std::array<std::vector<Candidate>, activation_count> scheduled;
+    std::array<std::vector<UpkeepCandidate>, activation_count + season_count> upkeep;
 };
 
 struct RecipeStorage {
@@ -38,12 +51,13 @@ struct RecipeStorage {
     runtime::Range<RegionalModifier> housing, food;
     std::vector<runtime::Range<runtime::SeasonId>> boostSeasons;
     std::vector<runtime::Range<runtime::Entry<runtime::InstanceId, runtime::PoliticalForceEntry>>> politicalForce;
+    std::shared_ptr<runtime::HistoryArena> historyArena;
 };
 
 struct Vocabulary {
     std::array<runtime::EventKindId, static_cast<std::size_t>(EventKind::count)> events;
-    std::array<runtime::SymbolId, 10> activations;
-    std::array<runtime::SeasonId, 4> seasons;
+    std::array<runtime::SymbolId, activation_count> activations;
+    std::array<runtime::SeasonId, season_count> seasons;
     std::array<runtime::SymbolId, 3> pools;
     std::array<runtime::SymbolId, 2> specialties;
     std::array<runtime::ResidencyId, 2> residencies;
