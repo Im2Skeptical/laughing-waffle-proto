@@ -382,6 +382,12 @@ workers are stopped; nothing native is running.
 Note: N03e-3 and N03e-6a both edit `gamestate.v52.json` and regenerate the
 mirror, so expect schema merge conflicts.
 
+19 Nov 2026, resumed: Codex credits were restored. New worktree workers resumed
+N03d-4, N03d-5, N03e-3, N03e-6a and N03e-7a, each by merging its WIP commit.
+N03e-4 Birth waits for the N03e-3 engine before resuming from 0405ee81.
+Merge order: N03d-4 and N03d-5 first, then N03e-3 (its topology stub is
+dropped at merge), then the stages.
+
 ## N03f - Actions, replay and new game (pending N03e)
 
 Action application and `rebuildStateAtSecond` (L2), then new game and world
