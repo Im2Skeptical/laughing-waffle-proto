@@ -39,6 +39,7 @@ void drain(RuntimeState& state);
 void resolve_phase(RuntimeState& state, runtime::SymbolId phase);
 void activate(RuntimeState& state, content::Activation activation,
               std::optional<content::Stage> stage = {});
+void train_specialists(RuntimeState& state, runtime::Site& site, double amount, content::SpecialistClass specialty);
 // Rebuild after a Practice or Structure board change or site membership
 // change. Charge, staffing and upkeep status are read live.
 void rebuild_listeners(RuntimeState& state);

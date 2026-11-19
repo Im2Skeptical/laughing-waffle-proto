@@ -93,6 +93,7 @@ void generate_candidates(RuntimeState& state);
 browser::LifeMapNodeStateOptions campaign_options(const RuntimeState& state, const Vassal& actor,
                                                    const browser::LifeMapNodeState& node);
 browser::LifeMapNodeStateInventory shop_inventory(RuntimeState& state, Vassal& actor, browser::LifeMapNodeState& node);
+bool apply_timed_class_action(RuntimeState& state, Vassal& actor, const browser::LifeMapOptionClassAction& action);
 
 inline constexpr std::array qualityIds{"bronze"sv, "silver"sv, "gold"sv, "diamond"sv};
 inline std::size_t quality_index(std::string_view quality)

@@ -95,7 +95,7 @@ bool complete(RuntimeState& state, Vassal& actor)
     if (!delve && node.selectedOptionId) {
         const auto option = std::ranges::find(node.options, *node.selectedOptionId, &browser::LifeMapOption::id);
         if (option != node.options.end() && option->classAction && option->classAction->onCompletion.value_or(false))
-            return false;
+            if (!apply_timed_class_action(state, actor, *option->classAction)) return false;
     }
     if (completesNode) {
         const auto mods = bonuses(state, actor);
