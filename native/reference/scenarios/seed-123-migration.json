@@ -2,6 +2,12 @@
   "id": "seed-123-migration",
   "start": { "kind": "performanceAnchor", "seed": 123, "anchorSec": 2032 },
   "actions": [],
-  "horizonSec": 98,
-  "keepSeconds": [2032]
+  "horizonSec": 645,
+  "keepSeconds": [2032],
+  "windows": [
+    { "startSec": 2032, "count": 4 },
+    { "startSec": 2122, "count": 3 },
+    { "startSec": 2128, "count": 3 },
+    { "startSec": 2674, "count": 4 }
+  ]
 }

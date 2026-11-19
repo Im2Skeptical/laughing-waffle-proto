@@ -358,10 +358,44 @@ N03e-3 coding against fixed interfaces:
 - N03d-5 allocation-free history appends: in-place writes to a branch-owned
   tail plus an amortized page arena, with the `History` API unchanged.
 
-19 Nov 2026: the Codex workspace ran out of credits. N03e-7a stopped
-mid-task. Its unverified partial work is preserved as WIP commit 3d01d5fb on
-`t3/port-native-migration-stage`. It includes a `seed-123-migration` scenario
-with natural movement at seconds 2033 and 2129, 32 people each. Other active
+N03e-7a result (resumed the credit-stop WIP 3d01d5fb on `t3/native-migration-stage`).
+The Migration dispatcher updates the moon header, reselects reservations,
+apportions housing by live road, books departures, and publishes movements
+and regional/meal reports. The prelude cancels pending bookings before town
+expiry. Migration draws no RNG and matches browser baseline 496d9971 without
+an intentional divergence. N03e-3 owns scheduled Migration Practices before
+the header. N03e-7 Death owns arrival food, hardship and committing arrivals.
+At seed-1/1598 the Migration cancellation matches, with four remaining
+prelude masks covering control, the storefront, and Practice event writes
+(N03e-8). Movement tables and report arrays still have step masks for
+unported reservation/Stock writes and Death, while regional and site report
+presence, timestamps and source losses are now exposed.
+
+Windows MSVC optimized build and CTests passed 26/26 with
+`cmake --preset optimized`, `cmake --build --preset optimized` and
+`ctest --preset optimized --output-on-failure` from `native/`.
+`node native/reference/stage-probe.mjs --all --check` and
+`node native/reference/stage-pairs.mjs native/build/optimized/src/sim/waffle_parity.exe migration`
+matched 15/15 pairs unmasked. Real moves include seed-123/2033 and /2129
+(32 each) and seed-1/1715 (5 and 3). Seed-123/2039 has no moves or unplaced
+people, /2123 has 31 unplaced and /2675 has 318 unplaced across two sources.
+`settlement_migration` also passes unmasked housing contention, live refunds
+and legacy external emigration. `node native/reference/trace.mjs` and
+`node native/reference/step-windows.mjs native/build/optimized/src/sim/waffle_parity.exe`
+produced 14 passing windows and 120 comparisons.
+
+Using `waffle_parity step --from <window>/state-<start>.json --seconds <k>
+--expect-dir <window> --masks native/reference/parity-masks.json --time`,
+the median of five runs of the ported pipeline on the i9-10900K was 0.52 µs/sim-s for
+seed-1/0 (`k=39`), 3.18 for seed-1-migration/1714, 1.65 for
+seed-123-migration/2032, and 3.55 for seed-123-migration/2674 (`k=3`).
+Windows are in `artifacts/native-reference/windows/`. The optimized
+allocation probe in `artifacts/native-migration/allocations.cpp` measured
+zero allocations across 50,000 warmed invocations per input, including real
+bookings and unresolved reservations. Scratch and state arenas allocate
+when first populated or at a new high-water mark. Android was untested.
+
+Other active
 workers may stop the same way. Their worktrees hold uncommitted work. Resume
 each from its branch and worktree. Also stopped, with WIP preserved:
 N03d-4 44d39ed4 on `t3/native-world-topology-admission` (the exporter found 4

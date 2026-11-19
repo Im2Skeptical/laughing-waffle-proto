@@ -13,6 +13,7 @@ struct CapturedContent {
     // The baseline vocabularies are frozen at import. Config definition
     // dictionary order is the prefix of the corresponding definition IDs.
     runtime::IdTables ids;
+    settlement::MigrationContent migration;
 };
 
 struct PopulationTotals {

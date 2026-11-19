@@ -147,7 +147,8 @@ std::size_t RuntimeState::hot_bytes() const
 {
     return sizeof(hot) + tables.live_bytes() + live_bytes(practiceStock) +
            live_bytes(practiceCharge) + live_bytes(jointCounts) + live_bytes(eventPayloads) +
-           indexes.live_bytes() + addedIds.live_bytes() + sizeof(settlementPrelude) + sizeof(populationVocabulary);
+           indexes.live_bytes() + addedIds.live_bytes() + sizeof(settlementPrelude) + sizeof(populationVocabulary) +
+           sizeof(migration) + live_bytes(migration.storage);
 }
 
 void refresh_site_population_index(RuntimeState& state, runtime::SiteId id)

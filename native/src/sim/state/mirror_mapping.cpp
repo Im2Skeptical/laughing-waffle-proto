@@ -403,6 +403,10 @@ RuntimeState import_runtime(const browser::GameState& state)
                           [](const auto& row) -> const auto& { return row.first; });
     seed_rows<StructureId>(*content, state.gameConfig.gamepieces.structures, "$.gameConfig.gamepieces.structures",
                            [](const auto& row) -> const auto& { return row.first; });
+    for (const auto& [id, def] : state.gameConfig.gamepieces.structures)
+        content->migration.structureHousing.push_back(def.housing.value_or(0));
+    for (const auto& [id, def] : state.gameConfig.gamepieces.practices)
+        content->migration.ediblePractices.push_back(std::ranges::find(def.stockTraits, "Edible") != def.stockTraits.end());
     seed_recipe_vocabulary(*content, *configJson.find("gamepieces"), "$.gameConfig.gamepieces");
     seed_rows<RegionId>(*content, state.world.regions, "$.world.regions",
                          [](const auto& row) -> const auto& { return row.id; });

@@ -16,11 +16,14 @@ struct MigrationStorage {
     runtime::Range<runtime::ElderCohort> elders;
 };
 
+struct MigrationContent {
+    std::vector<double> structureHousing;
+    std::vector<unsigned char> ediblePractices;
+};
+
 struct MigrationCache {
     runtime::Range<runtime::MigrationReport> reports;
     std::vector<MigrationStorage> storage;
-    std::vector<double> structureHousing;
-    std::vector<unsigned char> ediblePractices;
     std::array<runtime::ResidencyId, 2> classes;
     runtime::FactionId ruin;
     runtime::SymbolId stayed;

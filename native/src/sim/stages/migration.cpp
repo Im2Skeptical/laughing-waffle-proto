@@ -32,6 +32,7 @@ struct SiteWork {
     std::vector<PopulationBin> available, residents;
     std::vector<Candidate> candidates;
     double projected{}, housing{};
+    std::size_t reportCopies{};
     bool initialized{}, emits{}, changed{};
 };
 
@@ -54,7 +55,8 @@ struct Booking {
 
 struct Workspace {
     std::vector<SiteWork> sites;
-    std::vector<IntentWork> work;
+    std::vector<IntentWork> intentRows;
+    std::span<IntentWork> work;
     std::vector<PopulationBin> eligible, selected, removed, payload;
     std::vector<Booking> bookings;
     std::vector<std::size_t> proposals, ranked;
@@ -85,6 +87,8 @@ bool has_ledger(const PopulationByClass& population)
 
 std::span<const RegionId> neighbors(const RuntimeState& state, RegionId region)
 {
+    // Migration uses current roads (getConnectedRegionIds in the browser).
+    // Physical neighbors alone are insufficient and need no topology lookup.
     if (region.value >= state.indexes.roadsByRegion.size()) return {};
     const auto range = state.indexes.roadsByRegion[region.value];
     return std::span(state.indexes.roadNeighbors).subspan(range.begin, range.size());
@@ -114,6 +118,7 @@ void collect_composition(const RuntimeState& state, const PopulationComposition&
         }
         const PopulationClass summary{cohort.specialists, cohort.children, cohort.adults, cohort.eldersByAge};
         split_specialist_cohorts(state, summary, scratch.parts, scratch.cohort);
+        for (auto& part : scratch.parts) std::ranges::sort(part.elders, {}, &ElderCohort::age);
         const auto& lex = state.populationVocabulary;
         const auto append = [&](std::size_t specialty, auto kind, auto age, std::uint64_t count) {
             if (count) bins.push_back({classes[c], {{}, lex.specialties[specialty], kind, age}, count});
@@ -153,22 +158,24 @@ double housing_capacity(const RuntimeState& state, SiteId id)
     if (!id) return 0;
     const auto& site = site_at(state, id);
     if (site.neutral) return state.tables.at(*site.neutral).housing;
+    const auto& housing = state.content->migration.structureHousing;
     double capacity = 0;
     for (const auto& cell : state.tables.view(site.detailedState.structureSlots.origins)) {
-        if (cell.construction || cell.structureId.value >= state.migration.structureHousing.size()) continue;
+        if (cell.construction || cell.structureId.value >= housing.size()) continue;
         const double quality = 1 + .25 * std::max(0.0, cell.qualityBonus.value_or(0));
-        capacity += js::floor(state.migration.structureHousing[cell.structureId.value] * quality);
+        capacity += js::floor(housing[cell.structureId.value] * quality);
     }
     return capacity;
 }
 
 double local_food(const RuntimeState& state, const Site& site)
 {
+    const auto& edible = state.content->migration.ediblePractices;
     double food = 0;
     for (const auto slot : site.detailedState.practiceSlots.slots) {
         if (!slot) continue;
         const auto practice = state.tables.at(slot).practiceId.value;
-        if (practice < state.migration.ediblePractices.size() && state.migration.ediblePractices[practice])
+        if (practice < edible.size() && edible[practice])
             food += std::max(0.0, state.practiceStock[slot.value].value_or(0));
     }
     return food;
@@ -176,10 +183,13 @@ double local_food(const RuntimeState& state, const Site& site)
 
 void refresh_intents(RuntimeState& state, std::span<const MigrationIntent> intents, Workspace& scratch)
 {
-    scratch.sites.resize(state.hot.world.sites.size());
-    scratch.work.resize(intents.size());
-    for (auto& site : scratch.sites) {
+    const auto siteCount = state.hot.world.sites.size();
+    if (scratch.sites.size() < siteCount) scratch.sites.resize(siteCount);
+    if (scratch.intentRows.size() < intents.size()) scratch.intentRows.resize(intents.size());
+    scratch.work = std::span(scratch.intentRows).first(intents.size());
+    for (auto& site : std::span(scratch.sites).first(siteCount)) {
         site.initialized = site.emits = site.changed = false;
+        site.reportCopies = 0;
         site.candidates.clear();
     }
     std::size_t original = 0;
@@ -222,6 +232,7 @@ void rank_destinations(const RuntimeState& state, Workspace& scratch)
 {
     for (const auto site : detailed_sites(state)) {
         auto& output = scratch.sites[site.value];
+        ++scratch.sites[site_for(state, site_at(state, site).regionId).value].reportCopies;
         const auto& residents = population_totals(state, site).byResidency;
         output.projected = double(residents[0].total() + residents[1].total());
         output.housing = housing_capacity(state, site);
@@ -260,6 +271,32 @@ bool joint_bins(std::span<const PopulationBin> bins)
     return !bins.empty() && bool(bins.front().key.allegiance);
 }
 
+void rank_legacy_bins(const RuntimeState& state, Workspace& scratch, std::vector<PopulationBin>& bins)
+{
+    // Each specialty numbers its remaining elder ages independently. After a
+    // partial booking removes an age, that specialty's later ages move up.
+    const auto& vocabulary = state.populationVocabulary;
+    std::array<std::array<std::size_t, 3>, 2> elderRanks{};
+    scratch.ranked.clear();
+    for (const auto& bin : bins) {
+        const auto residency = std::size_t(bin.residency);
+        const auto specialty = std::size_t(std::ranges::find(vocabulary.specialties, bin.key.specialty) -
+                                           vocabulary.specialties.begin());
+        const auto order = bin.key.age ? 2 + elderRanks[residency][specialty]++
+            : (bin.key.kind == vocabulary.stages[1] ? 0 : 1);
+        scratch.ranked.push_back((1000 * residency + order) * 3 + specialty);
+    }
+    // Stable insertion sort on the small, nearly ordered cohort slice.
+    for (std::size_t i = 1; i < bins.size(); ++i) {
+        auto j = i;
+        while (j > 0 && scratch.ranked[j - 1] > scratch.ranked[j]) {
+            std::swap(scratch.ranked[j - 1], scratch.ranked[j]);
+            std::swap(bins[j - 1], bins[j]);
+            --j;
+        }
+    }
+}
+
 BinRange append_bins(Workspace& scratch, std::span<const PopulationBin> bins)
 {
     const auto offset = scratch.payload.size();
@@ -280,7 +317,8 @@ void book_departure(const RuntimeState& state, Workspace& scratch, std::size_t i
         work.external = count;
     }
     scratch.bookings.push_back({index, destination, count, append_bins(scratch, scratch.selected), external});
-    work.remaining -= count;
+    work.remaining = external ? 0 : work.remaining - count;
+    if (work.remaining > 0 && !joint_bins(work.bins)) rank_legacy_bins(state, scratch, work.bins);
 
     if (!work.source) return;
     auto& source = scratch.sites[work.source.value];
@@ -435,15 +473,24 @@ MigrationStorage acquire_storage(RuntimeState& state, const Workspace& scratch)
     auto& buffers = state.migration.storage;
     const auto reusable = std::ranges::find_if(buffers, [&](const auto& storage) { return !referenced(state, storage); });
     auto& storage = reusable == buffers.end() ? buffers.emplace_back() : *reusable;
+    const auto copies = [&](RegionId region) -> std::size_t {
+        const auto site = site_for(state, region);
+        return site ? scratch.sites[site.value].reportCopies : 0;
+    };
+    std::size_t movementRows = 0;
+    for (const auto& booking : scratch.bookings)
+        movementRows += 1 + copies(scratch.work[booking.intent].intent.sourceId) + copies(booking.destination);
+    std::size_t summaryRows = 0;
     std::size_t unresolved = 0;
     std::size_t binCount = scratch.payload.size();
     for (const auto& work : scratch.work) {
+        if (work.requested > 0) summaryRows += 1 + copies(work.intent.sourceId);
         if (work.remaining <= 0) continue;
         ++unresolved;
         binCount += work.bins.size();
     }
-    grow(state.tables.table<MigrationMovement>(), storage.movements, 3 * scratch.bookings.size());
-    grow(state.tables.table<MigrationIntentSummary>(), storage.summaries, 2 * intents);
+    grow(state.tables.table<MigrationMovement>(), storage.movements, movementRows);
+    grow(state.tables.table<MigrationIntentSummary>(), storage.summaries, summaryRows);
     grow(state.tables.table<MigrationSourceLoss>(), storage.unresolved, unresolved);
     grow(state.tables.table<JointCohort>(), storage.joint, binCount);
     grow(state.tables.table<ElderCohort>(), storage.elders, 2 * binCount);
@@ -464,6 +511,7 @@ MigrationReport publish_bookings(RuntimeState& state, MoonTurn& turn, Workspace&
     auto& losses = state.hot.civilization.chaos.pendingLosses;
     std::uint32_t internal = 0;
     std::uint32_t external = 0;
+    double externalEmigrants = 0;
     for (const auto& booking : scratch.bookings) {
         const auto& intent = scratch.work[booking.intent];
         const auto bins = std::span(scratch.payload).subspan(booking.bins.begin, booking.bins.size);
@@ -481,9 +529,10 @@ MigrationReport publish_bookings(RuntimeState& state, MoonTurn& turn, Workspace&
             movement.external = true;
             movement.originalIndex = double(intent.original);
             movement.survivorComposition = movement.composition;
-            losses.externalEmigrants += booking.amount;
+            externalEmigrants += booking.amount;
         }
     }
+    losses.externalEmigrants += js::floor(externalEmigrants);
     for (const auto& work : scratch.work) {
         if (work.requested <= 0) continue;
         const auto& intent = work.intent;
@@ -568,6 +617,9 @@ void publish_reports(RuntimeState& state, MoonTurn& turn, MigrationReport availa
         const auto compact = [](MigrationMovement movement) {
             movement.external = movement.external.value_or(false);
             movement.originalIndex.reset();
+            // The booking defers arrival survival. The report clones its
+            // absent survivor composition as an empty pair of cohorts.
+            if (!movement.survivorComposition) movement.survivorComposition.emplace();
             return movement;
         };
         MigrationReport report;
@@ -605,10 +657,6 @@ void prepare_migration(RuntimeState& state)
     cache.stayed = state.intern<SymbolId>("stayed", path);
     cache.ruin = state.intern<FactionId>("ruin", path);
     cache.classes = {state.intern<ResidencyId>("villager", path), state.intern<ResidencyId>("stranger", path)};
-    const auto& pieces = state.content->config.gamepieces;
-    for (const auto& [id, def] : pieces.structures) cache.structureHousing.push_back(def.housing.value_or(0));
-    for (const auto& [id, def] : pieces.practices)
-        cache.ediblePractices.push_back(std::ranges::find(def.stockTraits, "Edible") != def.stockTraits.end());
 }
 
 void resolve_migration(RuntimeState& state, MoonTurn& turn)
