@@ -690,6 +690,15 @@ Wave started 19 Nov 2026:
   stability, anchor-restore self-consistency, and an unrun Android
   command-line harness.
 
+Pause requested by Cam, 19 Nov 2026. All four workers were asked to stop at
+a clean checkpoint. N03f-3 stopped at verified world generation
+(`t3/native-new-game-world-generation` 4dd0cf7b), which is merged. Native
+`regional-v2` topology, ranked opening roads and region colours match browser
+exports for 13 seeds. The new-game state builder had not started. The
+supervisor's merged build passed 32/32 enabled CTests and 19/19 step windows.
+`std::unordered_set` in biome generation is used only for membership; order
+comes from vectors.
+
 **N03e-3 result (19 Nov 2026).** `t3/native-scheduled-recipe-engine` resumes
 `ba7abdc3` with the seed-1 topology stub still isolated at `c40df7fd`.
 [Practice activation and reactions](src/sim/practice/practice.hpp) expose
