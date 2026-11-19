@@ -46,8 +46,21 @@
       1000 game years per wall second allows 31.25 µs per published second
       on desktop, so the desktop dream target is within reach. Pixel 6 is
       the binding constraint, at a projected 15–21k sim-s/s against 32k.
-  - N03e-3q pass 5: stopped at the shared-storage checkpoint. Savings were
-    1.144 opening / 1.173 late µs/sim-s. [Measurements and verification](#n03e-3q-pass-5--shared-practice-trace-storage-stopped-19-nov-2026).
+  - N03e-3q pass 5, shared trace storage: **adopted by the supervisor**
+    (ef3d3daf).
+    - The worker stopped below the 2 µs threshold, saving 1.144 opening and
+      1.173 late, and retired the prototype on its branch. The supervisor
+      restored the code from 05c81306, because it is exact, improves
+      restore p95 and cuts retained anchor bytes by about 5%.
+      [Measurements](#n03e-3q-pass-5--shared-practice-trace-storage-stopped-19-nov-2026).
+    - Ownership was audited. A value copy opens a fresh chunk for its next
+      write, records are immutable once published, receipts allocate inside
+      the chunk, and the last handle frees it.
+    - Re-verified on MSVC and clang: 36/36 CTests each, 829/829 pairs,
+      30 windows with zero masks, and the New Game checks.
+    - Pipeline is now **17.5 opening / 21.7 late** µs/sim-s.
+    - Next performance step: measure enqueue, receipt construction and
+      publication separately before trying another storage layout.
 - Previous wave, merged:
   - N03e-9 535f641d (merge 56baea63)
   - N03g ae3ccaa6 (efba073f)
