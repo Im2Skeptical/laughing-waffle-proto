@@ -2,14 +2,40 @@
 
 ## Handoff
 
-- State: planning revised 18 Nov 2026; see [ARCHITECTURE](ARCHITECTURE.md).
-  N01 is done. N02 and N03 are split into bounded items below. No C++
-  gameplay or cross-language parity exists yet.
+- State: **paused 19 Nov 2026 at Cam's request**, at `t3/native-rebuild-planning`
+  97b5b746 (local, not pushed). Every tick stage is ported except the
+  Campaign, Delve, Founding and Commission parts of Vassal.
+
+  Verification on the merged optimized build:
+  - 33/33 enabled CTests passed.
+  - 23 step windows passed (138 comparisons) with 14 Vassal masks.
+  - Every stage pair passed except prelude at
+    `death-committed-arrivals/2035`, which starts at
+    `$.civilization.practiceEvents.nextId`. It predates the pause merges
+    and is unresolved.
+
+  Pipeline cost on the idle i9-10900K: 21.5 µs/sim-s at opening and 29.4
+  late. Food is 9.7, Birth 3.8, phase drain 2.9 and seasonal 1.2. The
+  budget is 10–12. `pipeline_steady_state_allocations` stays disabled
+  (263 opening allocations remain, 206 of them in Migration).
+
+  Unmerged WIP to resume from:
+
+  | Item | Branch | Commit | Remaining |
+  | --- | --- | --- | --- |
+  | N03e-9 | `t3/native-timed-vassal-resolution` | 58f3feae | Campaign, Delve and Founding probes fail; Commission not started |
+  | N03g | `t3/native-cross-compiler-determinism` | 2131c16b | Clang preset and Android target; 32,000 s cross-compiler runs not yet done |
+
+  Not started:
+  - N03f-3 new-game state builder. World generation is merged.
+  - N03e-3q third performance pass and allocation fixes.
+  - N03f actions and replay (L2).
+  - v53 browser catch-up, after PR #107 merges.
 - Coordination: one supervising session sets design and reviews and integrates
   delegated items on its branch. Each item has one owner at a time.
-- Active owners (18 Nov 2026): supervising session on `t3/native-rebuild-planning`.
-  It delegated N02a, N03a, N03b and N03c to separate worktree workers, whose
-  results it reviews and merges.
+- Active owners: none. Paused 19 Nov 2026 with no workers running. On
+  resume, the supervising session on `t3/native-rebuild-planning` delegates
+  items to worktree workers and reviews and merges their results.
 - Accepted choices: [README](README.md), [ARCHITECTURE](ARCHITECTURE.md) and
   [THIRD_PARTY.md](THIRD_PARTY.md). C++/SDL3/RmlUi stays the stack. The
   bootstrap renderer is SDL3's default 2D renderer, not RmlUi's SDL_GPU/SDL_GL3 samples.
