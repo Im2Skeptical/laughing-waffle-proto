@@ -22,7 +22,8 @@ function window(name, state, count, expose, check) {
     write(join(directory, stateFile(state.tSec)), serializeGameState(state));
   }
   const maskPath = join(directory, "masks.json");
-  write(maskPath, { ...masks, masks: masks.masks.filter(({ path }) => !expose.some(field => path.endsWith(field))) });
+  write(maskPath, { ...masks, masks: masks.masks.filter(({ path }) =>
+    !expose.some(field => path.endsWith(field) || path.includes(field + "."))) });
   const result = spawnSync(parity, [
     "step", "--from", first, "--seconds", String(count), "--expect-dir", directory, "--masks", maskPath,
   ], { stdio: "inherit" });

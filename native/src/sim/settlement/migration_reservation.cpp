@@ -4,6 +4,7 @@
 #include "sim/settlement/population.hpp"
 
 #include <algorithm>
+#include <span>
 
 namespace waffle::sim::settlement {
 namespace {
@@ -43,29 +44,32 @@ std::array<CohortView, 3> specialist_views(const RuntimeState& state, const Coho
             cohort_view(state, rows.specialists.scholar), cohort_view(state, rows.specialists.warrior)};
 }
 
-void collect_legacy(const RuntimeState& state, const PopulationClass& population, std::vector<Bin>& bins)
+std::span<Bin> collect_legacy(const RuntimeState& state, const PopulationClass& population, std::span<Bin> storage)
 {
     const auto rows = specialist_views(state, population);
     const auto& vocab = state.populationVocabulary;
+    std::size_t used = 0;
     for (std::size_t specialty = 0; specialty < rows.size(); ++specialty) {
         const auto& row = rows[specialty];
         const bool ordinary = specialty == 0;
         const auto add = [&](LifeStageId stage, std::optional<std::uint64_t> age, double count, std::size_t order) {
-            bins.push_back({{FactionId{}, vocab.specialties[specialty], stage, age}, count, 0, 0, order * 3 + specialty});
+            storage[used++] = {{FactionId{}, vocab.specialties[specialty], stage, age}, count, 0, 0, order * 3 + specialty};
         };
         add(vocab.stages[1], {}, row.children - (ordinary ? rows[1].children + rows[2].children : 0), 0);
         add(vocab.stages[0], {}, row.adults - (ordinary ? rows[1].adults + rows[2].adults : 0), 1);
-        std::size_t order = 2;
+        const auto elderStart = used;
         for (const auto& elder : row.elders) {
-            const auto used = ordinary ? elder_count(rows[1].elders, elder.age) + elder_count(rows[2].elders, elder.age) : 0;
-            if (double(elder.count) > used)
-                add(vocab.stages[2], elder.age, double(elder.count) - used, order++);
+            const auto specialists = ordinary ? elder_count(rows[1].elders, elder.age) + elder_count(rows[2].elders, elder.age) : 0;
+            if (double(elder.count) > specialists)
+                add(vocab.stages[2], elder.age, double(elder.count) - specialists, 2);
         }
+        std::ranges::sort(storage.subspan(elderStart, used - elderStart), {}, [](const Bin& bin) { return bin.key.age; });
     }
+    return storage.first(used);
 }
 
 void remove_reserved(const RuntimeState& state, const MoonTurn& turn, RegionId region, Residency residency,
-                     bool joint, std::vector<Bin>& bins)
+                     bool joint, std::span<Bin> bins)
 {
     const auto& vocab = state.populationVocabulary;
     for (const auto& intent : state.tables.view(turn.migrationIntents)) {
@@ -95,23 +99,34 @@ void remove_reserved(const RuntimeState& state, const MoonTurn& turn, RegionId r
     }
 }
 
-double select_bins(std::vector<Bin>& bins, std::vector<std::size_t>& ranked, double requested)
+double select_bins(std::span<Bin>& bins, std::span<std::size_t> rankStorage, double requested, bool joint)
 {
-    std::erase_if(bins, [](const auto& bin) { return bin.count <= 0; });
+    const auto unavailable = std::ranges::remove_if(bins, [](const auto& bin) { return bin.count <= 0; });
+    bins = bins.first(unavailable.begin() - bins.begin());
     double available = 0;
-    for (const auto& bin : bins) available += bin.count;
+    std::array<std::size_t, 3> nextElder{2, 2, 2};
+    for (auto& bin : bins) {
+        available += bin.count;
+        // Legacy tie ranks are based on the surviving age list after
+        // subtracting the reservations, independently for each specialty.
+        if (!joint && bin.key.age) {
+            const auto specialty = bin.order % 3;
+            bin.order = nextElder[specialty]++ * 3 + specialty;
+        }
+    }
     const auto target = std::min(available, requested);
     if (target <= 0) return 0;
-    ranked.clear();
+    std::size_t candidates = 0;
     double allocated = 0;
     for (auto& bin : bins) {
         const auto exact = target * bin.count / available;
         bin.selected = std::min(bin.count, js::floor(exact));
         bin.remainder = exact - bin.selected;
         allocated += bin.selected;
-        if (bin.selected < bin.count) ranked.push_back(&bin - bins.data());
+        if (bin.selected < bin.count) rankStorage[candidates++] = &bin - bins.data();
     }
     if (allocated < target) {
+        const auto ranked = rankStorage.first(candidates);
         std::ranges::sort(ranked, [&](std::size_t a, std::size_t b) {
             const auto& left = bins[a];
             const auto& right = bins[b];
@@ -125,12 +140,13 @@ double select_bins(std::vector<Bin>& bins, std::vector<std::size_t>& ranked, dou
             ++allocated;
         }
     }
-    std::erase_if(bins, [](const auto& bin) { return bin.selected <= 0; });
+    const auto unselected = std::ranges::remove_if(bins, [](const auto& bin) { return bin.selected <= 0; });
+    bins = bins.first(unselected.begin() - bins.begin());
     return allocated;
 }
 
 ClassComposition write_composition(RuntimeState& state, MigrationReservationCache::Payload& payload,
-                                   const std::vector<Bin>& bins, bool joint)
+                                   std::span<const Bin> bins, bool joint)
 {
     ClassComposition result{};
     const auto& vocab = state.populationVocabulary;
@@ -172,6 +188,22 @@ ClassComposition write_composition(RuntimeState& state, MigrationReservationCach
     return result;
 }
 
+std::size_t legacy_bin_capacity(const PopulationClass& population)
+{
+    return 6 + population.eldersByAge.size() + population.specialists.scholar.eldersByAge.size()
+        + population.specialists.warrior.eldersByAge.size();
+}
+
+void prepare_scratch(MigrationReservationCache& cache, std::size_t bins)
+{
+    // Size these buffers so a value-copy of RuntimeState retains the
+    // workspace through restore and preview forks.
+    if (cache.bins.size() >= bins) return;
+    const auto size = std::max(bins, cache.bins.size() * 2);
+    cache.bins.resize(size);
+    cache.ranked.resize(size);
+}
+
 }
 
 void prepare_migration_reservations(RuntimeState& state)
@@ -188,13 +220,11 @@ void prepare_migration_reservations(RuntimeState& state)
     for (const auto& site : sites) {
         for (const auto residency : {Residency::villager, Residency::stranger}) {
             const auto& population = population_class(site.detailedState.populationByClass, residency);
-            const auto joints = population.joint.value_or(Range<JointCohort>{}).size();
-            const auto elders = population.eldersByAge.size()
-                + population.specialists.scholar.eldersByAge.size() + population.specialists.warrior.eldersByAge.size();
+            const std::size_t joints = population.joint.value_or(Range<JointCohort>{}).size();
+            const auto elders = legacy_bin_capacity(population) - 6;
             const auto bins = std::max(joints, elders + 6);
             constexpr std::size_t headroom = 8;
-            cache.bins.reserve(std::max(cache.bins.capacity(), bins + headroom));
-            cache.ranked.reserve(std::max(cache.ranked.capacity(), bins + headroom));
+            prepare_scratch(cache, bins + headroom);
             for (auto& bank : cache.banks) {
                 auto& payload = bank.payloads[site.id.value * 2 + static_cast<std::size_t>(residency)];
                 if (population.joint) ensure_capacity(state, payload.joint, joints + headroom);
@@ -210,19 +240,20 @@ double reserve_migration(RuntimeState& state, MoonTurn& turn, SiteId siteId, Res
 {
     if (!(requested > 0)) return 0;
     auto& cache = state.migrationReservations;
-    auto& bins = cache.bins;
-    bins.clear();
     const auto& site = site_at(state, siteId);
     const auto& population = population_class(site.detailedState.populationByClass, residency);
     const bool joint = population.joint.has_value();
+    const auto size = joint ? population.joint->size() : legacy_bin_capacity(population);
+    prepare_scratch(cache, size);
+    auto bins = std::span(cache.bins).first(size);
     if (joint) {
         const auto view = population_bins(state, site.detailedState.populationByClass, residency);
-        for (std::size_t i = 0; i < view.size(); ++i) bins.push_back({view.keys[i], double(view.counts[i]), 0, 0, i});
+        for (std::size_t i = 0; i < view.size(); ++i) bins[i] = {view.keys[i], double(view.counts[i]), 0, 0, i};
     } else {
-        collect_legacy(state, population, bins);
+        bins = collect_legacy(state, population, bins);
     }
     remove_reserved(state, turn, site.regionId, residency, joint, bins);
-    const auto selected = select_bins(bins, cache.ranked, requested);
+    const auto selected = select_bins(bins, cache.ranked, requested, joint);
     if (selected <= 0) return 0;
 
     auto& bank = cache.banks[state.settlementPrelude.nextMoonBuffer ^ 1];

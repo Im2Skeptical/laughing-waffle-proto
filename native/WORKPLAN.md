@@ -371,9 +371,37 @@ components passed before the stop; the builds were unverified), and N03d-5
 the arena was unfinished). N03e-4 0405ee81 on `t3/native-birth-annual-cohorts`:
 six of eight full Birth probes run scheduled Practices first, so full Birth
 parity depends on N03e-3; it was adding a Practice-seam comparison.
-N03e-6a bf6c6951 on `t3/native-faith-chaos-stage`: Faith matched all four
-original stage pairs unmasked, including the collapse reservation; nine step
-windows passed. Remaining: probe expansion and mask narrowing. N03e-3 on
+
+N03e-6a result, 19 Nov 2026 (`t3/native-faith-chaos-stage-1`, resumed from
+`bf6c6951`). Faith runs through `run_stage` with typed class memory, moon
+reports, Chaos income and collapse reservations. The port uses the baseline
+`496d9971` Primordial formula, deterministic arithmetic and zero RNG draws.
+From the repository root, `node native/reference/stage-probe.mjs --all`
+and `node native/reference/stage-pairs.mjs native/build/optimized/src/sim/waffle_parity.exe faith`
+matched 29/29 unmasked Faith pairs across four seeds. They cover all
+six adjacent tier shifts, first, continuing and returning collapse, an
+existing Housing reservation, Chaos crossing above Resistance, Primordial
+growth and Unrest income. `node native/reference/trace.mjs` and
+`node native/reference/step-windows.mjs native/build/optimized/src/sim/waffle_parity.exe`
+passed nine windows and 107 comparisons with 158 shared masks. The step masks
+expose floor consumption, Faith report timestamps, Primordial, Spawn count and most
+loss-pressure values. Remaining affected leaves have upstream Food, Housing,
+population, recipes or territory owners, including the R06 report after
+Unrest expiry. `cmake --preset optimized`, `cmake --build --preset optimized`
+and `ctest --preset optimized --output-on-failure` under `native/` passed
+26/26 tests, including both v52 codegen checks and collapse after copy and
+JSON restore with fractional premature-death mitigation and phase Resistance.
+The optimized i9-10900K/MSVC 19.50 cost was 0.050–0.073 µs/sim-s
+(0.300–0.439 µs per Faith boundary), with zero counted allocations across
+1.25 million calls. Run `native/build/optimized/src/sim/waffle_faith_stage_test.exe`
+with each probe's before boundary from its manifest (seed-1/4, seed-1/406,
+seed-1867/76, seed-42-shops/70, seed-2026-late/3334). The median of five
+50,000-call batches excludes setup, state resets and export. No new intentional
+divergence. Open seams are N03e-3 Faith Practice activation, capacity admission
+when later stages grow or share the reservation buffers, N03e-8 phase events
+and drain, and the v53 Primordial cap.
+
+N03e-3 on
 `t3/native-scheduled-stock-discharge` (WIP on top of a temporary seed-1
 topology stub commit). It had settled the browser recipe order: complete the
 local scheduled pass, drain FIFO, then shared retries one at a time, each

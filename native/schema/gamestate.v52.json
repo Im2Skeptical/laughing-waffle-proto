@@ -263,7 +263,7 @@
         "oldAgeDeaths": { "type": "integer", "optional": false, "nullable": false },
         "externalEmigrants": { "type": "integer", "optional": false, "nullable": false },
         "internalMigrants": { "type": "integer", "optional": false, "nullable": false },
-        "prematureDeathMitigation": { "type": "integer", "optional": true, "nullable": false }
+        "prematureDeathMitigation": { "type": "number", "optional": true, "nullable": false }
       }
     },
     "ChargeTrigger": {
@@ -1864,7 +1864,7 @@
       "fields": {
         "housingByRegion": { "type": "PhaseModifiersHousingByRegion", "optional": false, "nullable": false },
         "foodByRegion": { "type": "PhaseModifiersFoodByRegion", "optional": false, "nullable": false },
-        "faithResistance": { "type": "integer", "optional": false, "nullable": false }
+        "faithResistance": { "type": "number", "optional": false, "nullable": false }
       }
     },
     "PhaseModifiersFoodByRegion": {
