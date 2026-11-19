@@ -1416,6 +1416,87 @@ The gains below are estimates.
 | Defer rich Practice diagnostics during forecast | Illustrative 2-4 / 2-4 us/sim-s if about a quarter to half of trace work leaves the forward pass. Trace construction/append occurred in 672 / 473 of 1,600 samples. Restore and materialization costs are unmeasured. | The browser exposes per-site and civilization trace rows at their event second, including blocker reasons. Define and version anchor/diagnostic materialization, export and digest behavior. Retain queue effects and gameplay events. |
 | Change draw counts without changing the high-level rule | No separate additive estimate. Savings overlap the Birth/Death rows. | Seeds are observable in browser saves and replay. Any changed seed progression needs the versioned native RNG contract above, including behavior beyond the binary64 exact-integer range. |
 
+### N03e-3q pass 4 — exact-rule pipeline performance (complete, 19 Nov 2026)
+
+Base `6baa16dd`, branch `t3/native-pipeline-performance-4`. Both assigned phases are complete and ownership is released. The [structural plan](docs/n03e-3q-pass-4-budget.md) gives the sampled loops, measured dispatch floor, exact-rule and rule-change cost estimates, phone assumptions and cross-runtime handoff.
+
+| Separate commit and measurement | Opening pipeline | Late pipeline | Target stage, opening / late |
+| --- | ---: | ---: | --- |
+| `28baa0d7` reuse joint staffing until population or board changes | 19.548 → 19.049 | 22.975 → 22.882 | Food 9.088 → 8.878 (4/5 pairs faster) / 5.176 → 4.967 (5/5) |
+| `be5c1856` retain normalized joint tables on inert Birth rolls | 19.066 → 18.297 | 23.208 → 22.726 | Birth 3.546 → 2.992 (5/5) / 6.203 → 6.083 (3/5) |
+
+Each comparison used optimized MSVC on the i9-10900K, logical CPU 15, execution-speed throttling disabled. Five pairs per window alternated AB/BA launch order. Each run checked the states, then timed 256 resets from the opening or late anchor (9,984 / 2,816 advances). The overall pipeline uses the unobserved pass. Stage times use a separate instrumented pass. The late Birth delta against the staffing-only commit was small and variable. The final comparison below uses five fresh pairs against the original binary. Opening improved in 5/5 pairs and late in 4/5. Ranges were 19.45–19.85 → 18.46–18.70 opening and 22.46–23.90 → 21.73–23.09 late.
+
+| µs/sim-s | Opening base | Opening pass 4 | Late base | Late pass 4 |
+| --- | ---: | ---: | ---: | ---: |
+| pipeline | 19.675 | 18.665 | 23.671 | 22.068 |
+| advance_clock | 0.133 | 0.134 | 0.147 | 0.150 |
+| prelude | 0.300 | 0.298 | 0.317 | 0.311 |
+| seasonal_practices | 1.175 | 1.109 | 1.871 | 1.845 |
+| spring_death_baseline | 0.003 | 0.003 | 0.011 | 0.010 |
+| birth | 3.570 | 3.001 | 6.407 | 5.905 |
+| food | 9.124 | 8.728 | 5.111 | 5.015 |
+| after_meals_practices | 0.066 | 0.066 | 0.121 | 0.119 |
+| garrison_upkeep | 0.087 | 0.083 | 0.047 | 0.046 |
+| housing | 0.097 | 0.100 | 0.198 | 0.207 |
+| faith | 0.069 | 0.067 | 0.124 | 0.127 |
+| migration_practices | 0.681 | 0.647 | 0.379 | 0.395 |
+| migration | 0.131 | 0.133 | 0.303 | 0.296 |
+| death | 0.154 | 0.153 | 0.370 | 0.382 |
+| death_practices | 0.875 | 0.835 | 0.924 | 0.912 |
+| control_and_spatial_pressure | 0.367 | 0.358 | 0.400 | 0.407 |
+| phase_events_and_drain | 2.889 | 2.843 | 5.194 | 5.056 |
+| vassal_check | 0.017 | 0.017 | 0.018 | 0.022 |
+| final_flush | 0.021 | 0.020 | 0.022 | 0.020 |
+
+Both changes affect derived native state only. Staffing and the joint normalization flag are copy-owned per site. An imported ledger goes through a full first publication even if all rolls are zero. Legacy staffing is read directly. The warmed simulation still reports zero allocations; the logical hot-state accounting grows by 2,720 bytes at either 20-site endpoint, with identical reachable history byte counts. The generated Export and digest inputs are unchanged.
+
+**Verification from the repository root, PowerShell.** The ignored raw report directory is `artifacts/n03e-3q-4/`. It holds binary copies, scripts, linker maps, raw stack PCs, all 60 paired JSON reports and load readings. In this worktree the pass-three runner and sampler were copied locally with their output paths updated. The timing report filenames include both build labels to prevent overwrites. The stage runner fails on every mismatch, including Prelude.
+
+```powershell
+$d = 'artifacts/n03e-3q-4'
+. native/tools/env.ps1
+Push-Location native
+foreach ($preset in 'optimized','optimized-clang') {
+    cmake --preset $preset
+    cmake --build --preset $preset
+    ctest --preset $preset --output-on-failure
+    ctest --preset $preset -V -R pipeline_steady_state_allocations
+}
+Pop-Location
+node native/schema/codegen.mjs
+node native/schema/runtime-codegen.mjs
+
+# Reuse the matching supervisor trace/window inputs, or generate them in a fresh checkout with
+# node native/reference/trace.mjs
+node native/reference/stage-probe.mjs --all
+node native/reference/export-new-game.mjs --windows
+foreach ($label in 'food','birth') {
+    & "$d/pairs.ps1" $label
+    node native/reference/new-game-windows.mjs "$d/$label.exe"
+}
+# One additional Birth with an independently validated browser start/end hash.
+# The raw capture copy of stage-probe redirects its output outside the default corpus.
+node "$d/extra-path.mjs"
+node "$d/extra-probe.mjs" seed-1 43
+foreach ($label in 'food','birth') {
+    $s = "$d/extra-stages/seed-1/43"
+    & "$d/$label.exe" stage --stage birth --before "$s/after-advance_clock.json" --after "$s/after-birth.json"
+}
+foreach ($label in 'base','food','birth') { & "$d/continuity.ps1" $label }
+python "$d/confirmation.py" base food
+python "$d/confirmation.py" food birth
+python "$d/confirmation.py" base birth
+```
+
+- MSVC passed 36/36 CTests at baseline and after each change. Final optimized Clang passed 36/36. Both final binaries matched all 2,049 pinned digest rows through second 2,048. Both verbose allocation runs measured precisely zero allocations at opening over 3,200 advances and late over 1,920 advances, each after 512 warmup seconds.
+- Both implementation commits passed the 18-stage corpus. A fresh `--all` and the supervisor's on-disk corpus each contain **828 distinct pairs**. The additional seed-1/43 Birth makes **829 verified distinct pairs** for each commit. The checked-in seed-1/1 clock boundary overlaps the default corpus. `pairs.ps1` runs `node native/reference/step-windows.mjs <exe>` and `node native/reference/stage-pairs.mjs <exe> <stage>` for every stage named in the table.
+- Both passed 30 step windows, 153 comparisons (152 advancing, one gated) with zero masks. Each also matched five exact new-game starts and 10 native-start windows, 92 comparisons. Uninterrupted hash streams matched baseline at every row from 0–3712 and 3200–5632, including both anchors. Regeneration produced zero schema/digest-source changes.
+- Sampling used `& "$d/diag-build.ps1" sample` after sourcing the MSVC environment, then `& "$d/sample.exe" artifacts/native-reference/windows/seed-1/0/state-0.json native/reference/topology 39` and the analogous `seed-2026-late/3200/state-3200.json` with `11`. Raw files use UTF-16 PowerShell redirection. The post-change copy is `sample-final`. The diagnostic floor used `& "$d/diag-build.ps1" floor` then `& "$d/floor.exe" <state> <window-length>` on the same anchors. See `loops.txt`, `groups.txt`, and `floor-{opening,late}.txt`.
+
+**Decision for the supervisor.** The live pipeline still exceeds the 10–12 desktop allocation. Prototype exact shared trace storage with independent retention cursors and a restore oracle first. Cam's decision is needed only to change seeded sampling, lunar cadence or observable diagnostic content. The physical Pixel 6 throughput, thermal behavior and Android hash run remain open. This branch ends at the structural plan.
+
+
 ## N03f - Actions, replay and new game (pending N03e)
 
 Action application and `rebuildStateAtSecond` (L2), then new game and world
