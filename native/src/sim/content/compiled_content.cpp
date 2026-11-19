@@ -389,6 +389,9 @@ private:
             if (op == EffectOp::convertPopulation) grouped.push_back(i);
             if (op == EffectOp::generateStock) generatesStock = true;
         }
+        row.standaloneStockOutput = row.mode == Mode::scheduled && generatesStock && effects.size() == 1 &&
+            !row.consume.size() && !row.require_.size() && !row.populationConsume && !row.populationRequire &&
+            !row.populationCondition && !row.requireBaseHeadroom.value_or(false) && !row.externalAction;
         row.recipeEffects.end = runtime::checked_index(grouped.size(), path);
         if (!generatesStock && (row.stockMultipliers || row.keywordOutputScale || row.keywordCapacityScale))
             fail(path + ".effects", "Stock multiplier requires generateStock");

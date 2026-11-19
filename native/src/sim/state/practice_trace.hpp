@@ -92,6 +92,9 @@ public:
     };
     // Reserve the largest possible record while its builder is active.
     // After packing, the next record starts just past the actual fields.
+    struct PackedSpace {
+        std::byte bytes[sizeof(std::uint64_t) + sizeof(PracticeEventTrace)];
+    };
     struct alignas(PayloadNode) RecordSpace {
         std::byte bytes[sizeof(PayloadNode) + sizeof(std::uint64_t) + sizeof(PracticeEventTrace)];
     };
@@ -133,11 +136,16 @@ public:
             start += sizeof(PayloadNode);
             format = TraceFormat::withPayload;
         }
+        pack(start, row);
+        return format;
+    }
+
+    void pack(std::byte* start, const PracticeEventTrace& row)
+    {
         TraceEncoder encoder{start + sizeof(std::uint64_t)};
         visit_trace_fields(row, encoder);
         std::memcpy(start, &encoder.present, sizeof(encoder.present));
         used_ = static_cast<std::size_t>(encoder.next - storage_.data());
-        return format;
     }
 
 private:
@@ -197,6 +205,17 @@ struct PracticeTraceRef {
 };
 
 struct TraceCursorPayload {
+    // Pages retain even their evicted prefix until the entire page is dropped.
+    // The first row of a run owns the chunk for subsequent rows on that page.
+    const PracticeTraceChunk* lastChunk{};
+
+    PracticeTraceRef retain(const PracticeTraceRef& ref) noexcept
+    {
+        if (lastChunk == ref.owner.operator->()) return {{}, ref.record, ref.format};
+        lastChunk = ref.owner.operator->();
+        return ref;
+    }
+
     std::size_t live_bytes() const { return 0; }
 };
 
@@ -237,6 +256,13 @@ public:
         return {owner_, slot, tail_->build(slot, build)};
     }
 
+    PracticeTraceRef packed(const PracticeEventTrace& row, const std::shared_ptr<HistoryArena>& arena)
+    {
+        auto* slot = reserve<PracticeTraceChunk::PackedSpace>(arena);
+        tail_->pack(slot->bytes, row);
+        return {owner_, slot, TraceFormat::packed};
+    }
+
     PracticeTraceRef phase(PhaseTrace row, const std::shared_ptr<HistoryArena>& arena)
     {
         auto* slot = reserve<PhaseTrace>(arena);
@@ -264,9 +290,9 @@ public:
         History result;
         if (!count) return result;
         result.arena_ = arena ? arena : std::make_shared<HistoryArena>();
-        result.cursor_ = Cursor::load(count, [&](TraceCursorPayload&, std::size_t index) {
+        result.cursor_ = Cursor::load(count, [&](TraceCursorPayload& owners, std::size_t index) {
             auto fill = [&](HistoryPayload& page) { return build(page, index); };
-            return result.writer_.rich(fill, result.arena_);
+            return owners.retain(result.writer_.rich(fill, result.arena_));
         }, result.arena_);
         return result;
     }
@@ -279,6 +305,12 @@ public:
         link(ref, arena_);
         return ref;
     }
+    PracticeTraceRef append_packed(const PracticeEventTrace& row, const std::shared_ptr<HistoryArena>& arena)
+    {
+        auto ref = writer_.packed(row, arena);
+        link(ref, arena);
+        return ref;
+    }
     PracticeTraceRef append_phase(PhaseTrace row, const std::shared_ptr<HistoryArena>& arena)
     {
         auto ref = writer_.phase(row, arena);
@@ -287,7 +319,7 @@ public:
     }
     void link(const PracticeTraceRef& ref, const std::shared_ptr<HistoryArena>& arena)
     {
-        cursor_.append([&](TraceCursorPayload&) noexcept { return ref; }, arena);
+        cursor_.append([&](TraceCursorPayload& owners) noexcept { return owners.retain(ref); }, arena);
     }
     void push(PracticeEventTrace row) { append([&](HistoryPayload&) { return row; }); }
 

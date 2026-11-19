@@ -37,7 +37,7 @@ const tags = new Map([
 ]);
 const ignoredRecords = new Set();
 const definitions = {
-  PracticeDefinition: '    std::uint16_t activationMask{};\n    std::uint8_t stageMask{};\n    std::uint8_t seasonMask{};\n    runtime::Range<std::uint32_t> recipeEffects;\n',
+  PracticeDefinition: '    std::uint16_t activationMask{};\n    std::uint8_t stageMask{};\n    std::uint8_t seasonMask{};\n    bool standaloneStockOutput{};\n    runtime::Range<std::uint32_t> recipeEffects;\n',
   PracticeStockMultiplieroutputMultiplier: '    std::uint8_t seasonMask{};\n',
   PracticeStockMultipliercapacity: '    std::uint8_t seasonMask{};\n',
   StructureDefinitionModifiersEntry: '    runtime::SymbolId queryIdentity;\n',

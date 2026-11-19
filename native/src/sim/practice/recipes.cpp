@@ -595,6 +595,36 @@ struct RootScope {
     }
 };
 
+void finish_resolution(RuntimeState& state, Site& site, double slotIndex, const PracticeDefinition& def,
+                       bool discharge, std::span<const Provider> providers)
+{
+    auto& boost = site.detailedState.seasonalFoodBoost;
+    if (def.activation.type == Activation::season && boost && boost->practiceId == def.id &&
+        !has(state.tables.view(boost->seasons), season_id(state)))
+        append_range(state, boost->seasons, state.practiceRecipeStorage.boostSeasons[site.id.value], season_id(state));
+    const auto& journal = state.hot.civilization.practiceEvents;
+    EventData record{};
+    record.fields.targetPracticeId = def.id;
+    record.fields.slotIndex = slotIndex;
+    record.providers = providers;
+    trace(state, {state.hot.tSec, event_id(state, discharge ? EventKind::discharged : EventKind::activated),
+                  site.regionId, *journal.activeRoot, journal.activeEvent, 0}, record);
+    EventData base{};
+    base.fields.practiceId = def.id;
+    base.fields.slotIndex = slotIndex;
+    base.fields.discharge = discharge;
+    emit(state, EventKind::practiceResolved, site.regionId, base);
+}
+
+PracticeEvent scheduled_event(RuntimeState& state, const Site& site, const PracticeDefinition& def,
+                              Activation activation)
+{
+    EventData event{};
+    event.fields.practiceId = def.id;
+    event.fields.activationType = state.practiceVocabulary.activations[static_cast<std::size_t>(activation)];
+    return emit(state, EventKind::scheduledActivation, site.regionId, event);
+}
+
 void resolve(RuntimeState& state, Candidate candidate, Site& site, Index<PracticeSlot> index,
              const PracticeDefinition& def, Assignment worker, const StockPlan& stock,
              const PopulationPlan& population, const ModifierList& mods, Activation activation, bool discharge,
@@ -619,11 +649,10 @@ void resolve(RuntimeState& state, Candidate candidate, Site& site, Index<Practic
         for (const auto trait : item.source.traits)
             if (!has(consumedTraits, trait)) consumedTraits.push_back(trait);
     }
-    EventData base{};
-    base.fields.practiceId = def.id;
-    base.fields.slotIndex = slot.slot;
     if (!consume.empty()) {
-        auto event = base;
+        EventData event{};
+        event.fields.practiceId = def.id;
+        event.fields.slotIndex = slot.slot;
         event.providers = consume.view();
         event.traits = consumedTraits.view();
         const auto eventTags = tags(state, def, worker.scholar);
@@ -639,19 +668,7 @@ void resolve(RuntimeState& state, Candidate candidate, Site& site, Index<Practic
             apply_effect(state, candidate.site, site, index, def, effects[i],
                          generate ? amounts[i] + external.bonus : amounts[i], worker.scholar);
     }
-    auto& boost = site.detailedState.seasonalFoodBoost;
-    if (def.activation.type == Activation::season && boost && boost->practiceId == def.id &&
-        !has(state.tables.view(boost->seasons), season_id(state)))
-        append_range(state, boost->seasons, state.practiceRecipeStorage.boostSeasons[candidate.site.value], season_id(state));
-    const auto& journal = state.hot.civilization.practiceEvents;
-    EventData record{};
-    record.fields.targetPracticeId = def.id;
-    record.fields.slotIndex = slot.slot;
-    record.providers = providers.view();
-    trace(state, {state.hot.tSec, event_id(state, discharge ? EventKind::discharged : EventKind::activated),
-                  site.regionId, *journal.activeRoot, journal.activeEvent, 0}, record);
-    base.fields.discharge = discharge;
-    emit(state, EventKind::practiceResolved, site.regionId, base);
+    finish_resolution(state, site, slot.slot, def, discharge, providers.view());
 }
 
 }
@@ -776,6 +793,20 @@ bool attempt(RuntimeState& state, Candidate candidate, Activation activation, bo
     if (!conditions(state, site, def, worker, def.condition, localOnly))
         return fail(def.scholarRequired.value_or(false) && !worker.scholar ? v.requiresScholar : v.unmetCondition);
     const auto& t = state.compiledContent->tables;
+    // Admission proved the only effect produces Stock and there are no
+    // inputs, population operations or external payments. Modifiers, workers
+    // and Stock capacity still use the live state on this attempt.
+    if (def.standaloneStockOutput) {
+        if (deferWorker) worker = worker_for_slot(state, site, slot.slot);
+        const auto mods = modifiers(state, site);
+        const auto root = scheduled_event(state, site, def, activation);
+        RootScope scope(state.hot.civilization.practiceEvents, root);
+        const auto output = amount(state, candidate.site, site, def, worker, mods,
+                                   t.view(def.effects).front(), activation);
+        generate(state, site, index, output + 0.0, worker.scholar);
+        finish_resolution(state, site, slot.slot, def, false, {});
+        return true;
+    }
     thread_local StockPlan stock;
     plan_stock_into(stock, state, site, t.view(def.consume), t.view(def.require_), &slot, worker.scholar, localOnly);
     if (!stock.ok) return fail(v.unmetCondition, stock.missing);
@@ -812,12 +843,7 @@ bool attempt(RuntimeState& state, Candidate candidate, Activation activation, bo
     const auto external = def.externalAction ? territory::plan_external(state, site, *def.externalAction)
                                              : territory::ExternalPlan{};
     if (!external.ok) return fail(v.noExternalTarget);
-    auto root = parent ? *parent : [&] {
-        EventData event{};
-        event.fields.practiceId = def.id;
-        event.fields.activationType = v.activations[static_cast<std::size_t>(activation)];
-        return emit(state, EventKind::scheduledActivation, site.regionId, event);
-    }();
+    const auto root = parent ? *parent : scheduled_event(state, site, def, activation);
     RootScope scope(state.hot.civilization.practiceEvents, root);
     resolve(state, candidate, site, index, def, worker, stock, population, mods, activation, parent.has_value(), external);
     return true;
