@@ -65,7 +65,6 @@ Rml::TextureHandle SdlRmlRenderer::LoadTexture(Rml::Vector2i& dimensions, const 
 		dimensions = atlas_size_;
 		const auto texture = GenerateTexture({atlas_pixels_.data(), atlas_pixels_.size()}, dimensions);
 		if (texture) ++art_count_;
-		std::vector<Rml::byte>().swap(atlas_pixels_);
 		return texture;
 	}
 	// The RML uses root-relative artwork paths. SDL reads UTF-8 paths on Windows

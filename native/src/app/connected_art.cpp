@@ -1,37 +1,24 @@
 #include "connected_art.hpp"
-
 #include "core/json.hpp"
+#include "sdl_asset_file.hpp"
 
 #include <algorithm>
 #include <filesystem>
-#include <fstream>
-#include <iterator>
 #include <memory>
 #include <stb_image.h>
 
 namespace waffle::connected {
-namespace {
-
-std::string read(const std::filesystem::path& path)
-{
-    std::ifstream stream(path, std::ios::binary);
-    if (!stream) throw std::runtime_error("Could not open " + path.string());
-    return {std::istreambuf_iterator<char>(stream), {}};
-}
-
-}
-
 Artwork prepareArtwork()
 {
     constexpr int columns = 16, tileWidth = 96, tileHeight = 128;
-    const auto directory = std::filesystem::path(WAFFLE_ART_ROOT) / "images/sprite-sheets";
+    const std::string directory = WAFFLE_ART_ROOT "images/sprite-sheets/";
     Artwork art;
     art.width = columns * tileWidth;
     art.css = "<style>@spritesheet connectedCards { src: /connected-cards;";
     for (const std::string name : {"full-map-content-prototype", "settlement-pieces-0",
                                     "settlement-pieces-1", "settlement-pieces-2"}) {
-        const auto manifest = core::json::parse(read(directory / (name + ".json")));
-        const auto encoded = read(directory / (name + ".png"));
+        const auto manifest = core::json::parse(readAsset((directory + name + ".json").c_str()));
+        const auto encoded = readAsset((directory + name + ".png").c_str());
         int width{}, height{};
         const std::unique_ptr<stbi_uc, decltype(&stbi_image_free)> image(stbi_load_from_memory(
             reinterpret_cast<const stbi_uc*>(encoded.data()), static_cast<int>(encoded.size()),

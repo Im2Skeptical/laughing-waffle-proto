@@ -1,23 +1,18 @@
 #include "connected_view.hpp"
+#include "sdl_asset_file.hpp"
+
+#include <RmlUi/Core/Elements/ElementFormControl.h>
 
 #include <algorithm>
 #include <array>
 #include <cmath>
 #include <cstdio>
-#include <fstream>
-#include <iterator>
+#include <utility>
 
 namespace waffle::connected {
 namespace {
 
 using Colour = std::array<Uint8, 4>;
-
-std::string readText(const std::filesystem::path& path)
-{
-    std::ifstream file(path, std::ios::binary);
-    if (!file) throw std::runtime_error("Could not open " + path.string());
-    return {std::istreambuf_iterator<char>(file), {}};
-}
 
 std::string escape(std::string_view text)
 {
@@ -73,15 +68,15 @@ constexpr std::array<Colour, 7> terrain{{
 
 }
 
-View::View(Rml::Context& context, SDL_Renderer* renderer, Session& session, Selection& selection, Launch launch,
+View::View(Rml::Context& context, SDL_Renderer* renderer, Session& session, Selection& selection, Shell& shell,
            Artwork art)
-    : context_(context), renderer_(renderer), session_(session), selection_(selection), launch_(std::move(launch)),
+    : context_(context), renderer_(renderer), session_(session), selection_(selection), shell_(shell),
       sprites_(std::move(art.sprites))
 {
     if (!Rml::LoadFontFace(WAFFLE_CONNECTED_FONT, "Lato", Rml::Style::FontStyle::Normal,
             Rml::Style::FontWeight::Auto, true))
         throw std::runtime_error("Could not load native UI font");
-    auto rml = readText(WAFFLE_CONNECTED_RML);
+    auto rml = readAsset(WAFFLE_CONNECTED_RML);
     constexpr std::string_view marker = "<!-- atlas styles -->";
     rml.replace(rml.find(marker), marker.size(), art.css);
     rml.insert(rml.find("</body>"),
@@ -90,7 +85,10 @@ View::View(Rml::Context& context, SDL_Renderer* renderer, Session& session, Sele
     if (!document_) throw std::runtime_error("Could not load the connected view");
     document_->AddEventListener(Rml::EventId::Click, this);
     document_->Show();
-    resize();
+#if defined(__ANDROID__)
+    element("safe-content").SetClass("touch", true);
+#endif
+    syncWindow();
 }
 
 View::~View()
@@ -108,15 +106,82 @@ SDL_FRect View::bounds(const char* id) const
 
 SDL_FRect View::plot() const { return bounds("plot"); }
 
-void View::resize()
+void View::syncWindow()
 {
     int width = 0, height = 0;
     SDL_GetRenderOutputSize(renderer_, &width, &height);
     if (width <= 0 || height <= 0) return;
     context_.SetDimensions({width, height});
-    context_.SetDensityIndependentPixelRatio(std::clamp(std::min(width / 1120.f, height / 640.f), .73f, 1.5f));
+    const auto window = SDL_GetRenderWindow(renderer_);
+#if defined(__ANDROID__)
+    density_ = std::max(1.f, SDL_GetWindowDisplayScale(window));
+#else
+    density_ = std::clamp(std::min(width / 1120.f, height / 640.f), .73f, 1.5f);
+#endif
+    context_.SetDensityIndependentPixelRatio(density_);
+    SDL_Rect safe{};
+    SDL_FPoint start{}, end{static_cast<float>(width), static_cast<float>(height)};
+    if (SDL_GetWindowSafeArea(window, &safe) && safe.w > 0 && safe.h > 0) {
+        SDL_RenderCoordinatesFromWindow(renderer_, static_cast<float>(safe.x), static_cast<float>(safe.y),
+            &start.x, &start.y);
+        SDL_RenderCoordinatesFromWindow(renderer_, static_cast<float>(safe.x + safe.w),
+            static_cast<float>(safe.y + safe.h), &end.x, &end.y);
+    }
+    auto& root = element("safe-content");
+    root.SetProperty("left", number(start.x) + "px");
+    root.SetProperty("top", number(start.y) + "px");
+    root.SetProperty("width", number(end.x - start.x) + "px");
+    root.SetProperty("height", number(end.y - start.y) + "px");
     markersDirty_ = true;
     context_.Update();
+}
+
+void View::refreshShell()
+{
+    if (shellRevision_ == shell_.revision()) return;
+    shellRevision_ = shell_.revision();
+    const auto screen = shell_.screen();
+    const bool game = screen == Screen::game;
+    element("shell").SetProperty("display", game ? "none" : "block");
+    element("play").SetProperty("display", game || screen == Screen::save ? "block" : "none");
+    if (game) {
+        element("shell-panel").SetInnerRML("");
+        return;
+    }
+    std::string html;
+    if (screen == Screen::title) {
+        html = "<h1 class=\"shell-title\">Laughing Waffle</h1>"
+            "<label class=\"shell-field\" for=\"seed\">Seed (optional)</label>"
+            "<input id=\"seed\" class=\"seed-input\" type=\"text\" maxlength=\"10\" value=\"" +
+            escape(shell_.seedInput()) + "\" />";
+        html += "<div class=\"shell-actions\">" + button("start", {}, "New Game", "primary");
+        html += shell_.latest() ? button("continue", {}, "Continue") : "<button disabled>Continue</button>";
+        html += button("load", {}, "Load") + "</div>";
+    } else {
+        const bool saving = screen == Screen::save;
+        html = saving ? "<h2 class=\"shell-title\">Save Game</h2>" : "<h2 class=\"shell-title\">Load Game</h2>";
+        for (const auto& row : shell_.list()) {
+            const auto index = static_cast<int>(row.slot);
+            if (saving && row.slot == Slot::autosave) continue;
+            const auto name = index ? "Slot " + std::to_string(index) : "Autosave";
+            html += "<div class=\"slot\"><div class=\"slot-info\"><div class=\"slot-name\">" + name +
+                "</div><p class=\"quiet\">";
+            if (const auto& meta = row.metadata) {
+                html += "Year " + number(meta->year) + " · " + std::to_string(meta->second) + " s · " +
+                    std::to_string(meta->regions) + " regions<br/>" + escape(meta->savedAt) + " · " + escape(meta->version);
+            } else html += row.error.empty() ? "Empty" : escape(row.error);
+            html += "</p></div>";
+            if (saving || row.metadata) {
+                const auto label = saving ? (shell_.overwrite() == row.slot ? "Overwrite" : "Save") : "Load";
+                html += button("slot", std::to_string(index), label, "slot-action");
+            }
+            html += "</div>";
+        }
+        html += "<div class=\"shell-actions\">" + button(saving ? "back-game" : "back-title", {}, "Back") + "</div>";
+    }
+    if (!shell_.message().empty()) html += "<p class=\"shell-status\">" + escape(shell_.message()) + "</p>";
+    element("shell-panel").SetInnerRML(html);
+    markersDirty_ = true;
 }
 
 SDL_FPoint View::project(Point p, SDL_FRect map) const
@@ -280,6 +345,8 @@ void View::refreshPanel(const Snapshot* snapshot)
 
 void View::refresh()
 {
+    refreshShell();
+    if (shell_.screen() == Screen::title || shell_.screen() == Screen::load) return;
     const auto* snapshot = session_.opening() ? nullptr : session_.displayed();
     if (revision_ != session_.viewRevision() || opening_ != session_.opening() || busy_ != session_.busy() ||
         previewing_ != session_.previewing() || selectedRegion_ != selection_.region ||
@@ -302,6 +369,14 @@ void View::refresh()
         markersDirty_ = false;
     }
     const bool loading = session_.opening() || !session_.displayed();
+    const auto setDisabled = [&](const char* id, bool disabled) {
+        auto& button = element(id);
+        if (disabled == button.HasAttribute("disabled")) return;
+        if (disabled) button.SetAttribute("disabled", "");
+        else button.RemoveAttribute("disabled");
+    };
+    setDisabled("save-game", session_.busy() || !session_.liveSnapshot());
+    setDisabled("title-game", session_.busy());
     if (loading != loadingVisible_) {
         element("opening").SetProperty("display", loading ? "block" : "none");
         loadingVisible_ = loading;
@@ -314,11 +389,12 @@ void View::refresh()
         status = (session_.previewReady() ? label : "Restoring · ") + std::to_string(*requested) + " s";
     }
     else if (session_.busy() && !loading) status = "Applying decision";
+    else if (!shell_.message().empty() && shell_.screen() == Screen::game) status = shell_.message();
     else if (chart.through) status = "Forecast through " + std::to_string(*chart.through) + " s";
     else if (!loading) status = "Preparing the forecast";
     if (status != currentStatus_) {
-        element("graph-status").SetInnerRML(session_.error().empty() ? status : escape(status));
-        element("loading-status").SetInnerRML(session_.error().empty() ? status : escape(status));
+        element("graph-status").SetInnerRML(escape(status));
+        element("loading-status").SetInnerRML(escape(status));
         currentStatus_ = status;
     }
     const bool failed = loading && !session_.error().empty();
@@ -425,15 +501,18 @@ void View::frame()
     SDL_SetRenderClipRect(renderer_, nullptr);
     colour(renderer_, {23, 26, 22, 255});
     SDL_RenderClear(renderer_);
-    if (const auto* snapshot = session_.displayed(); snapshot && !session_.opening()) drawMap(*snapshot);
+    const auto screen = shell_.screen();
+    if (const auto* snapshot = session_.displayed(); snapshot && !session_.opening() &&
+        (screen == Screen::game || screen == Screen::save)) drawMap(*snapshot);
     context_.Render();
     SDL_SetRenderClipRect(renderer_, nullptr);
-    drawGraph();
+    if (screen == Screen::game) drawGraph();
 }
 
 bool View::scrubAt(float x)
 {
     const auto area = plot();
+    if (area.w <= 0) return false;
     const auto& chart = session_.chart();
     const float ratio = std::clamp((x - area.x) / area.w, 0.f, 1.f);
     selection_.destination.reset();
@@ -442,16 +521,166 @@ bool View::scrubAt(float x)
 
 bool View::input(SDL_Event event)
 {
-    if (event.type == SDL_EVENT_QUIT || event.type == SDL_EVENT_WINDOW_CLOSE_REQUESTED ||
-        (event.type == SDL_EVENT_KEY_DOWN && event.key.key == SDLK_ESCAPE)) return false;
-    if (event.type == SDL_EVENT_WINDOW_PIXEL_SIZE_CHANGED) resize();
-    if (event.type == SDL_EVENT_WINDOW_FOCUS_LOST) drag_ = Drag::none;
-    SDL_ConvertEventToRenderCoordinates(renderer_, &event);
+    if (event.type == SDL_EVENT_QUIT || event.type == SDL_EVENT_WINDOW_CLOSE_REQUESTED) return false;
+    if (event.type == SDL_EVENT_WINDOW_PIXEL_SIZE_CHANGED || event.type == SDL_EVENT_WINDOW_SAFE_AREA_CHANGED ||
+        event.type == SDL_EVENT_WINDOW_DISPLAY_SCALE_CHANGED) syncWindow();
+    if (event.type == SDL_EVENT_WINDOW_FOCUS_LOST) cancelInput();
+    if (event.type == SDL_EVENT_TEXT_INPUT) context_.ProcessTextInput(event.text.text);
+    if (event.type == SDL_EVENT_KEY_DOWN) {
+        const bool editing = context_.GetFocusElement() == document_->GetElementById("seed") &&
+            shell_.screen() == Screen::title;
+        if (event.key.key == SDLK_ESCAPE) {
+            if (shell_.screen() == Screen::save) shell_.show(Screen::game);
+            else if (shell_.screen() == Screen::load) shell_.show(Screen::title);
+            else if (editing) element("seed").Blur();
+            else return false;
+        } else if (editing) {
+            using namespace Rml::Input;
+            if (event.key.key == SDLK_RETURN || event.key.key == SDLK_KP_ENTER) startFromSeed();
+            const int modifiers = (event.key.mod & SDL_KMOD_CTRL ? KM_CTRL : 0) |
+                (event.key.mod & SDL_KMOD_SHIFT ? KM_SHIFT : 0);
+            switch (event.key.key) {
+                case SDLK_BACKSPACE: context_.ProcessKeyDown(KI_BACK, modifiers); break;
+                case SDLK_DELETE: context_.ProcessKeyDown(KI_DELETE, modifiers); break;
+                case SDLK_LEFT: context_.ProcessKeyDown(KI_LEFT, modifiers); break;
+                case SDLK_RIGHT: context_.ProcessKeyDown(KI_RIGHT, modifiers); break;
+                case SDLK_HOME: context_.ProcessKeyDown(KI_HOME, modifiers); break;
+                case SDLK_END: context_.ProcessKeyDown(KI_END, modifiers); break;
+                case SDLK_A: context_.ProcessKeyDown(KI_A, modifiers); break;
+                default: break;
+            }
+        }
+    }
+    switch (event.type) {
+        case SDL_EVENT_FINGER_DOWN:
+        case SDL_EVENT_FINGER_MOTION:
+        case SDL_EVENT_FINGER_UP:
+        case SDL_EVENT_FINGER_CANCELED:
+            if (SDL_ConvertEventToRenderCoordinates(renderer_, &event)) touch(event.tfinger);
+            break;
+        case SDL_EVENT_MOUSE_MOTION:
+        case SDL_EVENT_MOUSE_BUTTON_DOWN:
+        case SDL_EVENT_MOUSE_BUTTON_UP:
+        case SDL_EVENT_MOUSE_WHEEL:
+            if (!primary_ && !secondary_ && SDL_ConvertEventToRenderCoordinates(renderer_, &event)) pointer(event);
+            break;
+        default: break;
+    }
+    return true;
+}
+
+void View::cancelInput()
+{
+    primary_.reset();
+    secondary_.reset();
+    drag_ = Drag::none;
+    context_.ProcessMouseLeave();
+    context_.ProcessMouseButtonUp(0, 0);
+}
+
+void View::zoomMap(float factor, SDL_FPoint from, SDL_FPoint to)
+{
+    const auto map = bounds("map");
+    const auto old = zoom_;
+    zoom_ = std::clamp(zoom_ * factor, 1.f, 3.5f);
+    const float ratio = zoom_ / old;
+    const SDL_FPoint center{map.x + map.w * .5f, map.y + map.h * .47f};
+    pan_.x = pan_.x * ratio + to.x - center.x - (from.x - center.x) * ratio;
+    pan_.y = pan_.y * ratio + to.y - center.y - (from.y - center.y) * ratio;
+    markersDirty_ = true;
+}
+
+void View::touch(const SDL_TouchFingerEvent& event)
+{
+    const SDL_FPoint point{event.x, event.y};
+    const auto send = [&](Uint32 type) {
+        SDL_Event mouse{};
+        mouse.type = type;
+        if (type == SDL_EVENT_MOUSE_MOTION) {
+            mouse.motion.x = point.x;
+            mouse.motion.y = point.y;
+        } else {
+            mouse.button.button = SDL_BUTTON_LEFT;
+            mouse.button.x = point.x;
+            mouse.button.y = point.y;
+        }
+        pointer(mouse);
+    };
+    if (event.type == SDL_EVENT_FINGER_DOWN) {
+        if (!primary_ && !secondary_) {
+            primary_ = Finger{event.fingerID, point};
+            touchStart_ = point;
+            scrolling_ = false;
+            scrollId_ = shell_.screen() == Screen::game ? "panel" : "shell-panel";
+            if (!contains(bounds(scrollId_), point)) scrollId_ = nullptr;
+            send(SDL_EVENT_MOUSE_BUTTON_DOWN);
+        } else if (primary_ && !secondary_ && drag_ == Drag::map && contains(bounds("map"), point)) {
+            secondary_ = Finger{event.fingerID, point};
+            drag_ = Drag::pinch;
+        }
+        return;
+    }
+
+    auto* finger = primary_ && primary_->id == event.fingerID ? &primary_ :
+        secondary_ && secondary_->id == event.fingerID ? &secondary_ : nullptr;
+    if (!finger) return;
+    if (event.type == SDL_EVENT_FINGER_CANCELED) {
+        cancelInput();
+        return;
+    }
+    if (event.type == SDL_EVENT_FINGER_UP) {
+        if (drag_ == Drag::pinch) {
+            finger->reset();
+            if (secondary_) primary_ = std::exchange(secondary_, {});
+            last_ = primary_->point;
+            moved_ = true;
+            drag_ = Drag::map;
+        } else {
+            if (!scrolling_) send(SDL_EVENT_MOUSE_BUTTON_UP);
+            primary_.reset();
+        }
+        return;
+    }
+    if (primary_ && secondary_) {
+        const auto midpoint = [&] {
+            return SDL_FPoint{(primary_->point.x + secondary_->point.x) / 2, (primary_->point.y + secondary_->point.y) / 2};
+        };
+        const auto distance = [&] {
+            return std::hypot(primary_->point.x - secondary_->point.x, primary_->point.y - secondary_->point.y);
+        };
+        const auto from = midpoint();
+        const auto before = distance();
+        (*finger)->point = point;
+        if (before > 1) zoomMap(distance() / before, from, midpoint());
+        return;
+    }
+
+    if (!scrolling_ && scrollId_) {
+        auto& target = element(scrollId_);
+        const auto dy = std::abs(point.y - touchStart_.y);
+        if (target.GetScrollHeight() > target.GetClientHeight() && dy > 8 * density_ &&
+            dy > std::abs(point.x - touchStart_.x)) {
+            context_.ProcessMouseLeave();
+            context_.ProcessMouseButtonUp(0, 0);
+            drag_ = Drag::none;
+            scrolling_ = true;
+        }
+    }
+    if (scrolling_) {
+        auto& target = element(scrollId_);
+        target.SetScrollTop(target.GetScrollTop() + primary_->point.y - point.y);
+    } else send(SDL_EVENT_MOUSE_MOTION);
+    primary_->point = point;
+}
+
+void View::pointer(const SDL_Event& event)
+{
+    const bool game = shell_.screen() == Screen::game;
     if (event.type == SDL_EVENT_MOUSE_MOTION) {
         const SDL_FPoint point{event.motion.x, event.motion.y};
         if (drag_ == Drag::graph) scrubAt(point.x);
         else if (drag_ == Drag::map) {
-            moved_ |= std::hypot(point.x - pressed_.x, point.y - pressed_.y) > 4;
+            moved_ |= std::hypot(point.x - pressed_.x, point.y - pressed_.y) > 4 * density_;
             if (moved_) {
                 pan_.x += point.x - last_.x;
                 pan_.y += point.y - last_.y;
@@ -459,7 +688,7 @@ bool View::input(SDL_Event event)
             }
             last_ = point;
         } else {
-            if (drag_ == Drag::card) moved_ |= std::hypot(point.x - pressed_.x, point.y - pressed_.y) > 4;
+            if (drag_ == Drag::card) moved_ |= std::hypot(point.x - pressed_.x, point.y - pressed_.y) > 4 * density_;
             context_.ProcessMouseMove(static_cast<int>(point.x), static_cast<int>(point.y), 0);
         }
     }
@@ -467,16 +696,17 @@ bool View::input(SDL_Event event)
         event.button.button == SDL_BUTTON_LEFT) {
         const SDL_FPoint point{event.button.x, event.button.y};
         if (event.type == SDL_EVENT_MOUSE_BUTTON_DOWN) {
-            if (contains(plot(), point) && !session_.opening()) {
+            if (game && contains(plot(), point) && !session_.opening()) {
                 drag_ = Drag::graph;
                 scrubAt(point.x);
-            } else if (contains(bounds("map"), point) && !session_.opening()) {
+            } else if (game && contains(bounds("map"), point) && !session_.opening()) {
                 drag_ = Drag::map;
                 pressed_ = last_ = point;
                 moved_ = false;
             } else {
                 const auto* snapshot = session_.displayed();
-                if (const auto slot = cardAt(point); slot && snapshot && canStage(*snapshot, selection_.selected(snapshot))) {
+                if (const auto slot = game ? cardAt(point) : std::nullopt;
+                    slot && snapshot && canStage(*snapshot, selection_.selected(snapshot))) {
                     auto* card = element("board").GetChild(static_cast<int>(*slot));
                     draggedCard_ = card->GetAttribute<int>("data-id", static_cast<int>(*slot));
                     if (!selection_.selected(snapshot)->cards[draggedCard_].id.empty()) {
@@ -508,21 +738,20 @@ bool View::input(SDL_Event event)
     if (event.type == SDL_EVENT_MOUSE_WHEEL && drag_ == Drag::none) {
         const SDL_FPoint point{event.wheel.mouse_x, event.wheel.mouse_y};
         const auto map = bounds("map");
-        if (contains(map, point)) {
-            const auto old = zoom_;
-            zoom_ = std::clamp(zoom_ * std::pow(1.16f, event.wheel.y), 1.f, 3.5f);
-            if (zoom_ == 1) pan_ = {};
-            else {
-                const float ratio = zoom_ / old;
-                pan_.x = pan_.x * ratio + (point.x - map.x - map.w / 2) * (1 - ratio);
-                pan_.y = pan_.y * ratio + (point.y - map.y - map.h / 2) * (1 - ratio);
-            }
-            markersDirty_ = true;
+        if (game && contains(map, point)) {
+            zoomMap(std::pow(1.16f, event.wheel.y), point, point);
         } else {
             context_.ProcessMouseWheel({-event.wheel.x, -event.wheel.y}, 0);
         }
     }
-    return true;
+}
+
+void View::startFromSeed()
+{
+    const auto& input = static_cast<Rml::ElementFormControl&>(element("seed"));
+    shell_.start(input.GetValue());
+    zoom_ = 1;
+    pan_ = {};
 }
 
 void View::ProcessEvent(Rml::Event& event)
@@ -532,13 +761,22 @@ void View::ProcessEvent(Rml::Event& event)
     if (!target) return;
     const auto op = target->GetAttribute<Rml::String>("data-op", "");
     const auto id = target->GetAttribute<Rml::String>("data-id", "");
-    if (op == "new" && !session_.busy()) {
-        auto launch = launch_;
-        launch.save.clear();
-        selection_.select({});
+    if (op == "start") startFromSeed();
+    else if (op == "continue") {
+        shell_.continueGame();
         zoom_ = 1;
         pan_ = {};
-        session_.open(launch);
+    } else if (op == "load") shell_.show(Screen::load);
+    else if (op == "save" && session_.liveSnapshot() && !session_.busy()) shell_.show(Screen::save);
+    else if (op == "title") shell_.returnToTitle();
+    else if (op == "back-game") shell_.show(Screen::game);
+    else if (op == "back-title") shell_.show(Screen::title);
+    else if (op == "slot") {
+        if (shell_.screen() == Screen::load) {
+            zoom_ = 1;
+            pan_ = {};
+        }
+        shell_.selectSlot(static_cast<Slot>(std::stoi(id)));
     } else if (op == "live") {
         selection_.destination.reset();
         session_.live();

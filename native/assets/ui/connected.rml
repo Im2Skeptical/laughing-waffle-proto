@@ -15,8 +15,9 @@ button:active { background: #6a5336; color: #fff3d4; }
 .rule { margin-top: 5dp; color: #e3d8bd; }
 .gold { color: #e6c887; }
 #header { position: absolute; left: 2%; right: 2%; top: 2%; height: 8%; border-bottom: 1dp #5f5038; }
-#clock { position: absolute; top: 8dp; right: 96dp; color: #d5bb88; }
-#new-game { position: absolute; right: 0; top: 0; }
+#clock { position: absolute; top: 8dp; right: 164dp; color: #d5bb88; }
+.game-actions { position: absolute; right: 0; top: 0; }
+.game-actions button { margin-left: 5dp; }
 #map { position: absolute; left: 2%; width: 58%; top: 12%; bottom: 24%;
   border: 1dp #715f42; overflow: hidden; clip: always; }
 #markers { position: absolute; width: 100%; height: 100%; pointer-events: none; }
@@ -53,10 +54,44 @@ button:active { background: #6a5336; color: #fff3d4; }
 #opening { position: absolute; left: 24%; right: 24%; top: 36%; padding: 22dp; text-align: center;
   background: #24231c; border: 1dp #9a8055; }
 #opening p { margin-top: 7dp; }
+#safe-content, #play { position: absolute; }
+#play { width: 100%; height: 100%; }
+.shell-overlay { display: none; position: absolute; width: 100%; height: 100%; background: #171a16ed; }
+.shell-panel { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
+  box-sizing: border-box; width: 480dp; max-width: 96%; max-height: 96%; overflow-y: auto;
+  background: #24231c; border: 1dp #9a8055; padding: 16dp; }
+.shell-title { margin-bottom: 8dp; }
+.shell-field { display: block; margin: 6dp 0 9dp; }
+.seed-input { display: block; box-sizing: border-box; width: 100%; padding: 8dp;
+  font-family: Lato; font-size: 15dp; color: #ebd8ad; background: #161a16; border: 1dp #766044; }
+.seed-input:focus { border-color: #cfac64; }
+.shell-actions { display: flex; flex-wrap: wrap; gap: 5dp; margin-top: 5dp; }
+.shell-status { margin-top: 8dp; color: #e6c887; }
+.slot { display: flex; align-items: center; justify-content: space-between; gap: 6dp;
+  padding: 4dp 0; border-bottom: 1dp #534a37; }
+.slot-info { flex: 1; }
+.slot-name { color: #ebd8ad; }
+button:disabled { color: #948970; border-color: #514839; background: #25241c; cursor: default; }
+.touch button, .touch .seed-input { min-height: 48dp; min-width: 48dp; box-sizing: border-box; }
+.touch #header { top: 4dp; height: 50dp; }
+.touch #header h1 { padding-top: 8dp; }
+.touch #clock { top: 13dp; }
+.touch #map, .touch #panel { top: 58dp; bottom: 100dp; }
+.touch #map { width: 53%; }
+.touch #panel { left: 56.4%; padding: 8dp; }
+.touch #board .card { min-width: 48dp; height: 88dp; }
+.touch #timegraph { top: auto; height: 94dp; bottom: 2dp; }
+.touch #plot { top: 26dp; bottom: 15dp; }
+.touch #live { bottom: 15dp; }
+.touch #axis-start, .touch #axis-end { bottom: 0; }
+.touch .shell-panel { padding: 10dp 14dp; }
 </style>
 </head>
 <body>
-<div id="header"><h1>Regional Map</h1><div id="clock"></div><button id="new-game" data-op="new">New Game</button></div>
+<div id="safe-content">
+<div id="play">
+<div id="header"><h1>Regional Map</h1><div id="clock"></div>
+<div class="game-actions"><button id="save-game" data-op="save">Save</button><button id="title-game" data-op="title">Title</button></div></div>
 <div id="map"><div id="markers"></div>
 <div id="legend" class="quiet"><span class="player-key">Your holdings</span> &nbsp; <span class="crown-key">Crown</span> &nbsp; Unheld &nbsp; <span class="creep-key">Creep</span></div></div>
 <div id="panel"></div>
@@ -64,5 +99,8 @@ button:active { background: #6a5336; color: #fff3d4; }
 <div id="plot"></div><div id="axis-start" class="quiet"></div><div id="axis-end" class="quiet"></div>
 <button id="live" data-op="live">Live</button></div>
 <div id="opening"><h2 id="loading-title">Preparing the forecast</h2><p id="loading-status" class="quiet"></p></div>
+</div>
+<div id="shell" class="shell-overlay"><div id="shell-panel" class="shell-panel"></div></div>
+</div>
 </body>
 </rml>
