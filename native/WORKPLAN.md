@@ -550,6 +550,34 @@ market routing (1.9 µs/sim-s without activations) and a transfer-journal
 allocation at each new transfer second. Both fall to the next
 engine-performance pass after N03e-3p.
 
+N03e-4 merged from `t3/native-birth-annual-cohorts-1` 441019a4, then N03e-8
+from `t3/territory-phase-drain` 159fdb07. The merged optimized build passed
+31/31 CTests. Every ported stage matched on all pairs:
+- advance_clock, prelude, phase_events_and_drain, final_flush: 94/94 each
+  (the R06 expiry now matches);
+- seasonal_practices 18/18, spring_death_baseline 4/4, birth 21/21;
+- food 11/11, after_meals_practices 11/11, garrison_upkeep 11/11;
+- faith 29/29, migration_practices 15/15, migration 17/17;
+- death_practices 8/8, control_and_spatial_pressure 8/8.
+
+All 17 step windows passed. Mask reconciliation:
+- Two masks were added for the seed-42-shops/84 holding cascade.
+- Five masks were removed. Each was tested alone across every window, and
+  none hid a difference.
+- The remaining Birth, Food and control masks were reassigned to N03e-7.
+  Unported Death or Housing is now their only cause.
+- 155 masks remain: N03e-7 85, N03e-9 56, N03e-6 14.
+
+Merged pipeline cost: 61 µs/sim-s at opening and 59 µs/sim-s late, against a
+10–12 µs budget. Recipe activations and the phase drain dominate, and
+N03e-3p owns both.
+
+Decision (supervisor, 19 Nov 2026): the inverse-binomial Birth sampling
+proposal is deferred. It saves about 1.8 µs/sim-s late and nothing at
+opening, and it would require versioning the RNG rule and regenerating golden
+traces. Revisit with Death sampling once N03e-3p lands and the engine's share
+is known.
+
 **N03e-3 result (19 Nov 2026).** `t3/native-scheduled-recipe-engine` resumes
 `ba7abdc3` with the seed-1 topology stub still isolated at `c40df7fd`.
 [Practice activation and reactions](src/sim/practice/practice.hpp) expose
