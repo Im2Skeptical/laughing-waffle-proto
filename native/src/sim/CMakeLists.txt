@@ -2,6 +2,7 @@ add_library(waffle_sim STATIC
 	browser/detail/codec.cpp
 	browser/generated/game_state.cpp
 	content/compiled_content.cpp
+	state/history_arena.cpp
 	state/mirror_mapping.cpp
 	state/runtime_state.cpp
 	settlement/population.cpp
@@ -44,12 +45,15 @@ if(NOT ANDROID)
 	target_link_libraries(waffle_content_tests PRIVATE waffle_sim)
 	add_executable(waffle_settlement_ledger_test ../tests/settlement_ledger_test.cpp)
 	target_link_libraries(waffle_settlement_ledger_test PRIVATE waffle_sim)
+	add_executable(waffle_history_test ../tests/history_test.cpp)
+	target_link_libraries(waffle_history_test PRIVATE waffle_sim)
 	if(MINGW)
 		target_link_options(waffle_parity PRIVATE -static)
 		target_link_options(waffle_browser_tests PRIVATE -static)
 		target_link_options(waffle_step_clock_test PRIVATE -static)
 		target_link_options(waffle_content_tests PRIVATE -static)
 		target_link_options(waffle_settlement_ledger_test PRIVATE -static)
+		target_link_options(waffle_history_test PRIVATE -static)
 	endif()
 
 	set(native_dir "${CMAKE_CURRENT_SOURCE_DIR}/../..")

@@ -19,7 +19,8 @@ std::uint32_t checked_index(std::size_t value, std::string_view path)
     return static_cast<std::uint32_t>(value);
 }
 
-std::optional<std::uint32_t> Strings::find(std::string_view name) const
+template<template<class> class Allocator>
+std::optional<std::uint32_t> BasicStrings<Allocator>::find(std::string_view name) const
 {
     for (std::uint32_t i = 0; i < offsets.size(); ++i) {
         if (at(i) == name) return i;
@@ -27,14 +28,16 @@ std::optional<std::uint32_t> Strings::find(std::string_view name) const
     return std::nullopt;
 }
 
-std::string_view Strings::at(std::uint32_t ordinal) const
+template<template<class> class Allocator>
+std::string_view BasicStrings<Allocator>::at(std::uint32_t ordinal) const
 {
     const auto entry = offsets.at(ordinal);
     if (entry.size() == 0) return {};
     return {bytes.data() + entry.begin, entry.size()};
 }
 
-void Strings::append(std::string_view name, std::string_view path)
+template<template<class> class Allocator>
+void BasicStrings<Allocator>::append(std::string_view name, std::string_view path)
 {
     checked_index(offsets.size(), path);
     const auto begin = checked_index(bytes.size(), path);
@@ -43,6 +46,9 @@ void Strings::append(std::string_view name, std::string_view path)
     if (!name.empty()) bytes.insert(bytes.end(), name.begin(), name.end());
     offsets.push_back({begin, end});
 }
+
+template struct BasicStrings<std::allocator>;
+template struct BasicStrings<std::pmr::polymorphic_allocator>;
 
 }
 namespace {
