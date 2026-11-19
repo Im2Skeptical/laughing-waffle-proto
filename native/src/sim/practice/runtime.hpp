@@ -4,7 +4,7 @@
 
 #include <memory>
 
-namespace waffle::sim::runtime { class HistoryArena; struct PoliticalForceEntry; struct StructureCell; }
+namespace waffle::sim::runtime { class HistoryArena; struct PoliticalForceEntry; struct PracticeSlot; struct StructureCell; }
 
 namespace waffle::sim::practice {
 
@@ -40,6 +40,11 @@ struct ListenerIndex {
     std::vector<runtime::Range<std::uint32_t>> local;
     std::array<std::vector<std::uint32_t>, trigger_kind_count> remoteByKind;
     std::vector<std::uint32_t> dynamicThreshold;
+    struct FixedThreshold {
+        runtime::Index<runtime::PracticeSlot> slot;
+        double limit;
+    };
+    std::vector<FixedThreshold> fixedThresholds;
     std::vector<std::optional<EventKind>> eventKinds;
     std::vector<unsigned> modifierKindsBySite;
     std::array<std::vector<Candidate>, activation_count> scheduled;

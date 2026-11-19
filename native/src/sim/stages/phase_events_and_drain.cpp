@@ -1,6 +1,6 @@
 #include "sim/stages/entries.hpp"
 #include "sim/practice/practice.hpp"
-#include "sim/settlement/site_access.hpp"
+#include "sim/state/runtime_state.hpp"
 
 namespace waffle::sim::stages {
 
@@ -13,11 +13,7 @@ bool phase_events_and_drain(RuntimeState& state, StageContext& context)
         event.fields.amount = balance - *context.chaosBefore;
         practice::emit(state, EventKind::chaosIncreased, {}, event);
     }
-    practice::EventData event{};
-    event.fields.phase = state.settlementPrelude.phases[static_cast<unsigned>(context.lunar.phase)];
-    for (const auto id : settlement::detailed_sites(state))
-        practice::emit(state, EventKind::phaseResolved, settlement::site_at(state, id).regionId, event);
-    practice::drain(state);
+    practice::resolve_phase(state, state.settlementPrelude.phases[static_cast<unsigned>(context.lunar.phase)]);
     return true;
 }
 

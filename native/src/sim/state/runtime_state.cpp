@@ -9,6 +9,7 @@ HistoryTextId HistoryPayload::intern_text(std::string_view value, std::string_vi
 {
     if (const auto existing = text.find(value)) return {*existing};
     const auto id = checked_index(text.offsets.size(), path);
+    if (id >= history_symbol_bit) throw std::length_error("history text exceeds page capacity");
     text.append(value, path);
     return {id};
 }

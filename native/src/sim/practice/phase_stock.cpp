@@ -77,7 +77,7 @@ void record_meal_transfers(RuntimeState& state, RegionId destination,
     auto& history = state.histories.at(transfers->transfers.row);
     if (transfers->tSec != state.hot.tSec) {
         transfers->tSec = state.hot.tSec;
-        history = {};
+        history.clear();
     }
     for (const auto& [region, slot, practiceSlot, amount] : food) {
         std::array<char, 48> buffer;
@@ -93,7 +93,7 @@ void record_meal_transfers(RuntimeState& state, RegionId destination,
             return StockTransfersTransfersEntry{text(id), state.hot.tSec, text("stock"), text("food"),
                 text("food"), text("consume"), region, destination, double(slot), practice,
                 store(page, std::span<const TraitId>(&state.practiceVocabulary.edible, 1)), amount};
-        });
+        }, state.practiceRecipeStorage.historyArena);
     }
 }
 

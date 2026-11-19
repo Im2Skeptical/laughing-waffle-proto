@@ -85,6 +85,7 @@ inline bool terminal(const RuntimeState& state)
 void trace(RuntimeState& state, PracticeEvent event, const EventData& data, bool includeId = false,
            std::string_view dynamicReason = {});
 void trace_pending(RuntimeState& state, PracticeEvent event, std::size_t index);
+void trace_phase(RuntimeState& state, SymbolId phase);
 
 template<class Arena, class T>
 Range<T> store(Arena& arena, std::span<const T> values)

@@ -263,7 +263,8 @@ struct Export {
         if constexpr (std::is_same_v<M, R>) {
             result = source;
         } else if constexpr (std::is_same_v<R, HistoryTextId>) {
-            result = payload->text.at(source.value);
+            result = (source.value & history_symbol_bit)
+                ? state.name(SymbolId{source.value & ~history_symbol_bit}) : payload->text.at(source.value);
         } else if constexpr (wrapped<R, Id>) {
             result = state.name(source);
         } else if constexpr (std::is_same_v<R, std::uint32_t> || std::is_same_v<R, std::uint64_t>) {

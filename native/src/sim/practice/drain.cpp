@@ -199,6 +199,7 @@ void rebuild_listeners(RuntimeState& state)
     index.candidates.clear();
     index.local.assign(state.hot.world.regions.size(), {});
     index.dynamicThreshold.clear();
+    index.fixedThresholds.clear();
     index.modifierKindsBySite.assign(state.hot.world.sites.size(), ~0u);
     for (auto& rows : index.remoteByKind) rows.clear();
     for (auto& rows : index.scheduled) rows.clear();
@@ -238,6 +239,8 @@ void rebuild_listeners(RuntimeState& state)
             const auto& def = definition(state, state.tables.at(slots[slot]).practiceId);
             if (!def.charge || def.mode != Mode::charge) continue;
             const auto row = checked_index(index.candidates.size(), "Practice listeners");
+            const auto limit = std::max(1.0, std::floor(def.charge->threshold));
+            index.fixedThresholds.push_back({slots[slot], dynamic ? 1.0 : limit});
             if (dynamic || state.practiceCharge[slots[slot].value] > def.charge->threshold)
                 index.dynamicThreshold.push_back(row);
             unsigned kinds = 0, remoteKinds = 0;
@@ -278,6 +281,8 @@ void drain_retries(RuntimeState& state, std::span<const Candidate> retries, Acti
     const auto cap = static_cast<unsigned>(state.compiledContent->settings().practiceReactionResolutionCap);
     auto discharge = [&](std::uint32_t row, PracticeEvent event, std::size_t payloadIndex, Root& root, bool local) {
         if (root.stopped) return;
+        const auto& bounded = state.practiceListeners.fixedThresholds[row];
+        if (state.practiceCharge[bounded.slot.value] < bounded.limit) return;
         const auto candidate = state.practiceListeners.candidates[row];
         const auto* slot = live_slot(state, candidate);
         if (!slot) return;
@@ -381,6 +386,29 @@ void drain(RuntimeState& state)
 {
     detail::drain_retries(state, {}, content::Activation::charge);
     if (!state.hot.civilization.practiceEvents.activeRoot) territory::synchronize_sites(state);
+}
+
+void resolve_phase(RuntimeState& state, SymbolId phase)
+{
+    const auto& journal = state.hot.civilization.practiceEvents;
+    const auto& index = state.practiceListeners;
+    const auto cap = static_cast<unsigned>(state.compiledContent->settings().practiceReactionResolutionCap);
+    // PhaseResolved has no Charge trigger. The regular FIFO is still required
+    // for earlier work, threshold clamps, ready Discharges and safety caps.
+    if (!journal.activeRoot && !journal.activeEvent && journal.pending.size() == 0 && cap > 1 &&
+        journal.nextId >= 0 && journal.nextId + state.indexes.detailedSites.size() < 0x1p53 &&
+        std::ranges::none_of(index.fixedThresholds, [&](const auto& entry) {
+            return state.practiceCharge[entry.slot.value] >= entry.limit;
+        })) {
+        detail::trace_phase(state, phase);
+        territory::synchronize_sites(state);
+        return;
+    }
+    EventData event{};
+    event.fields.phase = phase;
+    for (const auto id : settlement::detailed_sites(state))
+        emit(state, EventKind::phaseResolved, settlement::site_at(state, id).regionId, event);
+    drain(state);
 }
 
 }
