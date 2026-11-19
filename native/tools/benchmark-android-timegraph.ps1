@@ -129,8 +129,9 @@ try {
         foreach ($suffix in '', '-long') {
             $case = "$fixture$suffix"
             $variant = if ($suffix) { '--longevity' } else { '' }
-            Invoke-Adb shell "cd $remote && $runner timegraph --from $fixture.json --topology-dir topology --seconds 32000 --repeats 3 --samples 256 $variant --report $case.json"
-            Invoke-Adb pull "$remote/$case.json" (Join-Path $OutDir "$case.json")
+            # Reports must not reuse an input fixture name: seed-1.json is also the input.
+            Invoke-Adb shell "cd $remote && $runner timegraph --from $fixture.json --topology-dir topology --seconds 32000 --repeats 3 --samples 256 $variant --report report-$case.json"
+            Invoke-Adb pull "$remote/report-$case.json" (Join-Path $OutDir "$case.json")
         }
     }
 }

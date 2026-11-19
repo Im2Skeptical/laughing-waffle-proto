@@ -80,9 +80,13 @@ sim::RuntimeState load(const Options& options)
 {
     auto input = json::parse(read_file(options.from));
     if (options.longevity) {
-        auto config = *input.find("gameConfig");
-        auto settings = *config.find("settings");
-        auto values = *settings.find("values");
+        const auto require = [](const Value* value, std::string_view field) -> const Value& {
+            if (!value) throw std::invalid_argument("timegraph --longevity: input has no " + std::string(field));
+            return *value;
+        };
+        auto config = require(input.find("gameConfig"), "gameConfig");
+        auto settings = require(config.find("settings"), "gameConfig.settings");
+        auto values = require(settings.find("values"), "gameConfig.settings.values");
         values.set("phaseDurationSec", Value(64.0));
         values.set("monsterExpansionThreshold", Value(1000000000.0));
         settings.set("values", std::move(values));

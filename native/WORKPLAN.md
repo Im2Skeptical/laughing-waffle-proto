@@ -45,9 +45,42 @@
       browser's `moveVassalShopStructure`.
     - Pipeline is now **17.4 opening / 20.9 late** µs/sim-s.
     - Remaining action kinds have owners in the N03f section.
+- **Physical device session, 19 Nov 2026 (Cam's Pixel 6 Pro `raven`, Android
+  API 37, arm64, USB). Merged v53 build.**
+  Command: `native/tools/benchmark-android-timegraph.ps1`. Reports are in
+  `artifacts/n04b/android-v53/`.
+  - **L4 holds:** the 2,048 s per-second hash stream was byte-identical to
+    the Windows reference.
+  - Timegraph, 3 runs each. No big-core affinity was available, so the
+    scheduler chose the core. The phone was charging over USB.
+
+    | Fixture | sim-s/s | Restore p50 / p95 / p99 ms | Charged MiB |
+    | --- | --- | --- | ---: |
+    | Seed 1 ordinary (ends 5,700) | 31.8–33.4k | 0.83 / 1.42 / 1.64 | 51 |
+    | Seed 2026 late ordinary (ends +1,486) | 43.2–47.8k | 0.75 / 1.30 / 1.49 | 14 |
+    | Seed 1 longevity 32,000 s | 88–108k (296–362 ms) | 0.31 / 0.56 / 0.83 | 98 |
+    | Seed 2026 late longevity 32,000 s | 99–126k | 0.33 / 0.54 / 0.91 | 100 |
+
+  - The measured phone/desktop ratio is about **1.3–1.4×** (desktop seed 1
+    ordinary is 43.2k sim-s/s), not the assumed 2.5–3×. The ordinary
+    forecast sits at the 32k sim-s/s target, and restore is well inside
+    4 / 8 ms.
+  - Harness fix: timegraph reports overwrote the `seed-1.json` input on the
+    device, so the longevity run read a report and crashed with a null
+    `gameConfig`. Reports are now `report-<case>.json`, and the tool throws
+    if `gameConfig` is missing.
+  - Windows-side setup: Huawei HiSuite held the ADB interface exclusively
+    (adb `Access is denied`). Stopping its service freed the phone.
+    `adb` (platform-tools 37.0.1) is now in
+    `native/.tools/android-sdk/platform-tools`.
 - Active owners:
-  - N03h v53 catch-up to browser main 2334c106 (#104, #105, #107):
-    sol 6.2 worker on `t3/native-v53-catch-up`.
+  - N03h v53 catch-up: merged from bd2aeedd. Supervisor audit: uint32 RNG
+    cursors match the browser's `>>> 0`; the clock derives from the tick
+    index; and the late allocation test's threshold override is test-only.
+    Supervisor re-run: 45/45 CTests on MSVC and clang, all stage pairs
+    after removing 5 stale v52 capture directories, 30 windows with zero
+    masks, 242 replay checkpoints, and the New Game checks. Pipeline is
+    now 15.8 / 17.8.
   - Browser Housing fix (Campaign conquest restoring a ruin mid-turn):
     PR #108 is open and awaits Cam's merge authorization. It is not part
     of the N03h target.
