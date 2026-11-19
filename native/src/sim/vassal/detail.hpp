@@ -13,7 +13,7 @@ using namespace runtime;
 using namespace std::literals;
 
 struct HeirloomDef {
-    std::string_view id, label, quality;
+    std::string_view id, label, quality, description;
     double patronage, development, crossroads, cunning, wisdomMultiplier, extraShopOffers;
     bool mandate;
 };
@@ -93,6 +93,7 @@ struct Bonuses {
 
 Bonuses bonuses(const RuntimeState& state, const Vassal& actor);
 bool spend_mandate(RuntimeState& state, Vassal& actor);
+void finish_vassal(RuntimeState& state, Vassal& actor, std::string_view cause = {});
 void inherit(RuntimeState& state, Vassal& actor);
 void generate_candidates(RuntimeState& state);
 std::optional<browser::LifeMapGraph> action_graph(const RuntimeState& state, const browser::Candidate& candidate,

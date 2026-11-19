@@ -1,0 +1,16 @@
+{
+  "id": "action-campaign-quest",
+  "start": {"kind":"actionExhibit","variant":"choice-campaign-quest","seed":1},
+  "actions": [
+    {"tSec":0,"kind":"vassalEnterLifeNode","payload":{"nodeId":"life-d02-r02"}},
+    {"tSec":1,"kind":"vassalSelectLifeOption","payload":{"nodeId":"life-d02-r02","optionId":"quest:R12"}},
+    {"tSec":2,"kind":"vassalConfirmLifeNode","payload":{"nodeId":"life-d02-r02"}},
+    {"tSec":3,"kind":"vassalConfirmLifeNode","payload":{"nodeId":"life-d02-r02","acquire":{"destination":"decline"}}}
+  ],
+  "horizonSec": 68,
+  "keepSeconds": [0,1,2,3,4,5,64,68],
+  "rejections": [
+    {"action":{"tSec":0,"kind":"vassalSelectLifeOption","payload":{"nodeId":"life-d02-r02","optionId":"invalid"}},"reason":"invalidOption"},
+    {"action":{"tSec":2,"kind":"vassalConfirmLifeNode","payload":{"nodeId":"life-d02-r02"}},"reason":"acquireRequired"}
+  ]
+}

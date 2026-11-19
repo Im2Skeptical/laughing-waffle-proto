@@ -16,6 +16,7 @@ function main([exe, ...ids]) {
   const kinds = new Set();
   let count = 0;
   let checkpoints = 0;
+  let rejections = 0;
   for (const id of names) {
     const { scenario } = loadScenario(id);
     if (!scenario.actions.length) continue;
@@ -26,15 +27,17 @@ function main([exe, ...ids]) {
     const result = spawnSync(resolve(exe), [
       "run", "--from", join(directory, "initial.json"), "--seconds", String(scenario.horizonSec),
       "--actions", join(directory, "actions.json"), "--browser-checkpoints", join(directory, "replay-checkpoints.tsv"),
+      ...(scenario.rejections?.length ? ["--rejections", join(directory, "rejections.json")] : []),
       "--anchors", "--hashes", join(output, id + ".tsv"),
     ], { stdio: "inherit" });
     if (result.error) throw result.error;
     if (result.status !== 0) throw new Error(id + " replay failed. Generate captures with trace.mjs.");
     count += 1;
     checkpoints += scenario.keepSeconds.length;
+    rejections += scenario.rejections?.length ?? 0;
   }
   if (!count) throw new Error("No action scenarios to replay.");
-  console.log(`${count} journals, ${kinds.size} action kinds, ${checkpoints} browser checkpoints matched in three replay modes.`);
+  console.log(`${count} journals, ${kinds.size} action kinds, ${checkpoints} browser checkpoints matched in three replay modes. ${rejections} rejections matched without state changes.`);
 }
 
 try {

@@ -33,7 +33,7 @@ constexpr auto stride = sim::replay_anchor_stride;
 constexpr std::string_view streamVersion = "waffle-state-digest-v1";
 
 struct Options {
-    std::filesystem::path from, hashes, expect, report, snapshot, topologyDir, actions, checkpoints;
+    std::filesystem::path from, hashes, expect, report, snapshot, topologyDir, actions, checkpoints, rejections;
     std::optional<std::size_t> seconds;
     bool anchors = false;
 };
@@ -57,6 +57,7 @@ Options parse_options(int argc, char** argv)
         else if (flag == "--topology-dir" && options.topologyDir.empty()) options.topologyDir = value;
         else if (flag == "--actions" && options.actions.empty()) options.actions = value;
         else if (flag == "--browser-checkpoints" && options.checkpoints.empty()) options.checkpoints = value;
+        else if (flag == "--rejections" && options.rejections.empty()) options.rejections = value;
         else if (flag == "--seconds" && !options.seconds) {
             std::size_t seconds{};
             const auto end = value.data() + value.size();
@@ -72,7 +73,7 @@ Options parse_options(int argc, char** argv)
         throw std::invalid_argument("Usage: waffle_parity run --from <state.json> --seconds <n> --hashes <path> "
                                     "[--expect <path>] [--anchors] [--report <path>] [--snapshot <path>] "
                                     "[--topology-dir <directory>] [--actions <journal.json>] "
-                                    "[--browser-checkpoints <sha256.tsv>]");
+                                    "[--browser-checkpoints <sha256.tsv>] [--rejections <cases.json>]");
     if (!options.checkpoints.empty() && !options.anchors)
         throw std::invalid_argument("run: --browser-checkpoints requires --anchors");
     if (options.hashes == options.expect)
@@ -279,6 +280,47 @@ void verify_checkpoint(const sim::RuntimeState& state, const std::string& expect
 
 }
 
+namespace {
+
+struct Rejection {
+    sim::ActionJournal journal;
+    std::string reason;
+};
+
+std::vector<Rejection> load_rejections(const std::filesystem::path& path, double start, double end)
+{
+    std::vector<Rejection> result;
+    if (path.empty()) return result;
+    const auto data = json::parse(read_file(path));
+    for (const auto& entry : data.as_array()) {
+        const auto* action = entry.find("action");
+        const auto* reason = entry.find("reason");
+        if (!action || !reason) throw std::invalid_argument("run: rejection needs an action and a reason");
+        auto journal = sim::ActionJournal::from_json(Value(Value::Array{*action}));
+        const auto sec = journal.entries().front().tSec;
+        if (sec < start || sec > end) throw std::invalid_argument("run: rejection outside the run");
+        result.push_back({std::move(journal), reason->as_string()});
+    }
+    return result;
+}
+
+void verify_rejections(const sim::RuntimeState& state, std::span<const Rejection> cases)
+{
+    for (const auto& [journal, reason] : cases) {
+        const auto& action = journal.entries().front();
+        if (action.tSec != state.hot.tSec) continue;
+        auto trial = state;
+        sim::ReplayCursor replay(journal, action.tSec, false);
+        const auto result = replay.apply_boundary(trial);
+        const auto label = action.kind + " rejection at second " + std::to_string(static_cast<std::uint64_t>(action.tSec));
+        if (result.action != &action || result.actionReason != reason)
+            throw std::runtime_error(label + ": expected " + reason + ", got " + std::string(result.actionReason));
+        if (digest(state) != digest(trial)) throw std::runtime_error(label + " changed the state digest");
+    }
+}
+
+}
+
 int parity_run(int argc, char** argv)
 {
     const auto options = parse_options(argc, argv);
@@ -296,6 +338,7 @@ int parity_run(int argc, char** argv)
     const auto initial = state;
     const auto journal = load_action_journal(options.actions);
     const auto checkpoints = load_checkpoints(options.checkpoints);
+    const auto rejections = load_rejections(options.rejections, beginSec, beginSec + seconds);
     if (!checkpoints.empty() &&
         (checkpoints.front().first < beginSec || checkpoints.back().first > beginSec + seconds))
         throw std::invalid_argument("run: browser checkpoints outside the run");
@@ -343,6 +386,7 @@ int parity_run(int argc, char** argv)
         if (i != 0) require_replay(replay.advance(state));
         if (checkpointIndex < checkpoints.size() && checkpoints[checkpointIndex].first == state.hot.tSec)
             verify_checkpoint(state, checkpoints[checkpointIndex++].second, "continuous", options.hashes);
+        verify_rejections(state, rejections);
         lastHash = digest(state);
         std::ostringstream line;
         line << static_cast<std::uint64_t>(state.hot.tSec) << '\t' << std::hex << std::setfill('0') << std::setw(16)

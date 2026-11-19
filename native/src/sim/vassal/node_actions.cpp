@@ -50,10 +50,11 @@ double prestige_cost(const RuntimeState& state, const Vassal& actor, double base
     return cost;
 }
 
-double phase_cost(const RuntimeState& state, const Vassal& actor, const Node& node, double base)
+double phase_cost(const RuntimeState& state, const Vassal& actor, const Node& node, double base, bool travel = false)
 {
     if (base <= 0) return 0;
     auto cost = std::max(1.0, std::ceil(base * (1 - std::min(.6, whole(actor.stats.effectiveness) * .08))));
+    if (travel && has_heirloom(state, actor, "travellersBoots")) cost = std::ceil(cost * .7);
     if (!node.heirloomTimeActionUsed.value_or(false) && has_heirloom(state, actor, "hourglass"))
         cost = std::ceil(cost * .5);
     if (has_heirloom(state, actor, "crownOfAges")) cost = std::ceil(cost * .5);
@@ -94,6 +95,7 @@ ActionResult enter(RuntimeState& state, Vassal* actor, std::string_view id)
     if (std::ranges::find(nodes, id, &browser::LifeMapNodeStates::value_type::first) == nodes.end()) {
         Node node{.nodeId = card->id, .family = card->family, .signatureNode = card->signatureNode,
             .contentMode = "choice", .entered = true, .enteredSec = state.hot.tSec, .stockOutput = card->stockOutput};
+        if (node.family == "relic") node.specialRelic = card->specialRelic.value_or(false);
         if (is_shop(node)) {
             node.contentMode = "shop";
             node.shopSelection = shop_specialties(state, *actor, node);
@@ -153,7 +155,7 @@ ActionResult select_option(RuntimeState& state, Vassal& actor, Node& node, std::
     }
     const auto option = std::ranges::find(node.options, id, &browser::LifeMapOption::id);
     if (option == node.options.end()) return {"invalidOption"};
-    if (node.family == "campaign" && option->id != "campaign-leave") return {"campaignOptionNotPorted"};
+    if (node.family == "campaign" && campaign_blocked(state, actor, *option)) return {"campaignUnavailable"};
     if (prestige_cost(state, actor, option->prestigeCost) > prestige(state, actor) &&
         !(state.hot.rulesetId && node.family == "campaign")) return {"insufficientPrestige"};
     node.selectedOptionId = id;
@@ -696,18 +698,60 @@ void intervention_event(RuntimeState& state, Vassal& actor, NodeId node, const R
     });
 }
 
-ActionResult confirm(RuntimeState& state, Vassal& actor, Node& node, NodeId id)
+ActionResult confirm(RuntimeState& state, Vassal& actor, Node& node, NodeId id, const Value& payload)
 {
     if (needs_specialty(node)) return {"shopSpecialtyRequired"};
     if (!is_shop(node)) {
         const auto selected = std::ranges::find(node.options, node.selectedOptionId.value_or(""), &browser::LifeMapOption::id);
-        const auto* option = node.rewardAcquisition ? &*node.rewardAcquisition :
+        auto* option = node.rewardAcquisition ? &*node.rewardAcquisition :
             selected == node.options.end() ? nullptr : &*selected;
         if (!option) return {"optionRequired"};
-        const auto time = phase_cost(state, actor, node, option->phaseCost);
+        if (option->randomReward.has_key() && option->randomReward.value()) {
+            roll_tour_reward(state, actor, *option);
+            if (option->definitionId) {
+                node.rewardAcquisition = *option;
+                return {};
+            }
+        }
+        if (node.family == "campaign" && option->id != "campaign-leave" && !node.rewardAcquisition) {
+            const auto fresh = campaign_options(state, actor, node);
+            const auto match = std::ranges::find_if(fresh, [&](const auto& candidate) {
+                return candidate.id == option->id && candidate.stage == option->stage;
+            });
+            if (match == fresh.end() || campaign_blocked(state, actor, *match)) return {"campaignUnavailable"};
+            const auto time = state.compiledContent->values.lifeMapGenerator.design.enabled
+                ? phase_cost(state, actor, node, match->phaseCost) : match->phaseCost;
+            const auto result = commit_campaign(state, actor, node, *match, prestige_cost(state, actor, match->prestigeCost), time);
+            if (!result || node.rewardAcquisition) return result;
+            node.resolving = true;
+            if (!state.hot.runStatus || !state.hot.runStatus->complete)
+                begin_resolution(state, actor, node, id, browser::PendingLifeMapKind::campaignEncounter, time);
+            return {};
+        }
+        const bool relic = node.family == "relic" || node.rewardAcquisition.has_value();
+        const auto* acquisition = payload.find("acquire");
+        const bool empty = option->emptyRelic.value_or(false);
+        if (relic && !empty && (!acquisition || string(*acquisition, "destination").empty())) return {"acquireRequired"};
+        if (relic && option->definitionId && acquisition) {
+            const auto result = acquire_relic(state, actor, *option->definitionId, *acquisition, false);
+            if (!result) return result;
+        }
+        auto time = phase_cost(state, actor, node, option->phaseCost, option->locationRegionId.has_value());
+        if (state.hot.rulesetId && settlement::detailed_site(state, actor.locationRegionId)) node.removalReceipts.emplace();
         const auto result = commit_node_choice(state, actor, node, *option, prestige_cost(state, actor, option->prestigeCost));
-        if (!result) return result;
-        if (state.hot.rulesetId) node.removalReceipts.emplace();
+        if (!result || actor.endedReason) return result;
+        if (!relic && !state.compiledContent->values.lifeMapGenerator.design.enabled)
+            time = phase_cost(state, actor, node, option->phaseCost, option->locationRegionId.has_value());
+        if (relic && option->definitionId && acquisition) {
+            const auto result = acquire_relic(state, actor, *option->definitionId, *acquisition, true);
+            if (!result) return result;
+        }
+        node.rewardAcquisition.reset();
+        if (node.family == "campaign" && relic) {
+            if (time > 0) node.heirloomTimeActionUsed = true;
+            begin_resolution(state, actor, node, id, browser::PendingLifeMapKind::campaignEncounter, time);
+            return {};
+        }
         node.accumulatedPhaseCost += time;
         if (time > 0) node.heirloomTimeActionUsed = true;
         begin_resolution(state, actor, node, id, browser::PendingLifeMapKind::nodeResolution, whole(node.accumulatedPhaseCost));
@@ -822,10 +866,11 @@ ActionResult dispatch_node_action(RuntimeState& state, const Action& action)
         result = kind == "vassalUndoShopPurchase"
             ? undo_purchase(state, *actor, node, *site, string(action.payload, "offerId"))
             : reorder_purchase(state, *actor, node, *site, action.payload);
-    } else result = confirm(state, *actor, node, *actor->lifeMap.currentNodeId);
+    } else result = confirm(state, *actor, node, *actor->lifeMap.currentNodeId, action.payload);
     if (result) {
         replace(state, actor->lifeMap.nodeStates, nodes);
         if (kind == "vassalConfirmLifeNode" && actor->lifeMap.pendingResolution &&
+            actor->lifeMap.pendingResolution->kind == browser::PendingLifeMapKind::nodeResolution &&
             actor->lifeMap.pendingResolution->resolveSec <= state.hot.tSec && !resolve_due(state))
             return {"resolutionFailed"};
         reindex(state);

@@ -249,7 +249,11 @@ void record_commission_event(RuntimeState& state, Vassal& actor, std::string_vie
         };
         if (!(kind == "practiceInstalled" ? has_tag(cards.practices) : has_tag(cards.structures))) return;
     }
-    if (goal.regionId || goal.minimumQuality) return;
+    if (goal.regionId && state.name(*goal.regionId) != subject) return;
+    if (goal.minimumQuality) {
+        const auto def = std::ranges::find(heirloomDefs, subject, &HeirloomDef::id);
+        if (def == std::end(heirloomDefs) || quality_index(def->quality) < quality_index(state.name(*goal.minimumQuality))) return;
+    }
     if (goal.amount) {
         goal.progress = std::min(*goal.amount, goal.progress + whole(amount));
         if (goal.progress < *goal.amount) return;
