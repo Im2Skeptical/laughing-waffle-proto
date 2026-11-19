@@ -890,6 +890,52 @@ optimized drain and History path. The focused wrapper and raw measurements
 are in local `artifacts/n03e8-stage-timing.ps1`, `n03e8-timing-final.log`,
 and `n03e8-pipeline-timing.log`.
 
+**N03e-9 checkpoint (19 Nov 2026, paused at Cam's request).**
+`t3/native-timed-vassal-resolution` ports the ordinary timed resolution path
+with territorial and personal Prestige, gross income, development choices,
+node and Life Event history, mortality, Mandate protection, inheritance and
+successor candidates. Retirement uses the same completion path. The adapter
+preserves the optional Life Event `cause` written by Mandate. Admission
+derives a single deadline from the active Vassal's pending transaction and
+Commission state. The idle stage only reads this deadline. The stage uses
+the existing History and cold-value publication rules when a transaction
+comes due. No intentional browser divergence was adopted.
+
+The optimized Windows build passed 31/31 enabled CTests. The preset disables
+`pipeline_steady_state_allocations`. Both schema generators and the Vassal
+table export passed `--check`. The original 106 Vassal stage pairs and all
+19 original step windows (130 comparisons) passed unmasked. The new
+`seed-1-vassal-{ordinary,death,retirement,mandate}` exhibits add four
+unmasked stage pairs and four step windows (eight comparisons). Ordinary
+resolves on the Birth boundary. Retirement checks fragile inheritance, vault
+compaction and successor candidate development after the Scholar has a
+Commission offer. The browser trace and stage harness also validate
+`seed-1-vassal-{campaign,delve,founding}`, which currently fail native at
+their due seconds. These three scenarios are in the WIP commit. All seven
+start their step window one second before resolution. Overall native
+coverage at the stop point is 110/113 stage pairs and 23/26 windows
+(138 comparisons in windows that pass). The shared 14 masks remain.
+
+Seven-run optimized MSVC medians from `waffle_parity step --time` on the
+i9-10900K measured Vassal at 0.0213 and 0.0221 µs/sim-s and the full pipeline
+at 28.89 and 38.10 µs/sim-s for `seed-1/0` and `seed-2026-late/3200`,
+respectively. These windows measure the idle deadline path. Triggered cold
+writes have a separate allocation cost. Raw timings and unmasked parity
+results are in local `artifacts/n03e9-timing.log`,
+`artifacts/n03e9-native-stage.log` and `artifacts/n03e9-native-windows.log`.
+
+Resume in `src/sim/vassal/resolution.cpp` where `resolve_due` and
+`complete` report unsupported work. Port Commission offers, stat progress
+and income credit first, then timed Founding training and placement,
+Campaign option refresh and Delve shop inventory. Add native coverage for
+tenure exhaustion, vault overflow and custom candidate profiles, then rerun
+`node native/reference/stage-probe.mjs --all`, unmasked stage pairs and
+all step windows. Remove the 14 masks after full parity. N03f owns selecting,
+entering and confirming nodes. After those actions change the actor,
+Commission or pending transaction, refresh the active Vassal index as
+needed and call `vassal::reindex`. Ownership returns to the supervising
+session.
+
 **N03e-3p — Practice engine and pipeline performance (19 Nov 2026).**
 Implementation on `t3/optimize-practice-recipe-engine` from `9a49365c`.
 `waffle_parity step --time` reports an uninstrumented pipeline average and a

@@ -1,0 +1,20 @@
+{
+  "id": "seed-1-vassal-delve",
+  "start": {
+    "kind": "vassalExhibit",
+    "seed": 1,
+    "variant": "delve"
+  },
+  "actions": [],
+  "horizonSec": 3,
+  "keepSeconds": [
+    0,
+    2
+  ],
+  "windows": [
+    {
+      "startSec": 1,
+      "count": 3
+    }
+  ]
+}
