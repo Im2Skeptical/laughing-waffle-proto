@@ -4,6 +4,7 @@
 #include "core/js_math.hpp"
 #include "sim/practice/stock.hpp"
 #include "sim/settlement/population.hpp"
+#include "sim/settlement/prelude.hpp"
 #include "sim/territory/detail.hpp"
 
 namespace waffle::sim::vassal::detail {
@@ -168,6 +169,8 @@ void conquer(RuntimeState& state, Site& site, double edge)
     site.simulationMode = state.territory.detailed;
     auto& region = territory::region_at(state, site.regionId);
     region.detailedSettlementEnabled = true;
+    if (auto& turn = state.hot.civilization.currentMoonTurn)
+        ensure_moon_region_result(state, *turn, site.regionId);
     region.controller = state.practiceVocabulary.player;
     ++state.hot.civilization.history.conquests;
     state.territory.sitesDirty = true;

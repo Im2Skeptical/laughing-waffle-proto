@@ -574,21 +574,6 @@ MigrationReport publish_bookings(RuntimeState& state, MoonTurn& turn, Workspace&
     return {{nextSummary, storage.summaries.end}, {nextMovement, storage.movements.end}};
 }
 
-MoonRegionResult& region_result(RuntimeState& state, MoonTurn& turn, RegionId region, std::size_t ordinal)
-{
-    auto rows = state.tables.view(turn.regions);
-    if (ordinal < rows.size() && rows[ordinal].key == region) return rows[ordinal].value;
-    const auto found = std::ranges::find(rows, region, &MoonRegion::key);
-    if (found != rows.end()) return found->value;
-    // A detailed town may have joined since this moon began.
-    const auto old = turn.regions;
-    turn.regions = state.tables.table<MoonRegion>().append(old.size() + 1, path);
-    rows = state.tables.view(turn.regions);
-    std::ranges::copy(state.tables.view(old), rows.begin());
-    rows.back() = {region, MoonRegionResult{region}};
-    return rows.back().value;
-}
-
 Index<MigrationReport> report_slot(const RuntimeState& state, SiteId id, const Site& site)
 {
     const auto first = state.migration.reports.begin + id.value * 3;
@@ -642,7 +627,7 @@ void publish_reports(RuntimeState& state, MoonTurn& turn, MigrationReport availa
 {
     auto nextSummary = available.intents.begin;
     auto nextMovement = available.outbound.begin;
-    std::size_t ordinal = 0;
+    std::size_t next = 0;
     for (const auto id : detailed_sites(state)) {
         auto& site = site_at(state, id);
         const auto region = site.regionId;
@@ -654,7 +639,7 @@ void publish_reports(RuntimeState& state, MoonTurn& turn, MigrationReport availa
                                         [&](const auto& item) { return item.sourceRegionId == region; }, compact_movement);
         report.inbound = copy_selected(state, turn.movements, nextMovement,
                                         [&](const auto& item) { return item.destinationRegionId == region; }, compact_movement);
-        auto& result = region_result(state, turn, region, ordinal++);
+        auto& result = ensure_moon_region_result(state, turn, region, &next);
         const auto index = report_slot(state, id, site);
         state.tables.at(index) = report;
         result.migration = index;

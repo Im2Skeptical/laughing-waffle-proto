@@ -13,7 +13,7 @@ import { DETAILED_PRACTICE_SLOT_COUNT } from '../../defs/gamepieces/detailed-set
 import { addWorldConnection, canonicalizeWorldState, getWorldConnectionCandidates, getWorldDefinition, getRegionState, getRegionReference, getConnectedRegionIds } from '../world-state.js';
 import { stockTotal, stockTraits, consumeStock, specialistCount, structureModifiers, planStock, applyStockPlan, CIV_CONTENT_TUNING, stockProviderSlot } from './stock.js';
 import { emitPracticeEvent, withPracticeRoot } from './practice-events.js';
-import { selectPopulationComposition, compositionTotal } from './helpers.js';
+import { selectPopulationComposition, compositionTotal, ensureMoonRegionResult } from './helpers.js';
 import { removePopulationComposition, addCompositionToStrangers } from './phases/migration.js';
 import { getPopulationSummary } from './queries.js';
 
@@ -208,15 +208,32 @@ export function resolveExternalPractice(state, site, def, apply, prepared = null
 }
 
 export function conquerSettlement(state, targetId, edge = 0) {
-  const site=siteAt(state,targetId),region=getRegionState(state,targetId);
-  if(state.rulesetId&&site?.detailedState){site.simulationMode='detailed';region.detailedSettlementEnabled=true;changeController(state,targetId,'player',{military:true});state.civilization.history.conquests++;return {ok:true};}
-  if(!site?.neutral && site?.simulationMode!=='ruin') return {ok:false,reason:'targetUnavailable'};
-  const settlement=site.detailedState;
-  const population=Object.values(settlement.populationByClass).reduce((n,c)=>n+c.children+c.adults+c.eldersByAge.reduce((s,e)=>s+e.count,0),0);
-  for(const c of Object.values(settlement.populationByClass)) { c.children=0;c.adults=0;c.eldersByAge=[];c.specialists=emptySpecialists(); }
-  settlement.populationByClass.stranger.adults=Math.max(1,Math.floor(population*(edge>=3?1:.8)));
-  if(edge<3) for(const p of settlement.practiceSlots.filter(Boolean)) p.stock=Math.floor(p.stock*.8);
-  delete site.neutral; site.simulationMode='detailed';region.detailedSettlementEnabled=true;region.controller='player'; state.civilization.history.conquests++;
+  const site = siteAt(state, targetId);
+  const region = getRegionState(state, targetId);
+  const fullMapConquest = state.rulesetId && site?.detailedState;
+  if (!fullMapConquest) {
+    if (!site?.neutral && site?.simulationMode !== 'ruin') return {ok:false,reason:'targetUnavailable'};
+    const settlement = site.detailedState;
+    const population = Object.values(settlement.populationByClass).reduce((n,c)=>n+c.children+c.adults+c.eldersByAge.reduce((s,e)=>s+e.count,0),0);
+    for (const cohort of Object.values(settlement.populationByClass)) {
+      cohort.children = 0;
+      cohort.adults = 0;
+      cohort.eldersByAge = [];
+      cohort.specialists = emptySpecialists();
+    }
+    settlement.populationByClass.stranger.adults = Math.max(1, Math.floor(population * (edge >= 3 ? 1 : .8)));
+    if (edge < 3) {
+      for (const practice of settlement.practiceSlots.filter(Boolean)) practice.stock = Math.floor(practice.stock * .8);
+    }
+    delete site.neutral;
+  }
+  site.simulationMode = 'detailed';
+  region.detailedSettlementEnabled = true;
+  const turn = state.civilization.currentMoonTurn;
+  if (turn) ensureMoonRegionResult(turn, targetId);
+  if (fullMapConquest) changeController(state, targetId, 'player', {military:true});
+  else region.controller = 'player';
+  state.civilization.history.conquests++;
   return {ok:true};
 }
 

@@ -3,7 +3,7 @@
   "crossLanguageParity": false,
   "n03": "preparatory capture only. This corpus does not implement or complete N03.",
   "issue": "https://github.com/Im2Skeptical/laughing-waffle-proto/issues/96",
-  "baselineCommit": "2334c1068cf43f0de82fb271dc6c6a188108d5b9",
+  "baselineCommit": "9123ed72ab47500236631327ad0148f84d4c113f",
   "gates": {
     "packageVersion": false,
     "gitHead": false,

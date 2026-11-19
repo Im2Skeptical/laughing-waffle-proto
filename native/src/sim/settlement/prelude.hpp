@@ -1,8 +1,10 @@
 #pragma once
 
+#include "sim/state/tables.hpp"
 #include "sim/step/advance_second.hpp"
 
 namespace waffle::sim::runtime {
+struct MoonRegionResult;
 struct MoonTurn;
 struct PopulationClass;
 }
@@ -16,5 +18,7 @@ void spring_death_baseline(RuntimeState& state);
 void reset_empty_stranger_cohort(const RuntimeState& state, runtime::PopulationClass& stranger);
 runtime::MoonTurn& begin_moon_turn(RuntimeState& state, LunarSchedule phase);
 runtime::MoonTurn& set_moon_turn_phase(RuntimeState& state, LunarSchedule phase);
+runtime::MoonRegionResult& ensure_moon_region_result(RuntimeState& state, runtime::MoonTurn& turn,
+                                                     runtime::RegionId region, std::size_t* next = nullptr);
 
 }

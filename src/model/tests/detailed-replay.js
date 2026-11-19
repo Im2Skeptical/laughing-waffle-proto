@@ -6,6 +6,7 @@ import "./simulation-clone-equivalence.js";
 import './development-lab.js';
 import assert from "node:assert/strict";
 import './settlement-redesign.js';
+import "./detailed-settlements/campaign-ruin.js";
 import { ActionKinds } from "../actions.js";
 import { createInitialState } from "../init.js";
 import { createNewGameState } from "../new-game.js";

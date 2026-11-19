@@ -381,17 +381,16 @@ void resolve_birth_cohorts(RuntimeState& state)
         static_cast<std::uint64_t>(std::max(0.0, year - lastYear)),
     };
     const auto reports = state.birthStorage.reports[reportBuffer];
-    const auto sites = detailed_sites(state);
-    auto regions = state.tables.view(civ.currentMoonTurn->regions);
+    auto& turn = *civ.currentMoonTurn;
     auto& work = birthWork;
     work.reserve(state.birthStorage.binCapacityHint);
-    // begin_moon_turn created these rows in the same detailed-site order.
-    for (std::size_t i = 0; i < sites.size(); ++i) {
-        const auto id = sites[i];
-        if (site_at(state, id).neutral) continue;
+    std::size_t next = 0;
+    for (const auto id : detailed_sites(state)) {
+        const auto& site = site_at(state, id);
+        if (site.neutral) continue;
         const auto index = Index<MoonRegionResultBirth>{reports.begin + id.value};
         resolve_birth(state, id, settings, work, state.tables.at(index));
-        regions[i].value.birth = index;
+        ensure_moon_region_result(state, turn, site.regionId, &next).birth = index;
     }
     civ.lastPopulationAgingYear = std::max(lastYear, year);
 }

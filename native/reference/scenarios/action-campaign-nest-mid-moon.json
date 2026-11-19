@@ -1,0 +1,11 @@
+{
+  "id": "action-campaign-nest-mid-moon",
+  "start": {"kind":"actionExhibit","variant":"choice-campaign-nest","seed":1},
+  "actions": [
+    {"tSec":0,"kind":"vassalEnterLifeNode","payload":{"nodeId":"life-d02-r02"}},
+    {"tSec":1,"kind":"vassalSelectLifeOption","payload":{"nodeId":"life-d02-r02","optionId":"attack:R12"}},
+    {"tSec":2,"kind":"vassalConfirmLifeNode","payload":{"nodeId":"life-d02-r02"}}
+  ],
+  "horizonSec": 9,
+  "keepSeconds": [0,1,2,3,4,5,6,7,8,9]
+}

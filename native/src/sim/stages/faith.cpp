@@ -163,7 +163,6 @@ bool faith(RuntimeState& state, StageContext& context)
     const auto& cache = state.faithStage;
     const auto& settings = state.content->config.settings.values;
     const auto regions = state.tables.view(state.hot.world.regions);
-    const auto moonRegions = state.tables.view(turn.regions);
     const auto reportRows = cache.reports[state.settlementPrelude.nextMoonBuffer ^ 1];
     const auto reports = state.tables.view(reportRows);
     const auto player = state.populationVocabulary.factions[2];
@@ -181,13 +180,9 @@ bool faith(RuntimeState& state, StageContext& context)
         const auto villagers = settlement::cohort_total(settlement::cohort_view(state, villager));
         const auto strangers = settlement::cohort_total(settlement::cohort_view(state, stranger));
         if (update) {
-            auto row = nextRegion < moonRegions.size() ? moonRegions.begin() + nextRegion : moonRegions.end();
-            if (row == moonRegions.end() || row->key != site.regionId)
-                row = std::ranges::find(moonRegions, site.regionId, &Entry<RegionId, MoonRegionResult>::key);
-            if (row == moonRegions.end()) throw std::logic_error("missing Faith moon region");
-            nextRegion = row - moonRegions.begin() + 1;
-            const auto& housing = row->value.housing;
-            const auto* meal = row->value.food ? &state.tables.at(*row->value.food) : nullptr;
+            auto& result = settlement::ensure_moon_region_result(state, turn, site.regionId, &nextRegion);
+            const auto& housing = result.housing;
+            const auto* meal = result.food ? &state.tables.at(*result.food) : nullptr;
             const auto capRank = housing ? find_rank(cache.happiness, state.tables.at(*housing).happinessCap) : positive;
             auto& floor = local.happinessFloor;
             const bool floorActive = floor && floor->remainingResolutions > 0;
@@ -213,7 +208,7 @@ bool faith(RuntimeState& state, StageContext& context)
                 report.byClass.stranger.reset();
             }
             if (floorActive) --floor->remainingResolutions;
-            row->value.faith = Index<MoonRegionResultFaith>{reportRows.begin + id.value};
+            result.faith = Index<MoonRegionResultFaith>{reportRows.begin + id.value};
         }
         if (playerControlled) {
             const auto villagerRank = find_rank(cache.faith, villager.faith.tier);

@@ -121,13 +121,12 @@ bool housing(RuntimeState& state, StageContext& context)
 
     const auto reportRows = state.housingStage.reports[state.settlementPrelude.nextMoonBuffer ^ 1];
     const auto reports = state.tables.view(reportRows);
-    const auto moonRegions = state.tables.view(turn.regions);
     const auto regions = state.tables.view(state.hot.world.regions);
     const auto regionalModifiers = state.tables.view(modifiers);
     const auto [negative, neutral, positive] = state.faithStage.happiness;
     const auto player = state.practiceVocabulary.player;
     const auto negativeRatio = state.compiledContent->settings().overHousingNegativeRatio;
-    auto next = moonRegions.begin();
+    std::size_t next = 0;
     for (const auto id : settlement::active_sites(state)) {
         const auto& site = settlement::site_at(state, id);
         const auto region = site.regionId;
@@ -144,10 +143,8 @@ bool housing(RuntimeState& state, StageContext& context)
         const auto migrants = settlement::reserve_housing_migration(state, turn, id, overflow);
         reports[id.value] = {state.hot.tSec, population, capacity, overflow, migrants, cap};
 
-        if (next == moonRegions.end() || next->key != region)
-            next = std::ranges::find(moonRegions, region, &Entry<RegionId, MoonRegionResult>::key);
-        if (next == moonRegions.end()) throw std::logic_error("missing Housing moon region");
-        (next++)->value.housing = Index<MoonRegionResultHousing>{reportRows.begin + id.value};
+        auto& result = settlement::ensure_moon_region_result(state, turn, region, &next);
+        result.housing = Index<MoonRegionResultHousing>{reportRows.begin + id.value};
     }
     return true;
 }
