@@ -447,6 +447,9 @@ dropped at merge), then the stages.
 N03e-7a merged 19 Nov 2026 from `t3/native-migration-stage` 3efe0ab5. The
 supervisor's merged optimized build passed 26/26 CTests, and all 14 generated
 step windows passed (120 comparisons).
+N03d-5 merged 19 Nov 2026 from `t3/allocation-free-history-appends-1` 88c9072c
+(late copy 5.9 µs, append 223 ns, zero warmed allocations). The merged
+optimized build passed 27/27 CTests and 14/14 step windows.
 
 ## N03f - Actions, replay and new game (pending N03e)
 
