@@ -175,6 +175,11 @@ RuntimeState admit_runtime(const browser::GameState& state, const core::json::Va
                            const core::json::Value* capturedConfig = nullptr);
 browser::GameState export_runtime(const RuntimeState& state);
 
+// Digest of ordered, reachable second-boundary state, including history.
+// Throws on a non-finite authoritative number. Storage offsets and caches
+// are excluded so save/re-import and a live value copy can be compared.
+std::uint64_t state_digest(const RuntimeState& state);
+
 // Rebuild lookup and summary indexes after changing their authoritative inputs.
 // Serialized population summary columns are independent caches at the adapter
 // boundary and must be kept current by any future population writes.

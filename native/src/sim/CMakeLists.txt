@@ -48,10 +48,13 @@ if(MSVC)
 endif()
 
 if(NOT ANDROID)
-	add_executable(waffle_parity ../tools/parity.cpp ../tools/parity_masks.cpp)
+	add_executable(waffle_parity ../tools/parity.cpp ../tools/parity_masks.cpp ../tools/parity_run.cpp)
 	target_link_libraries(waffle_parity PRIVATE waffle_sim)
 	target_compile_definitions(waffle_parity PRIVATE
 		"WAFFLE_REFERENCE_TOPOLOGY_DIR=\"${CMAKE_CURRENT_SOURCE_DIR}/../../reference/topology\"")
+	if(WIN32)
+		target_link_libraries(waffle_parity PRIVATE psapi)
+	endif()
 	add_executable(waffle_browser_tests ../tests/browser_state_test.cpp)
 	target_link_libraries(waffle_browser_tests PRIVATE waffle_sim)
 	add_executable(waffle_step_clock_test ../tests/step_clock_test.cpp)
@@ -110,13 +113,17 @@ if(NOT ANDROID)
 		--from "${native_dir}/reference/fixtures/seed-1/state-0.json"
 		--seconds 1 --expect-dir "${native_dir}/reference/fixtures/windows/seed-1/0"
 		--masks "${native_dir}/reference/parity-masks.json")
+	add_test(NAME native_run_restore_smoke COMMAND waffle_parity run
+		--from "${native_dir}/reference/fixtures/seed-1/state-0.json" --seconds 256
+		--hashes "${CMAKE_CURRENT_BINARY_DIR}/native-run-smoke.tsv"
+		--expect "${native_dir}/src/tests/vectors/native-run-seed-1.tsv" --anchors)
 	add_test(NAME step_clock COMMAND waffle_step_clock_test)
 	add_test(NAME runtime_history_appends COMMAND waffle_history_test
 		"${native_dir}/reference/fixtures/seed-1/state-0.json")
 	add_test(NAME faith_collapse_restore COMMAND waffle_faith_stage_test
 		"${native_dir}/reference/fixtures/seed-1/state-0.json")
 	set_tests_properties(browser_state_l0 browser_state_controls runtime_state_l0 runtime_state_controls
-		parity_cli step_parity step_clock captured_content runtime_history_appends faith_collapse_restore
+		parity_cli step_parity native_run_restore_smoke step_clock captured_content runtime_history_appends faith_collapse_restore
 		PROPERTIES TIMEOUT 60)
 
 	find_program(WAFFLE_NODE_EXECUTABLE NAMES node)
