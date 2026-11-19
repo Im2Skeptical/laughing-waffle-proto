@@ -160,6 +160,25 @@ else()
 		add_test(NAME connected_interaction_compact COMMAND waffle_native_game --interaction-smoke --seed 42 --size 640 360)
 		set_tests_properties(connected_interaction_smoke connected_interaction_compact PROPERTIES TIMEOUT 60
 			ENVIRONMENT "SDL_VIDEODRIVER=dummy;SDL_RENDER_DRIVER=software")
+		find_program(WAFFLE_LIFE_TEST_NODE NAMES node)
+		if(WAFFLE_LIFE_TEST_NODE)
+			foreach(width IN ITEMS 1120 640)
+				if(width EQUAL 1120)
+					set(height 640)
+				else()
+					set(height 360)
+				endif()
+				add_test(NAME connected_life_map_${width} COMMAND "${CMAKE_COMMAND}"
+					"-Dnode=${WAFFLE_LIFE_TEST_NODE}"
+					"-Dgame=$<TARGET_FILE:waffle_native_game>"
+					"-Dgenerator=${CMAKE_CURRENT_LIST_DIR}/src/tests/life_ui_fixture.mjs"
+					"-Dfixture=${CMAKE_CURRENT_BINARY_DIR}/life-exhibits-${width}"
+					"-Dwidth=${width}" "-Dheight=${height}"
+					-P "${CMAKE_CURRENT_LIST_DIR}/src/tests/check_life_ui.cmake")
+				set_tests_properties(connected_life_map_${width} PROPERTIES TIMEOUT 60
+					ENVIRONMENT "SDL_VIDEODRIVER=dummy;SDL_RENDER_DRIVER=software")
+			endforeach()
+		endif()
 		add_test(NAME connected_slice_import COMMAND waffle_native_game --smoke
 			--load "${CMAKE_CURRENT_LIST_DIR}/reference/fixtures/seed-1/state-0.json")
 		add_test(NAME connected_slice_runner_save COMMAND "${CMAKE_COMMAND}"

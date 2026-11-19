@@ -27,6 +27,7 @@ struct InteractionProbe {
     View& view;
     const SmokeFrame& present;
 
+    void lifeMap(Session& session, const SaveSlots& store, const std::filesystem::path& shop);
     bool reduced() const { return view.document_->IsClassSet("reduce-motion"); }
 
     Rml::Element& control(const char* selector)
@@ -415,6 +416,213 @@ void InteractionProbe::shell(Session& session, const SaveSlots& store)
 void shellSmoke(Session& session, View& view, const SmokeFrame& frame, const SaveSlots& store)
 {
     InteractionProbe{view, frame}.shell(session, store);
+}
+
+void InteractionProbe::lifeMap(Session& session, const SaveSlots& store, const std::filesystem::path& shop)
+{
+    const auto idle = [&] { waitFor(session, [&] { return !session.busy() && !session.opening(); }, present); };
+    const auto apply = [&](const char* selector, bool confirm = false) {
+        const auto old = session.generation();
+        click(selector, true);
+        if (confirm) click("#dialog-confirm");
+        idle();
+        require(session.generation() > old, "Life Map action did not replace the forecast");
+    };
+    const auto actionControl = [&](const auto& choice) {
+        const auto found = std::ranges::find_if(view.life_.choices, choice);
+        require(found != view.life_.choices.end(), "Life Map choice is missing");
+        const auto index = found - view.life_.choices.begin();
+        return "[data-op=life-choice][data-id='" + std::to_string(index) + "']";
+    };
+    const auto actionKind = [&](std::string_view kind) {
+        return actionControl([&](const LifeChoice& option) {
+            return option.command.kind == kind && option.reason.empty();
+        });
+    };
+    const auto pickOffer = [&](const ShopItem& offer) {
+        click(("[data-op=life-offer][data-id='" + offer.id + "']").c_str());
+    };
+    idle();
+    present("01-atlas");
+    selectCapital(session, view.selection_);
+    present(nullptr);
+    const auto atlas = view.bounds("map");
+    for (const auto& shape : session.shapes()) {
+        const auto point = view.map_.project(shape.label, atlas);
+        const auto target = view.hit(point);
+        if (!SDL_PointInRectFloat(&point, &atlas) || !target || *target == view.selection_.region) continue;
+        pointer(SDL_EVENT_MOUSE_MOTION, point);
+        break;
+    }
+    present("01a-selected-and-hovered");
+    require(!view.hoveredRegion_.empty() && view.hoveredRegion_ != view.selection_.region,
+        "Label smoke did not find a separate hovered region");
+    std::vector<SDL_FRect> visibleLabels;
+    auto& markers = control("#markers");
+    for (int i = 0; i < markers.GetNumChildren(); ++i) {
+        const auto& region = session.displayed()->regions.at(static_cast<std::size_t>(i));
+        auto& label = *markers.GetChild(i);
+        if (region.id == view.selection_.region || region.id == view.hoveredRegion_)
+            require(!label.IsClassSet("occluded"), "Selected or hovered regional name was hidden");
+        if (label.IsClassSet("occluded")) continue;
+        const auto at = label.GetAbsoluteOffset(Rml::BoxArea::Border);
+        const auto size = label.GetBox().GetSize(Rml::BoxArea::Border);
+        const SDL_FRect box{at.x, at.y, size.x, size.y};
+        require(std::ranges::none_of(visibleLabels, [&](const auto& other) {
+            return SDL_HasRectIntersectionFloat(&box, &other);
+        }), "Visible regional labels overlap");
+        visibleLabels.push_back(box);
+    }
+    click("#life-toggle");
+    require(view.life_.candidates.size() >= 2, "Opening candidates not displayed");
+    present("02-vassal-candidates");
+    apply("[data-op=life-reroll]", true);
+    require(view.life_.rerolls == 1, "Reroll count did not update");
+    apply("[data-op=life-candidate][data-id='0']", true);
+    require(!view.life_.actor.empty(), "Vassal appointment did not show its graph");
+    present("03-life-route");
+    apply("[data-op=life-enter]", true);
+    present("04-specialty");
+    apply(actionKind("vassalSelectLifeOption").c_str());
+    apply(actionKind("vassalConfirmLifeNode").c_str(), true);
+    require(view.life_.progress.has_value(), "Shop confirmation did not expose timed resolution");
+    present("05-resolving");
+    apply(actionControl([](const LifeChoice& option) { return option.command.advance; }).c_str());
+    require(!view.life_.events.empty(), "Resolved node did not emit life events");
+    present("06-outcome");
+    const auto crossroads = std::ranges::find_if(view.life_.nodes, [](const LifeNode& node) {
+        return node.status == NodeStatus::available && node.label == "Crossroads";
+    });
+    require(crossroads != view.life_.nodes.end(), "Seed 42 has no reachable Crossroads");
+    click(("[data-op=life-node][data-id='" + crossroads->id + "']").c_str());
+    apply("[data-op=life-enter]", true);
+    present("06a-crossroads");
+    apply(actionKind("vassalSelectLifeOption").c_str());
+    click(actionKind("vassalConfirmLifeNode").c_str());
+    require(view.dialog_, "Node choice did not present confirmation");
+    present("06b-node-confirmation");
+    const auto optionGeneration = session.generation();
+    click("#dialog-confirm");
+    idle();
+    require(session.generation() > optionGeneration, "Crossroads did not commit");
+    if (view.life_.progress)
+        apply(actionControl([](const LifeChoice& option) { return option.command.advance; }).c_str());
+
+
+    // Use the pinned parity exhibit for a structure with actual Currency and
+    // a second offer whose payment cannot be met.
+    view.shell_.open(Launch{.save = shop / "shop.json", .horizon = 512});
+    idle();
+    click("#life-toggle");
+    require(view.life_.shop.has_value(), "Currency exhibit did not open its shop");
+    present("07-shop");
+    const auto offer = std::ranges::find_if(view.life_.shop->offers, [](const ShopItem& item) { return !item.spans.empty(); });
+    require(offer != view.life_.shop->offers.end(), "No affordable structure placement is available");
+    const auto placed = *offer;
+    pickOffer(placed);
+    const auto span = placed.spans.front();
+    click(("[data-op=life-origin][data-id='" + std::to_string(span.origin) + "']").c_str(), true);
+    require(view.selectedSpan(placed) && view.selectedSpan(placed)->origin == span.origin,
+        "Highlighted construction span was incorrect");
+    present("08-placement");
+    click("[data-op=life-purchase]");
+    require(view.dialog_, "Structure placement requires confirmation");
+    present("09-purchase-confirmation");
+    const auto stagedGeneration = session.generation();
+    click("#dialog-confirm");
+    idle();
+    require(session.generation() > stagedGeneration && view.life_.shop->staged.size() == 1 &&
+        view.life_.shop->staged.front().cost.find("Currency") != std::string::npos &&
+        view.life_.shop->cells.at(span.origin) != "",
+        "Staged purchase did not show its cost and placement");
+    present("10-staged-purchase");
+
+    const auto blocked = std::ranges::find_if(view.life_.shop->offers, [](const ShopItem& item) {
+        return item.reason.find("insufficient available Currency") != std::string::npos;
+    });
+    require(blocked != view.life_.shop->offers.end(), "Missing Currency rejection on the offer");
+    const auto rejected = *blocked;
+    pickOffer(rejected);
+    const auto liveBeforeRejection = session.displayedDigest();
+    const auto beforeCount = session.actionCount();
+    const auto beforeGeneration = session.generation();
+    click("[data-op=life-purchase]");
+    require(view.notice_ == rejected.reason && !session.busy(), "Blocked offer did not explain its payment");
+    present("11-insufficient-currency");
+    view.submitLife(rejected.command);
+    for (int attempts = 0; session.busy() && attempts < 400; ++attempts) {
+        session.update();
+        present(nullptr);
+        SDL_Delay(1);
+    }
+    require(session.error().ends_with("insufficientCurrency") && session.actionCount() == beforeCount &&
+        session.generation() == beforeGeneration && session.displayedDigest() == liveBeforeRejection,
+        "Rejected purchase changed the run or lost its reason");
+
+    const auto unlock = std::ranges::find_if(view.life_.shop->offers, [](const ShopItem& item) {
+        return item.id.starts_with("practice-slot:");
+    });
+    require(unlock != view.life_.shop->offers.end(), "Missing Practice slot offer");
+    pickOffer(*unlock);
+    apply("[data-op=life-purchase]", true);
+    present("11a-slot-unlock");
+    const auto route = std::ranges::find(view.life_.shop->offers, "legacy-route-add", &ShopItem::id);
+    require(route != view.life_.shop->offers.end(), "Missing route offer");
+    pickOffer(*route);
+    apply("[data-op=life-purchase]", true);
+    present("11b-connection");
+    const auto roads = session.displayed()->roads.size();
+    apply(actionKind("vassalConfirmLifeNode").c_str(), true);
+    require(session.displayed()->roads.size() == roads + 1, "Checkout did not build the staged connection");
+    const auto activeRegion = std::ranges::find(session.displayed()->regions,
+        session.displayed()->vassalRegion, &Region::id);
+    require(activeRegion != session.displayed()->regions.end() && !activeRegion->cards[3].locked,
+        "Checkout did not unlock the staged Practice slot");
+    require(view.life_.progress.has_value(), "Checkout did not show resolution");
+    const auto start = view.life_.progress->first, end = view.life_.progress->second;
+    const auto target = start + (end - start) / 2;
+    waitFor(session, [&] { return session.chart().through.value_or(0) >= end; }, present);
+    scrub(target, SDL_EVENT_FINGER_DOWN);
+    scrub(target, SDL_EVENT_FINGER_UP);
+    waitFor(session, [&] { return session.previewReady(); }, present);
+    require(session.displayed()->second == target && session.displayedDigest() == session.replayDigest(target),
+        "Displayed Life Map preview differs from rebuildStateAtSecond");
+    require(!session.submit(rejected.command) && view.lifeReadOnly_, "Timegraph Preview accepted a purchase");
+    present("12-read-only-preview");
+    click("#live");
+    require(!session.previewing() && session.displayed()->second == start, "Back to Live lost the checkout");
+    apply(actionControl([](const LifeChoice& option) { return option.command.advance; }).c_str());
+    const auto digest = session.displayedDigest(), second = session.displayed()->second;
+    require(digest == session.replayDigest(second), "Paid checkout differs from authoritative replay");
+    click("#save-game");
+    click("[data-op=slot][data-id='1']");
+    if (view.dialog_) click("#dialog-confirm");
+    require(store.inspect(Slot::first).metadata.has_value(), "Life Map save slot is missing");
+    present("13-saved");
+    view.shell_.show(Screen::load);
+    present(nullptr);
+    click("[data-op=slot][data-id='1']");
+    idle();
+    require(session.displayed()->second == second && session.displayedDigest() == digest,
+        "Loaded Life Map state differs from the saved frontier");
+    click("#life-toggle");
+    present("14-loaded");
+
+    view.shell_.open(Launch{.save = shop / "retirement.json", .horizon = 128});
+    idle();
+    click("#life-toggle");
+    require(view.life_.succession.find("retired") != std::string::npos && !view.life_.candidates.empty(),
+        "Retirement did not display the successor candidates and end of tenure");
+    present("15-succession");
+    std::printf("Life Map smoke passed: candidate reroll, appointment, node, placement, payment rejection, "
+        "replay scrub t=%llu, live save/load t=%llu\n",
+        static_cast<unsigned long long>(target), static_cast<unsigned long long>(second));
+}
+
+void lifeMapSmoke(Session& session, View& view, const SmokeFrame& frame, const SaveSlots& store,
+                  const std::filesystem::path& shop)
+{
+    InteractionProbe{view, frame}.lifeMap(session, store, shop);
 }
 
 void saveSmoke(const Launch& launch, const std::filesystem::path& directory)

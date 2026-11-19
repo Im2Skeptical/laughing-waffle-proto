@@ -3656,6 +3656,105 @@ forecast frame times, scrub, reconstruction, memory, touch, pause/resume and
 phone screenshots remain unmeasured. This session left the phone untouched
 and its existing install state is unknown.
 
+### N04h - Desktop Life Map, Shop and regional labels
+
+Implemented on `t3/native-life-map-shop` from `89d08791`. Open **Life Map**
+from the atlas. The candidate cards show age, starting Prestige and stats,
+with free candidate rerolls and appointment confirmation. The Chronicle shows
+the captured graph, current and reachable choices, completed stops, resolution
+in simulation seconds, and the latest life events. It covers the native node
+families through their captured options, plus Campaign modes, relic disposition,
+Development, Commission, Delve and succession. The timed action's Advance
+control commits the frontier to its resolution second. Scrub retains the
+read-only result at the selected second and Back to Live restores the frontier.
+
+The Shop quotes staged costs through the existing action validator. A
+construction offer highlights its footprint and identifies replaced buildings.
+The cart shows placement, Practice slot unlocks, route changes, Prestige,
+Currency and Monster pressure. Checkout confirms the total and replaces the
+forecast. The atlas prioritizes the selected and hovered names, reserves the
+legend and zoom controls, and suppresses labels that cannot fit without a
+collision. Pinned names can move farther and use a leader line.
+
+The application sends the existing journal commands. Quotes use shared read
+helpers and detached action drafts. The sim still owns rule validation, RNG,
+ticks, replay and save state. Browser code and captured content are unchanged.
+The placement smoke uses a regular seed-42 opening and a paid shop assembled
+from the existing parity exhibits. It checks label collisions, node decisions,
+all three Shop purchases, a rejected Currency payment, read-only scrubbing,
+replay digest equality, save/load and succession at both desktop sizes.
+
+#### Verification
+
+Run in PowerShell from the worktree root with the shared toolchain junction in
+place.
+
+```powershell
+. native/tools/env.ps1
+Push-Location native
+foreach ($preset in 'optimized','optimized-clang') {
+    cmake --preset $preset
+    cmake --build --preset $preset --parallel 8
+    ctest --preset $preset --output-on-failure
+}
+Pop-Location
+node native/reference/trace.mjs
+foreach ($preset in 'optimized','optimized-clang') {
+    $parity = "native/build/$preset/src/sim/waffle_parity.exe"
+    & "native/build/$preset/waffle_native_game.exe" --smoke --seed 42
+    node native/reference/step-windows.mjs $parity
+    node native/reference/replay-windows.mjs $parity
+}
+
+node native/src/tests/life_ui_fixture.mjs artifacts/n04h/exhibits
+$game = 'native/build/optimized/waffle_native_game.exe'
+& $game --life-smoke artifacts/n04h/exhibits --seed 42 --capture artifacts/n04h/1120x640
+& $game --life-smoke artifacts/n04h/exhibits --seed 42 --size 640 360 --capture artifacts/n04h/640x360
+```
+
+Both presets passed 50/50 CTests. The original smoke restored second 227
+and returned to live second 148. Step parity passed 30 windows with 153
+comparisons and zero masks. Replay passed 34 journals, 18 kinds, 252 browser
+checkpoints in three modes, and 55 rejections. In both Life Map smokes the
+checkout preview at second 32 matched authoritative replay, and loading the
+save restored the digest at second 64. Manual play runs with
+`native/build/optimized/waffle_native_game.exe --seed 42`.
+
+Desktop screenshots and logs are in `artifacts/n04h/`, with N04g atlas
+comparisons in `before/` and a short SDL render capture in `life-map-shop.webp`.
+Physical Pixel validation is pending. The root
+`npm run verify` stopped at the pre-existing missing historical
+`artifacts/n04f/` link in WORKPLAN.
+
+#### Frame measurements
+
+Seven alternating pairs per preset at 1120 × 640, Direct3D 11 without vsync,
+on the i9-10900K / RTX 3080 Windows host. The original source at `89d08791`
+was rebuilt with the same toolchain. Both builds used the existing
+`--bench 2400 <json> --long-benchmark` workload. All 28 runs published
+through second 32,192, 1,000 years beyond the replacement frontier. Numbers
+are medians of the per-run percentiles.
+
+| Preset | Build | Frame p50 / p95 / p99 (ms) | Loaded scrub p95 (ms) | Forecast (ms) |
+| --- | --- | --- | ---: | ---: |
+| optimized | N04g fresh | 1.065 / 1.449 / 2.012 | 1.895 | 289.75 |
+| optimized | N04h | 1.088 / 1.463 / 2.355 | 1.945 | 290.81 |
+| optimized-clang | N04g fresh | 0.801 / 1.933 / 2.219 | 2.168 | 224.60 |
+| optimized-clang | N04h | 0.804 / 1.903 / 2.434 | 2.105 | 224.23 |
+
+All 3,015 N04h loaded scrubs presented within two frames. The frame p50 and
+p95 changed by at most 0.030 ms against the fresh controls. The frame p99
+increased by 0.343 ms with MSVC and 0.215 ms with Clang. Both candidate p99
+values were below 2.5 ms. The archived MSVC N04g measurement was
+1.06 / 1.34 / 1.68 ms. The fresh control also had a longer p99 than that
+archive. The final raw reports are in `artifacts/n04h/paired-final-lazy/`.
+
+The browser can use the same layout policy without changing simulation
+semantics. Reserve controls before placing labels, grant selected and hovered
+regions first use of space, and leave ordinary names at their local anchors.
+The native test checks both pinned labels and pairwise collision on the
+live map at each desktop size. Browser applicability is unmeasured.
+
 ## N05 - Iteration and installed profiles (pending N04)
 
 Finish development, performance and full-art installed profiles sharing the same
