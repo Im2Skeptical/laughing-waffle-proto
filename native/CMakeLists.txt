@@ -130,7 +130,9 @@ else()
 	if(WIN32)
 		add_executable(waffle_native_game
 			src/app/connected_art.cpp
+			src/app/connected_controls.cpp
 			src/app/connected_main.cpp
+			src/app/connected_map.cpp
 			src/app/connected_session.cpp
 			src/app/connected_smoke.cpp
 			src/app/connected_view.cpp
