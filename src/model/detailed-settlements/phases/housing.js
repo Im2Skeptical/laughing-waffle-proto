@@ -1,7 +1,7 @@
 // Housing moon phase: overflow intents and happiness cap.
 
 import { getGameSetting } from "../../game-config.js";
-import { compositionTotal } from "../helpers.js";
+import { compositionTotal, ensureMoonRegionResult } from "../helpers.js";
 import { getPhaseModifiers, runPracticeActivation } from "../practices.js";
 import {
   getPlayerAndUnrestSettlementSites,
@@ -62,7 +62,7 @@ export function runHousingPhase(state, phase) {
       sourceClassId: null,
       composition,
     });
-    turn.regions[site.regionId].housing = {
+    ensureMoonRegionResult(turn, site.regionId).housing = {
       tSec: state.tSec,
       population: assessedPopulation,
       capacity,
