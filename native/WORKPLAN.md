@@ -2577,6 +2577,127 @@ remain the shared contract. Browser heap accounting needs its own
 generation-retention measurement because the slab ownership and Windows
 private-byte results are native-specific.
 
+### N04c - Forecast memory reduction (complete, Windows x64)
+
+Two full 32,000-second generations fit under 256 MiB on both fixtures and compilers. The largest single generation charged 117.50 MiB. The largest retained pair charged 228.42 MiB, including the shared arena and the worker and restore reserves. The pressure harness retains every earlier row and anchor and submits a successor from the same fixture. Seed 1 advances from 0 to 32,000 twice. The late seed advances from 3,200 to 35,200 twice. The small-cap test still forces a partial generation and checks scrubbing of both prefixes.
+
+**Measured levers.** Branch `t3/native-timegraph-compact`, baseline `99934fca`.
+
+| MSVC longevity | Seed 1 saved | Seed 2026 late saved | Change |
+| --- | ---: | ---: | --- |
+| Summary pages, `e6cd584e` | 72.03 MiB | 72.20 MiB | Within a page, each region reuses its preceding record if all 128 bytes match. Every second still has its own header and direct per-region indices. |
+| Retained history, `63ae1901` | 48.02 MiB | 51.90 MiB | Each immutable Practice trace record stores its present fields and retains a payload object only when it has variable data. |
+| Anchor tables | 0.00 MiB | 0.00 MiB | Existing column sharing and restore code suffice at the original 64-second stride. |
+| **Total charged reduction** | **120.05 MiB** | **124.10 MiB** | Differences use unrounded bytes. |
+
+The per-region values occupied 2,560 of the 2,728 bytes in each typed row. A diagnostic comparison with the preceding second within each page found 11,167 changed region records on seed 1 and 9,387 on the late seed in 630,000 comparisons each. Exact bit comparisons distinguish signed zero. Page growth is admitted and charged before publication. `readSummaries` copies independent dense rows, including across page boundaries.
+
+At 501 anchors the baseline arena held 17,602 and 17,911 live 4 KiB Practice trace chunks (68.76 and 69.96 MiB). Trace cursor pages occupied about 9.34 and 9.39 MiB. The 112-byte directory allocation class occupied another 1.22 MiB on each. The remaining live allocation classes totalled about 1.40 and 0.63 MiB. The retained-minus-live difference was 0.52 and 3.47 MiB. Most of the cost was live records pinned by snapshots. Three frequently emitted receipt shapes each occurred at least 28,000 times on seed 1, with only 5–9 optional keys present. The new schema-generated field walk preserves absent, null, false and present values, exact floating-point representations and payload ranges. Packed records grow from the front of a chunk and payload allocations grow from the back. The worker retains exclusive write access to unused space. Snapshot handles keep the existing atomic reference counts and arena mutex.
+
+A separate diagnostic compared 128-byte pieces of equal-length private columns at consecutive anchors. On seed 1, 34.89 of 37.57 MiB matched byte-for-byte (92.9%). On seed 2026 late, 47.22 of 49.86 MiB matched (94.7%). Site and meal rows were the largest contributors. These comparisons include padding, so they are a diagnostic lower bound on unchanged data in the compared columns. They do not participate in admission. A new anchor codec would add work on the scrub path after both memory targets have already been met.
+
+**N04b memory breakdown.** Fresh process per case on the Windows x64 i9-10900K. Before and after use the same five workloads. MiB except the journal column (KiB). Arena live and recycled are subsets of retained. Residual is private growth minus summary, anchors, journal and incremental arena retention. The pressure rows end at different seconds because the new successor completes.
+
+| MSVC workload | End sec | Summary | Anchor tables | Arena live | Recycled | Retained | Journal KiB | Worker / restore reserve | Measured restore | Heap and scratch residual |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| Seed 1 ordinary before | 4,890 | 12.83 | 15.07 | 57.75 | 0.06 | 62.23 | 0.23 | 0.59 / 0.59 | 0.45 | 2.00 |
+| Seed 1 ordinary after | 4,890 | 3.89 | 15.07 | 21.58 | 0.06 | 22.27 | 0.23 | 0.59 / 0.59 | 0.45 | 1.39 |
+| Late ordinary before | 5,676 | 6.50 | 8.84 | 38.02 | 0.11 | 40.10 | 0.23 | 0.67 / 0.66 | 0.53 | 1.66 |
+| Late ordinary after | 5,676 | 2.06 | 8.84 | 12.88 | 0.10 | 16.10 | 0.23 | 0.67 / 0.66 | 0.53 | 0.75 |
+| Seed 1 longevity before | 32,000 | 83.28 | 57.14 | 80.72 | 0.06 | 81.24 | 0.23 | 0.52 / 0.51 | 0.41 | 3.62 |
+| Seed 1 longevity after | 32,000 | 11.25 | 57.14 | 29.16 | 0.07 | 33.23 | 0.23 | 0.52 / 0.51 | 0.41 | 4.49 |
+| Late longevity before | 35,200 | 83.28 | 72.17 | 81.21 | 0.07 | 84.68 | 0.23 | 0.64 / 0.64 | 0.49 | 3.85 |
+| Late longevity after | 35,200 | 11.08 | 72.17 | 29.11 | 0.06 | 32.78 | 0.23 | 0.64 / 0.64 | 0.49 | 4.35 |
+| Seed 1 retained pair before | 4,415 | 94.77 | 65.08 | 91.94 | 0.06 | 95.01 | 0.47 | 0.52 / 0.51 | 0.40 | 4.80 |
+| Seed 1 retained pair after | 32,000 | 22.50 | 114.27 | 58.32 | 0.07 | 61.93 | 0.47 | 0.52 / 0.51 | 0.41 | 7.90 |
+
+The ledger error is `100 × (charged / private growth − 1)`. Each cell gives charged MiB / process private growth MiB (signed error). Private growth is sampled after admission and before the profiling scrub.
+
+| Workload | MSVC before | MSVC after | Clang before | Clang after |
+| --- | ---: | ---: | ---: | ---: |
+| Seed 1 ordinary | 91.30 / 91.60 (-0.32%) | 42.41 / 42.09 (+0.74%) | 91.36 / 90.49 (+0.96%) | 42.47 / 41.62 (+2.02%) |
+| Late ordinary | 56.77 / 54.09 (+4.95%) | 28.33 / 26.00 (+8.98%) | 57.04 / 53.10 (+7.42%) | 28.60 / 26.39 (+8.36%) |
+| Seed 1 longevity | 222.69 / 224.77 (-0.92%) | 102.64 / 105.59 (-2.79%) | 222.88 / 224.70 (-0.81%) | 102.83 / 105.00 (-2.06%) |
+| Late longevity | 241.41 / 240.97 (+0.18%) | 117.32 / 118.62 (-1.10%) | 241.72 / 239.83 (+0.79%) | 117.50 / 116.27 (+1.05%) |
+| Seed 1 retained pair | 255.89 / 259.15 (-1.26%) | 199.74 / 206.09 (-3.08%) | 255.81 / 257.61 (-0.70%) | 199.93 / 205.13 (-2.54%) |
+
+The separate late retained-pair probe charged 228.11 MiB on MSVC and 228.42 MiB on Clang. For seed 1 the full pair charged 199.74 and 199.93 MiB respectively. Both standalone seed-1 tail scrubs grew the arena by a further 0.50 MiB. The tail scrubs of the retained seed-1 pair reused existing capacity.
+
+**Throughput and loaded restore.** Baseline and candidate ran in alternating order on logical CPU 15. Each fixture/compiler cell contains five matched pairs of processes, three timed forecasts and up to 256 individual restores per loaded pass. The table uses median throughput and median of the 15 per-pass tails. Signed changes use unrounded observations. The quiet confirmation followed completion of build and parity work. Raw reports from both series are in `artifacts/n04c/timing-{final,quiet}-*.json`.
+
+| Workload | Preset | Sim-s/s before / after (change) | Restore p95 ms before / after (change) | Restore p99 ms before / after (change) |
+| --- | --- | ---: | ---: | ---: |
+| Seed 1 ordinary | MSVC | 42,045 / 43,888 (+4.38%) | 1.240 / 1.213 (-2.21%) | 1.359 / 1.344 (-1.15%) |
+| Seed 1 ordinary | Clang | 51,867 / 54,694 (+5.45%) | 1.013 / 0.995 (-1.80%) | 1.115 / 1.117 (+0.12%) |
+| Late ordinary | MSVC | 35,767 / 37,388 (+4.53%) | 1.274 / 1.250 (-1.87%) | 1.394 / 1.360 (-2.45%) |
+| Late ordinary | Clang | 44,054 / 46,414 (+5.36%) | 1.034 / 1.047 (+1.33%) | 1.153 / 1.151 (-0.14%) |
+| Seed 1 longevity | MSVC | 109,605 / 119,954 (+9.44%) | 0.284 / 0.276 (-2.92%) | 0.337 / 0.323 (-4.10%) |
+| Seed 1 longevity | Clang | 139,797 / 158,486 (+13.37%) | 0.247 / 0.242 (-2.26%) | 0.303 / 0.282 (-7.05%) |
+| Late longevity | MSVC | 105,420 / 115,251 (+9.33%) | 0.305 / 0.300 (-1.87%) | 0.359 / 0.365 (+1.61%) |
+| Late longevity | Clang | 134,400 / 152,034 (+13.12%) | 0.269 / 0.260 (-3.49%) | 0.318 / 0.319 (+0.41%) |
+
+**Verification and reproduction.** Both presets passed 42/42 CTests. The warmed pipeline recorded zero allocations across 3,200 opening and 1,920 late seconds on each compiler. Browser step parity passed 30 windows with 153 comparisons and zero masks. All 33 journals matched 242 browser checkpoints in three replay modes and 55 rejected actions. On each compiler, each longevity fixture matched all 32,001 published summary hashes and all 501 restored anchor hashes from the pre-change MSVC serial oracle. All ten N04b ledger comparisons were within ±10%. No gameplay, RNG, serialized schema or action ordering changed.
+
+From the repo root in PowerShell, with both optimized baseline executables from `99934fca` saved under `artifacts/n04c/base-<preset>.exe`:
+
+```powershell
+$d = 'artifacts/n04c'
+New-Item -ItemType Directory -Force $d | Out-Null
+. native/tools/env.ps1
+Push-Location native
+foreach ($preset in 'optimized','optimized-clang') {
+    cmake --preset $preset
+    cmake --build --preset $preset --parallel 5
+    ctest --preset $preset --output-on-failure
+    ctest --preset $preset -V -R pipeline_steady_state_allocations
+}
+Pop-Location
+node native/reference/trace.mjs
+$opening = 'native/reference/fixtures/seed-1/state-0.json'
+Copy-Item artifacts/native-reference/traces/seed-2026-late/state-3200.json "$d/late.json" -Force
+foreach ($id in 'seed-1','late') {
+    $inputState = if ($id -eq 'seed-1') { $opening } else { "$d/late.json" }
+    node -e "const fs=require('fs'),s=JSON.parse(fs.readFileSync(process.argv[1])); Object.assign(s.gameConfig.settings.values,{phaseDurationSec:64,monsterExpansionThreshold:1000000000}); fs.writeFileSync(process.argv[2],JSON.stringify(s))" $inputState "$d/$id-longevity.json"
+    $stem = if ($id -eq 'seed-1') { 'long' } else { 'late' }
+    & "$d/base-optimized.exe" run --from "$d/$id-longevity.json" --seconds 32000 --hashes "$d/$stem-states.tsv" --timegraph-hashes "$d/$stem-hash.tsv"
+}
+foreach ($preset in 'optimized','optimized-clang') {
+    $exe = "native/build/$preset/src/sim/waffle_parity.exe"
+    node native/reference/step-windows.mjs $exe
+    node native/reference/replay-windows.mjs $exe
+    foreach ($id in 'seed-1','late') {
+        $stem = if ($id -eq 'seed-1') { 'long' } else { 'late' }
+        & $exe timegraph --from "$d/$id-longevity.json" --seconds 32000 --repeats 1 --samples 0 --expect "$d/$stem-hash.tsv"
+    }
+    & $exe timegraph --from "$d/late.json" --longevity --retain-previous --report "$d/late-pressure-$preset.json"
+    foreach ($case in 'seed-1','seed-2026-late','seed-1-long','seed-2026-late-long','pressure') {
+        $inputState = if ($case -like 'seed-2026*') { "$d/late.json" } else { $opening }
+        $flags = @('--memory-profile')
+        if ($case -like '*-long' -or $case -eq 'pressure') { $flags += '--longevity' }
+        if ($case -eq 'pressure') { $flags += '--retain-previous' }
+        & "$d/base-$preset.exe" timegraph --from $inputState @flags --report "$d/before-$preset-$case.json"
+        & $exe timegraph --from $inputState @flags --report "$d/memory-$preset-$case.json"
+    }
+}
+# Equivalent to the archived run-desktop.ps1 -Stem '-quiet'. Run after other builds finish.
+(Get-Process -Id $PID).ProcessorAffinity = [IntPtr](1 -shl 15)
+foreach ($preset in 'optimized','optimized-clang') {
+    foreach ($case in 'seed-1','seed-2026-late','seed-1-long','seed-2026-late-long') {
+        $inputState = if ($case -like 'seed-2026*') { "$d/late.json" } else { $opening }
+        $flags = @()
+        if ($case -like '*-long') { $flags += '--longevity' }
+        foreach ($round in 1..5) {
+            foreach ($label in $(if ($round % 2) { 'base','new' } else { 'new','base' })) {
+                $exe = if ($label -eq 'base') { "$d/base-$preset.exe" } else { "native/build/$preset/src/sim/waffle_parity.exe" }
+                & $exe timegraph --from $inputState --seconds 32000 @flags --samples 256 --repeats 3 --report "$d/timing-quiet-$preset-$case-$round-$label.json"
+            }
+        }
+    }
+}
+```
+
+**Cross-runtime handoff.** The browser and native timegraphs share the dense every-second summary and independent restore contracts. The native measurements show how much consecutive per-region series repeat. The browser can measure that repetition on the same fixtures before considering a page encoding. The Windows memory and loaded-worker timings apply to the native desktop runtime. Device and input-to-visible latency remain with the connected slice. No supervisor decision is required for N04c.
+
 ## N05 - Iteration and installed profiles (pending N04)
 
 Finish development, performance and full-art installed profiles sharing the same
