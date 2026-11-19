@@ -539,6 +539,17 @@ Stage cost targets: Birth, Food and Death ≤ 1 µs/sim-s each; Housing
 for itself as a distribution-preserving divergence, the worker proposes it
 and does not adopt it.
 
+N03e-5 merged from `t3/native-food-garrison-upkeep` 3b079e82, with no
+conflicts. The merged optimized build passed 30/30 CTests. Stage pairs: food
+11/11, garrison_upkeep 11/11, after_meals_practices 11/11, seasonal 13/13,
+migration_practices 14/14, migration 16/16, final_flush 75/75, prelude 74/75
+(the known R06 expiry). All 14 step windows passed. The worker measured the
+whole pipeline at 66 µs/sim-s at opening and 44 µs/sim-s late; Food Practice
+activations through the engine dominate. Two Food gates stay open: late
+market routing (1.9 µs/sim-s without activations) and a transfer-journal
+allocation at each new transfer second. Both fall to the next
+engine-performance pass after N03e-3p.
+
 **N03e-3 result (19 Nov 2026).** `t3/native-scheduled-recipe-engine` resumes
 `ba7abdc3` with the seed-1 topology stub still isolated at `c40df7fd`.
 [Practice activation and reactions](src/sim/practice/practice.hpp) expose
