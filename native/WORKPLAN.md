@@ -650,6 +650,46 @@ opening, and it would require versioning the RNG rule and regenerating golden
 traces. Revisit with Death sampling once N03e-3p lands and the engine's share
 is known.
 
+Merges on 19 Nov 2026:
+- N03e-3p (engine performance), d975a057. The engine-only pipeline fell from
+  12.7 to 3.9 µs/sim-s.
+- N03e-6b (Housing), f843183e. Migration reservations now use one
+  phase-indexed payload table: Food phase 0, Housing 1, Faith 2.
+- N03e-7b (Death), 5d9b2828. A missing site history death count reads as
+  zero, because the browser always creates `{deaths: 0}`.
+
+Every tick stage except Vassal is now ported. The merged optimized build
+passed 31/31 CTests. Every stage pair passed: advance_clock, prelude,
+phase_events_and_drain and final_flush 102/102; housing 12/12; death 17/17;
+death_practices 12/12; migration 19/19; birth 22/22; faith 31/31; food 11/11.
+All 19 step windows passed (130 comparisons).
+
+Masks: each mask was tested alone across all windows. 65 of the 79 hid no
+difference and were removed, including Vassal masks that the windows never
+exercise. 14 remain, all N03e-9 Vassal.
+
+Pipeline cost: 27.7 µs/sim-s at opening and 32.3 late. The largest stages are:
+
+| Stage | Opening µs/sim-s | Late µs/sim-s |
+| --- | ---: | ---: |
+| Food | 11.2 | 6.6 |
+| Phase drain | 7.0 | 9.6 |
+| Birth | 4.1 | 8.0 |
+| Seasonal Practices | 1.5 | 2.4 |
+
+The drain runs every second at about 7 µs per call. The
+`pipeline_steady_state_allocations` test is disabled until N03e-3q, because
+Birth, Food and Migration still allocate after warmup.
+
+Wave started 19 Nov 2026:
+- N03e-3q: performance pass 2. Target ≤ 8 µs/sim-s, and re-enable the
+  allocation test.
+- N03e-9: timed Vassal resolution.
+- N03f-3: native new game and world generation (L3).
+- N03g: clang (llvm-mingw) versus MSVC hash agreement over 32,000 s, long-run
+  stability, anchor-restore self-consistency, and an unrun Android
+  command-line harness.
+
 **N03e-3 result (19 Nov 2026).** `t3/native-scheduled-recipe-engine` resumes
 `ba7abdc3` with the seed-1 topology stub still isolated at `c40df7fd`.
 [Practice activation and reactions](src/sim/practice/practice.hpp) expose
