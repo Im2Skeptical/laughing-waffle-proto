@@ -5,6 +5,7 @@ add_library(waffle_sim STATIC
 	state/history_arena.cpp
 	practice/events.cpp
 	practice/stock.cpp
+	practice/phase_stock.cpp
 	practice/recipes.cpp
 	practice/drain.cpp
 	state/mirror_mapping.cpp

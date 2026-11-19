@@ -608,6 +608,67 @@ immediate Spawn resolution for pressure and Spawn effects. The lunar
 phase event producer remains a stub. No intentional browser divergence
 was introduced. Android runtime parity remains unverified.
 
+**N03e-5 port verified, performance open (19 Nov 2026).**
+`t3/native-food-garrison-upkeep`, based on `9a49365c`, runs Food in
+browser order. It clears regional recipe modifiers, replenishes detailed
+markets, runs both routing Practice seams, debits all local meals, and
+routes remaining Edible demand through allies and priced storefronts.
+It records spending, transfer order, relief and class feed memory.
+The site's mutable `lastMeal` and the published moon Food report use
+separate storage so Migration and Death can update the site record.
+Food and Faith use separate payloads in the shared reservation bank.
+Garrisons pay atomically with local priority before shared retries and
+carry the existing support commitment through payment. The port draws no
+RNG and uses the existing v52 serialized fields. Both stages remain
+gated by the lunar dispatcher.
+
+From the root, `node native/reference/trace.mjs` regenerated the original
+traces and `node native/reference/trace.mjs seed-1-food-contention`
+captured the prepared scenario. `node native/reference/stage-probe.mjs --all`
+matched the official tick and trace hashes. For
+`$parity = "native/build/optimized/src/sim/waffle_parity.exe"`,
+`node native/reference/stage-pairs.mjs $parity <stage>` passed Food 11/11,
+garrison upkeep 11/11 and seasonal Practices 13/13 without masks.
+The prepared pair checks neighboring Stock contention, Currency purchases,
+local and market-paid garrisons, an unpaid garrison, full and partial feed
+thresholds, starvation reservations and the seasonal generation boost.
+`node native/reference/step-windows.mjs $parity` passed 14 windows and
+120 comparisons with 182 masks. Both schema `--check` commands passed.
+After dot-sourcing `native/tools/env.ps1`, `cmake --preset optimized`,
+`cmake --build --preset optimized` and
+`ctest --preset optimized --output-on-failure` in `native/` passed 30/30.
+
+Removed the Food modifier, regional spending and broad Faith class masks.
+Opened the Food, relief, garrison and latest-meal records to comparison
+except for the fields affected by pending Birth, Death and territorial
+writers. The shared transfer journal still depends on Birth Practices.
+Housing changes migration reservation array membership, and Birth and
+Death change the number of people available for Food to reserve. The
+individual remaining masks specify these dependencies. Unmasked stage
+pairs compare the complete journal, reservations and market records.
+
+On the i9-10900K, seven medians for opening `seed-1/0` (9,984 advances
+each) and late `seed-2026-late/3200` (2,816 advances each) were 66.05 and
+44.32 µs/sim-second for the full pipeline. Food plus upkeep measured
+49.15 and 22.86 µs/sim-second, of which 48.49 and 20.95 were inside the
+two Food Practice seams. Subtracting those seams per run gives 0.66 and
+1.91 µs/sim-second. From the root, `& artifacts/food-time.ps1 -RecipeSeams`
+links an instrumented optimized CLI and `node artifacts/food-measure.mjs`
+runs both binaries with `step --from <window>/state-<start>.json --seconds
+<39|11> --expect-dir <window> --masks native/reference/parity-masks.json
+--time`. Samples are in `artifacts/food-diagnostics/times.json`.
+
+The 1 µs/sim-second gate is open. The exclusive late workload still
+includes priced purchases and Stock transfer history appends. The shared
+transfer history creates a fresh arena on the first transfer of a new
+second, so the zero-allocation gate also remains open. The next measurement
+needs the N03e-3p Practice engine and a reusable transfer journal window.
+The browser [supply profile](../docs/research/settlement-supply-performance.md)
+supports the shared use of cached authored adjacency with live road and
+holder checks. Native uses that existing lookup in both payment paths.
+There are no new intentional browser divergences. Android runtime parity
+and performance remain unverified.
+
 ## N03f - Actions, replay and new game (pending N03e)
 
 Action application and `rebuildStateAtSecond` (L2), then new game and world

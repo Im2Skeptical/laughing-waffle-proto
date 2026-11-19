@@ -22,6 +22,7 @@ import { payGarrisonUpkeep, resolveControl, stepUnrest } from "../../src/model/d
 import { REPO_ROOT, sha256Value } from "./corpus-lib.mjs";
 import { diffStates, formatStateDiff, HASHES_FILE, readHashes } from "./diff.mjs";
 import { advance, applyActions, assertHash, createStart, groupReplayActions, loadScenario } from "./trace.mjs";
+import { checkFoodContention, checkSeasonalFoodBoost } from "./food-contention.mjs";
 
 const here = fileURLToPath(new URL(".", import.meta.url));
 const artifactDir = join(REPO_ROOT, "artifacts", "native-reference", "stages");
@@ -33,9 +34,10 @@ const dt = DEFAULT_REPLAY_DT_STEP;
 const suite = {
   // Faith samples cover all six tier shifts, entry/re-entry into collapse,
   // ongoing collapse, a Resistance crossing and accrued Unrest income.
-  "seed-1": [1, 2, 3, 4, 5, 6, 7, 9, 17, 25, 33, 40, 82, 184, 202, 220, 226, 292, 298, 310,
+  "seed-1": [1, 2, 3, 4, 5, 6, 7, 8, 9, 14, 17, 20, 25, 26, 32, 33, 38, 40, 82, 184, 202, 220, 226, 292, 298, 310,
     388, 400, 406, 412, 802, 880, 1595, 1596, 1597, 1598, 1599, 1600],
   "seed-1-migration": [1715],
+  "seed-1-food-contention": [2, 17],
   "seed-1867": [58, 76, 82],
   "seed-42-shops": [7, 12, 13, 52, 70, 71, 76, 80, 81, 82, 88, 132],
   "seed-2026-late": [3201, 3202, 3203, 3204, 3205, 3206, 3207, 3209, 3232, 3233, 3262, 3334],
@@ -211,6 +213,8 @@ function captureSecond(id, baseline, live, sec, actions, hashes) {
   requireThat(state.tSec === sec && state.simStepIndex === sec * tickCount,
     label + ": expected the 60th tick to dispatch the second");
   dispatchSettlements(state, run);
+  if (id === "seed-1-food-contention" && sec === 2) checkFoodContention(state);
+  if (id === "seed-1-food-contention" && sec === 17) checkSeasonalFoodBoost(state);
   state._seasonChanged = false;
   const end = boundary("second-end");
   const cascades = dischargeCascades(state);

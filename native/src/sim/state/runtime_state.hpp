@@ -60,6 +60,19 @@ struct FaithStageCache {
     std::array<runtime::Range<runtime::MoonRegionResultFaith>, 2> reports;
 };
 
+struct FoodStageCache {
+    struct Meal {
+        double saved{}, demand{}, overhead{}, local{};
+    };
+    std::vector<Meal> meals;
+    // Both passes use authored site order. These rows are indexed by SiteId.
+    std::vector<double> garrisonCosts;
+    runtime::Range<runtime::MealResult> siteMeals;
+    std::array<runtime::Range<runtime::MealResult>, 3> reports;
+    runtime::Range<double> partialFeedMemory;
+    std::uint32_t memoryPerClass{};
+};
+
 struct RuntimeIndexes {
     std::vector<runtime::SiteId> sitesByRegion;
     std::vector<runtime::SiteId> detailedSitesByRegion;
@@ -93,6 +106,7 @@ struct RuntimeState {
     runtime::IdTables addedIds;
     SettlementPreludeCache settlementPrelude;
     FaithStageCache faithStage;
+    FoodStageCache foodStage;
     settlement::MigrationReservationCache migrationReservations;
     PopulationVocabulary populationVocabulary;
     settlement::MigrationCache migration;

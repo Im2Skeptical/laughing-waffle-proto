@@ -95,4 +95,10 @@ StockPlan plan_stock(const RuntimeState& state, const runtime::Site& site,
                      std::span<const content::StockInput> extraRequire = {});
 bool apply_stock(RuntimeState& state, const runtime::Site& site, const StockPlan& plan);
 
+// Meals debit actual Edible only and may be partly supplied. The Food stage
+// calls the local pass for every site before routing any shortage.
+double consume_meal_stock(RuntimeState& state, const runtime::Site& site, double amount, bool localOnly);
+double garrison_upkeep_cost(const RuntimeState& state, const runtime::Site& site);
+bool pay_garrison_stock(RuntimeState& state, const runtime::Site& site, double amount, bool localOnly);
+
 }

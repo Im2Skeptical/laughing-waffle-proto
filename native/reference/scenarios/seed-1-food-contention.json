@@ -1,0 +1,7 @@
+{
+  "id": "seed-1-food-contention",
+  "start": { "kind": "foodContention", "seed": 1 },
+  "actions": [],
+  "horizonSec": 17,
+  "keepSeconds": [0, 2, 17]
+}
