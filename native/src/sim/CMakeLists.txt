@@ -4,6 +4,7 @@ add_library(waffle_sim STATIC
 	content/compiled_content.cpp
 	state/mirror_mapping.cpp
 	state/runtime_state.cpp
+	world/topology.cpp
 	settlement/population.cpp
 	settlement/prelude.cpp
 	step/advance_second.cpp
@@ -36,6 +37,8 @@ endif()
 if(NOT ANDROID)
 	add_executable(waffle_parity ../tools/parity.cpp ../tools/parity_masks.cpp)
 	target_link_libraries(waffle_parity PRIVATE waffle_sim)
+	target_compile_definitions(waffle_parity PRIVATE
+		"WAFFLE_REFERENCE_TOPOLOGY_DIR=\"${CMAKE_CURRENT_SOURCE_DIR}/../../reference/topology\"")
 	add_executable(waffle_browser_tests ../tests/browser_state_test.cpp)
 	target_link_libraries(waffle_browser_tests PRIVATE waffle_sim)
 	add_executable(waffle_step_clock_test ../tests/step_clock_test.cpp)
@@ -44,15 +47,21 @@ if(NOT ANDROID)
 	target_link_libraries(waffle_content_tests PRIVATE waffle_sim)
 	add_executable(waffle_settlement_ledger_test ../tests/settlement_ledger_test.cpp)
 	target_link_libraries(waffle_settlement_ledger_test PRIVATE waffle_sim)
+	add_executable(waffle_world_topology_test ../tests/world_topology_test.cpp)
+	target_link_libraries(waffle_world_topology_test PRIVATE waffle_sim)
 	if(MINGW)
 		target_link_options(waffle_parity PRIVATE -static)
 		target_link_options(waffle_browser_tests PRIVATE -static)
 		target_link_options(waffle_step_clock_test PRIVATE -static)
 		target_link_options(waffle_content_tests PRIVATE -static)
 		target_link_options(waffle_settlement_ledger_test PRIVATE -static)
+		target_link_options(waffle_world_topology_test PRIVATE -static)
 	endif()
 
 	set(native_dir "${CMAKE_CURRENT_SOURCE_DIR}/../..")
+	add_test(NAME world_topology_admission COMMAND waffle_world_topology_test
+		"${native_dir}/reference/topology" "${native_dir}/reference/fixtures/seed-1/state-0.json")
+	set_tests_properties(world_topology_admission PROPERTIES TIMEOUT 60)
 	add_test(NAME captured_content COMMAND waffle_content_tests fixtures
 		"${native_dir}/src/tests/vectors/seed-1-initial.json"
 		"${native_dir}/reference/fixtures/seed-1/state-0.json")
@@ -83,6 +92,9 @@ if(NOT ANDROID)
 
 	find_program(WAFFLE_NODE_EXECUTABLE NAMES node)
 	if(WAFFLE_NODE_EXECUTABLE)
+		add_test(NAME browser_world_topology
+			COMMAND "${WAFFLE_NODE_EXECUTABLE}" "${native_dir}/reference/export-topology.mjs" --check)
+		set_tests_properties(browser_world_topology PROPERTIES TIMEOUT 60)
 		add_test(NAME browser_schema_codegen
 			COMMAND "${WAFFLE_NODE_EXECUTABLE}" "${native_dir}/schema/codegen.mjs" --check)
 		add_test(NAME runtime_field_coverage

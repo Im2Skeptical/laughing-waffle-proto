@@ -18,9 +18,9 @@ const expectedPath = join(outputDir, "state-1.json");
 const reportPath = join(outputDir, "report.json");
 const write = (path, value) => writeFileSync(path, JSON.stringify(value));
 
-function step(from, exitCode) {
+function step(from, exitCode, extra = []) {
   const result = spawnSync(binary, ["step", "--from", from, "--seconds", "1",
-    "--expect-dir", outputDir, "--masks", maskPath, "--report", reportPath], { encoding: "utf8" });
+    "--expect-dir", outputDir, "--masks", maskPath, "--report", reportPath, ...extra], { encoding: "utf8" });
   assert.equal(result.status, exitCode, result.error?.message ?? result.stdout + result.stderr);
   return result;
 }
@@ -56,6 +56,12 @@ write(expectedPath, gated);
 write(maskPath, masks);
 step(gatedPath, 0);
 assert.equal(JSON.parse(readFileSync(reportPath, "utf8")).advanced, 0);
+step(gatedPath, 0, ["--topology-dir", join(nativeDir, "reference", "topology")]);
+const unknownPath = join(outputDir, "unknown-definition.json");
+const unknown = structuredClone(gated);
+unknown.world.definitionId = "regional-v2:999999";
+write(unknownPath, unknown);
+assert.match(step(unknownPath, 2).stderr, /world topology for regional-v2:999999: missing topology file/u);
 gated.runStatus.reason = "tenuresExhausted";
 write(expectedPath, gated);
 assert.match(step(gatedPath, 1).stdout, /First divergent path: \$\.runStatus\.reason/u);
