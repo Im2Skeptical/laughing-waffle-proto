@@ -8,6 +8,7 @@ import { getGameSetting } from "../../game-config.js";
 import {
   classPopulationTotal,
   clone,
+  ensureMoonRegionResult,
   roundFood,
 } from "../helpers.js";
 import {
@@ -161,6 +162,6 @@ export function runFoodPhase(state, phase) {
       migration: { intents: [], outbound: [], inbound: [], sourceLosses: [] },
     };
     settlement.lastMeal = result;
-    turn.regions[site.regionId].food = clone(result);
+    ensureMoonRegionResult(turn, site.regionId).food = clone(result);
   }
 }
