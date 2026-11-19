@@ -11,6 +11,7 @@
 class SdlRmlRenderer final : public Rml::RenderInterface {
 public:
 	SdlRmlRenderer(SDL_Renderer* renderer, std::string art_root);
+	void SetPreparedAtlas(Rml::Vector2i size, std::vector<Rml::byte> pixels);
 
 	Rml::CompiledGeometryHandle CompileGeometry(Rml::Span<const Rml::Vertex> vertices, Rml::Span<const int> indices) override;
 	void RenderGeometry(Rml::CompiledGeometryHandle geometry, Rml::Vector2f translation, Rml::TextureHandle texture) override;
@@ -41,6 +42,8 @@ private:
 	SDL_Renderer* renderer_;
 	std::string art_root_;
 	std::string error_;
+	Rml::Vector2i atlas_size_{};
+	std::vector<Rml::byte> atlas_pixels_;
 	std::vector<SDL_Vertex> draw_vertices_;
 	Rml::Matrix4f transform_ = Rml::Matrix4f::Identity();
 	bool transformed_ = false;

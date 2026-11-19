@@ -126,4 +126,38 @@ else()
 	set_tests_properties(headless_utf8_assets PROPERTIES TIMEOUT 60)
 	add_test(NAME headless_presentation_math COMMAND waffle_native_headless --math)
 	set_tests_properties(headless_presentation_math PROPERTIES TIMEOUT 60)
+
+	if(WIN32)
+		add_executable(waffle_native_game
+			src/app/connected_art.cpp
+			src/app/connected_main.cpp
+			src/app/connected_session.cpp
+			src/app/connected_smoke.cpp
+			src/app/connected_view.cpp
+			src/app/demo_metrics_windows.cpp
+			src/app/sdl_rml_renderer.cpp
+			src/ui/connected_model.cpp
+		)
+		target_compile_features(waffle_native_game PRIVATE cxx_std_20)
+		target_include_directories(waffle_native_game PRIVATE src)
+		target_link_libraries(waffle_native_game PRIVATE waffle_timegraph waffle_demo_probe
+			${WAFFLE_SDL_TARGET} waffle_png_headers psapi)
+		target_compile_definitions(waffle_native_game PRIVATE
+			"WAFFLE_ART_ROOT=\"${CMAKE_CURRENT_LIST_DIR}/../\""
+			"WAFFLE_CONNECTED_RML=\"${CMAKE_CURRENT_LIST_DIR}/assets/ui/connected.rml\""
+			"WAFFLE_CONNECTED_FONT=\"${WAFFLE_LATO_PATH}\""
+			"WAFFLE_OPENING_CONFIG=\"${CMAKE_CURRENT_LIST_DIR}/reference/fixtures/seed-1/state-0.json\"")
+		if(MINGW)
+			target_link_options(waffle_native_game PRIVATE -static)
+		endif()
+		add_test(NAME connected_slice_smoke COMMAND waffle_native_game --smoke --seed 42)
+		add_test(NAME connected_slice_import COMMAND waffle_native_game --smoke
+			--load "${CMAKE_CURRENT_LIST_DIR}/reference/fixtures/seed-1/state-0.json")
+		add_test(NAME connected_slice_runner_save COMMAND "${CMAKE_COMMAND}"
+			"-Dgame=$<TARGET_FILE:waffle_native_game>"
+			"-Dstate=${CMAKE_CURRENT_LIST_DIR}/reference/fixtures/seed-1/state-0.json"
+			"-Doutput=${CMAKE_CURRENT_BINARY_DIR}/connected-runner-test.json"
+			-P "${CMAKE_CURRENT_LIST_DIR}/src/tests/check_connected_save.cmake")
+		set_tests_properties(connected_slice_smoke connected_slice_import connected_slice_runner_save PROPERTIES TIMEOUT 60)
+	endif()
 endif()
