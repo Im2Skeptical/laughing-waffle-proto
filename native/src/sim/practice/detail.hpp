@@ -84,14 +84,14 @@ inline bool terminal(const RuntimeState& state)
 
 void trace(RuntimeState& state, PracticeEvent event, const EventData& data, bool includeId = false,
            std::string_view dynamicReason = {});
-EventData read_event(const RuntimeState& state, std::size_t index, std::vector<Provider>& providers);
+void trace_pending(RuntimeState& state, PracticeEvent event, std::size_t index);
 
 template<class Arena, class T>
 Range<T> store(Arena& arena, std::span<const T> values)
 {
     auto& rows = arena.template rows<T>();
     const auto start = checked_index(rows.size(), "Practice payload");
-    rows.insert(rows.end(), values.begin(), values.end());
+    if (!values.empty()) rows.insert(rows.end(), values.begin(), values.end());
     return {start, checked_index(rows.size(), "Practice payload")};
 }
 

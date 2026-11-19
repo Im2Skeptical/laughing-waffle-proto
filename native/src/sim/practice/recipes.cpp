@@ -24,6 +24,7 @@ struct PopulationPlan {
 struct PopulationScratch {
     std::vector<PopulationBin> bins, selectFrom, selected, selections, victims, removed;
     settlement::LedgerScratch ledger;
+    PopulationPlan plan;
 };
 
 PopulationScratch& population_scratch()
@@ -225,7 +226,8 @@ bool plan_population(const RuntimeState& state, SiteId siteId, const Site& site,
         (!d.mealRelief || d.mealRelief->tSec != state.hot.tSec || d.mealRelief->faction != faction ||
             d.mealRelief->amount <= 0 || !d.mealRelief->fullyFed)) return false;
     auto& scratch = population_scratch();
-    settlement::collect_population(state, d.populationByClass, scratch.bins);
+    if (def.populationConsume || def.populationRequire)
+        settlement::collect_population(state, d.populationByClass, scratch.bins);
     if (def.populationConsume) for (const auto& cost : t.view(*def.populationConsume)) {
         select(state, scratch, {.kind = cost.filter.kind, .specialty = cost.filter.specialty}, faction, cost.amount);
         if (number_of_people(scratch.selected) < cost.amount) return false;
@@ -244,6 +246,7 @@ bool plan_population(const RuntimeState& state, SiteId siteId, const Site& site,
             if (const auto* stock = std::get_if<PracticeEffectgenerateStock>(&e)) base += stock->amount;
         if (stock_capacity(state, site, index, false) - state.practiceStock[index.value].value_or(0) < base) return false;
     }
+    if (def.recipeEffects.size() == 0) return true;
     Buffer<StructureId, 48> seen;
     Buffer<const StructureDefinitionConversionSupport*, 48> supports;
     for (const auto& cell : state.tables.view(d.structureSlots.origins)) {
@@ -298,7 +301,7 @@ bool plan_population(const RuntimeState& state, SiteId siteId, const Site& site,
             consume.count = require.count = 0;
             if (support->consume) for (const auto& cost : t.view(*support->consume)) consume.push_back({cost.traits, cost.amount});
             if (support->require_) for (const auto& cost : t.view(*support->require_)) require.push_back({cost.traits, cost.amount});
-            if (!plan_stock(state, site, consume.view(), require.view(), &slot, false, true).ok) continue;
+            if (!stock_available(state, site, consume.view(), require.view(), &slot, false, true)) continue;
             auto combined = filter;
             if (support->filter) {
                 if (support->filter->kind) combined.kind = support->filter->kind;
@@ -606,7 +609,9 @@ void resolve(RuntimeState& state, Candidate candidate, Site& site, Index<Practic
     apply_stock(state, site, stock);
     if (state.hot.rulesetId) apply_population(state, candidate.site, site, slot, population);
     Buffer<TraitId, 64> consumedTraits;
-    Buffer<Provider, 128> consume, providers;
+    // The active root keeps nested drains queued until these receipts are stored.
+    thread_local Buffer<Provider, 128> consume, providers;
+    consume.count = providers.count = 0;
     for (const auto& item : stock.providers) {
         providers.push_back(item.receipt);
         if (item.receipt.record.kind != v.consume) continue;
@@ -674,21 +679,27 @@ void prepare_recipe_storage(RuntimeState& state)
 
 bool eligible(const RuntimeState& state, const Site& site, bool discharge)
 {
+    if (terminal(state) || site.neutral || settlement::detailed_site(state, site.regionId) != &site) return false;
+    if (state.hot.rulesetId) return true;
     const auto h = holder(state, site.regionId);
     const auto& v = state.practiceVocabulary;
-    return !terminal(state) && !site.neutral && settlement::detailed_site(state, site.regionId) == &site &&
-        (state.hot.rulesetId || h == v.player || (!discharge && h == v.external));
+    return h == v.player || (!discharge && h == v.external);
 }
 
 double threshold(const RuntimeState& state, const Site& site, const PracticeDefinition& def, bool scholar)
 {
+    constexpr auto kind = ModifierKind::chargeThresholdReduction;
+    if (!has_modifiers(state, site, mask_bit(kind))) return std::max(1.0, std::floor(def.charge->threshold));
     return std::max(1.0, std::floor(def.charge->threshold -
-        sum_modifier(state, def, modifiers(state, site), ModifierKind::chargeThresholdReduction, scholar)));
+        sum_modifier(state, def, modifiers(state, site, mask_bit(kind)), kind, scholar)));
 }
 
 double charge_gain(const RuntimeState& state, const Site& site, const PracticeDefinition& def, Assignment worker)
 {
-    const auto base = def.charge->gain + sum_modifier(state, def, modifiers(state, site), ModifierKind::chargeGain, worker.scholar);
+    constexpr auto kind = ModifierKind::chargeGain;
+    const auto bonus = has_modifiers(state, site, mask_bit(kind))
+        ? sum_modifier(state, def, modifiers(state, site, mask_bit(kind)), kind, worker.scholar) : 0;
+    const auto base = def.charge->gain + bonus;
     return std::max(0.0, std::floor(base * (1 + worker.effective * def.workerBonus)));
 }
 
@@ -703,7 +714,10 @@ bool attempt(RuntimeState& state, Candidate candidate, Activation activation, bo
     if (slot.practiceId != candidate.definition) return false;
     const auto& def = definition(state, slot.practiceId);
     if (parent && (def.mode != Mode::charge || state.practiceCharge[index.value] < 1)) return false;
-    const auto worker = workers(state, site)[slot.slot];
+    // Full-map scheduled conditions do not read staffing. If Stock planning
+    // also has no staff-sensitive modifier, wait until the inputs pass.
+    const bool deferWorker = !parent && state.hot.rulesetId && !has_modifiers(state, site, staffStockModifiers);
+    auto worker = deferWorker ? Assignment{} : workers(state, site)[slot.slot];
     if (parent) {
         if (state.practiceCharge[index.value] < threshold(state, site, def, worker.scholar)) return false;
         if (already) {
@@ -757,8 +771,10 @@ bool attempt(RuntimeState& state, Candidate candidate, Activation activation, bo
     if (!conditions(state, site, def, worker, def.condition, localOnly))
         return fail(def.scholarRequired.value_or(false) && !worker.scholar ? v.requiresScholar : v.unmetCondition);
     const auto& t = state.compiledContent->tables;
-    auto stock = plan_stock(state, site, t.view(def.consume), t.view(def.require_), &slot, worker.scholar, localOnly);
+    thread_local StockPlan stock;
+    plan_stock_into(stock, state, site, t.view(def.consume), t.view(def.require_), &slot, worker.scholar, localOnly);
     if (!stock.ok) return fail(v.unmetCondition, stock.missing);
+    if (deferWorker) worker = workers(state, site)[slot.slot];
     if (def.mode == Mode::charge) {
         const auto effects = t.view(def.effects);
         if (std::ranges::any_of(effects, [](const auto& effect) { return opcode(effect) == EffectOp::generateStock; })) {
@@ -776,15 +792,16 @@ bool attempt(RuntimeState& state, Candidate candidate, Activation activation, bo
         }
     }
     const auto mods = modifiers(state, site);
-    PopulationPlan population;
     auto& scratch = population_scratch();
+    auto& population = scratch.plan;
+    population.conversions.count = population.extraConsume.count = population.extraRequire.count = 0;
     scratch.victims.clear();
     scratch.selections.clear();
     if (!plan_population(state, candidate.site, site, index, def, worker, mods, population))
         return fail(v.unmetCondition);
     if (!population.extraConsume.empty() || !population.extraRequire.empty()) {
-        stock = plan_stock(state, site, t.view(def.consume), t.view(def.require_), &slot, worker.scholar, localOnly,
-                           population.extraConsume.view(), population.extraRequire.view());
+        plan_stock_into(stock, state, site, t.view(def.consume), t.view(def.require_), &slot, worker.scholar, localOnly,
+                        population.extraConsume.view(), population.extraRequire.view());
         if (!stock.ok) return fail(v.unmetCondition, stock.missing);
     }
     const auto external = def.externalAction ? territory::plan_external(state, site, *def.externalAction)
@@ -809,39 +826,39 @@ void activate(RuntimeState& state, content::Activation activation, std::optional
 {
     using namespace detail;
     using namespace content;
+    const auto timing = static_cast<std::size_t>(activation);
     const auto currentSeason = activation == Activation::season ? season(state) : std::optional<Season>{};
     const auto& tables = state.compiledContent->tables;
-    if (state.hot.rulesetId && stage != content::Stage::postRouting && stage != content::Stage::afterMeals)
-        for (const auto key : settlement::active_sites(state)) {
-            auto& site = settlement::site_at(state, key);
-            auto cells = state.tables.view(site.detailedState.structureSlots.origins);
-            for (auto& cell : cells) {
-                const auto& d = definition(state, cell.structureId);
-                if (cell.construction || !d.upkeep) continue;
-                const auto timing = d.upkeep->activation;
-                if (timing != static_cast<UpkeepActivation>(activation) &&
-                    (!currentSeason || timing != static_cast<UpkeepActivation>(static_cast<unsigned>(UpkeepActivation::spring) +
-                                                                                static_cast<unsigned>(*currentSeason)))) continue;
-                const auto stock = plan_stock(state, site, tables.view(d.upkeep->consume), {}, nullptr, false, true);
-                if (d.upkeep->disables) cell.upkeepActive = stock.ok;
-                if (stock.ok) apply_stock(state, site, stock);
-            }
+    const auto& index = state.practiceListeners;
+    if (state.hot.rulesetId && stage != content::Stage::postRouting && stage != content::Stage::afterMeals) {
+        const auto upkeepTiming = currentSeason ? activation_count + static_cast<std::size_t>(*currentSeason) : timing;
+        for (const auto& candidate : index.upkeep[upkeepTiming]) {
+            const auto& site = settlement::site_at(state, candidate.site);
+            auto& cell = state.tables.at(candidate.cell);
+            if (cell.construction) continue;
+            const auto& upkeep = *definition(state, cell.structureId).upkeep;
+            thread_local StockPlan stock;
+            plan_stock_into(stock, state, site, tables.view(upkeep.consume), {}, nullptr, false, true);
+            if (upkeep.disables) cell.upkeepActive = stock.ok;
+            if (stock.ok) apply_stock(state, site, stock);
         }
+    }
     Buffer<Candidate, 256> retries;
-    for (const auto key : settlement::active_sites(state)) {
-        const auto& site = settlement::site_at(state, key);
-        if (!eligible(state, site, false)) continue;
-        for (const auto slot : state.tables.view(site.detailedState.practiceSlots.rows)) {
-            const auto& def = definition(state, slot.practiceId);
-            if (def.mode != Mode::scheduled || !(def.activationMask & mask_bit(activation)) ||
-                (stage && def.activation.stage != stage)) continue;
-            if (def.activation.seasonKeys && activation == Activation::season &&
-                (!currentSeason || !(def.seasonMask & mask_bit(*currentSeason)))) continue;
-            if (def.cadenceMoons && core::js::remainder(std::floor(state.hot.tSec /
-                (state.compiledContent->settings().phaseDurationSec * 6)), *def.cadenceMoons) != 0) continue;
-            const Candidate candidate{key, slot.slot, slot.practiceId};
-            if (!attempt(state, candidate, activation, true)) retries.push_back(candidate);
+    SiteId siteId;
+    bool siteEligible = false;
+    for (const auto& candidate : index.scheduled[timing]) {
+        if (candidate.site != siteId) {
+            siteId = candidate.site;
+            siteEligible = eligible(state, settlement::site_at(state, siteId), false);
         }
+        if (!siteEligible) continue;
+        const auto& def = definition(state, candidate.definition);
+        if (stage && def.activation.stage != stage) continue;
+        if (def.activation.seasonKeys && activation == Activation::season &&
+            (!currentSeason || !(def.seasonMask & mask_bit(*currentSeason)))) continue;
+        if (def.cadenceMoons && core::js::remainder(std::floor(state.hot.tSec /
+            (state.compiledContent->settings().phaseDurationSec * 6)), *def.cadenceMoons) != 0) continue;
+        if (!attempt(state, candidate, activation, true)) retries.push_back(candidate);
     }
     drain_retries(state, retries.view(), activation);
     territory::synchronize_sites(state);

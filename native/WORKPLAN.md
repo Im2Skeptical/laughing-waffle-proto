@@ -818,6 +818,121 @@ optimized drain and History path. The focused wrapper and raw measurements
 are in local `artifacts/n03e8-stage-timing.ps1`, `n03e8-timing-final.log`,
 and `n03e8-pipeline-timing.log`.
 
+**N03e-3p — Practice engine and pipeline performance (19 Nov 2026).**
+Implementation on `t3/optimize-practice-recipe-engine` from `9a49365c`.
+`waffle_parity step --time` reports an uninstrumented pipeline average and a
+separate Stage breakdown. See the [timing and allocation commands](src/sim/README.md#step-parity).
+Stage timers run in the CLI. They count time over every advancing second in
+the window and include the cost of reading the clock at each Stage call.
+
+Before optimization, the allocation test counted 5,599 calls at the opening
+and 5,611 late over 3,200 advances each after 512 warmup advances. Recreating
+the Stock-transfer history for each active second caused almost all of those
+calls. Windows Performance Recorder was installed; the CPU profile was
+denied by host policy (`0xc5585011`). Local, nested TSC probes in a separate
+optimized diagnostic binary measured Stock planning and source collection as
+the largest exclusive recipe costs. Opening ran about 3.08 Stock plans,
+1.69 condition evaluations, 3.62 queued events and 5.08 trace records per
+sim-second. Late ran 4.00, 2.73, 2.73 and 3.82 respectively. Trace records
+include both queued events and direct records, with a second append when
+attributed to a site. The probes found 0 listener rebuilds in either window.
+
+Scope timings from the diagnostic build (µs/sim-second, opening and late)
+were approximately 6.5 and 10.4 for Stock planning including source
+collection, 2.4 and 2.8 for activation traversal and upkeep bookkeeping,
+0.04 and 0.06 for conditions, and 4.1 and 3.0 for trace writing including
+payload and text. Queue emission excluding provider copies was about 0.66
+and 0.81, and reassembling a queued event for tracing cost 0.16 in each
+window. Trace text accounted for roughly 0.5 in each window. Symbols are
+already interned at admission. The scope measurements are intrusive and
+include probe overhead, especially for payload and text operations.
+Raw Windows measurements and diagnostic sources are under ignored
+`artifacts/n03e-3p-*`.
+
+The engine now indexes scheduled cards, upkeep and present Structure
+modifier kinds when rebuilding listeners. Runtime gates still read live
+population, Stock, upkeep and control. A caller changing a board or site
+membership must rebuild runtime indexes as applicable and then call
+`rebuild_listeners`. Reused Stock, population and receipt scratch avoids
+initializing capacity-sized buffers at each recipe. The FIFO reads pending
+payloads by index and transfers their spans directly into history. Traces
+build their shared fields once and fill page-local payloads in place.
+Practice journals share a recyclable arena, reserve normal provider slabs
+at admission and reuse the Stock-transfer page when private. Allocation
+diagnostics identified the last intermittent growth as a 512-byte Stock
+provider size class during Seasonal Practices at second 3753.
+
+RNG, serialized fields, event order and the public stage API are preserved.
+The browser can use the same measured separation of board membership from
+live recipe gates if it revisits its Practice dispatch. Native timings apply
+only to the C++ implementation.
+
+**Optimized Windows results.** Intel Core i9-10900K, MSVC 19.50, baseline
+`9a49365c` with the same timing CLI. Alternating baseline and candidate
+processes ran on logical CPU 15. Medians are from 7 runs of 9,984 advances
+at opening (39-second window, 71 Practices, 48 Structures) and 14 runs of
+2,816 advances late (11-second window, 63 Practices, 42 Structures).
+See the [step timing command](src/sim/README.md#step-parity) for both inputs.
+The stage pass is instrumented and each row is an independent median.
+
+| µs/sim-second | Opening before | Opening after | Late before | Late after |
+| --- | ---: | ---: | ---: | ---: |
+| Pipeline | **12.650** | **3.899** | **13.655** | **3.973** |
+| advance_clock | 0.126 | 0.114 | 0.132 | 0.120 |
+| prelude | 0.285 | 0.272 | 0.286 | 0.274 |
+| seasonal_practices | 4.190 | 1.441 | 5.731 | 1.844 |
+| spring_death_baseline | 0.003 | 0.003 | 0.009 | 0.008 |
+| birth | 0.079 | 0.074 | 0.082 | 0.076 |
+| food | 0.004 | 0.004 | 0.002 | 0.002 |
+| after_meals_practices | 0.106 | 0.067 | 0.054 | 0.032 |
+| garrison_upkeep | 0.003 | 0.003 | 0.002 | 0.002 |
+| housing | 0.004 | 0.004 | 0.005 | 0.004 |
+| faith | 0.058 | 0.049 | 0.088 | 0.078 |
+| migration_practices | 2.107 | 0.826 | 1.932 | 0.431 |
+| migration | 0.119 | 0.103 | 0.150 | 0.138 |
+| death | 0.003 | 0.003 | 0.004 | 0.004 |
+| death_practices | 5.768 | 0.982 | 5.215 | 0.942 |
+| control_and_spatial_pressure | 0.004 | 0.003 | 0.006 | 0.004 |
+| phase_events_and_drain | 0.017 | 0.017 | 0.017 | 0.017 |
+| vassal_check | 0.016 | 0.016 | 0.016 | 0.015 |
+| final_flush | 0.020 | 0.018 | 0.020 | 0.018 |
+
+The four Practice stages plus final flush account for about 3.33 and
+3.27 µs/sim-second after optimization, about 85% of the pipeline.
+Seasonal Practices are the largest remaining Stage. Writing the site and
+civilization traces and testing Stock are the largest measured engine
+costs after removing capacity-sized buffer construction. The candidate
+ranged from 3.87–4.43 opening and 3.94–5.08 late. The two late batches had
+medians of 4.04 and 3.97. The pooled medians meet the target with little
+headroom late.
+
+`ctest --preset optimized --output-on-failure` passed 31/31 from
+`native/`. The new allocation CTest counted zero global `new` calls in
+each 3,200-second measurement after 512 warmup seconds. It gates the
+admitted opening and late workloads. Newly introduced payload sizes or
+board changes can still grow storage and should be measured as their stages
+land. `node native/reference/trace.mjs` and
+`node native/reference/stage-probe.mjs --all` regenerated the oracle.
+With `native/build/optimized/src/sim/waffle_parity.exe` and
+`native/reference/stage-pairs.mjs`, unmasked results were advance_clock
+67/67, prelude 66/67 (known R06 expiry at `seed-1/1598`, N03e-8),
+seasonal_practices 12/12, spring_death_baseline 3/3,
+after_meals_practices 4/4, faith 29/29, migration_practices 13/13,
+migration 15/15, death_practices 5/5 and final_flush 67/67.
+`node native/reference/step-windows.mjs <waffle_parity.exe>` passed all 14
+windows (120 comparisons, with the existing 156 masks).
+`waffle_browser_tests runtime-corpus artifacts/native-reference/traces
+artifacts/native-reference/windows/seed-1/0` also passed L0 on 27 retained
+trace states and all 40 opening-window snapshots. Repository
+`npm run verify` passed.
+
+No rule divergence was adopted. If the full pipeline needs more headroom,
+one option for supervisor review is to omit duplicate Practice and Stock
+diagnostic journals during speculative forecast and reconstruct them on
+demand at an inspected anchor. That would change the trace availability
+contract and needs a measured prototype and approval. Android runtime
+parity and timing remain unverified.
+
 ## N03f - Actions, replay and new game (pending N03e)
 
 Action application and `rebuildStateAtSecond` (L2), then new game and world

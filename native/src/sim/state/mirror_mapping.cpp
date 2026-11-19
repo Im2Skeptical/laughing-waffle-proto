@@ -221,9 +221,13 @@ struct Import {
         using Storage = History<T, Limit, Field>;
         auto& rows = state.histories.rows<Storage>();
         const auto row = checked_index(rows.size(), path);
-        rows.push_back(Storage::load(source.size(), [&](HistoryPayload& page, std::size_t index) {
+        auto build = [&](HistoryPayload& page, std::size_t index) {
             return Import{content, state, &page}.read<T>(source[index], index_path(path, index));
-        }));
+        };
+        if constexpr (std::is_same_v<T, PracticeEventTrace> || std::is_same_v<T, StockTransfersTransfersEntry>)
+            rows.push_back(Storage::load(source.size(), build, state.practiceRecipeStorage.historyArena));
+        else
+            rows.push_back(Storage::load(source.size(), build));
         return {{row}};
     }
 };
@@ -413,6 +417,9 @@ RuntimeState import_live_state(const browser::GameState& state, std::shared_ptr<
                        [](const auto& row) -> const auto& { return row.id; });
 
     RuntimeState result;
+    // A forecast and its anchors can recycle Practice journal pages from
+    // the same pool. A larger first slab covers bursts across the board.
+    result.practiceRecipeStorage.historyArena = std::make_shared<HistoryArena>(std::max<std::size_t>(8, 2 * state.world.sites.size()));
     Import codec{*content, result};
     result.hot = codec.read<HotState>(state, "$");
     result.content = std::move(content);

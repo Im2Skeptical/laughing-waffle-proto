@@ -8,6 +8,7 @@
 #include "tools/reference_topology.hpp"
 
 #include <algorithm>
+#include <array>
 #include <charconv>
 #include <chrono>
 #include <cmath>
@@ -207,6 +208,28 @@ struct StepTiming {
     double microseconds{};
 };
 
+struct StageTiming {
+    using Clock = std::chrono::steady_clock;
+    struct Sample {
+        Clock::duration elapsed{};
+        std::size_t calls{};
+    };
+    std::array<Sample, static_cast<std::size_t>(sim::Stage::final_flush) + 1> stages{};
+    Clock::time_point start;
+
+    static void observe(void* context, sim::Stage stage, bool entering)
+    {
+        auto& timer = *static_cast<StageTiming*>(context);
+        const auto now = Clock::now();
+        if (entering) timer.start = now;
+        else {
+            auto& sample = timer.stages[static_cast<std::size_t>(stage)];
+            sample.elapsed += now - timer.start;
+            ++sample.calls;
+        }
+    }
+};
+
 StepTiming time_steps(const sim::RuntimeState& initial, std::size_t seconds)
 {
     using Clock = std::chrono::steady_clock;
@@ -222,6 +245,29 @@ StepTiming time_steps(const sim::RuntimeState& initial, std::size_t seconds)
         timing.microseconds += std::chrono::duration<double, std::micro>(elapsed).count();
     }
     return timing;
+}
+
+void report_stage_timing(const sim::RuntimeState& initial, std::size_t seconds, Value& report)
+{
+    const std::size_t batches = std::clamp<std::size_t>(100000 / seconds, 1, 256);
+    StageTiming timing;
+    std::size_t steps = 0;
+    for (std::size_t batch = 0; batch < batches; ++batch) {
+        auto state = initial;
+        for (std::size_t i = 0; i < seconds && sim::advance_one_second(state, StageTiming::observe, &timing); ++i)
+            ++steps;
+    }
+    Value stages(Value::Object{});
+    std::cout << "Stage timing (us/sim-second, calls in " << steps << " timed advances):\n";
+    for (std::size_t i = 0; i < timing.stages.size(); ++i) {
+        const auto& sample = timing.stages[i];
+        const auto name = sim::stage_name(static_cast<sim::Stage>(i));
+        const double cost = std::chrono::duration<double, std::micro>(sample.elapsed).count() / static_cast<double>(steps);
+        stages.set(std::string(name), Value(Value::Object{{"microsecondsPerSimSecond", Value(cost)},
+            {"calls", Value(static_cast<double>(sample.calls))}}));
+        std::cout << "  " << name << ' ' << cost << " (" << sample.calls << ")\n";
+    }
+    report.set("stages", std::move(stages));
 }
 
 int step(const StepOptions& options)
@@ -287,6 +333,7 @@ int step(const StepOptions& options)
         report.set("timedSteps", Value(static_cast<double>(timing.steps)));
         report.set("microsecondsPerSimSecond", Value(perSecond));
         std::cout << perSecond << " us/sim-second (" << timing.steps << " timed advances).\n";
+        report_stage_timing(initial, advances, report);
     }
     write_report();
     return 0;
