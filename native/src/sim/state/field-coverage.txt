@@ -432,7 +432,7 @@ history lifeEvents
 EventKindId kind
 NodeId nodeId
 RegionId fromRegionId toRegionId
-HistoryTextId eventId text offerId result choiceId statId causeOfDeath
+HistoryTextId eventId text offerId result choiceId statId causeOfDeath cause
 hot tSec intervention age
 
 [CivilizationRetiredVassalsEntry]

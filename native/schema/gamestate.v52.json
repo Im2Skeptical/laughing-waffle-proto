@@ -3741,6 +3741,7 @@
         "choiceId": { "type": "string", "optional": true, "nullable": false },
         "statId": { "type": "string", "optional": true, "nullable": false },
         "causeOfDeath": { "type": "string", "optional": true, "nullable": true },
+        "cause": { "type": "string", "optional": true, "nullable": false },
         "fromRegionId": { "type": "string", "optional": true, "nullable": false },
         "toRegionId": { "type": "string", "optional": true, "nullable": false }
       }

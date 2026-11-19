@@ -895,6 +895,7 @@ struct VassalLifeEventsEntry {
     std::optional<HistoryTextId> choiceId{};
     std::optional<HistoryTextId> statId{};
     browser::OptionalNullable<HistoryTextId> causeOfDeath{};
+    std::optional<HistoryTextId> cause{};
     std::optional<RegionId> fromRegionId{};
     std::optional<RegionId> toRegionId{};
 };

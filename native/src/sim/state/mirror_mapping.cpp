@@ -1,4 +1,5 @@
 #include "sim/state/runtime_state.hpp"
+#include "sim/vassal/vassal.hpp"
 #include "sim/content/compiled_content.hpp"
 #include "sim/settlement/population.hpp"
 #include "sim/settlement/prelude.hpp"
@@ -595,6 +596,7 @@ RuntimeState import_live_state(const browser::GameState& state, std::shared_ptr<
     result.content = std::move(content);
     settlement::prepare_population(result);
     rebuild_runtime_indexes(result);
+    vassal::reindex(result);
     settlement::prepare_prelude(result);
     settlement::prepare_birth(result);
     settlement::prepare_migration(result);

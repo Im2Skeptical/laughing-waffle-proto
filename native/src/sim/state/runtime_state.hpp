@@ -1,5 +1,7 @@
 #pragma once
 
+#include <limits>
+
 #include "sim/state/rows.generated.hpp"
 #include "sim/settlement/birth_storage.hpp"
 #include "sim/settlement/migration.hpp"
@@ -134,6 +136,7 @@ struct RuntimeState {
     bool seasonChanged{};
     // Derived from tSec and immutable settings. Zero triggers calculation.
     double nextLunarBoundarySec{};
+    double nextVassalCheckSec{std::numeric_limits<double>::infinity()};
 
     template<class Key>
     Key find_id(std::string_view name) const

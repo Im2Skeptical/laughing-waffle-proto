@@ -3375,6 +3375,7 @@ VassalLifeEventsEntry Mapping<VassalLifeEventsEntry>::read(Import& codec, const 
     result.choiceId = codec.read<std::optional<HistoryTextId>>(source.choiceId, property_path(path, "choiceId"));
     result.statId = codec.read<std::optional<HistoryTextId>>(source.statId, property_path(path, "statId"));
     result.causeOfDeath = codec.read<browser::OptionalNullable<HistoryTextId>>(source.causeOfDeath, property_path(path, "causeOfDeath"));
+    result.cause = codec.read<std::optional<HistoryTextId>>(source.cause, property_path(path, "cause"));
     result.fromRegionId = codec.read<std::optional<RegionId>>(source.fromRegionId, property_path(path, "fromRegionId"));
     result.toRegionId = codec.read<std::optional<RegionId>>(source.toRegionId, property_path(path, "toRegionId"));
     return result;
@@ -3395,6 +3396,7 @@ browser::VassalLifeEventsEntry Mapping<VassalLifeEventsEntry>::write(const Expor
     codec.write(result.choiceId, source.choiceId);
     codec.write(result.statId, source.statId);
     codec.write(result.causeOfDeath, source.causeOfDeath);
+    codec.write(result.cause, source.cause);
     codec.write(result.fromRegionId, source.fromRegionId);
     codec.write(result.toRegionId, source.toRegionId);
     return result;
