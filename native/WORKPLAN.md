@@ -506,6 +506,14 @@ step windows passed (120 comparisons).
 N03d-5 merged 19 Nov 2026 from `t3/allocation-free-history-appends-1` 88c9072c
 (late copy 5.9 µs, append 223 ns, zero warmed allocations). The merged
 optimized build passed 27/27 CTests and 14/14 step windows.
+N03d-4 merged from `t3/native-topology-admission` 45002ad5, with the seed-123
+world added to the exports. N03e-6a merged from `t3/native-faith-chaos-stage-1`
+344c9dad. Faith's narrowed `*.faith.byClass` masks replace the broad Faith
+masks. Migration's `intents`/`inbound`/`outbound` masks replace the broad
+Migration masks. The merged optimized build passed 30/30 CTests. Stage pairs:
+faith 29/29, migration 15/15, advance_clock 67/67, spring_death_baseline 3/3,
+prelude 66/67 (the known R06 expiry at seed-1/1598, owned by N03e-8). All 14
+step windows passed (120 comparisons).
 
 ## N03f - Actions, replay and new game (pending N03e)
 
