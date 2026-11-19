@@ -3,6 +3,7 @@
 #include "connected_save.hpp"
 #include "timegraph/forecast.hpp"
 #include "ui/connected_model.hpp"
+#include "ui/forecast_chart.hpp"
 #include "ui/life_map.hpp"
 
 #include <chrono>
@@ -18,21 +19,6 @@ struct Launch {
     bool longBenchmark{};
 };
 
-struct Band {
-    float first{}, last{}, low{}, high{};
-    unsigned count{};
-};
-
-// The chart retains only a bounded envelope. Coverage advances only when the
-// corresponding dense summary rows have been read.
-struct Chart {
-    static constexpr std::size_t width = 768;
-    std::array<Band, width> population{};
-    Second start{}, end{};
-    std::optional<Second> through;
-    float peak = 1;
-};
-
 class Session {
 public:
     void open(const Launch& launch);
@@ -41,6 +27,7 @@ public:
     void resume();
     bool save(const SaveSlots& slots, Slot slot) const;
     void update();
+    void updatePreview();
     bool choose(const Choice& choice);
     bool submit(const LifeCommand& command);
     LifeReading lifeMap(bool detail) const;
@@ -52,13 +39,21 @@ public:
     const Snapshot* liveSnapshot() const { return run_ ? &run_->snapshot : nullptr; }
     const std::vector<RegionShape>& shapes() const { return *run_->shapes; }
     const Chart& chart() const { return chart_; }
+    const Chart& previousChart() const { return previousChart_; }
+    std::optional<Second> divergence() const;
+    std::optional<Second> browseThrough() const;
+    void clearComparison();
+    bool previousPreview() const { return requested_ && requestedGeneration_ != generation(); }
+    std::size_t readPlot(timegraph::GenerationId generation, std::size_t scope, Second first,
+                         std::span<SeriesValues> values);
+    std::array<Second, 4> calendarSteps() const;
     std::optional<Second> requested() const { return requested_; }
     bool opening() const { return opening_; }
     bool busy() const { return job_.valid(); }
     bool previewing() const { return requested_.has_value(); }
-    bool previewReady() const { return preview_ && preview_->second == requested_; }
+    bool previewReady() const { return preview_ && preview_->second == requested_ && previewGeneration_ == requestedGeneration_; }
     const std::string& error() const { return error_; }
-    auto generation() const { return run_ ? run_->generation : 0; }
+    timegraph::GenerationId generation() const { return run_ ? run_->generation : 0; }
     auto coverage() const { return forecast_.coverage(generation()); }
     auto storage() const { return forecast_.storage(); }
     std::uint64_t viewRevision() const { return viewRevision_; }
@@ -78,21 +73,21 @@ private:
         timegraph::GenerationId generation{};
         Snapshot snapshot;
         Second horizon{};
+        std::optional<Second> divergence;
     };
 
     void transact(std::vector<sim::Action> actions, bool resolve = false);
     void readChart(const timegraph::Coverage& coverage);
-    void resetChart(Second end = 0);
 
     timegraph::Forecast forecast_;
     std::future<std::shared_ptr<const Run>> job_;
     std::shared_ptr<const Run> run_;
     std::future<timegraph::Restore> restore_;
+    timegraph::GenerationId requestedGeneration_{}, previewGeneration_{};
     std::optional<Second> requested_;
     std::optional<sim::RuntimeState> previewState_;
     std::optional<Snapshot> preview_;
-    Chart chart_;
-    std::vector<float> samples_;
+    Chart chart_, previousChart_;
     std::array<timegraph::SummaryHeader, 64> headers_;
     std::vector<timegraph::SiteSummary> sites_;
     std::string error_;

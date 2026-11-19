@@ -13,7 +13,9 @@
 #include <charconv>
 #include <cstdio>
 #include <fstream>
+#include <iomanip>
 #include <memory>
+#include <sstream>
 #include <stdexcept>
 
 namespace {
@@ -23,7 +25,7 @@ using waffle::core::json::Value;
 
 struct Options {
     Launch launch;
-    bool smoke{}, interactionSmoke{}, direct{};
+    bool smoke{}, interactionSmoke{}, direct{}, record{};
     std::filesystem::path lifeShop;
     unsigned frames{};
     int width = 1120, height = 640;
@@ -44,6 +46,7 @@ bool parse(int argc, char** argv, Options& options)
         const std::string_view arg = argv[i];
         if (arg == "--smoke") options.smoke = true;
         else if (arg == "--interaction-smoke") options.interactionSmoke = true;
+        else if (arg == "--record") options.record = true;
         else if (arg == "--life-smoke" && i + 1 < argc) options.lifeShop = std::filesystem::u8path(argv[++i]);
         else if (arg == "--size" && i + 2 < argc) {
             if (!parseNumber(argv[++i], options.width) || !parseNumber(argv[++i], options.height) ||
@@ -64,6 +67,7 @@ bool parse(int argc, char** argv, Options& options)
         } else return false;
     }
     return !(options.frames && (options.smoke || options.interactionSmoke || !options.lifeShop.empty() || !options.capture.empty())) &&
+        (!options.record || (options.interactionSmoke && !options.capture.empty())) &&
         (!options.launch.longBenchmark || (options.frames && options.launch.save.empty()));
 }
 
@@ -207,21 +211,18 @@ Value stats(const std::vector<double>& samples)
         {"p99", Value(data.p99)}, {"max", Value(data.max)}});
 }
 
-double paint(View& view, Session& session, waffle::DemoClock& clock, Uint64 start)
+void paint(View& view, Session& session, waffle::DemoClock& clock, Uint64 start)
 {
     clock.seconds = elapsed(start) / 1000;
     view.prepareFrame();
-    double summaryMs = 0;
     if (session.previewing() && !session.previewReady()) {
         // A restore can finish while RmlUi lays out the frame. Pick it up
         // before drawing, without waiting on the worker or skipping a present.
         const auto revision = session.viewRevision();
-        session.update();
-        summaryMs = session.summaryMs();
+        session.updatePreview();
         if (session.viewRevision() != revision) view.prepareFrame();
     }
     view.drawFrame();
-    return summaryMs;
 }
 
 void benchmark(SDL_Renderer* renderer, SdlRmlRenderer& bridge, View& view, Session& session, Selection& selection,
@@ -231,9 +232,8 @@ void benchmark(SDL_Renderer* renderer, SdlRmlRenderer& bridge, View& view, Sessi
 #if defined(__ANDROID__)
         SDL_PumpEvents();
 #endif
-        const auto lateSummaryMs = paint(view, session, clock, start);
+        paint(view, session, clock, start);
         check(SDL_RenderPresent(renderer), SDL_GetError());
-        return lateSummaryMs;
     };
     waitFor(session, [&] { return !session.opening(); }, [&](const char*) { present(); });
     const double ready = elapsed(start);
@@ -248,12 +248,17 @@ void benchmark(SDL_Renderer* renderer, SdlRmlRenderer& bridge, View& view, Sessi
     view.scrubAt(warm.x + warm.w * .75f);
     waitFor(session, [&] { return session.previewReady(); }, [&](const char*) { present(); });
     session.live();
+    waitFor(session, [&] {
+        const auto coverage = session.coverage();
+        return coverage && coverage->completion != waffle::timegraph::Completion::running &&
+            session.chart().through == coverage->publishedThrough;
+    }, [&](const char*) { present(); });
     selection.stage(session.displayed(), 1);
     check(session.reorder(selection.region, *selection.card, *selection.destination), "Could not start benchmark Practice action");
     selection.destination.reset();
     selection.card.reset();
 
-    std::vector<double> frames, renders, summaries, restoreRender, visible, scrubFrames;
+    std::vector<double> frames, renders, summaries, decimations, restoreRender, visible, scrubFrames;
     std::vector<double> loadedVisible, loadedFrames;
     std::vector<Second> targets;
     std::optional<Uint64> input;
@@ -278,8 +283,7 @@ void benchmark(SDL_Renderer* renderer, SdlRmlRenderer& bridge, View& view, Sessi
                 // Spread offsets across anchors and vary the residual 0..63 steps.
                 const auto target = live + 1 + (static_cast<Second>(frame) * 137) % (cap - live);
                 const auto area = view.plot();
-                const auto x = area.x + area.w * static_cast<float>(static_cast<double>(target - chart.start) /
-                    static_cast<double>(chart.end - chart.start));
+                const auto x = area.x + area.w * static_cast<float>(view.graphWindow().fraction(target));
                 if (target != lastTarget && view.scrubAt(x)) {
                     input = frameStart;
                     inputLoaded = forecasting;
@@ -292,12 +296,13 @@ void benchmark(SDL_Renderer* renderer, SdlRmlRenderer& bridge, View& view, Sessi
         session.update();
         const auto summaryMs = session.summaryMs();
         const auto renderStart = SDL_GetTicksNS();
-        const auto lateSummaryMs = present();
+        present();
         const auto end = SDL_GetTicksNS();
         if (forecasting) {
             frames.push_back(elapsed(frameStart, end));
             renders.push_back(elapsed(renderStart, end));
-            if (session.chart().through != summaryBefore) summaries.push_back(summaryMs + lateSummaryMs);
+            decimations.push_back(view.graphSampleMs());
+            if (session.chart().through != summaryBefore) summaries.push_back(summaryMs);
         }
         if (input && session.previewReady()) {
             targets.push_back(session.displayed()->second);
@@ -339,6 +344,7 @@ void benchmark(SDL_Renderer* renderer, SdlRmlRenderer& bridge, View& view, Sessi
         {"scrubs_started_during_forecast", Value(static_cast<double>(loadedVisible.size()))},
         {"summary_batches", Value(static_cast<double>(summaries.size()))},
         {"frame_ms", stats(frames)}, {"summary_transfer_ms", stats(summaries)},
+        {"graph_decimation_ms", stats(decimations)},
         {"render_present_ms", stats(renders)}, {"isolated_reconstruction_ms", stats(reconstructed)},
         {"reconstruction_plus_render_ms", stats(restoreRender)},
         {"scrub_to_present_ms", stats(visible)}, {"scrub_to_present_frames", stats(scrubFrames)},
@@ -346,6 +352,8 @@ void benchmark(SDL_Renderer* renderer, SdlRmlRenderer& bridge, View& view, Sessi
         {"working_set_bytes", Value(static_cast<double>(process.working_set.value_or(0)))},
         {"private_bytes", Value(static_cast<double>(process.private_bytes.value_or(0)))},
         {"forecast_charged_bytes", Value(static_cast<double>(session.storage().chargedBytes()))},
+        {"chart_bytes", Value(static_cast<double>(session.chart().bytes()))},
+        {"previous_chart_bytes", Value(static_cast<double>(session.previousChart().bytes()))},
         {"texture_bytes", Value(static_cast<double>(bridge.texture_bytes()))},
         {"backend", Value(backend ? backend : "")}, {"gpu", Value(process.gpu)}});
     const auto json = waffle::core::json::stringify(result) + "\n";
@@ -434,25 +442,46 @@ int run(const Options& options)
     const auto first = elapsed(start);
     if (scripted || !options.capture.empty()) {
         if (!options.capture.empty()) std::filesystem::create_directories(std::filesystem::u8path(options.capture));
+        const auto recording = std::filesystem::u8path(options.capture) / "frames";
+        if (options.record) std::filesystem::create_directories(recording);
+        unsigned recorded = 0;
+        Uint64 lastRecorded{};
+        bool recordActive = false;
+        const auto saveFrame = [&](const std::string& path) {
+            const std::unique_ptr<SDL_Surface, decltype(&SDL_DestroySurface)> surface(
+                SDL_RenderReadPixels(graphics.renderer, nullptr), SDL_DestroySurface);
+            check(surface && SDL_SavePNG(surface.get(), path.c_str()), SDL_GetError());
+        };
+        const auto captureMotion = [&] {
+            const auto now = SDL_GetTicks();
+            if (!recordActive || now - lastRecorded < 38) return;
+            lastRecorded = now;
+            std::ostringstream filename;
+            filename << options.capture << "/frames/" << std::setfill('0') << std::setw(4) << recorded++ << ".png";
+            saveFrame(filename.str());
+        };
         const auto frame = [&](const char* capture) {
+            const std::string_view label = capture ? capture : "";
+            if (options.record && label == "04-reform-staged") recordActive = true;
             if (capture && !options.capture.empty() && std::string_view(capture) != "06-forecast-running") {
                 // Settle decorative motion before capturing the named state.
                 for (int frame = 0; frame < 18; ++frame) {
                     session.update();
-                    present();
+                    if (recordActive) {
+                        paint(view, session, system.clock, start);
+                        captureMotion();
+                        check(SDL_RenderPresent(graphics.renderer), SDL_GetError());
+                    } else present();
                     SDL_Delay(17);
                 }
             }
             paint(view, session, system.clock, start);
-            if (capture && !options.capture.empty()) {
-                const std::unique_ptr<SDL_Surface, decltype(&SDL_DestroySurface)> surface(
-                    SDL_RenderReadPixels(graphics.renderer, nullptr), SDL_DestroySurface);
-                const auto path = options.capture + "/" + capture + ".png";
-                check(surface && SDL_SavePNG(surface.get(), path.c_str()), SDL_GetError());
-            }
+            captureMotion();
+            if (capture && !options.capture.empty()) saveFrame(options.capture + "/" + capture + ".png");
             check(graphics.bridge->error().empty() && system.clock.last_error.empty(),
                 graphics.bridge->error() + system.clock.last_error);
             check(SDL_RenderPresent(graphics.renderer), SDL_GetError());
+            if (label == "08-return-to-live") recordActive = false;
         };
         if (lifeSmoke) lifeMapSmoke(session, view, frame, store, options.lifeShop);
         else {
@@ -509,7 +538,7 @@ int main(int argc, char** argv)
     Options options;
     if (!parse(argc, argv, options)) {
         std::fputs("Usage: waffle_native_game [--seed N | --load browser.json] [--size WIDTH HEIGHT] "
-                   "[--smoke | --interaction-smoke | --life-smoke FIXTURE_DIR | --save-smoke DIR | --capture DIR | --bench FRAMES [JSON] [--long-benchmark]]\n", stderr);
+                   "[--smoke | --interaction-smoke | --life-smoke FIXTURE_DIR | --save-smoke DIR | --capture DIR [--record] | --bench FRAMES [JSON] [--long-benchmark]]\n", stderr);
         return 2;
     }
     try {

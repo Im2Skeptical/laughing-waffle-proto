@@ -62,11 +62,12 @@ struct InteractionProbe {
         require(view.input(event), "Pointer closed the connected view");
     }
 
-    void key(SDL_Keycode keycode)
+    void key(SDL_Keycode keycode, SDL_Keymod modifiers = SDL_KMOD_NONE)
     {
         SDL_Event event{};
         event.type = SDL_EVENT_KEY_DOWN;
         event.key.key = keycode;
+        event.key.mod = modifiers;
         require(view.input(event), "Keyboard closed the connected view");
         event.type = SDL_EVENT_KEY_UP;
         require(view.input(event), "Keyboard release closed the connected view");
@@ -152,6 +153,7 @@ struct InteractionProbe {
     }
 
     void shell(Session& session, const SaveSlots& store);
+    void forecast(Session& session);
 
     void reform(Session& session, Selection& selection)
     {
@@ -216,6 +218,87 @@ struct InteractionProbe {
     }
 };
 
+void InteractionProbe::forecast(Session& session)
+{
+    const auto& chart = session.chart();
+    const auto live = session.liveSnapshot()->second;
+    require(view.comparisonVisible_ && session.previousChart().through && session.divergence() &&
+        *session.divergence() < live, "Previous forecast and its divergence did not display after the reform");
+    present("n04i-01-comparison");
+
+    click("#graph-belief");
+    require(control("#graph-label-one").GetInnerRML() == "Faith" &&
+        control("#graph-label-two").GetInnerRML() == "Happiness", "Series switch did not update both lanes");
+    click("#graph-scope", true);
+    require(view.graphScope_ != civilizationScope && !view.graphColumns_[0].empty(), "Settlement scope did not publish local ink");
+    present("n04i-02-settlement-belief");
+    click("#graph-realm");
+    require(view.graphScope_ == civilizationScope && control("#graph-label-two").GetInnerRML() == "Controlled",
+        "Realm did not switch to civilization totals");
+    click("#graph-people");
+
+    const auto boundsBefore = view.graphWindow();
+    click("#graph-in", true);
+    require(view.graphWindow().span() < boundsBefore.span(), "Time zoom did not narrow the viewport");
+    while (view.graphWindow().span() > Chart::exactSeconds) click("#graph-in");
+    require(view.exactCurrent_.count > 0, "Close zoom did not read exact summary rows");
+    const auto overview = view.bounds("graph-overview");
+    pointer(SDL_EVENT_MOUSE_BUTTON_DOWN, {overview.x + overview.w * .95f, overview.y + overview.h / 2}, true);
+    pointer(SDL_EVENT_MOUSE_BUTTON_UP, {overview.x + overview.w * .95f, overview.y + overview.h / 2}, true);
+    present(nullptr);
+    require(view.graphWindow().first > boundsBefore.first, "Time overview did not pan");
+    click("#live");
+    require(view.graphWindow().first <= live && view.graphWindow().last >= live, "Live did not recenter the viewport");
+    control("#plot").Focus(true);
+    auto target = live;
+    const auto steps = session.calendarSteps();
+    const std::array<SDL_Keymod, 4> mods{SDL_KMOD_NONE, SDL_KMOD_SHIFT, SDL_KMOD_CTRL, SDL_KMOD_ALT};
+    for (std::size_t i = 0; i < steps.size(); ++i) {
+        key(SDLK_RIGHT, mods[i]);
+        target += steps[i];
+        require(session.requested() == target, "Keyboard calendar step did not select the expected second");
+    }
+    key(SDLK_HOME);
+    require(!session.previewing(), "Home did not return to Live");
+    key(SDLK_PAGEDOWN);
+    require(session.requested() && *session.requested() > live, "Next event did not move the cursor");
+    const auto next = *session.requested();
+    key(SDLK_PAGEUP);
+    require(session.requested() && *session.requested() < next, "Previous event did not move the cursor");
+    key(SDLK_HOME);
+    view.graphZoomed_ = false;
+    present(nullptr);
+
+    require(chart.terminal && !view.eventPins_.empty() && chart.events.back().terminal,
+        "Run end was not marked on the timegraph");
+    const auto terminal = chart.events.back().second;
+    const auto plot = view.plot();
+    const SDL_FPoint marker{view.xAt(terminal), plot.y + 5 * view.density_};
+    pointer(SDL_EVENT_MOUSE_MOTION, marker);
+    present(nullptr);
+    require(view.currentReadout_.find(terminalText(*chart.terminal)) != std::string::npos,
+        "Event hover did not identify the terminal reason");
+    finger(SDL_EVENT_FINGER_DOWN, 1, marker);
+    SDL_Delay(460);
+    present(nullptr);
+    present(nullptr);
+    require(view.longPress_ && view.currentReadout_.find(terminalText(*chart.terminal)) != std::string::npos,
+        "Event long press did not identify the terminal reason");
+    finger(SDL_EVENT_FINGER_UP, 1, marker);
+    require(!session.previewing(), "Releasing an event help hold changed the scrub");
+    pointer(SDL_EVENT_MOUSE_BUTTON_DOWN, marker);
+    pointer(SDL_EVENT_MOUSE_BUTTON_UP, marker);
+    require(session.requested() == terminal, "Clicking the event marker did not jump to its exact second");
+    waitFor(session, [&] { return session.previewReady(); }, present);
+    require(session.displayed()->second == terminal && session.displayedDigest() == session.replayDigest(terminal),
+        "Event preview differs from authoritative replay");
+    present("n04i-03-run-end");
+    click("#live");
+    require(!session.previewing() && session.displayed()->second == live, "Live did not clear the event preview");
+    std::printf("Forecast interaction passed: comparison, series and scope, pan and zoom, calendar and events, terminal t=%llu\n",
+        static_cast<unsigned long long>(terminal));
+}
+
 void waitFor(Session& session, const std::function<bool()>& condition, const SmokeFrame& frame)
 {
     const auto deadline = std::chrono::steady_clock::now() + std::chrono::seconds(30);
@@ -276,6 +359,11 @@ void smoke(Session& session, Selection& selection, const SmokeFrame& frame, View
         frame("03-practice-inspection");
     }
     preparePracticeShop(session, selection, frame);
+    waitFor(session, [&] {
+        const auto coverage = session.coverage();
+        return coverage && coverage->completion != timegraph::Completion::running &&
+            session.chart().through == coverage->publishedThrough;
+    }, frame);
     const auto* original = selection.selected(session.displayed());
     require(original && !original->cards[1].id.empty(), "Smoke requires two real Practices");
     const auto first = original->cards[0].id;
@@ -310,6 +398,9 @@ void smoke(Session& session, Selection& selection, const SmokeFrame& frame, View
     require(changed && changed->cards[0].id == second && changed->cards[1].id == first, "Committed Practice order did not change");
     const auto liveSecond = session.displayed()->second;
     require(liveSecond == before + *duration, "Live time differs from Practice quote");
+    require(session.previousChart().through && session.divergence() == before,
+        "Practice action did not retain the revealed predecessor and edit second");
+    if (view) InteractionProbe{*view, frame}.forecast(session);
     const auto liveDigest = session.displayedDigest();
     require(*session.chart().through >= liveSecond + 2, "Forecast stopped before a second can be scrubbed");
     const auto target = std::min(liveSecond + 79, *session.chart().through);
