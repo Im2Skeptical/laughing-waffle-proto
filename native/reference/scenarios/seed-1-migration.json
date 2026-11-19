@@ -1,0 +1,8 @@
+{
+  "id": "seed-1-migration",
+  "start": { "kind": "performanceAnchor", "seed": 1, "anchorSec": 1714 },
+  "actions": [],
+  "horizonSec": 3,
+  "keepSeconds": [1714],
+  "windows": [{ "startSec": 1714, "count": 4 }]
+}

@@ -4,7 +4,7 @@
 empty-Stranger normalization before season work. It takes the Spring death
 baseline after seasonal Practices. At lunar boundaries it starts the report
 on Birth and sets the phase on other boundaries. Migration Practices run
-before the Migration report changes phase. This cut draws no RNG.
+before the Migration report changes phase. The prelude and Migration draw no RNG.
 
 ## Shared state access
 
@@ -38,11 +38,25 @@ moon rollover in this cut use only storage allocated at import.
 ## Unrest expiry
 
 `step_unrest` accrues income in site order through the final covered second.
-`finish_unrest_expiry` is the handoff for N03e-7 migration refunds and
-N03e-8 control clearing, storefront restoration and event emission. These
-actions must happen in that order before the rest of the second. Until those
-writers land, past-due episodes stay attached while their income remains
-unchanged. At Faith, N03e-6 owns consuming the accumulated income.
+`finish_unrest_expiry` cancels pending Migration bookings and returns their
+cohorts to their source before N03e-8 clears control, restores the storefront
+and emits the expiry event. Death has already committed arrivals, so the
+cancellation leaves their history intact. Until the control writer lands,
+past-due episodes stay attached and stop accruing income. At Faith, N03e-6
+owns consuming the accumulated income.
+
+## Migration
+
+Migration reselects reservations from current source cohorts, ranks eligible
+destinations along live roads and apportions space in authored order. It
+debits departures and publishes the movement ledger before Death feeds and
+commits arrivals. Captured content supplies housing and the Edible Stock
+classification. The recipe engine owns the preceding Migration Practice stage.
+
+The booking workspace reuses per-thread scratch. Movement payload storage is
+owned by each state and reused once no current moon, previous moon, site
+result, or meal references it. The workspace and storage grow at new
+high-water marks. Transfer IDs are formatted only at the browser adapter.
 
 ## Verification
 
@@ -50,6 +64,11 @@ The common step masks expose both moon header lifecycles, region membership
 and last-result identity. Phase payloads, movement ledgers and report
 currency have separate later owners. Faith income consumption and Death
 history still share state paths with this cut.
+
+`settlement_migration` checks an authored housing tie, cancellation with
+pending refunds, and legacy external emigration. The reference stage suite
+also compares seed 123's naturally occurring movements with complete Stock
+and reservation inputs.
 
 `settlement_prelude_windows` captures two prepared starts using the browser
 runner. Its non-lunar window exposes Unrest income, Stranger defaults and

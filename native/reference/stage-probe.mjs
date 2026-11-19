@@ -32,9 +32,11 @@ const dt = DEFAULT_REPLAY_DT_STEP;
 
 const suite = {
   "seed-1": [1, 2, 3, 4, 5, 6, 7, 9, 17, 25, 33, 1595, 1596, 1597, 1598, 1599, 1600],
+  "seed-1-migration": [1715],
   "seed-42-shops": [7, 12, 13, 70, 71, 80, 81, 132],
   "seed-2026-late": [3201, 3202, 3203, 3204, 3205, 3206, 3207, 3209, 3233],
   "seed-42-charge": [17, 41],
+  "seed-123-migration": [2033, 2039, 2123, 2129, 2675],
 };
 
 function requireThat(condition, message) {

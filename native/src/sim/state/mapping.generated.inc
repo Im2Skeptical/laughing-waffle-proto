@@ -981,7 +981,7 @@ MigrationMovement Mapping<MigrationMovement>::read(Import& codec, const browser:
 browser::MigrationMovement Mapping<MigrationMovement>::write(const Export& codec, const MigrationMovement& source)
 {
     browser::MigrationMovement result{};
-    codec.write(result.transferId, source.transferId);
+    codec.migration_transfer_id(result.transferId, source);
     codec.write(result.reason, source.reason);
     codec.write(result.sourceRegionId, source.sourceRegionId);
     codec.write(result.destinationRegionId, source.destinationRegionId);

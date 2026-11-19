@@ -1,6 +1,7 @@
 #pragma once
 
 #include "sim/state/rows.generated.hpp"
+#include "sim/settlement/migration.hpp"
 
 #include <memory>
 
@@ -12,6 +13,7 @@ struct CapturedContent {
     // The baseline vocabularies are frozen at import. Config definition
     // dictionary order is the prefix of the corresponding definition IDs.
     runtime::IdTables ids;
+    settlement::MigrationContent migration;
 };
 
 struct PopulationTotals {
@@ -77,6 +79,7 @@ struct RuntimeState {
     runtime::IdTables addedIds;
     SettlementPreludeCache settlementPrelude;
     PopulationVocabulary populationVocabulary;
+    settlement::MigrationCache migration;
     // The browser omits this latch on export and clears it on import.
     bool seasonChanged{};
     // Derived from tSec and immutable settings. Zero triggers calculation.

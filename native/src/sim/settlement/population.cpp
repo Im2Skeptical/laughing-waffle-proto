@@ -201,7 +201,8 @@ void collect_population(const RuntimeState& state, const PopulationByClass& popu
 }
 
 void allocate_population(const RuntimeState& state, std::span<const PopulationBin> bins,
-                         double requested, std::vector<PopulationBin>& output, LedgerScratch& scratch)
+                         double requested, std::vector<PopulationBin>& output, LedgerScratch& scratch,
+                         PopulationTie tie)
 {
     output.clear();
     double available = 0;
@@ -215,8 +216,9 @@ void allocate_population(const RuntimeState& state, std::span<const PopulationBi
     double allocated = 0;
     for (const auto& bin : bins) {
         const double exact = target * double(bin.count) / available;
-        const double whole = js::floor(exact);
-        ranks.push_back({output.size(), js::remainder(exact, 1)});
+        const bool inputOrder = tie == PopulationTie::input_order;
+        const double whole = inputOrder ? std::min(double(bin.count), js::floor(exact)) : js::floor(exact);
+        ranks.push_back({output.size(), inputOrder ? exact - whole : js::remainder(exact, 1)});
         output.push_back({bin.residency, bin.key, count_from_number(whole)});
         allocated += whole;
     }
@@ -224,6 +226,7 @@ void allocate_population(const RuntimeState& state, std::span<const PopulationBi
     if (left != 0) {
         std::ranges::sort(ranks, [&](const auto& a, const auto& b) {
             if (a.remainder != b.remainder) return a.remainder > b.remainder;
+            if (tie == PopulationTie::input_order) return a.index < b.index;
             const auto& first = bins[a.index];
             const auto& second = bins[b.index];
             return same_key(first, second) ? a.index < b.index : key_less(state.populationVocabulary, first, second);
@@ -231,6 +234,7 @@ void allocate_population(const RuntimeState& state, std::span<const PopulationBi
         for (const auto ranked : ranks) {
             if (left == 0) break;
             auto& count = output[ranked.index].count;
+            if (tie == PopulationTie::input_order && count == bins[ranked.index].count) continue;
             count = count_from_number(double(count) + 1);
             --left;
         }
@@ -252,32 +256,48 @@ void remove_population(std::span<PopulationBin> bins, std::span<const Population
     }
 }
 
-void write_population_bins(RuntimeState& state, SiteId site, std::span<const PopulationBin> bins, LedgerScratch& scratch)
+namespace {
+
+auto summarize_population(const PopulationVocabulary& vocabulary, std::span<const PopulationBin> bins,
+                          LedgerScratch& scratch)
 {
-    merge_population(state.populationVocabulary, bins, scratch);
     std::array<std::size_t, 2> sizes{};
     for (auto& summaries : scratch.summaries)
         for (auto& summary : summaries) clear_cohort(summary);
     std::uint64_t siteTotal = 0;
-    for (const auto& bin : scratch.merged) {
+    for (const auto& bin : bins) {
+        if (!bin.count) continue;
         if (bin.count > UINT64_MAX - siteTotal) throw std::invalid_argument("population total exceeds native range");
         siteTotal += bin.count;
         const auto index = static_cast<std::size_t>(bin.residency);
         ++sizes[index];
         auto& summaries = scratch.summaries[index];
-        const auto stage = rank(state.populationVocabulary.stages, bin.key.kind);
-        const auto specialty = rank(state.populationVocabulary.specialties, bin.key.specialty);
+        const auto stage = rank(vocabulary.stages, bin.key.kind);
+        const auto specialty = rank(vocabulary.specialties, bin.key.specialty);
         accumulate(summaries[0], stage, bin);
         if (specialty != 0) accumulate(summaries[specialty], stage, bin);
     }
     // Check the browser-rounded summary values before publishing any rows.
-    for (const auto& summaries : scratch.summaries) {
+    for (auto& summaries : scratch.summaries) {
+        std::ranges::sort(summaries[0].elders, {}, &ElderCohort::age);
         for (const auto& summary : summaries) {
             count_from_number(summary.children);
             count_from_number(summary.adults);
         }
     }
+    return sizes;
+}
 
+}
+
+void write_population_bins(RuntimeState& state, SiteId site, std::span<const PopulationBin> bins,
+                           LedgerScratch& scratch, bool joint)
+{
+    if (joint) {
+        merge_population(state.populationVocabulary, bins, scratch);
+        bins = scratch.merged;
+    }
+    const auto sizes = summarize_population(state.populationVocabulary, bins, scratch);
     auto& population = site_at(state, site).detailedState.populationByClass;
     const std::array classes{&population.villager, &population.stranger};
     auto& index = state.indexes.sites.at(site.value);
@@ -288,9 +308,10 @@ void write_population_bins(RuntimeState& state, SiteId site, std::span<const Pop
         auto& summaries = scratch.summaries[c];
         // Browser sorts the class totals by numeric age. The specialist
         // columns preserve first occurrence in the sorted joint bins.
-        std::ranges::sort(summaries[0].elders, {}, &ElderCohort::age);
-        seed_storage(index.jointStorage[c], cohort.joint.value_or(Range<JointCohort>{}));
-        joints[c] = acquire_rows(state.tables.table<JointCohort>(), index.jointStorage[c], sizes[c]);
+        if (joint) {
+            seed_storage(index.jointStorage[c], cohort.joint.value_or(Range<JointCohort>{}));
+            joints[c] = acquire_rows(state.tables.table<JointCohort>(), index.jointStorage[c], sizes[c]);
+        }
         const std::array current{cohort.eldersByAge, cohort.specialists.scholar.eldersByAge,
                                  cohort.specialists.warrior.eldersByAge};
         for (std::size_t s = 0; s < summaries.size(); ++s) {
@@ -301,20 +322,57 @@ void write_population_bins(RuntimeState& state, SiteId site, std::span<const Pop
     state.jointCounts.resize(state.tables.rows<JointCohort>().size());
 
     std::array next{joints[0].begin, joints[1].begin};
-    for (const auto& bin : scratch.merged) {
-        const auto row = next[static_cast<std::size_t>(bin.residency)]++;
-        state.tables.rows<JointCohort>()[row] = bin.key;
-        state.jointCounts[row] = bin.count;
+    if (joint) {
+        for (const auto& bin : bins) {
+            const auto row = next[static_cast<std::size_t>(bin.residency)]++;
+            state.tables.rows<JointCohort>()[row] = bin.key;
+            state.jointCounts[row] = bin.count;
+        }
     }
     for (std::size_t c = 0; c < classes.size(); ++c) {
         auto& cohort = *classes[c];
-        cohort.joint = joints[c];
+        if (joint) cohort.joint = joints[c];
         const auto& summaries = scratch.summaries[c];
         copy_cohort(cohort, summaries[0], ages[c][0], state);
         copy_cohort(cohort.specialists.scholar, summaries[1], ages[c][1], state);
         copy_cohort(cohort.specialists.warrior, summaries[2], ages[c][2], state);
     }
     refresh_site_population_index(state, site);
+}
+
+PopulationComposition write_population_composition(RuntimeState& state, std::span<const PopulationBin> bins,
+                                                   bool joint, LedgerScratch& scratch,
+                                                   std::uint32_t& jointCursor, std::uint32_t& elderCursor)
+{
+    if (joint) {
+        merge_population(state.populationVocabulary, bins, scratch);
+        bins = scratch.merged;
+    }
+    const auto sizes = summarize_population(state.populationVocabulary, bins, scratch);
+    PopulationComposition composition;
+    const std::array classes{&composition.villager, &composition.stranger};
+    for (std::size_t c = 0; c < classes.size(); ++c) {
+        auto& cohort = *classes[c];
+        if (joint) {
+            const auto end = jointCursor + static_cast<std::uint32_t>(sizes[c]);
+            cohort.joint = Range<JointCohort>{jointCursor, end};
+            for (const auto& bin : bins) {
+                if (static_cast<std::size_t>(bin.residency) != c) continue;
+                state.tables.rows<JointCohort>()[jointCursor] = bin.key;
+                state.jointCounts[jointCursor++] = bin.count;
+            }
+        }
+        const auto copy = [&](auto& target, const Cohort& source) {
+            const auto end = elderCursor + static_cast<std::uint32_t>(source.elders.size());
+            copy_cohort(target, source, {elderCursor, end}, state);
+            elderCursor = end;
+        };
+        const auto& summaries = scratch.summaries[c];
+        copy(cohort, summaries[0]);
+        copy(cohort.specialists.scholar, summaries[1]);
+        copy(cohort.specialists.warrior, summaries[2]);
+    }
+    return composition;
 }
 
 CohortView cohort_view(const RuntimeState& state, const AgeCounts& counts)

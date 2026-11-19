@@ -105,5 +105,9 @@ if(NOT ANDROID)
 				"$<TARGET_FILE:waffle_settlement_ledger_test>" "${native_dir}/reference/fixtures/seed-1/state-0.json"
 				"${CMAKE_CURRENT_BINARY_DIR}/settlement-ledger-vectors.json")
 		set_tests_properties(settlement_prelude_windows settlement_ledger_vectors PROPERTIES TIMEOUT 60)
+		add_test(NAME settlement_migration
+			COMMAND "${WAFFLE_NODE_EXECUTABLE}" "${native_dir}/src/tests/settlement-migration.mjs"
+				"$<TARGET_FILE:waffle_parity>" "${native_dir}" "${CMAKE_CURRENT_BINARY_DIR}/settlement-migration")
+		set_tests_properties(settlement_migration PROPERTIES TIMEOUT 60)
 	endif()
 endif()
