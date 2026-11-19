@@ -23,6 +23,7 @@ import { REPO_ROOT, sha256Value } from "./corpus-lib.mjs";
 import { diffStates, formatStateDiff, HASHES_FILE, readHashes } from "./diff.mjs";
 import { advance, applyActions, assertHash, createStart, groupReplayActions, loadScenario } from "./trace.mjs";
 import { checkFoodContention, checkSeasonalFoodBoost } from "./food-contention.mjs";
+import { checkHousingExhibit, checkHousingFaithExhibit } from "./housing-exhibit.mjs";
 
 const here = fileURLToPath(new URL(".", import.meta.url));
 const artifactDir = join(REPO_ROOT, "artifacts", "native-reference", "stages");
@@ -35,11 +36,12 @@ const chargeCascadeSeconds = [17, 41];
 const suite = {
   // Faith samples cover all six tier shifts, entry/re-entry into collapse,
   // ongoing collapse, a Resistance crossing and accrued Unrest income.
-  "seed-1": [1, 2, 3, 4, 5, 6, 7, 8, 9, 13, 14, 17, 19, 20, 25, 26, 31, 32, 33, 37, 38, 40, 82, 97,
-    184, 202, 220, 226, 292, 298, 310, 388, 400, 406, 412, 802, 880, 1595, 1596, 1597, 1598, 1599,
-    1600],
+  "seed-1": [1, 2, 3, 4, 5, 6, 7, 8, 9, 13, 14, 15, 17, 19, 20, 21, 25, 26, 31, 32, 33, 37, 38, 40,
+    82, 97, 184, 202, 220, 226, 292, 298, 310, 388, 400, 406, 412, 802, 880, 1595, 1596, 1597,
+    1598, 1599, 1600],
   "seed-1-migration": [1715, 1716],
   "seed-1-food-contention": [2, 17],
+  "seed-1-housing": [3, 4, 5, 7, 9, 10],
   "seed-1867": [58, 61, 76, 79, 82, 85],
   "seed-42-shops": [7, 12, 13, 52, 70, 71, 76, 80, 81, 82, 84, 85, 88, 132],
   "seed-2026-late": [3201, 3202, 3203, 3204, 3205, 3206, 3207, 3209, 3211, 3217, 3232, 3233, 3262,
@@ -209,6 +211,8 @@ function captureSecond(id, baseline, live, sec, actions, hashes) {
     const firstTick = name === "advance_clock" ? 1 : tick;
     const before = boundary("before-" + name, chaosBefore);
     execute();
+    if (id === "seed-1-housing" && name === "housing") checkHousingExhibit(state);
+    if (id === "seed-1-housing" && sec === 4 && name === "faith") checkHousingFaithExhibit(state);
     tick = tickCount;
     const after = boundary("after-" + name, chaosBefore);
     stages.push({ name, firstTick, lastTick: tick, before, after });

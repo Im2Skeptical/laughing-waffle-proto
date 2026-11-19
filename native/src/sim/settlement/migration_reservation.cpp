@@ -5,6 +5,7 @@
 
 #include <algorithm>
 #include <span>
+#include <stdexcept>
 
 namespace waffle::sim::settlement {
 namespace {
@@ -13,11 +14,20 @@ using namespace runtime;
 using Bin = MigrationReservationCache::Bin;
 namespace js = core::js;
 constexpr auto storagePath = "Moon migration reservations";
+// Food, Housing and Faith (moon phases 1-3) can each reserve the same source
+// class. Each keeps its own payload so earlier intents stay immutable.
 constexpr std::size_t reservationPhases = 3;
 
 std::size_t payload_index(SiteId site, Residency residency, std::size_t phase)
 {
     return (site.value * 2 + static_cast<std::size_t>(residency)) * reservationPhases + phase;
+}
+
+std::size_t reservation_phase(const MoonTurn& turn)
+{
+    const auto phase = static_cast<std::size_t>(turn.phaseIndex) - 1;
+    if (phase >= reservationPhases) throw std::logic_error("unexpected migration reservation phase");
+    return phase;
 }
 
 template<class T>
@@ -210,6 +220,41 @@ void prepare_scratch(MigrationReservationCache& cache, std::size_t bins)
     cache.ranked.resize(size);
 }
 
+double select_composition(RuntimeState& state, const MoonTurn& turn, const Site& site,
+                          Residency residency, double requested,
+                          MigrationReservationCache::Payload& payload, ClassComposition& output)
+{
+    if (!(requested > 0)) return 0;
+    auto& cache = state.migrationReservations;
+    const auto& population = population_class(site.detailedState.populationByClass, residency);
+    const bool joint = population.joint.has_value();
+    const auto size = joint ? population.joint->size() : legacy_bin_capacity(population);
+    prepare_scratch(cache, size);
+    auto bins = std::span(cache.bins).first(size);
+    if (joint) {
+        const auto view = population_bins(state, site.detailedState.populationByClass, residency);
+        for (std::size_t i = 0; i < view.size(); ++i) bins[i] = {view.keys[i], double(view.counts[i]), 0, 0, i};
+    } else {
+        bins = collect_legacy(state, population, bins);
+    }
+    remove_reserved(state, turn, site.regionId, residency, joint, bins);
+    const auto selected = select_bins(bins, cache.ranked, requested, joint);
+    if (selected > 0) output = write_composition(state, payload, bins, joint);
+    return selected;
+}
+
+void append_intent(RuntimeState& state, MoonTurn& turn, MigrationReservationCache::Bank& bank,
+                   const MigrationIntent& intent)
+{
+    const auto prior = turn.migrationIntents;
+    ensure_capacity(state, bank.intents, prior.size() + 1);
+    auto intents = state.tables.view(bank.intents);
+    if (prior.size() && prior.begin != bank.intents.begin)
+        std::ranges::copy(state.tables.view(prior), intents.begin());
+    intents[prior.size()] = intent;
+    turn.migrationIntents = {bank.intents.begin, bank.intents.begin + prior.size() + 1};
+}
+
 }
 
 void prepare_migration_reservations(RuntimeState& state)
@@ -249,41 +294,56 @@ double reserve_migration(RuntimeState& state, MoonTurn& turn, SiteId siteId, Res
     if (!(requested > 0)) return 0;
     auto& cache = state.migrationReservations;
     const auto& site = site_at(state, siteId);
-    const auto& population = population_class(site.detailedState.populationByClass, residency);
-    const bool joint = population.joint.has_value();
-    const auto size = joint ? population.joint->size() : legacy_bin_capacity(population);
-    prepare_scratch(cache, size);
-    auto bins = std::span(cache.bins).first(size);
-    if (joint) {
-        const auto view = population_bins(state, site.detailedState.populationByClass, residency);
-        for (std::size_t i = 0; i < view.size(); ++i) bins[i] = {view.keys[i], double(view.counts[i]), 0, 0, i};
-    } else {
-        bins = collect_legacy(state, population, bins);
-    }
-    remove_reserved(state, turn, site.regionId, residency, joint, bins);
-    const auto selected = select_bins(bins, cache.ranked, requested, joint);
-    if (selected <= 0) return 0;
-
     auto& bank = cache.banks[state.settlementPrelude.nextMoonBuffer ^ 1];
     const auto classIndex = static_cast<std::size_t>(residency);
-    // One source class can reserve again at Faith. Its earlier Food payload
-    // must stay immutable while both intents are visible in the moon ledger.
-    const auto phase = static_cast<std::size_t>(turn.phaseIndex) - 1;
-    if (phase >= reservationPhases) throw std::logic_error("unexpected migration reservation phase");
-    auto& payload = bank.payloads[payload_index(siteId, residency, phase)];
+    auto& payload = bank.payloads[payload_index(siteId, residency, reservation_phase(turn))];
     PopulationComposition composition{};
     auto& source = residency == Residency::villager ? composition.villager : composition.stranger;
     auto& other = residency == Residency::villager ? composition.stranger : composition.villager;
-    source = write_composition(state, payload, bins, joint);
-    if (joint) other.joint.emplace();
-    const auto prior = turn.migrationIntents;
-    ensure_capacity(state, bank.intents, prior.size() + 1);
-    auto intents = state.tables.view(bank.intents);
-    if (prior.size() && prior.begin != bank.intents.begin)
-        std::ranges::copy(state.tables.view(prior), intents.begin());
-    intents[prior.size()] = {reason, site.regionId, cache.residencies[classIndex], composition, selected};
-    turn.migrationIntents = {bank.intents.begin, bank.intents.begin + prior.size() + 1};
+    const auto selected = select_composition(state, turn, site, residency, requested, payload, source);
+    if (selected <= 0) return 0;
+    if (source.joint) other.joint.emplace();
+    append_intent(state, turn, bank, {reason, site.regionId, cache.residencies[classIndex], composition, selected});
     return selected;
+}
+
+double reserved_migration_population(const RuntimeState& state, const MoonTurn& turn, RegionId region)
+{
+    double total = 0;
+    for (const auto& intent : state.tables.view(turn.migrationIntents)) {
+        if (intent.sourceId != region) continue;
+        const auto& [villager, stranger] = intent.composition;
+        const bool joint = villager.joint || stranger.joint;
+        for (const auto* part : {&villager, &stranger}) {
+            if (joint) {
+                const auto range = part->joint.value_or(Range<JointCohort>{});
+                for (auto i = range.begin; i < range.end; ++i)
+                    total += static_cast<double>(state.jointCounts[i]);
+            } else {
+                total += static_cast<double>(part->children) + static_cast<double>(part->adults);
+                for (const auto& age : state.tables.view(part->eldersByAge))
+                    total += static_cast<double>(age.count);
+            }
+        }
+    }
+    return total;
+}
+
+double reserve_housing_migration(RuntimeState& state, MoonTurn& turn, SiteId siteId, double overflow)
+{
+    if (overflow < 1) return 0;
+    auto& bank = state.migrationReservations.banks[state.settlementPrelude.nextMoonBuffer ^ 1];
+    const auto& site = site_at(state, siteId);
+    const auto phase = reservation_phase(turn);
+    PopulationComposition composition{};
+    const auto strangers = select_composition(state, turn, site, Residency::stranger, js::floor(overflow),
+        bank.payloads[payload_index(siteId, Residency::stranger, phase)], composition.stranger);
+    const auto villagers = select_composition(state, turn, site, Residency::villager, js::floor(overflow - strangers),
+        bank.payloads[payload_index(siteId, Residency::villager, phase)], composition.villager);
+    const auto requested = strangers + villagers;
+    if (requested > 0)
+        append_intent(state, turn, bank, {turn.phaseId, site.regionId, std::nullopt, composition, requested});
+    return requested;
 }
 
 }
