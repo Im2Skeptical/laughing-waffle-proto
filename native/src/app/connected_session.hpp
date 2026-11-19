@@ -3,6 +3,7 @@
 #include "connected_save.hpp"
 #include "timegraph/forecast.hpp"
 #include "ui/connected_model.hpp"
+#include "ui/life_map.hpp"
 
 #include <chrono>
 #include <filesystem>
@@ -41,6 +42,8 @@ public:
     bool save(const SaveSlots& slots, Slot slot) const;
     void update();
     bool choose(const Choice& choice);
+    bool submit(const LifeCommand& command);
+    LifeReading lifeMap(bool detail) const;
     bool reorder(std::string_view region, std::size_t from, std::size_t to);
     bool scrub(Second second);
     void live();

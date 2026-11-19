@@ -1,4 +1,5 @@
 #include "sim/vassal/vassal.hpp"
+#include "sim/vassal/presentation.hpp"
 
 #include "sim/vassal/detail.hpp"
 #include "sim/settlement/site_access.hpp"
@@ -123,10 +124,7 @@ bool complete(RuntimeState& state, Vassal& actor)
         actor.developmentProgress -= 10;
         ++levels;
     }
-    const auto yearSec = static_cast<double>(state.hot.seasons.size() == 0 ? 4 : state.hot.seasons.size())
-        * std::max(1.0, core::js::floor(state.hot.seasonDurationSec));
-    const auto age = whole(actor.initialAge) + whole((whole(state.hot.tSec) - core::js::floor(actor.selectedSec)) / yearSec);
-    const auto chance = mortality_chance(age);
+    const auto [age, chance] = mortality_at(state, actor, state.hot.tSec);
     const auto mortalityRoll = roll(state);
     node.mortality = browser::LifeMapNodeStateMortality{age, chance, mortalityRoll};
     node.resolving = false;
@@ -199,6 +197,14 @@ void reindex(RuntimeState& state)
         state.nextVassalCheckSec = core::js::floor(actor->lifeMap.pendingResolution->resolveSec);
     if (commission_due(state, *actor))
         state.nextVassalCheckSec = std::min(state.nextVassalCheckSec, state.hot.tSec);
+}
+
+AgeRisk mortality_at(const RuntimeState& state, const runtime::Vassal& actor, double second)
+{
+    const auto yearSec = static_cast<double>(state.hot.seasons.size() == 0 ? 4 : state.hot.seasons.size())
+        * std::max(1.0, core::js::floor(state.hot.seasonDurationSec));
+    const auto age = whole(actor.initialAge) + whole((whole(second) - core::js::floor(actor.selectedSec)) / yearSec);
+    return {age, mortality_chance(age)};
 }
 
 bool resolve_due(RuntimeState& state)

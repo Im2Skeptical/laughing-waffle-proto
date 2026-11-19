@@ -1,4 +1,5 @@
 #include "sim/vassal/actions.hpp"
+#include "sim/vassal/presentation.hpp"
 
 #include "sim/practice/detail.hpp"
 #include "sim/practice/stock.hpp"
@@ -544,16 +545,21 @@ double next_purchase_sequence(const Node& node)
     return sequence;
 }
 
+std::pair<std::size_t, double> next_unlock(const Site& site, const Node& node)
+{
+    const auto staged = std::ranges::count_if(node.purchasedOffers,
+        [](const auto& receipt) { return receipt.intervention.kind == "practiceSlot"; });
+    const auto capacity = site.detailedState.unlockedPracticeSlots + staged + 1;
+    return {capacity, capacity == 4 ? 10.0 : capacity == 5 ? 30.0 : 0.0};
+}
+
 ActionResult stage_unlock(RuntimeState& state, Vassal& actor, Node& node, const Site& site, std::string_view offerId)
 {
     if (!state.hot.rulesetId || site.neutral) return {"practiceUnlockUnavailable"};
     auto reserved = std::accumulate(node.purchasedOffers.begin(), node.purchasedOffers.end(), 0.0,
         [](double sum, const auto& receipt) { return sum + receipt.prestigeCost; });
     if (node.removalReceipts) for (const auto& receipt : *node.removalReceipts) reserved += receipt.prestigeCost.value_or(0);
-    const auto staged = std::ranges::count_if(node.purchasedOffers,
-        [](const auto& receipt) { return receipt.intervention.kind == "practiceSlot"; });
-    const auto capacity = site.detailedState.unlockedPracticeSlots + staged + 1;
-    const double price = capacity == 4 ? 10 : capacity == 5 ? 30 : 0;
+    const auto [capacity, price] = next_unlock(site, node);
     if (capacity > 5 || offerId != "practice-slot:" + std::to_string(capacity) || price > prestige(state, actor) - reserved)
         return {"practiceUnlockUnavailable"};
     node.purchasedOffers.push_back({.offerId = std::string(offerId), .basePrestigeCost = price,
@@ -566,7 +572,7 @@ ActionResult stage_unlock(RuntimeState& state, Vassal& actor, Node& node, const 
     return {};
 }
 
-ActionResult purchase(RuntimeState& state, Vassal& actor, Node& node, const Value& payload)
+ActionResult purchase(RuntimeState& state, Vassal& actor, Node& node, const Value& payload, Receipt* quote = nullptr)
 {
     const auto wanted = string(payload, "offerId");
     const auto* site = settlement::detailed_site(state, actor.locationRegionId);
@@ -589,12 +595,9 @@ ActionResult purchase(RuntimeState& state, Vassal& actor, Node& node, const Valu
         std::ranges::none_of(node.purchasedOffers, [](const auto& p) { return p.intervention.kind != "practiceSlot"; }));
     const bool pressure = (practice || structure) && cost > std::max(0.0, prestige(state, actor) - priorPrestige) &&
         (state.hot.rulesetId || offer->intervention.mode != "remove");
-    if (!pressure && cost > prestige(state, actor) - priorPrestige) return {"insufficientPrestige"};
     const auto currency = std::max(0.0, offer->baseCurrencyCost.value_or(0));
     const auto priorCurrency = std::accumulate(node.purchasedOffers.begin(), node.purchasedOffers.end(), 0.0,
         [](double sum, const auto& receipt) { return sum + std::max(0.0, receipt.currencyCost); });
-    if (currency > action_stock_total(state, site, state.practiceVocabulary.currency) - priorCurrency)
-        return {"insufficientCurrency"};
     const auto time = state.hot.rulesetId && offer->intervention.mode == "adopt" ? offer->basePhaseCost :
         phase_cost(state, actor, node, offer->basePhaseCost);
     Receipt receipt{
@@ -606,6 +609,10 @@ ActionResult purchase(RuntimeState& state, Vassal& actor, Node& node, const Valu
         .sourceInventoryIndex = whole(offer->inventoryIndex), .hourglassApplied = time > 0 ?
             std::optional(!node.heirloomTimeActionUsed.value_or(false)) : std::nullopt,
     };
+    if (quote) *quote = receipt;
+    if (!pressure && cost > prestige(state, actor) - priorPrestige) return {"insufficientPrestige"};
+    if (currency > action_stock_total(state, site, state.practiceVocabulary.currency) - priorCurrency)
+        return {"insufficientCurrency"};
     const auto& change = receipt.intervention;
     const auto id = change.practiceId.value_or("");
     if (structure) {
@@ -938,6 +945,82 @@ ActionResult dispatch_node_action(RuntimeState& state, const Action& action)
     return result;
 }
 
+}
+
+ChoicePrice quote_choice(const RuntimeState& state, const runtime::Vassal& actor,
+                         const browser::LifeMapNodeState& node, const browser::LifeMapOption& option)
+{
+    const auto phases = node.family == "campaign" && !node.rewardAcquisition && option.id != "campaign-leave"
+        ? (state.compiledContent->values.lifeMapGenerator.design.enabled
+            ? phase_cost(state, actor, node, option.phaseCost) : option.phaseCost)
+        : phase_cost(state, actor, node, option.phaseCost, option.locationRegionId.has_value());
+    return {prestige_cost(state, actor, option.prestigeCost),
+        phases * state.compiledContent->settings().phaseDurationSec};
+}
+
+std::vector<ShopQuote> quote_shop(const RuntimeState& state, const runtime::Vassal& actor,
+                                 const browser::LifeMapNodeState& node, bool validate)
+{
+    std::vector<ShopQuote> offers;
+    auto scratch = validate ? std::optional(state) : std::nullopt;
+    auto detachedActor = actor;
+    const auto* site = settlement::detailed_site(state, actor.locationRegionId);
+    for (const auto& offer : node.inventory) {
+        ShopQuote quote{.offer = offer};
+        quote.price.prestigeCost = offer.basePrestigeCost;
+        quote.price.currencyCost = offer.baseCurrencyCost.value_or(0);
+        quote.price.phaseCost = offer.basePhaseCost;
+        if (scratch) {
+            auto trial = node;
+            const Value::Object payload{{"offerId", Value(offer.offerId)}};
+            const auto result = purchase(*scratch, detachedActor, trial, Value(payload), &quote.price);
+            quote.reason = result.reason;
+            if (result) {
+                const auto sequence = next_purchase_sequence(node);
+                const auto staged = std::ranges::find(trial.purchasedOffers, sequence, &Receipt::purchaseSequence);
+                if (staged != trial.purchasedOffers.end()) quote.price = *staged;
+            }
+            if (quote.price.placement && site) {
+                const auto board = structure_draft(state, *site, node);
+                const auto width = static_cast<std::size_t>(quote.price.placement->width);
+                const auto suggested = static_cast<std::size_t>(quote.price.placement->origin);
+                for (std::size_t origin = 0; origin + width <= board.slots.size(); ++origin) {
+                    trial = node;
+                    auto placement = payload;
+                    placement.emplace_back("origin", Value(double(origin)));
+                    if (!purchase(*scratch, detachedActor, trial, Value(std::move(placement)))) continue;
+                    ShopPlacement span{origin, width};
+                    for (const auto& cell : board.slots) {
+                        if (!cell) continue;
+                        const auto& item = cell->placement;
+                        if (item.origin < origin + width && item.origin + item.width > origin)
+                            span.demolished.push_back(item.structureId);
+                    }
+                    quote.placements.push_back(std::move(span));
+                }
+                // Present the simulation's default placement first.
+                const auto first = std::ranges::find(quote.placements, suggested, &ShopPlacement::origin);
+                if (first != quote.placements.end()) std::rotate(quote.placements.begin(), first, first + 1);
+            }
+        }
+        offers.push_back(std::move(quote));
+    }
+    if (site && state.hot.rulesetId && !site->neutral) {
+        const auto [capacity, price] = next_unlock(*site, node);
+        if (capacity <= 5) {
+            ShopQuote quote;
+            quote.offer.offerId = "practice-slot:" + std::to_string(capacity);
+            quote.offer.label = "Unlock Practice slot " + std::to_string(capacity);
+            quote.offer.intervention.kind = "practiceSlot";
+            quote.price.prestigeCost = price;
+            if (scratch) {
+                auto trial = node;
+                quote.reason = stage_unlock(*scratch, detachedActor, trial, *site, quote.offer.offerId).reason;
+            }
+            offers.push_back(std::move(quote));
+        }
+    }
+    return offers;
 }
 
 ActionResult apply_node_action(RuntimeState& state, const Action& action)

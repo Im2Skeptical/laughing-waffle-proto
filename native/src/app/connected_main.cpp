@@ -24,6 +24,7 @@ using waffle::core::json::Value;
 struct Options {
     Launch launch;
     bool smoke{}, interactionSmoke{}, direct{};
+    std::filesystem::path lifeShop;
     unsigned frames{};
     int width = 1120, height = 640;
     std::string capture, report;
@@ -43,6 +44,7 @@ bool parse(int argc, char** argv, Options& options)
         const std::string_view arg = argv[i];
         if (arg == "--smoke") options.smoke = true;
         else if (arg == "--interaction-smoke") options.interactionSmoke = true;
+        else if (arg == "--life-smoke" && i + 1 < argc) options.lifeShop = std::filesystem::u8path(argv[++i]);
         else if (arg == "--size" && i + 2 < argc) {
             if (!parseNumber(argv[++i], options.width) || !parseNumber(argv[++i], options.height) ||
                 options.width < 640 || options.height < 360) return false;
@@ -61,7 +63,7 @@ bool parse(int argc, char** argv, Options& options)
             if (i + 1 < argc && !std::string_view(argv[i + 1]).starts_with("--")) options.report = argv[++i];
         } else return false;
     }
-    return !(options.frames && (options.smoke || options.interactionSmoke || !options.capture.empty())) &&
+    return !(options.frames && (options.smoke || options.interactionSmoke || !options.lifeShop.empty() || !options.capture.empty())) &&
         (!options.launch.longBenchmark || (options.frames && options.launch.save.empty()));
 }
 
@@ -366,12 +368,14 @@ int run(const Options& options)
     }
     Session session;
     Selection selection;
-    if (options.smoke && !options.interactionSmoke && options.capture.empty()) {
+    if (options.smoke && !options.interactionSmoke && options.lifeShop.empty() && options.capture.empty()) {
         session.open(options.launch);
         smoke(session, selection, {});
         return 0;
     }
-    const bool automated = !options.capture.empty() || options.interactionSmoke || options.frames;
+    const bool lifeSmoke = !options.lifeShop.empty();
+    const bool scripted = options.interactionSmoke || lifeSmoke;
+    const bool automated = !options.capture.empty() || scripted || options.frames;
     waffle::SdlAssetFile files;
     System system;
     Graphics graphics;
@@ -395,14 +399,14 @@ int run(const Options& options)
     system.window = graphics.window;
     auto preparingArt = std::async(std::launch::async, prepareArtwork);
     TemporarySaves temporary;
-    if (options.interactionSmoke && options.capture.empty()) {
+    if (scripted && options.capture.empty()) {
         const auto path = std::filesystem::temp_directory_path() /
             ("waffle-interaction-" + std::to_string(SDL_GetPerformanceCounter()));
         check(std::filesystem::create_directory(path), "Could not create temporary save directory");
         temporary.directory = path;
     }
     const auto store = !options.capture.empty() ?
-        SaveSlots(std::filesystem::u8path(options.capture) / "saves") : options.interactionSmoke ?
+        SaveSlots(std::filesystem::u8path(options.capture) / "saves") : scripted ?
         SaveSlots(temporary.directory) : SaveSlots::forUser();
     Shell shell(session, selection, store);
     if (automated || options.direct) shell.open(options.launch);
@@ -428,7 +432,7 @@ int run(const Options& options)
     };
     present();
     const auto first = elapsed(start);
-    if (options.interactionSmoke || !options.capture.empty()) {
+    if (scripted || !options.capture.empty()) {
         if (!options.capture.empty()) std::filesystem::create_directories(std::filesystem::u8path(options.capture));
         const auto frame = [&](const char* capture) {
             if (capture && !options.capture.empty() && std::string_view(capture) != "06-forecast-running") {
@@ -450,8 +454,11 @@ int run(const Options& options)
                 graphics.bridge->error() + system.clock.last_error);
             check(SDL_RenderPresent(graphics.renderer), SDL_GetError());
         };
-        smoke(session, selection, frame, &view);
-        shellSmoke(session, view, frame, store);
+        if (lifeSmoke) lifeMapSmoke(session, view, frame, store, options.lifeShop);
+        else {
+            smoke(session, selection, frame, &view);
+            shellSmoke(session, view, frame, store);
+        }
         return 0;
     }
     if (options.frames) {
@@ -502,7 +509,7 @@ int main(int argc, char** argv)
     Options options;
     if (!parse(argc, argv, options)) {
         std::fputs("Usage: waffle_native_game [--seed N | --load browser.json] [--size WIDTH HEIGHT] "
-                   "[--smoke | --interaction-smoke | --save-smoke DIR | --capture DIR | --bench FRAMES [JSON] [--long-benchmark]]\n", stderr);
+                   "[--smoke | --interaction-smoke | --life-smoke FIXTURE_DIR | --save-smoke DIR | --capture DIR | --bench FRAMES [JSON] [--long-benchmark]]\n", stderr);
         return 2;
     }
     try {

@@ -8,10 +8,11 @@
 <div id="safe-content">
 <div id="play">
 <div id="header">
-  <h1>Regional Map</h1>
+  <h1 id="screen-title">Regional Map</h1>
   <div id="header-controls">
     <div id="clock">{{clock}}</div>
     <button id="motion" class="toggle" data-op="motion" data-help="Reduce camera and interface motion.">Motion On</button>
+    <button id="life-toggle" class="tab" data-op="life-toggle" data-help="Open the Vassal Life Map.">Life Map</button>
     <button id="save-game" class="button" data-op="save" data-help="Save the current run to a manual slot.">Save</button>
     <button id="title-game" class="button" data-op="title" data-help="Return to the title screen.">Title</button>
   </div>
@@ -25,6 +26,10 @@
   <div id="legend" class="quiet"><span class="player-key">Your holdings</span> &nbsp; <span class="crown-key">Crown</span> &nbsp; Unheld &nbsp; <span class="creep-key">Creep</span></div>
 </div>
 <div id="panel" class="panel"><div id="panel-content"></div></div>
+<div id="life-screen" role="group" aria-label="Vassal Life Map">
+  <div id="life-chart"></div>
+  <div id="life-inspector" class="panel"></div>
+</div>
 <div id="timegraph" class="panel">
   <div id="graph-caption">Civilization Population</div>
   <div id="graph-status" class="quiet">{{status}}</div>

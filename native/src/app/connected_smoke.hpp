@@ -15,6 +15,8 @@ void preparePracticeShop(Session& session, Selection& selection, const SmokeFram
 void waitFor(Session& session, const std::function<bool()>& condition, const SmokeFrame& frame);
 void smoke(Session& session, Selection& selection, const SmokeFrame& frame, View* view = nullptr);
 void shellSmoke(Session& session, View& view, const SmokeFrame& frame, const SaveSlots& store);
+void lifeMapSmoke(Session& session, View& view, const SmokeFrame& frame, const SaveSlots& store,
+                  const std::filesystem::path& shop);
 void saveSmoke(const Launch& launch, const std::filesystem::path& directory);
 
 }

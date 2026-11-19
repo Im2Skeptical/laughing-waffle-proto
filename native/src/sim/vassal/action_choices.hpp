@@ -5,6 +5,7 @@
 
 namespace waffle::sim::vassal::detail {
 
+double immediate_risk(const RuntimeState&, const runtime::Vassal&, const browser::LifeMapOption&);
 bool create_node_choices(RuntimeState& state, const runtime::Vassal& actor, browser::LifeMapNodeState& node);
 ActionResult commit_node_choice(RuntimeState& state, runtime::Vassal& actor,
                                 browser::LifeMapNodeState& node, const browser::LifeMapOption& option,

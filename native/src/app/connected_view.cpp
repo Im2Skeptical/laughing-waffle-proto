@@ -1,4 +1,5 @@
 #include "connected_view.hpp"
+#include "connected_markup.hpp"
 #include "sdl_asset_file.hpp"
 
 #include <RmlUi/Core/Elements/ElementFormControl.h>
@@ -6,7 +7,6 @@
 #include <algorithm>
 #include <array>
 #include <cmath>
-#include <cstdio>
 #include <utility>
 
 namespace waffle::connected {
@@ -14,36 +14,7 @@ namespace {
 
 using Colour = std::array<Uint8, 4>;
 
-std::string escape(std::string_view text)
-{
-    std::string result;
-    for (char c : text) {
-        switch (c) {
-            case '<': result += "&lt;"; break;
-            case '>': result += "&gt;"; break;
-            case '&': result += "&amp;"; break;
-            case '"': result += "&quot;"; break;
-            default: result += c;
-        }
-    }
-    return result;
-}
-
-std::string number(double value, int precision = 0)
-{
-    char buffer[48];
-    std::snprintf(buffer, sizeof(buffer), "%.*f", precision, value);
-    return buffer;
-}
-
-std::string button(std::string_view op, std::string_view id, std::string_view label,
-                   std::string_view classes = "decision", std::string_view help = {}, bool disabled = false)
-{
-    return "<button class=\"button " + std::string(classes) + (disabled ? " disabled" : "") +
-        "\" data-op=\"" + std::string(op) + "\" data-id=\"" + escape(id) +
-        "\" data-help=\"" + escape(help) + (disabled ? "\" disabled=\"disabled" : "") +
-        "\">" + escape(label) + "</button>";
-}
+using namespace markup;
 
 bool contains(SDL_FRect rect, SDL_FPoint p)
 {
@@ -158,6 +129,7 @@ void View::refreshShell()
     if (runRevision_ != shell_.runRevision()) {
         runRevision_ = shell_.runRevision();
         map_.reset();
+        setLifeOpen(false);
         refreshMarkers(nullptr);
         hoveredRegion_.clear();
         hoverSecond_.reset();
@@ -325,6 +297,7 @@ void View::refreshMarkers(const Snapshot* snapshot)
 {
     auto& markers = element("markers");
     if (!snapshot) {
+        markerLeaders_.clear();
         if (markers.HasChildNodes()) markers.SetInnerRML("");
         return;
     }
@@ -345,7 +318,8 @@ void View::refreshMarkers(const Snapshot* snapshot)
         };
         for (std::size_t holder = 0; holder < holderClass.size(); ++holder) {
             const bool changed = change(holderClass[holder], holder == static_cast<std::size_t>(region.holder));
-            if (holder == static_cast<std::size_t>(Holder::player)) markersDirty_ |= changed;
+            if (holder == static_cast<std::size_t>(Holder::player) ||
+                holder == static_cast<std::size_t>(Holder::monster)) markersDirty_ |= changed;
         }
         markersDirty_ |= change("selected", region.id == selection_.region);
     }
@@ -354,35 +328,75 @@ void View::refreshMarkers(const Snapshot* snapshot)
 void View::positionMarkers()
 {
     auto& markers = element("markers");
-    if (!markers.GetNumChildren()) return;
+    const auto* snapshot = session_.displayed();
+    if (!snapshot || !markers.GetNumChildren()) return;
     if (markerSizesDirty_) {
         context_.Update();
         markerSizesDirty_ = false;
     }
     const auto area = bounds("map");
     const auto& shapes = session_.shapes();
+    markerLeaders_.clear();
     std::vector<SDL_FRect> placed;
-    placed.reserve(markers.GetNumChildren());
-    for (int priority = 0; priority < 3; ++priority) {
+    placed.reserve(markers.GetNumChildren() + 2);
+    const auto reserve = [&](const char* id) {
+        auto rect = bounds(id);
+        rect.x -= area.x;
+        rect.y -= area.y;
+        placed.push_back(rect);
+    };
+    reserve("legend");
+    reserve("map-tools");
+    const auto priority = [&](const Region& region) {
+        if (region.id == selection_.region) return 0;
+        if (region.id == hoveredRegion_) return 1;
+        if (region.id == snapshot->capital || region.holder == Holder::player) return 2;
+        return region.holder == Holder::monster ? 3 : 4;
+    };
+    for (int tier = 0; tier < 5; ++tier) {
         for (int i = 0; i < markers.GetNumChildren(); ++i) {
+            const auto index = static_cast<std::size_t>(i);
+            const auto& region = snapshot->regions[index];
+            if (priority(region) != tier) continue;
             auto& marker = *markers.GetChild(i);
-            if ((marker.IsClassSet("selected") ? 0 : marker.IsClassSet("player") ? 1 : 2) != priority) continue;
-            const auto point = map_.project(shapes[static_cast<std::size_t>(i)].label, area);
+            marker.SetClass("hovered", region.id == hoveredRegion_);
+            const auto point = map_.project(shapes[index].label, area);
             const auto size = marker.GetBox().GetSize(Rml::BoxArea::Border);
+            const bool pinned = tier < 2;
+            const bool inside = contains(area, point);
             bool visible = false;
-            if (contains(area, point) && size.x + 4 < area.w) {
-                const float x = std::clamp(point.x - area.x - size.x / 2, 2.f, area.w - size.x - 2);
-                for (const float offset : {7.f, -size.y - 8}) {
-                    const float y = point.y - area.y + offset;
-                    const SDL_FRect label{x - 1, y - 1, size.x + 2, size.y + 2};
-                    if (y < 2 || y + size.y > area.h - 30 * density_ ||
-                        std::ranges::any_of(placed, [&](const auto& other) { return SDL_HasRectIntersectionFloat(&label, &other); }))
-                        continue;
+            if ((inside || pinned) && size.x + 4 < area.w && size.y + 4 < area.h) {
+                const float anchorX = std::clamp(point.x - area.x, 2.f, area.w - 2);
+                const float anchorY = std::clamp(point.y - area.y, 2.f, area.h - 2);
+                const float gap = 7.f * density_;
+                const auto place = [&](float offsetX, float offsetY) {
+                    const float x = std::clamp(anchorX - size.x / 2 + offsetX, 2.f, area.w - size.x - 2);
+                    const float y = std::clamp(anchorY + offsetY, 2.f, area.h - size.y - 2);
+                    const float padding = tier < 2 ? 2.f : 4.f * density_;
+                    const SDL_FRect box{x - padding, y - padding, size.x + 2 * padding, size.y + 2 * padding};
+                    if (std::ranges::any_of(placed, [&](const auto& other) { return SDL_HasRectIntersectionFloat(&box, &other); }))
+                        return false;
                     marker.SetProperty("left", number(x) + "px");
                     marker.SetProperty("top", number(y) + "px");
-                    placed.push_back(label);
-                    visible = true;
-                    break;
+                    placed.push_back(box);
+                    const SDL_FPoint from{area.x + anchorX, area.y + anchorY};
+                    const SDL_FPoint to{area.x + std::clamp(anchorX, x, x + size.x),
+                        area.y + std::clamp(anchorY, y, y + size.y)};
+                    if (pinned && (!inside || std::hypot(from.x - to.x, from.y - to.y) > gap + 2))
+                        markerLeaders_.emplace_back(from, to);
+                    return true;
+                };
+                const float above = -size.y - gap;
+                visible = place(0, gap) || place(0, above);
+                if (pinned && !visible)
+                    visible = place(size.x * .45f, gap) || place(-size.x * .45f, gap) ||
+                        place(size.x * .45f, above) || place(-size.x * .45f, above);
+                if (pinned && !visible) {
+                    // The selected and hovered names have first use of every
+                    // open strip of the atlas, including when panned offscreen.
+                    for (float y = 3; y + size.y < area.h && !visible; y += size.y + 4)
+                        visible = place(0, y - anchorY) || place(-anchorX, y - anchorY) ||
+                            place(area.w - anchorX, y - anchorY);
                 }
             }
             marker.SetClass("occluded", !visible);
@@ -491,12 +505,8 @@ void View::refreshPanel(const Snapshot* snapshot)
     if (!session_.previewing()) {
         const auto& choices = snapshot->choices;
         if (!choices.empty() && choices.front().kind != Decision::reorder) {
-            constexpr std::array labels{"Choose a Vassal", "Choose a Commission", "Life Map", "Practice Reform", "", ""};
-            const auto label = std::string_view(labels[static_cast<std::size_t>(choices.front().kind)]);
-            if (!label.empty()) html += "<p class=\"quiet rule\">" + std::string(label) + "</p>";
-            for (std::size_t i = 0; i < choices.size(); ++i)
-                html += button("choice", std::to_string(i), choices[i].label, "decision",
-                    session_.busy() ? "Another decision is being applied." : "", session_.busy());
+            const auto label = choices.front().kind == Decision::chooseVassal ? "Choose a Vassal" : "Open Life Map";
+            html += button("life-toggle", {}, label, "decision primary", "Read the Chronicle and choose your next action.");
         } else if (editable && !selection_.card) {
             html += "<p class=\"quiet rule\">Practice Reform · Select a Practice to reorder it.</p>";
         }
@@ -565,7 +575,12 @@ void View::refresh()
     const auto* snapshot = session_.opening() ? nullptr : session_.displayed();
     if (session_.error() != lastError_) {
         lastError_ = session_.error();
-        if (!lastError_.empty()) notify(lastError_, true);
+        if (!lastError_.empty()) {
+            const auto split = lastError_.find(": ");
+            if (pendingAction_ == "life" && split != std::string::npos)
+                notify(actionReason(lastError_.substr(split + 2)), true);
+            else notify(lastError_, true);
+        }
     }
     if (!pendingAction_.empty() && !session_.busy()) {
         if (session_.generation() != pendingGeneration_) {
@@ -575,6 +590,12 @@ void View::refresh()
                 show(element("reform-dialog"), false);
                 dialogClosedAt_ = 0;
                 notify("Practice Reform complete. Updating the forecast.");
+            } else if (pendingAction_ == "life") {
+                if (lifeActionKind_ == "vassalPurchaseShopOffer") {
+                    lifeOffer_.clear();
+                    lifeOrigin_.reset();
+                }
+                notify(lifeFeedback_ + ".");
             } else {
                 notify("Decision recorded.");
             }
@@ -611,7 +632,8 @@ void View::refresh()
             bindings_.DirtyVariable("clock");
         }
     }
-    if (map_.animate(now_, reduced_) || markersDirty_) {
+    if (snapshot && lifeOpen_) refreshLife(*snapshot);
+    if (!lifeOpen_ && (map_.animate(now_, reduced_) || markersDirty_)) {
         positionMarkers();
         markersDirty_ = false;
     }
@@ -622,6 +644,7 @@ void View::refresh()
         if (disabled) button.SetAttribute("disabled", "");
         else button.RemoveAttribute("disabled");
     };
+    setDisabled("life-toggle", !snapshot);
     setDisabled("save-game", session_.busy() || !session_.liveSnapshot());
     setDisabled("title-game", session_.busy());
     if (loading != loadingVisible_) {
@@ -752,10 +775,14 @@ void View::drawFrame()
     colour(renderer_, {22, 24, 20, 255});
     SDL_RenderClear(renderer_);
     const auto screen = shell_.screen();
-    if (const auto* snapshot = session_.displayed(); snapshot && !session_.opening() &&
-        (screen == Screen::game || screen == Screen::save))
+    if (const auto* snapshot = session_.displayed(); !lifeOpen_ && snapshot && !session_.opening() &&
+        (screen == Screen::game || screen == Screen::save)) {
         map_.draw(renderer_, bounds("map"), *snapshot, session_.shapes(), selection_.region, hoveredRegion_,
             drag_ == Drag::map && !moved_, now_, reduced_);
+        for (const auto& [anchor, label] : markerLeaders_)
+            line(renderer_, anchor, label, {199, 175, 120, 255});
+    }
+    if (lifeOpen_ && (screen == Screen::game || screen == Screen::save)) drawLifePaths();
     SDL_SetRenderDrawBlendMode(renderer_, SDL_BLENDMODE_BLEND_PREMULTIPLIED);
     context_.Render();
     SDL_SetRenderDrawBlendMode(renderer_, SDL_BLENDMODE_NONE);
