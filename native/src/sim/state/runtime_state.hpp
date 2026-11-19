@@ -60,6 +60,17 @@ struct FaithStageCache {
     std::array<runtime::Range<runtime::MoonRegionResultFaith>, 2> reports;
 };
 
+struct HousingStageCache {
+    struct ConstructionRetry {
+        runtime::SiteId site;
+        runtime::Index<runtime::StructureCell> cell;
+    };
+    // Keep the previous moon's reports alive through site-result rollover.
+    std::array<runtime::Range<runtime::MoonRegionResultHousing>, 2> reports;
+    std::vector<ConstructionRetry> constructionRetries;
+    std::vector<runtime::TraitId> constructionTraits;
+};
+
 struct RuntimeIndexes {
     std::vector<runtime::SiteId> sitesByRegion;
     std::vector<runtime::SiteId> detailedSitesByRegion;
@@ -93,6 +104,7 @@ struct RuntimeState {
     runtime::IdTables addedIds;
     SettlementPreludeCache settlementPrelude;
     FaithStageCache faithStage;
+    HousingStageCache housingStage;
     settlement::MigrationReservationCache migrationReservations;
     PopulationVocabulary populationVocabulary;
     settlement::MigrationCache migration;

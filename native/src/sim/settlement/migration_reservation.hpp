@@ -25,6 +25,8 @@ struct MigrationReservationCache {
     struct Bank {
         runtime::Range<runtime::MigrationIntent> intents;
         std::vector<Payload> payloads;
+        // Faith can reserve the same residency later in the same moon.
+        std::vector<Payload> housingPayloads;
     };
     std::array<Bank, 2> banks;
     std::vector<Bin> bins;
@@ -35,6 +37,10 @@ struct MigrationReservationCache {
 void prepare_migration_reservations(RuntimeState& state);
 double reserve_migration(RuntimeState& state, runtime::MoonTurn& turn, runtime::SiteId site,
                          Residency residency, runtime::SymbolId reason, double requested);
+double reserved_migration_population(const RuntimeState& state, const runtime::MoonTurn& turn,
+                                     runtime::RegionId region);
+double reserve_housing_migration(RuntimeState& state, runtime::MoonTurn& turn,
+                                 runtime::SiteId site, double overflow);
 
 }
 }

@@ -486,6 +486,42 @@ divergence. Open seams are N03e-3 Faith Practice activation, capacity admission
 when later stages grow or share the reservation buffers, N03e-8 phase events
 and drain, and the v53 Primordial cap.
 
+**N03e-6b result (19 Nov 2026).** Housing runs scheduled Practices, pays
+construction cycles in local-first order, drains the resulting Stock events,
+then assesses player and Unrest sites. A completing Structure contributes
+capacity on the same boundary and refreshes Practice listeners. Housing writes
+the cap read by Faith and reserves Strangers before Villagers in one intent
+per source. It draws no RNG. Its reports and reservation payloads rotate with
+the moon and use admission-sized, copy-owned storage. GameState v52 is unchanged.
+New placements for founding and town activation remain with N03e-9 and N03e-8.
+
+The `seed-1-housing` exhibit exercises a paid local completion, a shared
+construction cycle, an unpaid multi-input cycle, per-region recipe modifiers
+and all three caps. It includes both Housing and Faith boundaries and a moon
+rollover. From the repo root, `node native/reference/trace.mjs`,
+`node native/reference/stage-probe.mjs --all` and
+`node native/reference/stage-pairs.mjs native/build/optimized/src/sim/waffle_parity.exe housing`
+matched 11/11 unmasked Housing pairs. The same stage command with `faith`
+matched 31/31 and `migration` matched 16/16.
+`node native/reference/step-windows.mjs native/build/optimized/src/sim/waffle_parity.exe`
+matched 16/16 windows and 127 comparisons with 147 masks, down from 156.
+Housing modifiers, Structure cells, Migration intent summaries and
+unplaced cohorts are exposed. The remaining Housing masks cover assessed
+population inputs from Birth/Food and R06's report presence after Unrest
+expiry. Food's starvation reservations retain their shared masks. Both
+exhibit windows also passed with the raw reservations, assessed population,
+Faith class reports and class happiness visible.
+
+The optimized Windows build and `ctest --preset optimized --output-on-failure`
+passed 30/30. On the i9-10900K with MSVC 19.50, the seven-run medians for
+Housing alone were 0.268 µs/sim-s at `seed-1/0` and 0.221 µs/sim-s at
+`seed-2026-late/3200`. The focused timer in `artifacts/housing-timer.cpp`
+timed just the Housing dispatch during 2,048 replays per sample of the
+39- and 11-second windows. Whole-pipeline `waffle_parity step --time` on the
+same windows gave seven-run medians of 13.11 and 14.14 µs/sim-s across
+9,984 and 2,816 advances per sample. No intentional divergence. Android
+validation remains open.
+
 N03e-3 on
 `t3/native-scheduled-stock-discharge` (WIP on top of a temporary seed-1
 topology stub commit). It had settled the browser recipe order: complete the

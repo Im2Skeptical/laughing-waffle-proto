@@ -1,0 +1,8 @@
+{
+  "id": "seed-1-housing",
+  "start": { "kind": "housingExhibit", "seed": 1 },
+  "actions": [],
+  "horizonSec": 10,
+  "keepSeconds": [0, 2, 3, 4, 9],
+  "windows": [{ "startSec": 2, "count": 6 }, { "startSec": 8, "count": 3 }]
+}

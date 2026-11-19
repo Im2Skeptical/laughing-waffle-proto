@@ -4,6 +4,7 @@
 #include "sim/settlement/prelude.hpp"
 #include "sim/world/topology.hpp"
 #include "sim/stages/faith.hpp"
+#include "sim/stages/housing.hpp"
 #include "sim/practice/detail.hpp"
 
 #include "core/js_number.hpp"
@@ -420,6 +421,7 @@ RuntimeState import_live_state(const browser::GameState& state, std::shared_ptr<
     settlement::prepare_prelude(result);
     settlement::prepare_migration(result);
     stages::prepare_faith(result);
+    stages::prepare_housing(result);
     return result;
 }
 
