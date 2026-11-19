@@ -60,8 +60,24 @@
     - Seed 1 longevity fixture: 32,000 s in 272–304 ms, 105–118k sim-s/s.
       This fixture uses 64 s phases and no Monster expansion.
     - The desktop dream target is met. Pixel 6 is unmeasured.
-  - N04b forecast memory accounting and the Android timegraph harness:
-    sol 6.2 worker on `t3/native-timegraph-memory`.
+  - N04b forecast memory accounting and Android harness: merged from 1fc1c0ba.
+    - The ledger is within ±10% of private-byte growth on every fixture and
+      on both compilers.
+    - A `GrowthLimitReached` exception abandons only the unpublished step.
+      Residual risk: a throw inside a `noexcept` path would terminate the
+      program, though the pressure tests reach the limit cleanly on both
+      compilers.
+    - Supervisor re-run: 42/42 CTests on MSVC and clang, 30 windows with
+      zero masks, and 242 replay checkpoints. The seed 1 longevity run did
+      32,000 s in 282 ms, charging 233.5 MB.
+    - Harness: `native/tools/benchmark-android-timegraph.ps1`. It has not
+      run, because no device was attached.
+    - Finding: one 1000-year generation charges about 225–240 MiB (summaries
+      83, anchor tables 57, retained history 81), so a successor stops
+      around second 4,400 while the previous generation is kept.
+  - N04c forecast memory reduction (target ≤128 MiB per 1000-year
+    generation): Astra specialist on `t3/native-timegraph-compact`. The
+    supervisor audits it.
   - N03f L2b remaining action kinds: merged from a75f3478 (259987e0).
     - The `parity_run` option conflict was resolved by keeping both
       `--rejections` and `--timegraph-hashes`.
