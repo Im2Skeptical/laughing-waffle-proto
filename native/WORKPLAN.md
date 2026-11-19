@@ -45,9 +45,12 @@
       browser's `moveVassalShopStructure`.
     - Pipeline is now **17.4 opening / 20.9 late** µs/sim-s.
     - Remaining action kinds have owners in the N03f section.
-- Active owners: none in native. The browser Housing fix (Campaign
-  conquest restoring a ruin mid-turn) is owned by its own sol 6.2 project
-  thread and needs Cam's PR authorization.
+- Active owners:
+  - N03h v53 catch-up to browser main 2334c106 (#104, #105, #107):
+    sol 6.2 worker on `t3/native-v53-catch-up`.
+  - Browser Housing fix (Campaign conquest restoring a ruin mid-turn):
+    PR #108 is open and awaits Cam's merge authorization. It is not part
+    of the N03h target.
 - Wave started 19 Nov 2026 from 6c803fd3 (merged):
   - N03e-3q pass 6: merged from c4ecf242.
     - Shared trace chunks are retained once per cursor run, standalone
