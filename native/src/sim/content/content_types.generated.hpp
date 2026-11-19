@@ -698,6 +698,7 @@ struct PracticeDefinition {
     std::uint16_t activationMask{};
     std::uint8_t stageMask{};
     std::uint8_t seasonMask{};
+    bool standaloneStockOutput{};
     runtime::Range<std::uint32_t> recipeEffects;
 };
 
