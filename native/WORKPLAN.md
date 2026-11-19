@@ -1416,15 +1416,15 @@ The gains below are estimates.
 | Defer rich Practice diagnostics during forecast | Illustrative 2-4 / 2-4 us/sim-s if about a quarter to half of trace work leaves the forward pass. Trace construction/append occurred in 672 / 473 of 1,600 samples. Restore and materialization costs are unmeasured. | The browser exposes per-site and civilization trace rows at their event second, including blocker reasons. Define and version anchor/diagnostic materialization, export and digest behavior. Retain queue effects and gameplay events. |
 | Change draw counts without changing the high-level rule | No separate additive estimate. Savings overlap the Birth/Death rows. | Seeds are observable in browser saves and replay. Any changed seed progression needs the versioned native RNG contract above, including behavior beyond the binary64 exact-integer range. |
 
-## N03f - Actions, replay and new game (pending N03e)
+## N03f - Actions, replay and new game
 
 Action application and `rebuildStateAtSecond` (L2), then new game and world
 generation (L3). Windows/Android hash agreement (L4) is required before N04
 completes.
 
-### N03f L2 action and replay contract (active, `t3/native-actions-replay`)
+### N03f L2 action and replay checkpoint (`t3/native-actions-replay`)
 
-Oracle: browser `496d9971`, v52. `trace.mjs` records ordered scenario
+The oracle is browser `496d9971`, v52. `trace.mjs` records ordered scenario
 entries through `appendActionAtCursor`, groups them by second, and applies
 each group through `applyReplayActionsAtSecond`. At an initial state, apply
 its entries before advancing. At subsequent seconds, finish the full tick
@@ -1438,8 +1438,8 @@ commands that perform provisional work before rejecting require isolation.
 | Kind | Validation and committed effects | RNG |
 | --- | --- | --- |
 | `settlementAssignGarrison` | Full-map player holding; non-null target must be a connected adjacent friendly settlement enabled by a Structure modifier. Set support and emit assignment. | None |
-| `settlementSelectVassal` | Finite candidate index, no living actor or Vault overflow, matching optional pool identity and a surviving player site. Create selected actor, graph and lineage links; clear pool and flag loadout. | Life Map stream for graph generation |
-| `settlementRerollVassals` | No living actor or Vault overflow. Increment reroll count and regenerate candidates, consuming candidate development where applicable. | Vassal stream |
+| `settlementSelectVassal` | Finite candidate index, no living actor or Vault overflow, matching optional pool identity and a surviving player site. Create selected actor, graph and lineage links; clear pool and flag loadout. | Life Map stream for graph generation and Vassal stream for initial Scholar Commission offers |
+| `settlementRerollVassals` | No living actor or Vault overflow. Increment reroll count and regenerate candidates, consuming candidate development where applicable. | Vassal and Vassal Portrait streams |
 | `vassalEnterLifeNode` | Current actor, no mandatory picks or pending/active node, reachable graph node, Warrior for Campaign. Create node state and offers, set active node and record entry. | Vassal stream for randomized choices and inventories |
 | `vassalSelectLifeOption` | Active idle node and valid affordable option, specialty or Campaign mode. Set selection or rebuild options/inventory. Random specialty grants Prestige. | Vassal stream for specialty inventory |
 | `vassalMoveShopStructure` | Active Shop, editable placement and valid reservation. Update staged placement or board draft. | None |
@@ -1449,8 +1449,8 @@ commands that perform provisional work before rejecting require isolation.
 | `vassalRerollShop` | Active idle Scholar Shop with specialty picked and no staged purchases. Start timed Delve. | None at action time; resolution rolls mortality and inventory |
 | `vassalConfirmLifeNode` | Active idle node, selected specialty/option, legal acquisition and affordable valid reservations. Commit draft/option, then schedule node or encounter resolution or resolve immediately. | Vassal stream for random reward/risk encounters and immediate resolution; downstream effects can use their own streams |
 | `vassalChooseCommission` | Idle active Scholar with a live offer and no accepted Commission. Accept, record baseline stat where applicable and clear offers. | None |
-| `vassalChooseDevelopmentStat` | Current actor, queue head ID and offered stat. Increase permanent stat, record progress and event, pop choice. | None directly |
-| `vassalConfirmHeirloomLoadout` | Current actor, no overflow, up to two unique available Vault IDs. Equip in supplied order, unmark Sanctified items, compact Vault and clear loadout flag. | None |
+| `vassalChooseDevelopmentStat` | Current actor, queue head ID and offered stat. Increase permanent stat, record progress and event, pop choice. | Vassal stream if it completes a Commission and generates new offers |
+| `vassalConfirmHeirloomLoadout` | Current actor, no overflow, up to three unique available Vault IDs. Equip in supplied order, unmark Sanctified items, compact Vault and clear loadout flag. | None |
 | `vassalResolveVaultOverflow` | Pending overflow and the exact Vault capacity of unique available IDs. Replace Vault in supplied order and clear overflow flags. | None |
 | `debugSetCap` | Control action. Set or clear AP override and clamp current points. | None |
 | `debugSetSettlementSlotOverrides` | Legacy local hub and valid ordered override entries. Set Practice/Structure debug values, rebuild occupancy and derived state. | None directly |
@@ -1460,6 +1460,132 @@ commands that perform provisional work before rejecting require isolation.
 The registry constants for pawn placement, inventory move/split/stack, build
 designation, tile/hub tag order/toggles, crop/recipe selection and debug
 environment queue have no dispatch branch and return `unsupportedAction`.
+
+#### Native implementation and coverage
+
+`sim/step/replay.hpp` exposes the JSON action journal, boundary cursor,
+validation result and `rebuildStateAtSecond`. Rebuild reads the immutable
+initial state or nearest post-action runtime anchor, copies it, and replays
+through the target second. The caller invalidates anchors at or after a journal
+edit. The parity tool captures anchors every 64 seconds and checks continuation
+through the existing runtime Export and admission adapter. The step driver and
+tick order are unchanged. The v52 mirror now preserves the nullable origin of a
+staged Structure move. A null origin represents demolition.
+
+The seven replay journals exercise 18 successful kind dispatches and 58 browser
+checkpoints, each checked during forward replay, rebuild from the initial
+state and rebuild from the nearest anchor. The browser rejection trace covers
+`debugSetSettlementSlotOverrides` on a v52 save and six more rejection
+cases. Native validation tests verify unchanged state digests after rejection,
+same-second AP ordering and retry at the failing journal entry.
+
+| Step window | Journal applied by native |
+| --- | --- |
+| `seed-42-shops/12` | Selection at 7. Node entry, specialty selection, Practice purchase and confirmation at 12. |
+| `seed-42-shops/68` | Same entries at 7 and 12, then the window crosses the resolution at 71. |
+| `seed-42-shops/80` | Same entries at 7 and 12, followed by node entry, specialty selection and empty Shop confirmation at 80. |
+
+All three windows start from the separate pre-action snapshot and also compare
+the first window state. The other captures check AP, garrison, candidate reroll,
+Scholar development/Commission/Delve, Heirloom loadout and overflow,
+Structure drafting and demolition, Founding, and legacy regional Practice
+list changes. The regional Practice exhibit supplies the list explicitly. The
+ordinary full-map regions omit that legacy board, and v52 has no field for its
+legacy capacity.
+
+| Open action branches | Owner |
+| --- | --- |
+| `settlementSelectVassal` and `settlementRerollVassals` with the legacy unpooled Life Map generator and signature roll | N03f native Vassal action follow-up |
+| `vassalEnterLifeNode`, `vassalSelectLifeOption`, `vassalConfirmLifeNode` for remaining option families and outcomes, including Crossroads, Relic acquisition, live Crisis/Discovery/Challenge, Legacy+ and Campaign encounter commits | N03f native Vassal action follow-up |
+| `vassalPurchaseShopOffer` and `vassalConfirmLifeNode` for purchasable slot unlocks, Currency payment and legacy connection offers | N03f native Shop action follow-up |
+| `debugSetSettlementSlotOverrides` with a legacy hub, and capacity-aware regional Practice actions for pre-v52 maps | Native save integration owner, if those legacy formats enter scope |
+| Windows/Android arm64 runtime hash agreement | N03g |
+
+#### Reproduction
+
+From the repository root in PowerShell:
+
+```powershell
+. native/tools/env.ps1
+Push-Location native
+cmake --preset optimized
+cmake --build --preset optimized --parallel 8
+ctest --preset optimized --output-on-failure
+Pop-Location
+$parity = "native/build/optimized/src/sim/waffle_parity.exe"
+node native/reference/trace.mjs
+node native/reference/trace.mjs --check
+node native/reference/replay-windows.mjs $parity
+node native/reference/step-windows.mjs $parity
+node native/reference/stage-probe.mjs --all
+$stages = @("advance_clock", "prelude", "seasonal_practices", "spring_death_baseline",
+  "birth", "food", "after_meals_practices", "garrison_upkeep", "housing", "faith",
+  "migration_practices", "migration", "death", "death_practices",
+  "control_and_spatial_pressure", "phase_events_and_drain", "vassal_check", "final_flush")
+foreach ($stage in $stages) { node native/reference/stage-pairs.mjs $parity $stage }
+node native/reference/export-new-game.mjs --windows
+node native/reference/new-game-windows.mjs $parity
+```
+
+Optimized MSVC passed all 38 CTests, including the original 36, all 30 step
+windows and 153 advances/gate comparisons plus three action-window starts.
+New Game matched five starts, ten native-start windows and 92 comparisons.
+All 828 generated stage pairs passed across 18 stages. The integration
+checkout's manifest contains the same 828 scenario/second/stage keys. Zero
+masks were added, removed or applied.
+Browser `npm run verify` passed after installing the locked dependencies
+with `npm ci --no-audit --no-fund`.
+
+`cmake --preset optimized-clang`, `cmake --build --preset optimized-clang`
+and `ctest --preset optimized-clang --output-on-failure` also passed 38/38.
+`cmake --preset dev-clang` and
+`cmake --build --preset dev-clang --target waffle_parity waffle_action_validation_test`
+built the second Clang profile. All seven native per-second streams match
+hash for hash across MSVC and both Clang builds. Reproduce with
+`artifacts/n03f-l2/compare-compilers.ps1`, which runs the same journal and
+checkpoints for each executable and compares each TSV's SHA-256.
+`cmake --preset android` and
+`cmake --build --preset android --target waffle_sim waffle_parity` built the
+NDK r30 arm64 / API 31 simulation and parity tool. N03g still owns the
+device hash run.
+
+#### 32,000-second rebuild measurement
+
+Use the N03g seed-1 stability input with `phaseDurationSec = 64` and
+`monsterExpansionThreshold = 1000000000`.
+
+```powershell
+New-Item -ItemType Directory -Force artifacts/n03f-l2 | Out-Null
+@'
+import { readFileSync, writeFileSync } from "node:fs";
+const state = JSON.parse(readFileSync("native/reference/fixtures/seed-1/state-0.json"));
+state.gameConfig.settings.values.phaseDurationSec = 64;
+state.gameConfig.settings.values.monsterExpansionThreshold = 1e9;
+writeFileSync("artifacts/n03f-l2/seed-1-long.json", JSON.stringify(state));
+'@ | node --input-type=module
+
+& $parity run --from artifacts/n03f-l2/seed-1-long.json --seconds 32000 --anchors `
+  --actions native/reference/fixtures/action-boundaries/actions.json `
+  --hashes artifacts/n03f-l2/long-with-actions.tsv --report artifacts/n03f-l2/long-with-actions.json
+```
+
+On optimized Windows MSVC / i9-10900K, 256 deterministically sampled target
+seconds across 501 anchors measured **0.312 ms p50 / 0.483 ms p95**.
+Measurement covers nearest-anchor lookup, independent state copy and replay
+through at most 63 seconds. Hashing, adapter I/O and presentation run outside
+that sample. The run was measured alongside other build and verification jobs.
+The browser guardrails link a 33 ms p95 restore-plus-render gate. Native's
+provisional target is 4 ms random-restore p95 under forecast load
+([Architecture](ARCHITECTURE.md)). This measurement covers desktop restore
+under the stability configuration. Physical device, rendering and concurrent
+forecast measurements remain open. The five adapter save/load samples measured
+27.71/123.23 ms p50, respectively.
+
+Cross-runtime handoff. The browser action order and its post-action checkpoint
+boundary carry over directly. Runtime value copies and 64-second strides are
+native choices. The seven browser replay manifests are suitable for the next
+N03f behavior passes and for N03g compiler/device comparisons. The raw command
+logs and timing report are under `artifacts/n03f-l2/`.
 
 N03f-3 topology checkpoint, 19 Nov 2026. Paused at Cam's request after
 porting the immutable `regional-v2` world generator from browser baseline
@@ -1562,8 +1688,8 @@ foreach ($seed in 1,42,123,1867,2026) {
 `new-game --scenario <id>` selects the starting configuration from a captured
 fixture. The built-in ordinary trace scenarios reuse the seed-1 capture.
 The supplied seed still controls topology and all RNG streams.
-Verification artifacts are in `artifacts/n03f-3/`. The remaining N03f work is
-the L2 action and replay port.
+Verification artifacts are in `artifacts/n03f-3/`. L2 coverage and remaining
+action branches are recorded above.
 
 ## N03g - Cross-compiler determinism and long-run restore (Windows verified, Android runtime unrun)
 
