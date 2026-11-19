@@ -1212,6 +1212,124 @@ ordinary second-zero starts for all five scenario seeds, and run step windows
 from native-generated starts. This checkpoint contains no state builder or
 new-game parity result.
 
+## N03g - Cross-compiler determinism and long-run restore (paused)
+
+Owner at checkpoint: `t3/native-cross-compiler-determinism`, based on
+`3e88c583`. Paused at Cam's request after the MSVC smoke. No gameplay rules,
+browser sources, schemas, RNG sequencing or second-boundary dispatch changed.
+The digest walks ordered, reachable state through generated schema coverage,
+including history, exact finite binary64 bits and captured config identity.
+Backing storage offsets and derived caches are outside the digest. Replay
+tests exercise cache reconstruction from a copy or an adapter save.
+
+Completed on Windows x64, i9-10900K, using optimized MSVC 19.50:
+
+```powershell
+node native/reference/trace.mjs
+. native/tools/env.ps1
+Push-Location native
+cmake --preset optimized
+cmake --build --preset optimized --parallel 6
+ctest --preset optimized --output-on-failure
+Pop-Location
+$parity = 'native/build/optimized/src/sim/waffle_parity.exe'
+New-Item -ItemType Directory -Force artifacts/native-n03g | Out-Null
+& $parity run --from native/reference/fixtures/seed-1/state-0.json --seconds 256 --anchors --hashes artifacts/native-n03g/seed-1-smoke.tsv --report artifacts/native-n03g/seed-1-smoke.json
+& $parity run --from artifacts/native-reference/traces/seed-2026-late/state-3200.json --seconds 256 --anchors --hashes artifacts/native-n03g/late-smoke.tsv --report artifacts/native-n03g/late-smoke.json
+```
+
+CTest passed 32/32 enabled tests, including `native_run_restore_smoke`.
+`pipeline_steady_state_allocations` retains its existing disabled status.
+
+The instrumented and uninterrupted endpoints agreed for both starts. Each run
+retained five anchors and verified the initial hash plus all 63 replay hashes
+from four sampled anchors. All eight adapter saves re-exported byte-for-byte
+and reproduced the live hashes. The opening hash stream is also a 256-second
+CTest fixture. Observations below come from single smoke runs during build and
+test activity. The forecast rate times uninterrupted simulation advances and
+excludes hashing, anchor copies and summaries. RSS includes process overhead
+and the five retained anchor copies.
+
+| Fixture | Sim-s/s | Live hot bytes | Live history bytes | Process RSS MiB | Copy p50 / p95 ms | Copy + 63 s replay p50 / p95 ms |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| seed-1, 0–256 | 21,764 | 349,270 → 364,678 | 0 → 1,018,796 | 13.0 → 17.7 | 0.213 / 0.286 | 3.72 / 7.29 |
+| seed-2026-late, 3200–3456 | 17,849 | 458,654 → 482,006 | 944,743 → 993,927 | 20.2 → 24.9 | 0.281 / 0.331 | 3.51 / 8.62 |
+
+The four-sample p95s exceed the estimated desktop equivalent of the Pixel 6
+4 ms target (1.33–1.60 ms at the architecture's assumed slowdown). A quiet,
+long-horizon run and a device run remain necessary. These checks exercise the
+same independent-copy restore contract as the
+[browser timegraph implementation](../docs/research/timegraph-performance-implementation.md).
+The smoke does not establish long-horizon history bounds.
+
+Exact stop point: the complete reference trace command produced both inputs.
+The Clang preset parses and the Android executable target is wired in CMake.
+Cam's pause stopped the llvm-mingw and JDK downloads. The NDK archive matches
+its pinned SHA-1, but the bootstrap had not extracted it. No Clang or Android
+build, cross-compiler comparison, 32,000-second run or device run took place.
+No cross-compiler divergence has been measured.
+
+On resume, rerun the bootstraps and build the other targets:
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File native/tools/bootstrap-windows.ps1 -WithClang
+powershell -NoProfile -ExecutionPolicy Bypass -File native/tools/bootstrap-android.ps1
+. native/tools/env.ps1
+Push-Location native
+cmake --preset optimized-clang
+cmake --build --preset optimized-clang --parallel 6
+ctest --preset optimized-clang --output-on-failure
+cmake --preset android
+cmake --build --preset android --target waffle_parity --parallel 6
+Pop-Location
+```
+
+Run the whole desktop workload from the repository root:
+
+```powershell
+$starts = [ordered]@{
+    'seed-1' = 'native/reference/fixtures/seed-1/state-0.json'
+    'seed-2026-late' = 'artifacts/native-reference/traces/seed-2026-late/state-3200.json'
+}
+foreach ($seed in $starts.Keys) {
+    $out = "artifacts/native-n03g/$seed"
+    & native/build/optimized/src/sim/waffle_parity.exe run --from $starts[$seed] --seconds 32000 --anchors --hashes "$out-msvc.tsv" --report "$out-msvc.json"
+    if ($LASTEXITCODE -ne 0) { throw "MSVC run failed for $seed" }
+    & native/build/optimized-clang/src/sim/waffle_parity.exe run --from $starts[$seed] --seconds 32000 --anchors --hashes "$out-clang.tsv" --report "$out-clang.json" --expect "$out-msvc.tsv"
+    if ($LASTEXITCODE -ne 0) { throw "Clang run failed for $seed" }
+}
+```
+
+The first failing row gives the absolute second. Rerun each build from the
+original start for the corresponding number of advances with
+`--snapshot`, then run `waffle_parity diff` on the two exported states. Fix
+any divergent path before extending the CTest fixture to 3,200 advances.
+Review the per-history row counts, OS memory, and timing across the full
+horizon.
+
+Device commands below are prepared for both input states after an Android
+arm64 build and a connected Pixel 6. They have not run on a device. The
+standalone comparator script remains pending. `cmake -E compare_files` can
+check byte equality in the meantime.
+
+```powershell
+$adb = 'native/.tools/android-sdk/platform-tools/adb.exe'
+$remote = '/data/local/tmp/waffle-n03g'
+& $adb devices
+& $adb shell mkdir -p "$remote/topology"
+& $adb push native/build/android/src/sim/waffle_parity "$remote/waffle_parity"
+& $adb shell chmod 755 "$remote/waffle_parity"
+& $adb push native/reference/topology/. "$remote/topology/"
+foreach ($seed in $starts.Keys) {
+    & $adb push $starts[$seed] "$remote/$seed.json"
+    & $adb shell "$remote/waffle_parity run --from $remote/$seed.json --topology-dir $remote/topology --seconds 32000 --hashes $remote/$seed.tsv"
+    if ($LASTEXITCODE -ne 0) { throw "device run failed for $seed" }
+    & $adb pull "$remote/$seed.tsv" "artifacts/native-n03g/$seed-android.tsv"
+    cmake -E compare_files "artifacts/native-n03g/$seed-msvc.tsv" "artifacts/native-n03g/$seed-android.tsv"
+    if ($LASTEXITCODE -ne 0) { throw "hash stream comparison failed for $seed" }
+}
+```
+
 ## N04 - Connected playable slice (pending N02 and N03)
 
 This includes the native forecast/timegraph: worker threads, anchors, restore,

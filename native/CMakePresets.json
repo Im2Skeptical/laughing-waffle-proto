@@ -21,6 +21,16 @@
       }
     },
     {
+      "name": "optimized-clang",
+      "displayName": "Optimized (llvm-mingw UCRT Clang)",
+      "inherits": "optimized",
+      "binaryDir": "${sourceDir}/build/optimized-clang",
+      "cacheVariables": {
+        "CMAKE_C_COMPILER": "${sourceDir}/.tools/llvm-mingw/bin/clang.exe",
+        "CMAKE_CXX_COMPILER": "${sourceDir}/.tools/llvm-mingw/bin/clang++.exe"
+      }
+    },
+    {
       "name": "android",
       "displayName": "Android arm64 (project-local NDK r30)",
       "generator": "Ninja",
@@ -37,6 +47,7 @@
   "buildPresets": [
     { "name": "dev", "configurePreset": "dev" },
     { "name": "optimized", "configurePreset": "optimized" },
+    { "name": "optimized-clang", "configurePreset": "optimized-clang" },
     { "name": "android", "configurePreset": "android" }
   ],
   "testPresets": [
@@ -48,6 +59,11 @@
     {
       "name": "optimized",
       "configurePreset": "optimized",
+      "output": { "outputOnFailure": true }
+    },
+    {
+      "name": "optimized-clang",
+      "configurePreset": "optimized-clang",
       "output": { "outputOnFailure": true }
     }
   ]
