@@ -1,5 +1,5 @@
 import { ensureCommissionOffers } from "../../src/model/vassal-life-map/commissions.js";
-import { enterVassalLifeNode, selectLifeMapVassal, selectVassalNodeOption } from "../../src/model/vassal-life-map.js";
+import { confirmVassalLifeNode, enterVassalLifeNode, selectLifeMapVassal, selectVassalNodeOption } from "../../src/model/vassal-life-map.js";
 import { VASSAL_SIGNATURE_NODE_VARIANTS } from "../../src/defs/gamepieces/vassal-life-map-defs.js";
 
 const definitions = ["abacus", "foxMask", "minorSeal", "signetRing", "tutorsNotebook", "hourglass", "travellersBoots"];
@@ -25,6 +25,20 @@ export function prepareActionExhibit(state, variant) {
   }
   if (variant === "regional-practices") {
     state.world.regions.find(region => region.controller === "player").installedPracticeIds = [];
+    return state;
+  }
+  if (variant === "legacy-selection" || variant === "legacy-successor") {
+    state.gameConfig.lifeMapGenerator.design.enabled = false;
+    if (variant === "legacy-selection") return state;
+    const { vassal } = requireAction(selectLifeMapVassal(state, 0));
+    vassal.classId = lineage.establishedClassId = "scholar";
+    const id = vassal.lifeMap.graph.bossNodeId;
+    vassal.lifeMap.availableNodeIds = [id];
+    const { nodeState } = requireAction(enterVassalLifeNode(state, id));
+    const free = nodeState.options.find(option => option.phaseCost === 0 && option.prestigeCost === 0);
+    requireAction(selectVassalNodeOption(state, id, free.id));
+    requireAction(confirmVassalLifeNode(state, id));
+    civ.candidateDevelopment.scholar = 4;
     return state;
   }
   const martial = variant === "choice-challenge" || variant.startsWith("choice-campaign");
