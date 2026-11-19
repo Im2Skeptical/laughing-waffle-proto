@@ -227,10 +227,10 @@
         "tSec": { "type": "integer", "optional": false, "nullable": false },
         "cause": { "type": "SpawnCause", "optional": false, "nullable": false },
         "outcome": { "type": "SpawnOutcome", "optional": false, "nullable": false },
-        "sourceRegionId": { "type": "string", "optional": false, "nullable": false },
-        "targetRegionId": { "type": "string", "optional": false, "nullable": false },
-        "strengthBefore": { "type": "integer", "optional": false, "nullable": false },
-        "strengthAfter": { "type": "integer", "optional": false, "nullable": false }
+        "sourceRegionId": { "type": "string", "optional": false, "nullable": true },
+        "targetRegionId": { "type": "string", "optional": false, "nullable": true },
+        "strengthBefore": { "type": "number", "optional": false, "nullable": true },
+        "strengthAfter": { "type": "number", "optional": false, "nullable": true }
       }
     },
     "ChaosLastMoonIncome": {
@@ -578,17 +578,18 @@
     "DetailedSettlementGarrison": {
       "kind": "record",
       "fields": {
-        "supplied": { "type": "boolean", "optional": false, "nullable": false },
-        "paid": { "type": "integer", "optional": false, "nullable": false },
-        "required": { "type": "integer", "optional": false, "nullable": false },
-        "tSec": { "type": "integer", "optional": false, "nullable": false },
+        "supplied": { "type": "boolean", "optional": true, "nullable": false },
+        "paid": { "type": "number", "optional": true, "nullable": false },
+        "required": { "type": "number", "optional": true, "nullable": false },
+        "tSec": { "type": "integer", "optional": true, "nullable": false },
         "supportTargetRegionId": { "type": "string", "optional": true, "nullable": true }
       }
     },
     "DetailedSettlementHistory": {
       "kind": "record",
       "fields": {
-        "deaths": { "type": "integer", "optional": false, "nullable": false },
+        "deaths": { "type": "integer", "optional": true, "nullable": false },
+        "victories": { "type": "integer", "optional": true, "nullable": false },
         "springDeaths": { "type": "integer", "optional": true, "nullable": false },
         "lastDeathSec": { "type": "integer", "optional": true, "nullable": false },
         "lastDeathCount": { "type": "integer", "optional": true, "nullable": false }
@@ -3739,7 +3740,9 @@
         "age": { "type": "integer", "optional": true, "nullable": false },
         "choiceId": { "type": "string", "optional": true, "nullable": false },
         "statId": { "type": "string", "optional": true, "nullable": false },
-        "causeOfDeath": { "type": "string", "optional": true, "nullable": true }
+        "causeOfDeath": { "type": "string", "optional": true, "nullable": true },
+        "fromRegionId": { "type": "string", "optional": true, "nullable": false },
+        "toRegionId": { "type": "string", "optional": true, "nullable": false }
       }
     },
     "VassalStats": {

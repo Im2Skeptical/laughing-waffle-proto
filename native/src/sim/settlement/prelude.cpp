@@ -2,6 +2,7 @@
 
 #include "core/js_number.hpp"
 #include "sim/settlement/site_access.hpp"
+#include "sim/territory/territory.hpp"
 
 #include <algorithm>
 
@@ -15,7 +16,7 @@ using MoonRegion = Entry<RegionId, MoonRegionResult>;
 void finish_unrest_expiry(RuntimeState& state, Site& site)
 {
     cancel_moon_migration(state, site.regionId);
-    // N03e-8 clears control, restores the market and emits unrestEnded.
+    territory::finish_unrest_expiry(state, site);
 }
 
 void step_unrest(RuntimeState& state)
@@ -91,6 +92,7 @@ void prepare_prelude(RuntimeState& state)
 void second_prelude(RuntimeState& state)
 {
     step_unrest(state);
+    territory::synchronize_sites(state);
     const auto& settings = state.content->config.settings.values;
     const auto tier = settings.greenAutomaticTier
         ? std::max(1.0, state.hot.year) / std::max(1.0, js::floor(settings.greenCadenceYears))
@@ -114,7 +116,7 @@ void spring_death_baseline(RuntimeState& state)
 {
     for (const auto id : detailed_sites(state)) {
         auto& history = site_at(state, id).detailedState.history;
-        if (!history) history.emplace();
+        if (!history) history = DetailedSettlementHistory{.deaths = 0};
         history->springDeaths = history->deaths;
     }
 }

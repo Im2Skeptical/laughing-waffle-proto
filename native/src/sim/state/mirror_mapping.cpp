@@ -438,6 +438,7 @@ RuntimeState import_runtime(const browser::GameState& state)
     result.compiledContent = std::move(compiled);
     // Adapter-only imports have no topology; recipes then see no neighbors.
     practice::detail::admit(result);
+    territory::prepare(result);
     return result;
 }
 
@@ -456,6 +457,7 @@ RuntimeState admit_runtime(const browser::GameState& state, const core::json::Va
     result.topology = load_world_topology(result, *topology);
     result.compiledContent = std::move(compiled);
     practice::detail::admit(result);
+    territory::prepare(result);
     return result;
 }
 

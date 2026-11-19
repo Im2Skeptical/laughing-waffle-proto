@@ -1519,7 +1519,8 @@ browser::DetailedSettlementMealRelief Mapping<DetailedSettlementMealRelief>::wri
 DetailedSettlementHistory Mapping<DetailedSettlementHistory>::read(Import& codec, const browser::DetailedSettlementHistory& source, const std::string& path)
 {
     DetailedSettlementHistory result{};
-    result.deaths = codec.read<double>(source.deaths, property_path(path, "deaths"));
+    result.deaths = codec.read<std::optional<double>>(source.deaths, property_path(path, "deaths"));
+    result.victories = codec.read<std::optional<double>>(source.victories, property_path(path, "victories"));
     result.springDeaths = codec.read<std::optional<double>>(source.springDeaths, property_path(path, "springDeaths"));
     result.lastDeathSec = codec.read<std::optional<double>>(source.lastDeathSec, property_path(path, "lastDeathSec"));
     result.lastDeathCount = codec.read<std::optional<double>>(source.lastDeathCount, property_path(path, "lastDeathCount"));
@@ -1530,6 +1531,7 @@ browser::DetailedSettlementHistory Mapping<DetailedSettlementHistory>::write(con
 {
     browser::DetailedSettlementHistory result{};
     codec.write(result.deaths, source.deaths);
+    codec.write(result.victories, source.victories);
     codec.write(result.springDeaths, source.springDeaths);
     codec.write(result.lastDeathSec, source.lastDeathSec);
     codec.write(result.lastDeathCount, source.lastDeathCount);
@@ -1575,10 +1577,10 @@ browser::DetailedSettlementControl Mapping<DetailedSettlementControl>::write(con
 DetailedSettlementGarrison Mapping<DetailedSettlementGarrison>::read(Import& codec, const browser::DetailedSettlementGarrison& source, const std::string& path)
 {
     DetailedSettlementGarrison result{};
-    result.supplied = codec.read<bool>(source.supplied, property_path(path, "supplied"));
-    result.paid = codec.read<double>(source.paid, property_path(path, "paid"));
-    result.required = codec.read<double>(source.required, property_path(path, "required"));
-    result.tSec = codec.read<double>(source.tSec, property_path(path, "tSec"));
+    result.supplied = codec.read<std::optional<bool>>(source.supplied, property_path(path, "supplied"));
+    result.paid = codec.read<std::optional<double>>(source.paid, property_path(path, "paid"));
+    result.required = codec.read<std::optional<double>>(source.required, property_path(path, "required"));
+    result.tSec = codec.read<std::optional<double>>(source.tSec, property_path(path, "tSec"));
     result.supportTargetRegionId = codec.read<browser::OptionalNullable<RegionId>>(source.supportTargetRegionId, property_path(path, "supportTargetRegionId"));
     return result;
 }
@@ -2070,10 +2072,10 @@ ChaosLastMonsterSpawn Mapping<ChaosLastMonsterSpawn>::read(Import& codec, const 
     result.tSec = codec.read<double>(source.tSec, property_path(path, "tSec"));
     result.cause = codec.read<browser::SpawnCause>(source.cause, property_path(path, "cause"));
     result.outcome = codec.read<browser::SpawnOutcome>(source.outcome, property_path(path, "outcome"));
-    result.sourceRegionId = codec.read<RegionId>(source.sourceRegionId, property_path(path, "sourceRegionId"));
-    result.targetRegionId = codec.read<RegionId>(source.targetRegionId, property_path(path, "targetRegionId"));
-    result.strengthBefore = codec.read<double>(source.strengthBefore, property_path(path, "strengthBefore"));
-    result.strengthAfter = codec.read<double>(source.strengthAfter, property_path(path, "strengthAfter"));
+    result.sourceRegionId = codec.read<std::optional<RegionId>>(source.sourceRegionId, property_path(path, "sourceRegionId"));
+    result.targetRegionId = codec.read<std::optional<RegionId>>(source.targetRegionId, property_path(path, "targetRegionId"));
+    result.strengthBefore = codec.read<std::optional<double>>(source.strengthBefore, property_path(path, "strengthBefore"));
+    result.strengthAfter = codec.read<std::optional<double>>(source.strengthAfter, property_path(path, "strengthAfter"));
     return result;
 }
 
@@ -2459,6 +2461,8 @@ VassalLifeEventsEntry Mapping<VassalLifeEventsEntry>::read(Import& codec, const 
     result.choiceId = codec.read<std::optional<HistoryTextId>>(source.choiceId, property_path(path, "choiceId"));
     result.statId = codec.read<std::optional<HistoryTextId>>(source.statId, property_path(path, "statId"));
     result.causeOfDeath = codec.read<browser::OptionalNullable<HistoryTextId>>(source.causeOfDeath, property_path(path, "causeOfDeath"));
+    result.fromRegionId = codec.read<std::optional<RegionId>>(source.fromRegionId, property_path(path, "fromRegionId"));
+    result.toRegionId = codec.read<std::optional<RegionId>>(source.toRegionId, property_path(path, "toRegionId"));
     return result;
 }
 
@@ -2477,6 +2481,8 @@ browser::VassalLifeEventsEntry Mapping<VassalLifeEventsEntry>::write(const Expor
     codec.write(result.choiceId, source.choiceId);
     codec.write(result.statId, source.statId);
     codec.write(result.causeOfDeath, source.causeOfDeath);
+    codec.write(result.fromRegionId, source.fromRegionId);
+    codec.write(result.toRegionId, source.toRegionId);
     return result;
 }
 

@@ -3,6 +3,7 @@
 #include "sim/content/vocabulary.hpp"
 #include "sim/state/rows.generated.hpp"
 #include "sim/practice/runtime.hpp"
+#include "sim/territory/territory.hpp"
 
 namespace waffle::sim {
 
@@ -27,6 +28,9 @@ struct EventData {
 };
 
 runtime::PracticeEvent emit(RuntimeState& state, EventKind kind,
+                            std::optional<runtime::RegionId> region = {}, EventData data = {});
+// Producers can journal event kinds that have no compiled Charge trigger.
+runtime::PracticeEvent emit(RuntimeState& state, runtime::EventKindId kind,
                             std::optional<runtime::RegionId> region = {}, EventData data = {});
 
 // Reactions are synchronous. A call from inside a root leaves its work queued

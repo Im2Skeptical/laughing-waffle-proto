@@ -202,6 +202,12 @@ EventData read_event(const RuntimeState& state, std::size_t index, std::vector<P
 runtime::PracticeEvent emit(RuntimeState& state, EventKind kind,
                             std::optional<runtime::RegionId> region, EventData data)
 {
+    return emit(state, detail::event_id(state, kind), region, data);
+}
+
+runtime::PracticeEvent emit(RuntimeState& state, runtime::EventKindId kind,
+                            std::optional<runtime::RegionId> region, EventData data)
+{
     using namespace detail;
     auto& journal = state.hot.civilization.practiceEvents;
     auto& p = data.fields;
@@ -230,11 +236,11 @@ runtime::PracticeEvent emit(RuntimeState& state, EventKind kind,
         if (!p.instanceId.has_key()) p.instanceId = nullable(slot ? slot->instanceId.value_or(InstanceId{}) : InstanceId{});
     }
     const auto attributedFaction = p.faction.has_key() ? p.faction.value().value_or(defaultFaction) : defaultFaction;
-    if (kind == EventKind::monsterDestroyed &&
+    if (kind == event_id(state, EventKind::monsterDestroyed) &&
         (!state.hot.rulesetId || attributedFaction == state.practiceVocabulary.player))
         ++state.hot.civilization.history.monsterTrophies;
     const auto id = journal.nextId++;
-    PracticeEvent event{state.hot.tSec, event_id(state, kind), region,
+    PracticeEvent event{state.hot.tSec, kind, region,
                         journal.activeRoot.value_or(id), journal.activeEvent, id};
     auto& arena = state.pendingPracticePayload;
     if (data.providers) p.providers = store_providers(arena, *data.providers);

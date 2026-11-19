@@ -117,7 +117,7 @@ hot supplied paid required tSec
 RegionId supportTargetRegionId
 
 [DetailedSettlementHistory]
-hot deaths springDeaths lastDeathSec lastDeathCount
+hot deaths victories springDeaths lastDeathSec lastDeathCount
 
 [DetailedSettlementLastDefense]
 hot tSec
@@ -431,6 +431,7 @@ history lifeEvents
 [VassalLifeEventsEntry]
 EventKindId kind
 NodeId nodeId
+RegionId fromRegionId toRegionId
 HistoryTextId eventId text offerId result choiceId statId causeOfDeath
 hot tSec intervention age
 
