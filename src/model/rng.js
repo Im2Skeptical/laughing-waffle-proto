@@ -1,7 +1,11 @@
 // rng.js — deterministic PRNG utilities
 
+// Keep the stored Mulberry32 streams modulo 2^32 before Number addition
+// can lose low bits on long runs.
+const SEED_STEP = 0x6d2b79f5;
+
 function _rngNextFloat(state) {
-  let t = (state.rng.seed += 0x6d2b79f5);
+  let t = (state.rng.seed = (state.rng.seed + SEED_STEP) >>> 0);
   t = Math.imul(t ^ (t >>> 15), 1 | t);
   t ^= t + Math.imul(t ^ (t >>> 7), 61 | t);
   return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
@@ -14,7 +18,7 @@ function _rngNextInt(state, min, max) {
 }
 
 function _rngNextVassalFloat(state) {
-  let t = (state.rng.vassalSeed += 0x6d2b79f5);
+  let t = (state.rng.vassalSeed = (state.rng.vassalSeed + SEED_STEP) >>> 0);
   t = Math.imul(t ^ (t >>> 15), 1 | t);
   t ^= t + Math.imul(t ^ (t >>> 7), 61 | t);
   return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
@@ -27,7 +31,7 @@ function _rngNextVassalInt(state, min, max) {
 }
 
 function _rngNextVassalDevelopmentFloat(state) {
-  let t = (state.rng.vassalDevelopmentSeed += 0x6d2b79f5);
+  let t = (state.rng.vassalDevelopmentSeed = (state.rng.vassalDevelopmentSeed + SEED_STEP) >>> 0);
   t = Math.imul(t ^ (t >>> 15), 1 | t);
   t ^= t + Math.imul(t ^ (t >>> 7), 61 | t);
   return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
@@ -40,7 +44,7 @@ function _rngNextVassalDevelopmentInt(state, min, max) {
 }
 
 function _rngNextVassalLifeMapFloat(state) {
-  let t = (state.rng.vassalLifeMapSeed += 0x6d2b79f5);
+  let t = (state.rng.vassalLifeMapSeed = (state.rng.vassalLifeMapSeed + SEED_STEP) >>> 0);
   t = Math.imul(t ^ (t >>> 15), 1 | t);
   t ^= t + Math.imul(t ^ (t >>> 7), 61 | t);
   return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
@@ -53,7 +57,7 @@ function _rngNextVassalLifeMapInt(state, min, max) {
 }
 
 function _rngNextVassalPortraitFloat(state) {
-  let t = (state.rng.vassalPortraitSeed += 0x6d2b79f5);
+  let t = (state.rng.vassalPortraitSeed = (state.rng.vassalPortraitSeed + SEED_STEP) >>> 0);
   t = Math.imul(t ^ (t >>> 15), 1 | t);
   t ^= t + Math.imul(t ^ (t >>> 7), 61 | t);
   return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
@@ -66,7 +70,7 @@ function _rngNextVassalPortraitInt(state, min, max) {
 }
 
 function _rngNextFloatSeed(seedState) {
-  let t = (seedState.seed += 0x6d2b79f5);
+  let t = (seedState.seed = (seedState.seed + SEED_STEP) >>> 0);
   t = Math.imul(t ^ (t >>> 15), 1 | t);
   t ^= t + Math.imul(t ^ (t >>> 7), 61 | t);
   return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
@@ -80,7 +84,7 @@ function _rngNextIntSeed(seedState, min, max) {
 
 export function createRng(seed) {
   const seedState = {
-    seed: Number.isFinite(seed) ? Math.floor(seed) : 0,
+    seed: Number.isFinite(seed) ? (Math.floor(seed) >>> 0) : 0,
   };
   return {
     nextFloat: () => _rngNextFloatSeed(seedState),

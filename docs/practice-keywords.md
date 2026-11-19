@@ -58,7 +58,7 @@ are respected in play, inspection, saves and authoritative replay.
 `src/model/detailed-settlements/synthesis.js` owns the pure supply query.
 The prototype adapter handles only explicitly requested historical comparisons.
 
-Game state v52 / runner saves v33 reject older saves. Captured config schema is
+Game state v53 / runner saves v33 reject older saves. Captured config schema is
 v31: keyword coefficients remain part of its captured card data. No RNG
 streams, time advancement, layering or forecast-specific rules were introduced.
 

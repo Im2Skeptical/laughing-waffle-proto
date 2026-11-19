@@ -125,12 +125,12 @@ export function createEmptyState(
     passiveTimingRuntime: null,
   };
   const rngOwner = { rng: {
-    seed,
+    seed: Math.floor(seed) >>> 0,
     baseSeed: seed,
-    vassalSeed: (Math.floor(seed) ^ 0x56a55a19) | 0,
-    vassalDevelopmentSeed: (Math.floor(seed) ^ 0x3d7e10af) | 0,
-    vassalLifeMapSeed: (Math.floor(seed) ^ 0x19a7c4e3) | 0,
-    vassalPortraitSeed: (Math.floor(seed) ^ 0x2f6e2b1d) | 0,
+    vassalSeed: (Math.floor(seed) ^ 0x56a55a19) >>> 0,
+    vassalDevelopmentSeed: (Math.floor(seed) ^ 0x3d7e10af) >>> 0,
+    vassalLifeMapSeed: (Math.floor(seed) ^ 0x19a7c4e3) >>> 0,
+    vassalPortraitSeed: (Math.floor(seed) ^ 0x2f6e2b1d) >>> 0,
   } };
   attachRngHelpers(rngOwner);
   const world = createWorldState(
@@ -141,7 +141,7 @@ export function createEmptyState(
   );
   const initialDetailedSite = world.sites.find((site) => site?.simulationMode === "detailed") ?? null;
   const state = {
-    gameStateSchemaVersion: 52,
+    gameStateSchemaVersion: 53,
     phase: "simulation",
     turn: 0,
     seasons: SEASONS,
@@ -155,12 +155,12 @@ export function createEmptyState(
     tSec: 0,
 
     // Remaining seconds in the current season (derived from seasonClockSec).
-    seasonTimeRemaining: 0,
+    seasonTimeRemaining: SEASON_DURATION_SEC,
     seasonDurationSec: SEASON_DURATION_SEC,
 
-    simTime: 0, // Accumulator for floating point calculations if needed
+    simTime: 0, // Exact tick count expressed in seconds.
 
-    // Season clock accumulator (decoupled from planning/boundary indices).
+    // Elapsed ticks within the season, expressed in seconds.
     seasonClockSec: 0,
 
     paused: false,
@@ -419,7 +419,6 @@ export function serializeGameState(state) {
   delete clean.rngNextVassalPortraitFloat;
   delete clean.rngNextVassalPortraitInt;
   delete clean._boardDirty;
-  delete clean._seasonChanged;
   for (const site of Array.isArray(clean?.world?.sites) ? clean.world.sites : []) {
     const local = site?.detailedState;
     if (!local) continue;
@@ -449,9 +448,13 @@ export function serializeGameState(state) {
   return clean;
 }
 
+function isUint32(value) {
+  return typeof value === "number" && value === (value >>> 0);
+}
+
 function validateDeserializedStateBody(state) {
-  if (state?.gameStateSchemaVersion !== 52) {
-    throw new Error("Unsupported game-state schema: expected v52");
+  if (state?.gameStateSchemaVersion !== 53) {
+    throw new Error("Unsupported game-state schema: expected v53");
   }
   if ((state.rulesetId != null && state.rulesetId !== 'full-map-redesign-v1')
       || (state.civilization?.treasury && state.rulesetId !== 'full-map-redesign-v1')) {
@@ -482,16 +485,16 @@ function validateDeserializedStateBody(state) {
   if (!vassalValidation.ok) {
     throw new Error(`Invalid serialized Vassal Life Map: ${vassalValidation.errors.join("; ")}`);
   }
-  if (!state.rng || !Number.isFinite(state.rng.seed) || !Number.isFinite(state.rng.baseSeed)
-      || !Number.isFinite(state.rng.vassalSeed)
-      || !Number.isFinite(state.rng.vassalDevelopmentSeed)
-      || !Number.isFinite(state.rng.vassalLifeMapSeed)
-      || !Number.isFinite(state.rng.vassalPortraitSeed)) {
+  if (!state.rng || !Number.isFinite(state.rng.baseSeed)
+      || !isUint32(state.rng.seed)
+      || !isUint32(state.rng.vassalSeed)
+      || !isUint32(state.rng.vassalDevelopmentSeed)
+      || !isUint32(state.rng.vassalLifeMapSeed)
+      || !isUint32(state.rng.vassalPortraitSeed)) {
     throw new Error("Invalid serialized RNG state");
   }
   attachRngHelpers(state);
   state._boardDirty = false;
-  state._seasonChanged = false;
   syncPhaseToPaused(state);
   return state;
 }
@@ -551,8 +554,8 @@ export function deserializeGameState(data) {
 
   // CRITICAL: deep clone to avoid mutating stored snapshots (timeline/checkpoints).
   const state = deepCloneSerializable(raw);
-  if (state?.gameStateSchemaVersion !== 52) {
-    throw new Error("Unsupported game-state schema: expected v52");
+  if (state?.gameStateSchemaVersion !== 53) {
+    throw new Error("Unsupported game-state schema: expected v53");
   }
   const gameConfigValidation = validateGameConfig(state.gameConfig);
   if (!gameConfigValidation.ok) {
@@ -712,7 +715,6 @@ export function deserializeGameState(data) {
   }
   state.nextFollowerCreationOrderIndex = nextFollowerIndex;
   state._boardDirty = false;
-  state._seasonChanged = false;
   ensureSkillRuntimeState(state);
 
   // New integer time defaults if missing from save

@@ -10,7 +10,7 @@
     }
   },
   "config": {
-    "gameStateSchemaVersion": 52,
+    "gameStateSchemaVersion": 53,
     "gameConfigSchemaVersion": 31,
     "rulesetId": "full-map-redesign-v1",
     "worldDefinitionId": "regional-v2:1867",
@@ -20,7 +20,7 @@
     {
       "id": "initial",
       "tSec": 0,
-      "fullStateSha256": "c27b34c612ae1ce179780f2553adb58d628068af6f499d0e6e9367035dc17e54",
+      "fullStateSha256": "9dc22eb869040d5c858405faa4eedc7d555239a1615af06e91b0d26c2b5d998a",
       "semantic": {
         "time": {
           "tSec": 0,
@@ -28,7 +28,7 @@
           "year": 1,
           "currentSeasonIndex": 0,
           "seasonClockSec": 0,
-          "seasonTimeRemaining": 0,
+          "seasonTimeRemaining": 8,
           "paused": false,
           "phase": "simulation",
           "moonPhaseId": "birth",
@@ -37,12 +37,12 @@
           "moonBoundary": false
         },
         "rng": {
-          "seed": 64104805322,
+          "seed": 3975263178,
           "baseSeed": 1867,
-          "vassalSeed": 30758730914,
+          "vassalSeed": 693959842,
           "vassalDevelopmentSeed": 1031673828,
           "vassalLifeMapSeed": 430425000,
-          "vassalPortraitSeed": 26437670844
+          "vassalPortraitSeed": 667867068
         },
         "economy": {
           "prestige": 20,
@@ -2328,15 +2328,15 @@
     {
       "id": "phases",
       "tSec": 6,
-      "fullStateSha256": "2c5b1ddd48f54ce991f309f998a398f99e158e2e43bb49d79f8af48f05d04fee",
+      "fullStateSha256": "1dc854fdfc6add92307590f5dca5b4983ef713be94fcefe03c72812f0cd1c6ca",
       "semantic": {
         "time": {
           "tSec": 6,
           "simStepIndex": 360,
           "year": 1,
           "currentSeasonIndex": 0,
-          "seasonClockSec": 5.999999999999984,
-          "seasonTimeRemaining": 2.000000000000016,
+          "seasonClockSec": 6,
+          "seasonTimeRemaining": 2,
           "paused": false,
           "phase": "simulation",
           "moonPhaseId": "death",
@@ -2345,12 +2345,12 @@
           "moonBoundary": true
         },
         "rng": {
-          "seed": 1926807237143,
+          "seed": 2661888535,
           "baseSeed": 1867,
-          "vassalSeed": 30758730914,
+          "vassalSeed": 693959842,
           "vassalDevelopmentSeed": 1031673828,
           "vassalLifeMapSeed": 430425000,
-          "vassalPortraitSeed": 26437670844
+          "vassalPortraitSeed": 667867068
         },
         "economy": {
           "prestige": 20,
@@ -4807,15 +4807,15 @@
     {
       "id": "action",
       "tSec": 7,
-      "fullStateSha256": "bed5bcd5430155f06722ff143ff982ec7ae2feecb0d24771b275acae05d596d4",
+      "fullStateSha256": "d1091a0b9d567ba695475bd22b4aaced6ccf0844dca5a2ddc59926082ac1da78",
       "semantic": {
         "time": {
           "tSec": 7,
           "simStepIndex": 420,
           "year": 1,
           "currentSeasonIndex": 0,
-          "seasonClockSec": 6.9999999999999805,
-          "seasonTimeRemaining": 1.0000000000000195,
+          "seasonClockSec": 7,
+          "seasonTimeRemaining": 1,
           "paused": false,
           "phase": "simulation",
           "moonPhaseId": "birth",
@@ -4824,12 +4824,12 @@
           "moonBoundary": true
         },
         "rng": {
-          "seed": 3804162195468,
+          "seed": 3116138508,
           "baseSeed": 1867,
-          "vassalSeed": 30758730914,
+          "vassalSeed": 693959842,
           "vassalDevelopmentSeed": 1031673828,
-          "vassalLifeMapSeed": 320954442275,
-          "vassalPortraitSeed": 26437670844
+          "vassalLifeMapSeed": 3126862371,
+          "vassalPortraitSeed": 667867068
         },
         "economy": {
           "prestige": 20,

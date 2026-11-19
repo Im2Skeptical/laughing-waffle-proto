@@ -82,7 +82,7 @@ export function createInitialState(scenario = "devPlaytesting01", seed = null) {
   state.turn = 0;
   state.currentSeasonIndex = 0;
   state.year = 1;
-  state.seasonTimeRemaining = 0;
+  state.seasonTimeRemaining = state.seasonDurationSec;
   state.paused = false;
 
   // Map-driven settlement schema v10 is assembled by createWorldState. Legacy

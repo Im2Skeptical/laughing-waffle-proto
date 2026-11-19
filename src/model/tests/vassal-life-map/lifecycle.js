@@ -286,7 +286,7 @@ assert.equal(developmentVassal.lifeMap.pendingResolution.phaseCost,
   "empty shops charge their two-year confirmation time");
 resolvePending(developmentState);
 assert.equal(zeroPurchaseNode.mortality.roll >= 0, true, "zero-purchase shop still resolves once");
-assert.equal(developmentState.rng.vassalSeed, seedBeforeMortality + 0x6d2b79f5,
+assert.equal(developmentState.rng.vassalSeed, (seedBeforeMortality + 0x6d2b79f5) >>> 0,
   "one completed node consumes exactly one natural-mortality roll");
 assert.equal(developmentVassal.developmentChoiceQueue.length, 1);
 assert.equal(developmentVassal.developmentChoiceQueue[0].offeredStatIds.length, 3);

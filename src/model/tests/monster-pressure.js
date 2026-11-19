@@ -20,6 +20,23 @@ import { trainSpecialists } from '../detailed-settlements/stock.js';
 import { practiceSlot } from '../dev-lab/fixtures.js';
 
 const createNewGameState=seed=>createConfiguredNewGameState(seed,createStarterBootProfile());
+for (const [year, base, expected] of [[5, 1, 100_000_000], [6, 1, 1_000_000_000],
+  [156, 0, 0], [156, 1e-310, 1], [156, 1, 1_000_000_000], [1_001, 1, 1_000_000_000]]) {
+  const extreme = createNewGameState(123);
+  extreme.year = year;
+  Object.assign(extreme.gameConfig.settings.values, {
+    primordialBasePressure: base,
+    primordialGrowthFactor: 100,
+    primordialGrowthCadenceYears: 1,
+  });
+  runGlobalChaos(extreme);
+  const income = extreme.civilization.chaos.lastMoonIncome;
+  assert.equal(income.primordialPressure, expected, `Primordial pressure at year ${year}, base ${base}`);
+  assert.equal(income.accumulatedChaos, expected);
+  const restored = deserializeGameState(JSON.stringify(serializeGameState(extreme)));
+  assert.deepEqual(restored.civilization.chaos.lastMoonIncome, income);
+}
+
 // Compact units retain each person's contribution, including small cohorts.
 const compact=createNewGameState(433);
 const compactSites=compact.world.sites.filter(site=>compact.world.regions.find(r=>r.id===site.regionId)?.controller==='player');
@@ -159,10 +176,10 @@ assert.equal(sourceLoss.civilization.research.total,researchBeforeLoss,'lost tow
 // A seasonal action can end the run before a coincident Faith phase. No later
 // phase income or Vassal step may advance the completed simulation that second.
 const seasonLoss=createNewGameState(432);
-seasonLoss.seasonDurationSec=5;
+seasonLoss.seasonDurationSec=4;
 for(const region of seasonLoss.world.regions)if(region.controller!=='player')region.monster={defense:100};
 seasonLoss.gameConfig.gamepieces.practices.forage.effects=[{op:'addMonsterPressure',amount:1000}];
-seasonLoss.gameConfig.gamepieces.practices.forage.activation={type:'season',seasonKeys:['winter']};
+seasonLoss.gameConfig.gamepieces.practices.forage.activation={type:'season',seasonKeys:['spring']};
 for(const site of seasonLoss.world.sites.filter(s=>!s.neutral))site.detailedState.practiceSlots=[practiceSlot('forage'),null,null,null,null];
 initializeReplayClock(seasonLoss,0);
 advanceReplayStateToSecond(seasonLoss,15);
