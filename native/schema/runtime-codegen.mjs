@@ -263,12 +263,22 @@ function writeField({ member, policy, payload }, record) {
   return ["    codec." + (custom ?? "write") + "(result." + member + ", " + value + ");"];
 }
 
+function digestField({ member, policy, payload }, record) {
+  if (record === "MigrationMovement" && member === "transferId")
+    return '    codec.migration_transfer_id(source);';
+  if (policy === "config") return '    codec.fields("' + member + '", codec.state.content->configHash);';
+  const value = splitColumns.has(policy) ? "codec." + splitColumns.get(policy).column + "(row)"
+    : (payload ? "codec.eventPayload(row)" : "source") + "." + member;
+  return '    codec.fields("' + member + '", ' + value + ');';
+}
+
 const mapping = [
   banner,
   ...[...records.keys()].flatMap(name => [
     "template<> struct Mapping<" + runtimeName(name) + "> {",
     "    static " + runtimeName(name) + " read(" + parameters(name, true, false) + ");",
     "    static " + mirrorName(name) + " write(" + parameters(name, false, false) + ");",
+    "    static void digest(" + parameters(name, false, false).replace("const Export&", "Digest&") + ");",
     "};", "",
   ]),
   ...[...records].flatMap(([name, fields]) => [
@@ -282,6 +292,10 @@ const mapping = [
     "    " + mirrorName(name) + " result{};",
     ...fields.flatMap(field => writeField(field, name)),
     "    return result;", "}", "",
+    "void Mapping<" + runtimeName(name) + ">::digest(" + parameters(name, false, true).replace("const Export&", "Digest&") + ")",
+    "{",
+    ...fields.map(field => digestField(field, name)),
+    "}", "",
   ]),
 ].join("\n");
 

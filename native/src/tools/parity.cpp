@@ -5,6 +5,7 @@
 #include "sim/step/stages.hpp"
 #include "tools/json_file.hpp"
 #include "tools/parity_masks.hpp"
+#include "tools/parity_run.hpp"
 #include "tools/reference_topology.hpp"
 
 #include <algorithm>
@@ -620,10 +621,11 @@ int main(int argc, char** argv)
             return diff_files(json::parse(read_file(argv[2])), json::parse(read_file(argv[3])));
         if (command == "step") return step(parse_step_options(argc, argv));
         if (command == "stage") return stage(parse_stage_options(argc, argv));
+        if (command == "run") return waffle::tools::parity_run(argc, argv);
 
         throw std::invalid_argument("Usage: waffle_parity (roundtrip | runtime-roundtrip) <state.json> [--out <path>] | "
                                     "runtime-stats <state.json> | "
-                                    "hash <state.json> | diff <a.json> <b.json> | step [options] | stage [options]");
+                                    "hash <state.json> | diff <a.json> <b.json> | step [options] | stage [options] | run [options]");
     } catch (const std::exception& error) {
         std::cerr << error.what() << '\n';
         return 2;

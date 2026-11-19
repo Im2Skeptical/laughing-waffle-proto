@@ -3,491 +3,589 @@
 template<> struct Mapping<ApCapOverride> {
     static ApCapOverride read(Import&, const browser::ApCapOverride&, const std::string&);
     static browser::ApCapOverride write(const Export&, const ApCapOverride&);
+    static void digest(Digest&, const ApCapOverride&);
 };
 
 template<> struct Mapping<VariantFlags> {
     static VariantFlags read(Import&, const browser::VariantFlags&, const std::string&);
     static browser::VariantFlags write(const Export&, const VariantFlags&);
+    static void digest(Digest&, const VariantFlags&);
 };
 
 template<> struct Mapping<RegionMonster> {
     static RegionMonster read(Import&, const browser::RegionMonster&, const std::string&);
     static browser::RegionMonster write(const Export&, const RegionMonster&);
+    static void digest(Digest&, const RegionMonster&);
 };
 
 template<> struct Mapping<Region> {
     static Region read(Import&, const browser::Region&, const std::string&);
     static browser::Region write(const Export&, const Region&);
+    static void digest(Digest&, const Region&);
 };
 
 template<> struct Mapping<Connection> {
     static Connection read(Import&, const browser::Connection&, const std::string&);
     static browser::Connection write(const Export&, const Connection&);
+    static void digest(Digest&, const Connection&);
 };
 
 template<> struct Mapping<ElderCohort> {
     static ElderCohort read(Import&, const browser::ElderCohort&, const std::string&);
     static browser::ElderCohort write(const Export&, const ElderCohort&);
+    static void digest(Digest&, const ElderCohort&);
 };
 
 template<> struct Mapping<AgeCounts> {
     static AgeCounts read(Import&, const browser::AgeCounts&, const std::string&);
     static browser::AgeCounts write(const Export&, const AgeCounts&);
+    static void digest(Digest&, const AgeCounts&);
 };
 
 template<> struct Mapping<Specialists> {
     static Specialists read(Import&, const browser::Specialists&, const std::string&);
     static browser::Specialists write(const Export&, const Specialists&);
+    static void digest(Digest&, const Specialists&);
 };
 
 template<> struct Mapping<PopulationClassFaith> {
     static PopulationClassFaith read(Import&, const browser::PopulationClassFaith&, const std::string&);
     static browser::PopulationClassFaith write(const Export&, const PopulationClassFaith&);
+    static void digest(Digest&, const PopulationClassFaith&);
 };
 
 template<> struct Mapping<PopulationClassHappiness> {
     static PopulationClassHappiness read(Import&, const browser::PopulationClassHappiness&, const std::string&);
     static browser::PopulationClassHappiness write(const Export&, const PopulationClassHappiness&);
+    static void digest(Digest&, const PopulationClassHappiness&);
 };
 
 template<> struct Mapping<JointCohort> {
     static JointCohort read(Import&, const browser::JointCohort&, const std::string&, std::uint32_t);
     static browser::JointCohort write(const Export&, const JointCohort&, std::uint32_t);
+    static void digest(Digest&, const JointCohort&, std::uint32_t);
 };
 
 template<> struct Mapping<PopulationClass> {
     static PopulationClass read(Import&, const browser::PopulationClass&, const std::string&);
     static browser::PopulationClass write(const Export&, const PopulationClass&);
+    static void digest(Digest&, const PopulationClass&);
 };
 
 template<> struct Mapping<PopulationByClass> {
     static PopulationByClass read(Import&, const browser::PopulationByClass&, const std::string&);
     static browser::PopulationByClass write(const Export&, const PopulationByClass&);
+    static void digest(Digest&, const PopulationByClass&);
 };
 
 template<> struct Mapping<PracticeSlot> {
     static PracticeSlot read(Import&, const browser::PracticeSlot&, const std::string&, std::uint32_t);
     static browser::PracticeSlot write(const Export&, const PracticeSlot&, std::uint32_t);
+    static void digest(Digest&, const PracticeSlot&, std::uint32_t);
 };
 
 template<> struct Mapping<StructureCellConstruction> {
     static StructureCellConstruction read(Import&, const browser::StructureCellConstruction&, const std::string&);
     static browser::StructureCellConstruction write(const Export&, const StructureCellConstruction&);
+    static void digest(Digest&, const StructureCellConstruction&);
 };
 
 template<> struct Mapping<StructureCell> {
     static StructureCell read(Import&, const browser::StructureCell&, const std::string&);
     static browser::StructureCell write(const Export&, const StructureCell&);
+    static void digest(Digest&, const StructureCell&);
 };
 
 template<> struct Mapping<DetailedSettlementElderOrder> {
     static DetailedSettlementElderOrder read(Import&, const browser::DetailedSettlementElderOrder&, const std::string&);
     static browser::DetailedSettlementElderOrder write(const Export&, const DetailedSettlementElderOrder&);
+    static void digest(Digest&, const DetailedSettlementElderOrder&);
 };
 
 template<> struct Mapping<ByClassVillager> {
     static ByClassVillager read(Import&, const browser::ByClassVillager&, const std::string&);
     static browser::ByClassVillager write(const Export&, const ByClassVillager&);
+    static void digest(Digest&, const ByClassVillager&);
 };
 
 template<> struct Mapping<ByClassStranger> {
     static ByClassStranger read(Import&, const browser::ByClassStranger&, const std::string&);
     static browser::ByClassStranger write(const Export&, const ByClassStranger&);
+    static void digest(Digest&, const ByClassStranger&);
 };
 
 template<> struct Mapping<MealResultByClass> {
     static MealResultByClass read(Import&, const browser::MealResultByClass&, const std::string&);
     static browser::MealResultByClass write(const Export&, const MealResultByClass&);
+    static void digest(Digest&, const MealResultByClass&);
 };
 
 template<> struct Mapping<MigrationIntentSummary> {
     static MigrationIntentSummary read(Import&, const browser::MigrationIntentSummary&, const std::string&);
     static browser::MigrationIntentSummary write(const Export&, const MigrationIntentSummary&);
+    static void digest(Digest&, const MigrationIntentSummary&);
 };
 
 template<> struct Mapping<ClassComposition> {
     static ClassComposition read(Import&, const browser::ClassComposition&, const std::string&);
     static browser::ClassComposition write(const Export&, const ClassComposition&);
+    static void digest(Digest&, const ClassComposition&);
 };
 
 template<> struct Mapping<PopulationComposition> {
     static PopulationComposition read(Import&, const browser::PopulationComposition&, const std::string&);
     static browser::PopulationComposition write(const Export&, const PopulationComposition&);
+    static void digest(Digest&, const PopulationComposition&);
 };
 
 template<> struct Mapping<MigrationMovement> {
     static MigrationMovement read(Import&, const browser::MigrationMovement&, const std::string&);
     static browser::MigrationMovement write(const Export&, const MigrationMovement&);
+    static void digest(Digest&, const MigrationMovement&);
 };
 
 template<> struct Mapping<MigrationSourceLoss> {
     static MigrationSourceLoss read(Import&, const browser::MigrationSourceLoss&, const std::string&);
     static browser::MigrationSourceLoss write(const Export&, const MigrationSourceLoss&);
+    static void digest(Digest&, const MigrationSourceLoss&);
 };
 
 template<> struct Mapping<MigrationReport> {
     static MigrationReport read(Import&, const browser::MigrationReport&, const std::string&);
     static browser::MigrationReport write(const Export&, const MigrationReport&);
+    static void digest(Digest&, const MigrationReport&);
 };
 
 template<> struct Mapping<MealResult> {
     static MealResult read(Import&, const browser::MealResult&, const std::string&);
     static browser::MealResult write(const Export&, const MealResult&);
+    static void digest(Digest&, const MealResult&);
 };
 
 template<> struct Mapping<MoonRegionResultBirthByClassVillager> {
     static MoonRegionResultBirthByClassVillager read(Import&, const browser::MoonRegionResultBirthByClassVillager&, const std::string&);
     static browser::MoonRegionResultBirthByClassVillager write(const Export&, const MoonRegionResultBirthByClassVillager&);
+    static void digest(Digest&, const MoonRegionResultBirthByClassVillager&);
 };
 
 template<> struct Mapping<MoonRegionResultBirthByClassStranger> {
     static MoonRegionResultBirthByClassStranger read(Import&, const browser::MoonRegionResultBirthByClassStranger&, const std::string&);
     static browser::MoonRegionResultBirthByClassStranger write(const Export&, const MoonRegionResultBirthByClassStranger&);
+    static void digest(Digest&, const MoonRegionResultBirthByClassStranger&);
 };
 
 template<> struct Mapping<BirthByClass> {
     static BirthByClass read(Import&, const browser::BirthByClass&, const std::string&);
     static browser::BirthByClass write(const Export&, const BirthByClass&);
+    static void digest(Digest&, const BirthByClass&);
 };
 
 template<> struct Mapping<MoonRegionResultBirth> {
     static MoonRegionResultBirth read(Import&, const browser::MoonRegionResultBirth&, const std::string&);
     static browser::MoonRegionResultBirth write(const Export&, const MoonRegionResultBirth&);
+    static void digest(Digest&, const MoonRegionResultBirth&);
 };
 
 template<> struct Mapping<MoonRegionResultHousing> {
     static MoonRegionResultHousing read(Import&, const browser::MoonRegionResultHousing&, const std::string&);
     static browser::MoonRegionResultHousing write(const Export&, const MoonRegionResultHousing&);
+    static void digest(Digest&, const MoonRegionResultHousing&);
 };
 
 template<> struct Mapping<MoonRegionResultFaithByClassVillager> {
     static MoonRegionResultFaithByClassVillager read(Import&, const browser::MoonRegionResultFaithByClassVillager&, const std::string&);
     static browser::MoonRegionResultFaithByClassVillager write(const Export&, const MoonRegionResultFaithByClassVillager&);
+    static void digest(Digest&, const MoonRegionResultFaithByClassVillager&);
 };
 
 template<> struct Mapping<MoonRegionResultFaithByClassStranger> {
     static MoonRegionResultFaithByClassStranger read(Import&, const browser::MoonRegionResultFaithByClassStranger&, const std::string&);
     static browser::MoonRegionResultFaithByClassStranger write(const Export&, const MoonRegionResultFaithByClassStranger&);
+    static void digest(Digest&, const MoonRegionResultFaithByClassStranger&);
 };
 
 template<> struct Mapping<FaithByClass> {
     static FaithByClass read(Import&, const browser::FaithByClass&, const std::string&);
     static browser::FaithByClass write(const Export&, const FaithByClass&);
+    static void digest(Digest&, const FaithByClass&);
 };
 
 template<> struct Mapping<MoonRegionResultFaith> {
     static MoonRegionResultFaith read(Import&, const browser::MoonRegionResultFaith&, const std::string&);
     static browser::MoonRegionResultFaith write(const Export&, const MoonRegionResultFaith&);
+    static void digest(Digest&, const MoonRegionResultFaith&);
 };
 
 template<> struct Mapping<MoonRegionResultDeathByClassVillager> {
     static MoonRegionResultDeathByClassVillager read(Import&, const browser::MoonRegionResultDeathByClassVillager&, const std::string&);
     static browser::MoonRegionResultDeathByClassVillager write(const Export&, const MoonRegionResultDeathByClassVillager&);
+    static void digest(Digest&, const MoonRegionResultDeathByClassVillager&);
 };
 
 template<> struct Mapping<MoonRegionResultDeathByClassStranger> {
     static MoonRegionResultDeathByClassStranger read(Import&, const browser::MoonRegionResultDeathByClassStranger&, const std::string&);
     static browser::MoonRegionResultDeathByClassStranger write(const Export&, const MoonRegionResultDeathByClassStranger&);
+    static void digest(Digest&, const MoonRegionResultDeathByClassStranger&);
 };
 
 template<> struct Mapping<DeathByClass> {
     static DeathByClass read(Import&, const browser::DeathByClass&, const std::string&);
     static browser::DeathByClass write(const Export&, const DeathByClass&);
+    static void digest(Digest&, const DeathByClass&);
 };
 
 template<> struct Mapping<MoonRegionResultDeath> {
     static MoonRegionResultDeath read(Import&, const browser::MoonRegionResultDeath&, const std::string&);
     static browser::MoonRegionResultDeath write(const Export&, const MoonRegionResultDeath&);
+    static void digest(Digest&, const MoonRegionResultDeath&);
 };
 
 template<> struct Mapping<MoonRegionResult> {
     static MoonRegionResult read(Import&, const browser::MoonRegionResult&, const std::string&);
     static browser::MoonRegionResult write(const Export&, const MoonRegionResult&);
+    static void digest(Digest&, const MoonRegionResult&);
 };
 
 template<> struct Mapping<StockProvider> {
     static StockProvider read(Import&, const browser::StockProvider&, const std::string&);
     static browser::StockProvider write(const Export&, const StockProvider&);
+    static void digest(Digest&, const StockProvider&);
 };
 
 template<> struct Mapping<PracticeEventTrace> {
     static PracticeEventTrace read(Import&, const browser::PracticeEventTrace&, const std::string&);
     static browser::PracticeEventTrace write(const Export&, const PracticeEventTrace&);
+    static void digest(Digest&, const PracticeEventTrace&);
 };
 
 template<> struct Mapping<DetailedSettlementMealRelief> {
     static DetailedSettlementMealRelief read(Import&, const browser::DetailedSettlementMealRelief&, const std::string&);
     static browser::DetailedSettlementMealRelief write(const Export&, const DetailedSettlementMealRelief&);
+    static void digest(Digest&, const DetailedSettlementMealRelief&);
 };
 
 template<> struct Mapping<DetailedSettlementHistory> {
     static DetailedSettlementHistory read(Import&, const browser::DetailedSettlementHistory&, const std::string&);
     static browser::DetailedSettlementHistory write(const Export&, const DetailedSettlementHistory&);
+    static void digest(Digest&, const DetailedSettlementHistory&);
 };
 
 template<> struct Mapping<ControlUnrest> {
     static ControlUnrest read(Import&, const browser::ControlUnrest&, const std::string&);
     static browser::ControlUnrest write(const Export&, const ControlUnrest&);
+    static void digest(Digest&, const ControlUnrest&);
 };
 
 template<> struct Mapping<DetailedSettlementControl> {
     static DetailedSettlementControl read(Import&, const browser::DetailedSettlementControl&, const std::string&);
     static browser::DetailedSettlementControl write(const Export&, const DetailedSettlementControl&);
+    static void digest(Digest&, const DetailedSettlementControl&);
 };
 
 template<> struct Mapping<DetailedSettlementGarrison> {
     static DetailedSettlementGarrison read(Import&, const browser::DetailedSettlementGarrison&, const std::string&);
     static browser::DetailedSettlementGarrison write(const Export&, const DetailedSettlementGarrison&);
+    static void digest(Digest&, const DetailedSettlementGarrison&);
 };
 
 template<> struct Mapping<DetailedSettlementLastDefense> {
     static DetailedSettlementLastDefense read(Import&, const browser::DetailedSettlementLastDefense&, const std::string&);
     static browser::DetailedSettlementLastDefense write(const Export&, const DetailedSettlementLastDefense&);
+    static void digest(Digest&, const DetailedSettlementLastDefense&);
 };
 
 template<> struct Mapping<PoliticalForceEntry> {
     static PoliticalForceEntry read(Import&, const browser::PoliticalForceEntry&, const std::string&);
     static browser::PoliticalForceEntry write(const Export&, const PoliticalForceEntry&);
+    static void digest(Digest&, const PoliticalForceEntry&);
 };
 
 template<> struct Mapping<SupportBank> {
     static SupportBank read(Import&, const browser::SupportBank&, const std::string&);
     static browser::SupportBank write(const Export&, const SupportBank&);
+    static void digest(Digest&, const SupportBank&);
 };
 
 template<> struct Mapping<SeasonalFoodBoost> {
     static SeasonalFoodBoost read(Import&, const browser::SeasonalFoodBoost&, const std::string&);
     static browser::SeasonalFoodBoost write(const Export&, const SeasonalFoodBoost&);
+    static void digest(Digest&, const SeasonalFoodBoost&);
 };
 
 template<> struct Mapping<CandidateDevelopment> {
     static CandidateDevelopment read(Import&, const browser::CandidateDevelopment&, const std::string&);
     static browser::CandidateDevelopment write(const Export&, const CandidateDevelopment&);
+    static void digest(Digest&, const CandidateDevelopment&);
 };
 
 template<> struct Mapping<HappinessFloor> {
     static HappinessFloor read(Import&, const browser::HappinessFloor&, const std::string&);
     static browser::HappinessFloor write(const Export&, const HappinessFloor&);
+    static void digest(Digest&, const HappinessFloor&);
 };
 
 template<> struct Mapping<DetailedSettlement> {
     static DetailedSettlement read(Import&, const browser::DetailedSettlement&, const std::string&);
     static browser::DetailedSettlement write(const Export&, const DetailedSettlement&);
+    static void digest(Digest&, const DetailedSettlement&);
 };
 
 template<> struct Mapping<NeutralStock> {
     static NeutralStock read(Import&, const browser::NeutralStock&, const std::string&);
     static browser::NeutralStock write(const Export&, const NeutralStock&);
+    static void digest(Digest&, const NeutralStock&);
 };
 
 template<> struct Mapping<NeutralMarket> {
     static NeutralMarket read(Import&, const browser::NeutralMarket&, const std::string&);
     static browser::NeutralMarket write(const Export&, const NeutralMarket&);
+    static void digest(Digest&, const NeutralMarket&);
 };
 
 template<> struct Mapping<Town> {
     static Town read(Import&, const browser::Town&, const std::string&);
     static browser::Town write(const Export&, const Town&);
+    static void digest(Digest&, const Town&);
 };
 
 template<> struct Mapping<Site> {
     static Site read(Import&, const browser::Site&, const std::string&);
     static browser::Site write(const Export&, const Site&);
+    static void digest(Digest&, const Site&);
 };
 
 template<> struct Mapping<World> {
     static World read(Import&, const browser::World&, const std::string&);
     static browser::World write(const Export&, const World&);
+    static void digest(Digest&, const World&);
 };
 
 template<> struct Mapping<PracticeEvent> {
     static PracticeEvent read(Import&, const browser::PracticeEvent&, const std::string&, std::uint32_t);
     static browser::PracticeEvent write(const Export&, const PracticeEvent&, std::uint32_t);
+    static void digest(Digest&, const PracticeEvent&, std::uint32_t);
 };
 
 template<> struct Mapping<StockTransfersTransfersEntry> {
     static StockTransfersTransfersEntry read(Import&, const browser::StockTransfersTransfersEntry&, const std::string&);
     static browser::StockTransfersTransfersEntry write(const Export&, const StockTransfersTransfersEntry&);
+    static void digest(Digest&, const StockTransfersTransfersEntry&);
 };
 
 template<> struct Mapping<PracticeEventJournalStockTransfers> {
     static PracticeEventJournalStockTransfers read(Import&, const browser::PracticeEventJournalStockTransfers&, const std::string&);
     static browser::PracticeEventJournalStockTransfers write(const Export&, const PracticeEventJournalStockTransfers&);
+    static void digest(Digest&, const PracticeEventJournalStockTransfers&);
 };
 
 template<> struct Mapping<PracticeEventJournal> {
     static PracticeEventJournal read(Import&, const browser::PracticeEventJournal&, const std::string&);
     static browser::PracticeEventJournal write(const Export&, const PracticeEventJournal&);
+    static void digest(Digest&, const PracticeEventJournal&);
 };
 
 template<> struct Mapping<CivilizationCandidateDevelopment> {
     static CivilizationCandidateDevelopment read(Import&, const browser::CivilizationCandidateDevelopment&, const std::string&);
     static browser::CivilizationCandidateDevelopment write(const Export&, const CivilizationCandidateDevelopment&);
+    static void digest(Digest&, const CivilizationCandidateDevelopment&);
 };
 
 template<> struct Mapping<ChaosLastMonsterSpawn> {
     static ChaosLastMonsterSpawn read(Import&, const browser::ChaosLastMonsterSpawn&, const std::string&);
     static browser::ChaosLastMonsterSpawn write(const Export&, const ChaosLastMonsterSpawn&);
+    static void digest(Digest&, const ChaosLastMonsterSpawn&);
 };
 
 template<> struct Mapping<LastMoonIncomeFaithPopulation> {
     static LastMoonIncomeFaithPopulation read(Import&, const browser::LastMoonIncomeFaithPopulation&, const std::string&);
     static browser::LastMoonIncomeFaithPopulation write(const Export&, const LastMoonIncomeFaithPopulation&);
+    static void digest(Digest&, const LastMoonIncomeFaithPopulation&);
 };
 
 template<> struct Mapping<ChaosLastMoonIncome> {
     static ChaosLastMoonIncome read(Import&, const browser::ChaosLastMoonIncome&, const std::string&);
     static browser::ChaosLastMoonIncome write(const Export&, const ChaosLastMoonIncome&);
+    static void digest(Digest&, const ChaosLastMoonIncome&);
 };
 
 template<> struct Mapping<ChaosPendingLosses> {
     static ChaosPendingLosses read(Import&, const browser::ChaosPendingLosses&, const std::string&);
     static browser::ChaosPendingLosses write(const Export&, const ChaosPendingLosses&);
+    static void digest(Digest&, const ChaosPendingLosses&);
 };
 
 template<> struct Mapping<CivilizationChaos> {
     static CivilizationChaos read(Import&, const browser::CivilizationChaos&, const std::string&);
     static browser::CivilizationChaos write(const Export&, const CivilizationChaos&);
+    static void digest(Digest&, const CivilizationChaos&);
 };
 
 template<> struct Mapping<CivilizationHistory> {
     static CivilizationHistory read(Import&, const browser::CivilizationHistory&, const std::string&);
     static browser::CivilizationHistory write(const Export&, const CivilizationHistory&);
+    static void digest(Digest&, const CivilizationHistory&);
 };
 
 template<> struct Mapping<CivilizationResearch> {
     static CivilizationResearch read(Import&, const browser::CivilizationResearch&, const std::string&);
     static browser::CivilizationResearch write(const Export&, const CivilizationResearch&);
+    static void digest(Digest&, const CivilizationResearch&);
 };
 
 template<> struct Mapping<CivilizationRetiredVassalsEntry> {
     static CivilizationRetiredVassalsEntry read(Import&, const browser::CivilizationRetiredVassalsEntry&, const std::string&);
     static browser::CivilizationRetiredVassalsEntry write(const Export&, const CivilizationRetiredVassalsEntry&);
+    static void digest(Digest&, const CivilizationRetiredVassalsEntry&);
 };
 
 template<> struct Mapping<PhaseModifiers> {
     static PhaseModifiers read(Import&, const browser::PhaseModifiers&, const std::string&);
     static browser::PhaseModifiers write(const Export&, const PhaseModifiers&);
+    static void digest(Digest&, const PhaseModifiers&);
 };
 
 template<> struct Mapping<CivilizationGreen> {
     static CivilizationGreen read(Import&, const browser::CivilizationGreen&, const std::string&);
     static browser::CivilizationGreen write(const Export&, const CivilizationGreen&);
+    static void digest(Digest&, const CivilizationGreen&);
 };
 
 template<> struct Mapping<VassalLegacyFutureStartingStatBonuses> {
     static VassalLegacyFutureStartingStatBonuses read(Import&, const browser::VassalLegacyFutureStartingStatBonuses&, const std::string&);
     static browser::VassalLegacyFutureStartingStatBonuses write(const Export&, const VassalLegacyFutureStartingStatBonuses&);
+    static void digest(Digest&, const VassalLegacyFutureStartingStatBonuses&);
 };
 
 template<> struct Mapping<CivilizationVassalLegacy> {
     static CivilizationVassalLegacy read(Import&, const browser::CivilizationVassalLegacy&, const std::string&);
     static browser::CivilizationVassalLegacy write(const Export&, const CivilizationVassalLegacy&);
+    static void digest(Digest&, const CivilizationVassalLegacy&);
 };
 
 template<> struct Mapping<VassalStats> {
     static VassalStats read(Import&, const browser::VassalStats&, const std::string&);
     static browser::VassalStats write(const Export&, const VassalStats&);
+    static void digest(Digest&, const VassalStats&);
 };
 
 template<> struct Mapping<LifeMapPendingResolution> {
     static LifeMapPendingResolution read(Import&, const browser::LifeMapPendingResolution&, const std::string&);
     static browser::LifeMapPendingResolution write(const Export&, const LifeMapPendingResolution&);
+    static void digest(Digest&, const LifeMapPendingResolution&);
 };
 
 template<> struct Mapping<LifeMap> {
     static LifeMap read(Import&, const browser::LifeMap&, const std::string&);
     static browser::LifeMap write(const Export&, const LifeMap&);
+    static void digest(Digest&, const LifeMap&);
 };
 
 template<> struct Mapping<LifeEventsIntervention> {
     static LifeEventsIntervention read(Import&, const browser::LifeEventsIntervention&, const std::string&);
     static browser::LifeEventsIntervention write(const Export&, const LifeEventsIntervention&);
+    static void digest(Digest&, const LifeEventsIntervention&);
 };
 
 template<> struct Mapping<VassalLifeEventsEntry> {
     static VassalLifeEventsEntry read(Import&, const browser::VassalLifeEventsEntry&, const std::string&);
     static browser::VassalLifeEventsEntry write(const Export&, const VassalLifeEventsEntry&);
+    static void digest(Digest&, const VassalLifeEventsEntry&);
 };
 
 template<> struct Mapping<CommissionOffer> {
     static CommissionOffer read(Import&, const browser::CommissionOffer&, const std::string&);
     static browser::CommissionOffer write(const Export&, const CommissionOffer&);
+    static void digest(Digest&, const CommissionOffer&);
 };
 
 template<> struct Mapping<ActiveCommission> {
     static ActiveCommission read(Import&, const browser::ActiveCommission&, const std::string&);
     static browser::ActiveCommission write(const Export&, const ActiveCommission&);
+    static void digest(Digest&, const ActiveCommission&);
 };
 
 template<> struct Mapping<Vassal> {
     static Vassal read(Import&, const browser::Vassal&, const std::string&);
     static browser::Vassal write(const Export&, const Vassal&);
+    static void digest(Digest&, const Vassal&);
 };
 
 template<> struct Mapping<Lineage> {
     static Lineage read(Import&, const browser::Lineage&, const std::string&);
     static browser::Lineage write(const Export&, const Lineage&);
+    static void digest(Digest&, const Lineage&);
 };
 
 template<> struct Mapping<MigrationIntent> {
     static MigrationIntent read(Import&, const browser::MigrationIntent&, const std::string&);
     static browser::MigrationIntent write(const Export&, const MigrationIntent&);
+    static void digest(Digest&, const MigrationIntent&);
 };
 
 template<> struct Mapping<MoonTurn> {
     static MoonTurn read(Import&, const browser::MoonTurn&, const std::string&);
     static browser::MoonTurn write(const Export&, const MoonTurn&);
+    static void digest(Digest&, const MoonTurn&);
 };
 
 template<> struct Mapping<CivilizationTreasury> {
     static CivilizationTreasury read(Import&, const browser::CivilizationTreasury&, const std::string&);
     static browser::CivilizationTreasury write(const Export&, const CivilizationTreasury&);
+    static void digest(Digest&, const CivilizationTreasury&);
 };
 
 template<> struct Mapping<CivilizationRemnant> {
     static CivilizationRemnant read(Import&, const browser::CivilizationRemnant&, const std::string&);
     static browser::CivilizationRemnant write(const Export&, const CivilizationRemnant&);
+    static void digest(Digest&, const CivilizationRemnant&);
 };
 
 template<> struct Mapping<Civilization> {
     static Civilization read(Import&, const browser::Civilization&, const std::string&);
     static browser::Civilization write(const Export&, const Civilization&);
+    static void digest(Digest&, const Civilization&);
 };
 
 template<> struct Mapping<LegacyFeedEntry> {
     static LegacyFeedEntry read(Import&, const browser::LegacyFeedEntry&, const std::string&);
     static browser::LegacyFeedEntry write(const Export&, const LegacyFeedEntry&);
+    static void digest(Digest&, const LegacyFeedEntry&);
 };
 
 template<> struct Mapping<SkillModifiersGlobal> {
     static SkillModifiersGlobal read(Import&, const browser::SkillModifiersGlobal&, const std::string&);
     static browser::SkillModifiersGlobal write(const Export&, const SkillModifiersGlobal&);
+    static void digest(Digest&, const SkillModifiersGlobal&);
 };
 
 template<> struct Mapping<SkillModifiers> {
     static SkillModifiers read(Import&, const browser::SkillModifiers&, const std::string&);
     static browser::SkillModifiers write(const Export&, const SkillModifiers&);
+    static void digest(Digest&, const SkillModifiers&);
 };
 
 template<> struct Mapping<SkillRuntime> {
     static SkillRuntime read(Import&, const browser::SkillRuntime&, const std::string&);
     static browser::SkillRuntime write(const Export&, const SkillRuntime&);
+    static void digest(Digest&, const SkillRuntime&);
 };
 
 template<> struct Mapping<core::RngState> {
     static core::RngState read(Import&, const browser::RngSeeds&, const std::string&);
     static browser::RngSeeds write(const Export&, const core::RngState&);
+    static void digest(Digest&, const core::RngState&);
 };
 
 template<> struct Mapping<RunStatus> {
     static RunStatus read(Import&, const browser::RunStatus&, const std::string&);
     static browser::RunStatus write(const Export&, const RunStatus&);
+    static void digest(Digest&, const RunStatus&);
 };
 
 template<> struct Mapping<HotState> {
     static HotState read(Import&, const browser::GameState&, const std::string&);
     static browser::GameState write(const Export&, const HotState&);
+    static void digest(Digest&, const HotState&);
 };
 
 ApCapOverride Mapping<ApCapOverride>::read(Import& codec, const browser::ApCapOverride& source, const std::string& path)
@@ -506,6 +604,13 @@ browser::ApCapOverride Mapping<ApCapOverride>::write(const Export& codec, const 
     codec.write(result.cap, source.cap);
     codec.write(result.points, source.points);
     return result;
+}
+
+void Mapping<ApCapOverride>::digest(Digest& codec, const ApCapOverride& source)
+{
+    codec.fields("enabled", source.enabled);
+    codec.fields("cap", source.cap);
+    codec.fields("points", source.points);
 }
 
 VariantFlags Mapping<VariantFlags>::read(Import& codec, const browser::VariantFlags& source, const std::string& path)
@@ -532,6 +637,16 @@ browser::VariantFlags Mapping<VariantFlags>::write(const Export& codec, const Va
     return result;
 }
 
+void Mapping<VariantFlags>::digest(Digest& codec, const VariantFlags& source)
+{
+    codec.fields("actionPointCostsEnabled", source.actionPointCostsEnabled);
+    codec.fields("actionLogEnabled", source.actionLogEnabled);
+    codec.fields("inventoryTransferPlannerEnabled", source.inventoryTransferPlannerEnabled);
+    codec.fields("inventoryTransferGhostPreviewEnabled", source.inventoryTransferGhostPreviewEnabled);
+    codec.fields("showApHud", source.showApHud);
+    codec.fields("settlementPrototypeEnabled", source.settlementPrototypeEnabled);
+}
+
 RegionMonster Mapping<RegionMonster>::read(Import& codec, const browser::RegionMonster& source, const std::string& path)
 {
     RegionMonster result{};
@@ -546,6 +661,12 @@ browser::RegionMonster Mapping<RegionMonster>::write(const Export& codec, const 
     codec.write(result.defense, source.defense);
     codec.write(result.cleared, source.cleared);
     return result;
+}
+
+void Mapping<RegionMonster>::digest(Digest& codec, const RegionMonster& source)
+{
+    codec.fields("defense", source.defense);
+    codec.fields("cleared", source.cleared);
 }
 
 Region Mapping<Region>::read(Import& codec, const browser::Region& source, const std::string& path)
@@ -576,6 +697,18 @@ browser::Region Mapping<Region>::write(const Export& codec, const Region& source
     return result;
 }
 
+void Mapping<Region>::digest(Digest& codec, const Region& source)
+{
+    codec.fields("id", source.id);
+    codec.fields("colour", source.colour);
+    codec.fields("controller", source.controller);
+    codec.fields("structureCapacity", source.structureCapacity);
+    codec.fields("detailedSettlementEnabled", source.detailedSettlementEnabled);
+    codec.fields("monster", source.monster);
+    codec.fields("lostAtSec", source.lostAtSec);
+    codec.fields("installedPracticeIds", source.installedPracticeIds);
+}
+
 Connection Mapping<Connection>::read(Import& codec, const browser::Connection& source, const std::string& path)
 {
     Connection result{};
@@ -592,6 +725,12 @@ browser::Connection Mapping<Connection>::write(const Export& codec, const Connec
     return result;
 }
 
+void Mapping<Connection>::digest(Digest& codec, const Connection& source)
+{
+    codec.fields("regionAId", source.regionAId);
+    codec.fields("regionBId", source.regionBId);
+}
+
 ElderCohort Mapping<ElderCohort>::read(Import& codec, const browser::ElderCohort& source, const std::string& path)
 {
     ElderCohort result{};
@@ -606,6 +745,12 @@ browser::ElderCohort Mapping<ElderCohort>::write(const Export& codec, const Elde
     codec.write(result.age, source.age);
     codec.write(result.count, source.count);
     return result;
+}
+
+void Mapping<ElderCohort>::digest(Digest& codec, const ElderCohort& source)
+{
+    codec.fields("age", source.age);
+    codec.fields("count", source.count);
 }
 
 AgeCounts Mapping<AgeCounts>::read(Import& codec, const browser::AgeCounts& source, const std::string& path)
@@ -626,6 +771,13 @@ browser::AgeCounts Mapping<AgeCounts>::write(const Export& codec, const AgeCount
     return result;
 }
 
+void Mapping<AgeCounts>::digest(Digest& codec, const AgeCounts& source)
+{
+    codec.fields("children", source.children);
+    codec.fields("adults", source.adults);
+    codec.fields("eldersByAge", source.eldersByAge);
+}
+
 Specialists Mapping<Specialists>::read(Import& codec, const browser::Specialists& source, const std::string& path)
 {
     Specialists result{};
@@ -640,6 +792,12 @@ browser::Specialists Mapping<Specialists>::write(const Export& codec, const Spec
     codec.write(result.scholar, source.scholar);
     codec.write(result.warrior, source.warrior);
     return result;
+}
+
+void Mapping<Specialists>::digest(Digest& codec, const Specialists& source)
+{
+    codec.fields("scholar", source.scholar);
+    codec.fields("warrior", source.warrior);
 }
 
 PopulationClassFaith Mapping<PopulationClassFaith>::read(Import& codec, const browser::PopulationClassFaith& source, const std::string& path)
@@ -662,6 +820,14 @@ browser::PopulationClassFaith Mapping<PopulationClassFaith>::write(const Export&
     return result;
 }
 
+void Mapping<PopulationClassFaith>::digest(Digest& codec, const PopulationClassFaith& source)
+{
+    codec.fields("tier", source.tier);
+    codec.fields("trend", source.trend);
+    codec.fields("streak", source.streak);
+    codec.fields("collapseActive", source.collapseActive);
+}
+
 PopulationClassHappiness Mapping<PopulationClassHappiness>::read(Import& codec, const browser::PopulationClassHappiness& source, const std::string& path)
 {
     PopulationClassHappiness result{};
@@ -680,6 +846,14 @@ browser::PopulationClassHappiness Mapping<PopulationClassHappiness>::write(const
     codec.write(result.missedFeedStreak, source.missedFeedStreak);
     codec.write(result.partialFeedRatios, source.partialFeedRatios);
     return result;
+}
+
+void Mapping<PopulationClassHappiness>::digest(Digest& codec, const PopulationClassHappiness& source)
+{
+    codec.fields("status", source.status);
+    codec.fields("fullFeedStreak", source.fullFeedStreak);
+    codec.fields("missedFeedStreak", source.missedFeedStreak);
+    codec.fields("partialFeedRatios", source.partialFeedRatios);
 }
 
 JointCohort Mapping<JointCohort>::read(Import& codec, const browser::JointCohort& source, const std::string& path, std::uint32_t row)
@@ -702,6 +876,15 @@ browser::JointCohort Mapping<JointCohort>::write(const Export& codec, const Join
     codec.write(result.age, source.age);
     codec.write(result.count, codec.jointCounts(row));
     return result;
+}
+
+void Mapping<JointCohort>::digest(Digest& codec, const JointCohort& source, std::uint32_t row)
+{
+    codec.fields("allegiance", source.allegiance);
+    codec.fields("specialty", source.specialty);
+    codec.fields("kind", source.kind);
+    codec.fields("age", source.age);
+    codec.fields("count", codec.jointCounts(row));
 }
 
 PopulationClass Mapping<PopulationClass>::read(Import& codec, const browser::PopulationClass& source, const std::string& path)
@@ -730,6 +913,17 @@ browser::PopulationClass Mapping<PopulationClass>::write(const Export& codec, co
     return result;
 }
 
+void Mapping<PopulationClass>::digest(Digest& codec, const PopulationClass& source)
+{
+    codec.fields("specialists", source.specialists);
+    codec.fields("children", source.children);
+    codec.fields("adults", source.adults);
+    codec.fields("eldersByAge", source.eldersByAge);
+    codec.fields("faith", source.faith);
+    codec.fields("happiness", source.happiness);
+    codec.fields("joint", source.joint);
+}
+
 PopulationByClass Mapping<PopulationByClass>::read(Import& codec, const browser::PopulationByClass& source, const std::string& path)
 {
     PopulationByClass result{};
@@ -744,6 +938,12 @@ browser::PopulationByClass Mapping<PopulationByClass>::write(const Export& codec
     codec.write(result.villager, source.villager);
     codec.write(result.stranger, source.stranger);
     return result;
+}
+
+void Mapping<PopulationByClass>::digest(Digest& codec, const PopulationByClass& source)
+{
+    codec.fields("villager", source.villager);
+    codec.fields("stranger", source.stranger);
 }
 
 PracticeSlot Mapping<PracticeSlot>::read(Import& codec, const browser::PracticeSlot& source, const std::string& path, std::uint32_t row)
@@ -774,6 +974,18 @@ browser::PracticeSlot Mapping<PracticeSlot>::write(const Export& codec, const Pr
     return result;
 }
 
+void Mapping<PracticeSlot>::digest(Digest& codec, const PracticeSlot& source, std::uint32_t row)
+{
+    codec.fields("practiceId", source.practiceId);
+    codec.fields("tier", source.tier);
+    codec.fields("stock", codec.practiceStock(row));
+    codec.fields("charge", codec.practiceCharge(row));
+    codec.fields("work", source.work);
+    codec.fields("instanceId", source.instanceId);
+    codec.fields("allegiance", source.allegiance);
+    codec.fields("targetRegionId", source.targetRegionId);
+}
+
 StructureCellConstruction Mapping<StructureCellConstruction>::read(Import& codec, const browser::StructureCellConstruction& source, const std::string& path)
 {
     StructureCellConstruction result{};
@@ -786,6 +998,11 @@ browser::StructureCellConstruction Mapping<StructureCellConstruction>::write(con
     browser::StructureCellConstruction result{};
     codec.write(result.completedCycles, source.completedCycles);
     return result;
+}
+
+void Mapping<StructureCellConstruction>::digest(Digest& codec, const StructureCellConstruction& source)
+{
+    codec.fields("completedCycles", source.completedCycles);
 }
 
 StructureCell Mapping<StructureCell>::read(Import& codec, const browser::StructureCell& source, const std::string& path)
@@ -814,6 +1031,17 @@ browser::StructureCell Mapping<StructureCell>::write(const Export& codec, const 
     return result;
 }
 
+void Mapping<StructureCell>::digest(Digest& codec, const StructureCell& source)
+{
+    codec.fields("structureId", source.structureId);
+    codec.fields("origin", source.origin);
+    codec.fields("width", source.width);
+    codec.fields("placementId", source.placementId);
+    codec.fields("qualityBonus", source.qualityBonus);
+    codec.fields("construction", source.construction);
+    codec.fields("upkeepActive", source.upkeepActive);
+}
+
 DetailedSettlementElderOrder Mapping<DetailedSettlementElderOrder>::read(Import& codec, const browser::DetailedSettlementElderOrder& source, const std::string& path)
 {
     DetailedSettlementElderOrder result{};
@@ -828,6 +1056,12 @@ browser::DetailedSettlementElderOrder Mapping<DetailedSettlementElderOrder>::wri
     codec.write(result.definitionId, source.definitionId);
     codec.write(result.workerPolicyId, source.workerPolicyId);
     return result;
+}
+
+void Mapping<DetailedSettlementElderOrder>::digest(Digest& codec, const DetailedSettlementElderOrder& source)
+{
+    codec.fields("definitionId", source.definitionId);
+    codec.fields("workerPolicyId", source.workerPolicyId);
 }
 
 ByClassVillager Mapping<ByClassVillager>::read(Import& codec, const browser::ByClassVillager& source, const std::string& path)
@@ -854,6 +1088,16 @@ browser::ByClassVillager Mapping<ByClassVillager>::write(const Export& codec, co
     return result;
 }
 
+void Mapping<ByClassVillager>::digest(Digest& codec, const ByClassVillager& source)
+{
+    codec.fields("demand", source.demand);
+    codec.fields("consumed", source.consumed);
+    codec.fields("ratio", source.ratio);
+    codec.fields("migrants", source.migrants);
+    codec.fields("previousHappiness", source.previousHappiness);
+    codec.fields("targetHappiness", source.targetHappiness);
+}
+
 ByClassStranger Mapping<ByClassStranger>::read(Import& codec, const browser::ByClassStranger& source, const std::string& path)
 {
     ByClassStranger result{};
@@ -878,6 +1122,16 @@ browser::ByClassStranger Mapping<ByClassStranger>::write(const Export& codec, co
     return result;
 }
 
+void Mapping<ByClassStranger>::digest(Digest& codec, const ByClassStranger& source)
+{
+    codec.fields("demand", source.demand);
+    codec.fields("consumed", source.consumed);
+    codec.fields("ratio", source.ratio);
+    codec.fields("migrants", source.migrants);
+    codec.fields("previousHappiness", source.previousHappiness);
+    codec.fields("targetHappiness", source.targetHappiness);
+}
+
 MealResultByClass Mapping<MealResultByClass>::read(Import& codec, const browser::MealResultByClass& source, const std::string& path)
 {
     MealResultByClass result{};
@@ -892,6 +1146,12 @@ browser::MealResultByClass Mapping<MealResultByClass>::write(const Export& codec
     codec.write(result.villager, source.villager);
     codec.write(result.stranger, source.stranger);
     return result;
+}
+
+void Mapping<MealResultByClass>::digest(Digest& codec, const MealResultByClass& source)
+{
+    codec.fields("villager", source.villager);
+    codec.fields("stranger", source.stranger);
 }
 
 MigrationIntentSummary Mapping<MigrationIntentSummary>::read(Import& codec, const browser::MigrationIntentSummary& source, const std::string& path)
@@ -924,6 +1184,19 @@ browser::MigrationIntentSummary Mapping<MigrationIntentSummary>::write(const Exp
     return result;
 }
 
+void Mapping<MigrationIntentSummary>::digest(Digest& codec, const MigrationIntentSummary& source)
+{
+    codec.fields("reason", source.reason);
+    codec.fields("sourceRegionId", source.sourceRegionId);
+    codec.fields("sourceClassId", source.sourceClassId);
+    codec.fields("requested", source.requested);
+    codec.fields("eligible", source.eligible);
+    codec.fields("admitted", source.admitted);
+    codec.fields("external", source.external);
+    codec.fields("unresolved", source.unresolved);
+    codec.fields("unresolvedOutcome", source.unresolvedOutcome);
+}
+
 ClassComposition Mapping<ClassComposition>::read(Import& codec, const browser::ClassComposition& source, const std::string& path)
 {
     ClassComposition result{};
@@ -946,6 +1219,15 @@ browser::ClassComposition Mapping<ClassComposition>::write(const Export& codec, 
     return result;
 }
 
+void Mapping<ClassComposition>::digest(Digest& codec, const ClassComposition& source)
+{
+    codec.fields("specialists", source.specialists);
+    codec.fields("children", source.children);
+    codec.fields("adults", source.adults);
+    codec.fields("eldersByAge", source.eldersByAge);
+    codec.fields("joint", source.joint);
+}
+
 PopulationComposition Mapping<PopulationComposition>::read(Import& codec, const browser::PopulationComposition& source, const std::string& path)
 {
     PopulationComposition result{};
@@ -960,6 +1242,12 @@ browser::PopulationComposition Mapping<PopulationComposition>::write(const Expor
     codec.write(result.villager, source.villager);
     codec.write(result.stranger, source.stranger);
     return result;
+}
+
+void Mapping<PopulationComposition>::digest(Digest& codec, const PopulationComposition& source)
+{
+    codec.fields("villager", source.villager);
+    codec.fields("stranger", source.stranger);
 }
 
 MigrationMovement Mapping<MigrationMovement>::read(Import& codec, const browser::MigrationMovement& source, const std::string& path)
@@ -998,6 +1286,22 @@ browser::MigrationMovement Mapping<MigrationMovement>::write(const Export& codec
     return result;
 }
 
+void Mapping<MigrationMovement>::digest(Digest& codec, const MigrationMovement& source)
+{
+    codec.migration_transfer_id(source);
+    codec.fields("reason", source.reason);
+    codec.fields("sourceRegionId", source.sourceRegionId);
+    codec.fields("destinationRegionId", source.destinationRegionId);
+    codec.fields("sourceClassId", source.sourceClassId);
+    codec.fields("amount", source.amount);
+    codec.fields("survivors", source.survivors);
+    codec.fields("arrivalDeaths", source.arrivalDeaths);
+    codec.fields("external", source.external);
+    codec.fields("composition", source.composition);
+    codec.fields("survivorComposition", source.survivorComposition);
+    codec.fields("originalIndex", source.originalIndex);
+}
+
 MigrationSourceLoss Mapping<MigrationSourceLoss>::read(Import& codec, const browser::MigrationSourceLoss& source, const std::string& path)
 {
     MigrationSourceLoss result{};
@@ -1020,6 +1324,15 @@ browser::MigrationSourceLoss Mapping<MigrationSourceLoss>::write(const Export& c
     return result;
 }
 
+void Mapping<MigrationSourceLoss>::digest(Digest& codec, const MigrationSourceLoss& source)
+{
+    codec.fields("reason", source.reason);
+    codec.fields("sourceRegionId", source.sourceRegionId);
+    codec.fields("sourceClassId", source.sourceClassId);
+    codec.fields("count", source.count);
+    codec.fields("composition", source.composition);
+}
+
 MigrationReport Mapping<MigrationReport>::read(Import& codec, const browser::MigrationReport& source, const std::string& path)
 {
     MigrationReport result{};
@@ -1040,6 +1353,15 @@ browser::MigrationReport Mapping<MigrationReport>::write(const Export& codec, co
     codec.write(result.sourceLosses, source.sourceLosses);
     codec.write(result.tSec, source.tSec);
     return result;
+}
+
+void Mapping<MigrationReport>::digest(Digest& codec, const MigrationReport& source)
+{
+    codec.fields("intents", source.intents);
+    codec.fields("outbound", source.outbound);
+    codec.fields("inbound", source.inbound);
+    codec.fields("sourceLosses", source.sourceLosses);
+    codec.fields("tSec", source.tSec);
 }
 
 MealResult Mapping<MealResult>::read(Import& codec, const browser::MealResult& source, const std::string& path)
@@ -1068,6 +1390,17 @@ browser::MealResult Mapping<MealResult>::write(const Export& codec, const MealRe
     return result;
 }
 
+void Mapping<MealResult>::digest(Digest& codec, const MealResult& source)
+{
+    codec.fields("tSec", source.tSec);
+    codec.fields("demand", source.demand);
+    codec.fields("savedStock", source.savedStock);
+    codec.fields("consumed", source.consumed);
+    codec.fields("ratio", source.ratio);
+    codec.fields("byClass", source.byClass);
+    codec.fields("migration", source.migration);
+}
+
 MoonRegionResultBirthByClassVillager Mapping<MoonRegionResultBirthByClassVillager>::read(Import& codec, const browser::MoonRegionResultBirthByClassVillager& source, const std::string& path)
 {
     MoonRegionResultBirthByClassVillager result{};
@@ -1092,6 +1425,17 @@ browser::MoonRegionResultBirthByClassVillager Mapping<MoonRegionResultBirthByCla
     codec.write(result.childToAdultRate, source.childToAdultRate);
     codec.write(result.adultToElderRate, source.adultToElderRate);
     return result;
+}
+
+void Mapping<MoonRegionResultBirthByClassVillager>::digest(Digest& codec, const MoonRegionResultBirthByClassVillager& source)
+{
+    codec.fields("births", source.births);
+    codec.fields("matured", source.matured);
+    codec.fields("newElders", source.newElders);
+    codec.fields("ageAdvance", source.ageAdvance);
+    codec.fields("birthRate", source.birthRate);
+    codec.fields("childToAdultRate", source.childToAdultRate);
+    codec.fields("adultToElderRate", source.adultToElderRate);
 }
 
 MoonRegionResultBirthByClassStranger Mapping<MoonRegionResultBirthByClassStranger>::read(Import& codec, const browser::MoonRegionResultBirthByClassStranger& source, const std::string& path)
@@ -1120,6 +1464,17 @@ browser::MoonRegionResultBirthByClassStranger Mapping<MoonRegionResultBirthByCla
     return result;
 }
 
+void Mapping<MoonRegionResultBirthByClassStranger>::digest(Digest& codec, const MoonRegionResultBirthByClassStranger& source)
+{
+    codec.fields("births", source.births);
+    codec.fields("matured", source.matured);
+    codec.fields("newElders", source.newElders);
+    codec.fields("ageAdvance", source.ageAdvance);
+    codec.fields("birthRate", source.birthRate);
+    codec.fields("childToAdultRate", source.childToAdultRate);
+    codec.fields("adultToElderRate", source.adultToElderRate);
+}
+
 BirthByClass Mapping<BirthByClass>::read(Import& codec, const browser::BirthByClass& source, const std::string& path)
 {
     BirthByClass result{};
@@ -1134,6 +1489,12 @@ browser::BirthByClass Mapping<BirthByClass>::write(const Export& codec, const Bi
     codec.write(result.villager, source.villager);
     codec.write(result.stranger, source.stranger);
     return result;
+}
+
+void Mapping<BirthByClass>::digest(Digest& codec, const BirthByClass& source)
+{
+    codec.fields("villager", source.villager);
+    codec.fields("stranger", source.stranger);
 }
 
 MoonRegionResultBirth Mapping<MoonRegionResultBirth>::read(Import& codec, const browser::MoonRegionResultBirth& source, const std::string& path)
@@ -1152,6 +1513,13 @@ browser::MoonRegionResultBirth Mapping<MoonRegionResultBirth>::write(const Expor
     codec.write(result.year, source.year);
     codec.write(result.byClass, source.byClass);
     return result;
+}
+
+void Mapping<MoonRegionResultBirth>::digest(Digest& codec, const MoonRegionResultBirth& source)
+{
+    codec.fields("tSec", source.tSec);
+    codec.fields("year", source.year);
+    codec.fields("byClass", source.byClass);
 }
 
 MoonRegionResultHousing Mapping<MoonRegionResultHousing>::read(Import& codec, const browser::MoonRegionResultHousing& source, const std::string& path)
@@ -1176,6 +1544,16 @@ browser::MoonRegionResultHousing Mapping<MoonRegionResultHousing>::write(const E
     codec.write(result.migrants, source.migrants);
     codec.write(result.happinessCap, source.happinessCap);
     return result;
+}
+
+void Mapping<MoonRegionResultHousing>::digest(Digest& codec, const MoonRegionResultHousing& source)
+{
+    codec.fields("tSec", source.tSec);
+    codec.fields("population", source.population);
+    codec.fields("capacity", source.capacity);
+    codec.fields("overflow", source.overflow);
+    codec.fields("migrants", source.migrants);
+    codec.fields("happinessCap", source.happinessCap);
 }
 
 MoonRegionResultFaithByClassVillager Mapping<MoonRegionResultFaithByClassVillager>::read(Import& codec, const browser::MoonRegionResultFaithByClassVillager& source, const std::string& path)
@@ -1208,6 +1586,19 @@ browser::MoonRegionResultFaithByClassVillager Mapping<MoonRegionResultFaithByCla
     return result;
 }
 
+void Mapping<MoonRegionResultFaithByClassVillager>::digest(Digest& codec, const MoonRegionResultFaithByClassVillager& source)
+{
+    codec.fields("previousHappiness", source.previousHappiness);
+    codec.fields("happiness", source.happiness);
+    codec.fields("previousFaith", source.previousFaith);
+    codec.fields("faith", source.faith);
+    codec.fields("faithShifted", source.faithShifted);
+    codec.fields("faithTrend", source.faithTrend);
+    codec.fields("faithStreak", source.faithStreak);
+    codec.fields("collapseEntered", source.collapseEntered);
+    codec.fields("displaced", source.displaced);
+}
+
 MoonRegionResultFaithByClassStranger Mapping<MoonRegionResultFaithByClassStranger>::read(Import& codec, const browser::MoonRegionResultFaithByClassStranger& source, const std::string& path)
 {
     MoonRegionResultFaithByClassStranger result{};
@@ -1238,6 +1629,19 @@ browser::MoonRegionResultFaithByClassStranger Mapping<MoonRegionResultFaithByCla
     return result;
 }
 
+void Mapping<MoonRegionResultFaithByClassStranger>::digest(Digest& codec, const MoonRegionResultFaithByClassStranger& source)
+{
+    codec.fields("previousHappiness", source.previousHappiness);
+    codec.fields("happiness", source.happiness);
+    codec.fields("previousFaith", source.previousFaith);
+    codec.fields("faith", source.faith);
+    codec.fields("faithShifted", source.faithShifted);
+    codec.fields("faithTrend", source.faithTrend);
+    codec.fields("faithStreak", source.faithStreak);
+    codec.fields("collapseEntered", source.collapseEntered);
+    codec.fields("displaced", source.displaced);
+}
+
 FaithByClass Mapping<FaithByClass>::read(Import& codec, const browser::FaithByClass& source, const std::string& path)
 {
     FaithByClass result{};
@@ -1252,6 +1656,12 @@ browser::FaithByClass Mapping<FaithByClass>::write(const Export& codec, const Fa
     codec.write(result.villager, source.villager);
     codec.write(result.stranger, source.stranger);
     return result;
+}
+
+void Mapping<FaithByClass>::digest(Digest& codec, const FaithByClass& source)
+{
+    codec.fields("villager", source.villager);
+    codec.fields("stranger", source.stranger);
 }
 
 MoonRegionResultFaith Mapping<MoonRegionResultFaith>::read(Import& codec, const browser::MoonRegionResultFaith& source, const std::string& path)
@@ -1270,6 +1680,12 @@ browser::MoonRegionResultFaith Mapping<MoonRegionResultFaith>::write(const Expor
     return result;
 }
 
+void Mapping<MoonRegionResultFaith>::digest(Digest& codec, const MoonRegionResultFaith& source)
+{
+    codec.fields("tSec", source.tSec);
+    codec.fields("byClass", source.byClass);
+}
+
 MoonRegionResultDeathByClassVillager Mapping<MoonRegionResultDeathByClassVillager>::read(Import& codec, const browser::MoonRegionResultDeathByClassVillager& source, const std::string& path)
 {
     MoonRegionResultDeathByClassVillager result{};
@@ -1282,6 +1698,11 @@ browser::MoonRegionResultDeathByClassVillager Mapping<MoonRegionResultDeathByCla
     browser::MoonRegionResultDeathByClassVillager result{};
     codec.write(result.naturalDeaths, source.naturalDeaths);
     return result;
+}
+
+void Mapping<MoonRegionResultDeathByClassVillager>::digest(Digest& codec, const MoonRegionResultDeathByClassVillager& source)
+{
+    codec.fields("naturalDeaths", source.naturalDeaths);
 }
 
 MoonRegionResultDeathByClassStranger Mapping<MoonRegionResultDeathByClassStranger>::read(Import& codec, const browser::MoonRegionResultDeathByClassStranger& source, const std::string& path)
@@ -1298,6 +1719,11 @@ browser::MoonRegionResultDeathByClassStranger Mapping<MoonRegionResultDeathByCla
     return result;
 }
 
+void Mapping<MoonRegionResultDeathByClassStranger>::digest(Digest& codec, const MoonRegionResultDeathByClassStranger& source)
+{
+    codec.fields("naturalDeaths", source.naturalDeaths);
+}
+
 DeathByClass Mapping<DeathByClass>::read(Import& codec, const browser::DeathByClass& source, const std::string& path)
 {
     DeathByClass result{};
@@ -1312,6 +1738,12 @@ browser::DeathByClass Mapping<DeathByClass>::write(const Export& codec, const De
     codec.write(result.villager, source.villager);
     codec.write(result.stranger, source.stranger);
     return result;
+}
+
+void Mapping<DeathByClass>::digest(Digest& codec, const DeathByClass& source)
+{
+    codec.fields("villager", source.villager);
+    codec.fields("stranger", source.stranger);
 }
 
 MoonRegionResultDeath Mapping<MoonRegionResultDeath>::read(Import& codec, const browser::MoonRegionResultDeath& source, const std::string& path)
@@ -1336,6 +1768,16 @@ browser::MoonRegionResultDeath Mapping<MoonRegionResultDeath>::write(const Expor
     codec.write(result.storedFoodRot, source.storedFoodRot);
     codec.write(result.looseFoodRot, source.looseFoodRot);
     return result;
+}
+
+void Mapping<MoonRegionResultDeath>::digest(Digest& codec, const MoonRegionResultDeath& source)
+{
+    codec.fields("tSec", source.tSec);
+    codec.fields("byClass", source.byClass);
+    codec.fields("hardshipDeaths", source.hardshipDeaths);
+    codec.fields("arrivalDeaths", source.arrivalDeaths);
+    codec.fields("storedFoodRot", source.storedFoodRot);
+    codec.fields("looseFoodRot", source.looseFoodRot);
 }
 
 MoonRegionResult Mapping<MoonRegionResult>::read(Import& codec, const browser::MoonRegionResult& source, const std::string& path)
@@ -1364,6 +1806,18 @@ browser::MoonRegionResult Mapping<MoonRegionResult>::write(const Export& codec, 
     codec.write(result.death, source.death);
     codec.write(result.currencySpent, source.currencySpent);
     return result;
+}
+
+void Mapping<MoonRegionResult>::digest(Digest& codec, const MoonRegionResult& source)
+{
+    codec.fields("regionId", source.regionId);
+    codec.fields("birth", source.birth);
+    codec.fields("food", source.food);
+    codec.fields("housing", source.housing);
+    codec.fields("faith", source.faith);
+    codec.fields("migration", source.migration);
+    codec.fields("death", source.death);
+    codec.fields("currencySpent", source.currencySpent);
 }
 
 StockProvider Mapping<StockProvider>::read(Import& codec, const browser::StockProvider& source, const std::string& path)
@@ -1398,6 +1852,21 @@ browser::StockProvider Mapping<StockProvider>::write(const Export& codec, const 
     codec.write(result.label, source.label);
     codec.write(result.unitPrice, source.unitPrice);
     return result;
+}
+
+void Mapping<StockProvider>::digest(Digest& codec, const StockProvider& source)
+{
+    codec.fields("kind", source.kind);
+    codec.fields("regionId", source.regionId);
+    codec.fields("slotIndex", source.slotIndex);
+    codec.fields("practiceId", source.practiceId);
+    codec.fields("amount", source.amount);
+    codec.fields("traits", source.traits);
+    codec.fields("substitution", source.substitution);
+    codec.fields("paymentFor", source.paymentFor);
+    codec.fields("marketStockId", source.marketStockId);
+    codec.fields("label", source.label);
+    codec.fields("unitPrice", source.unitPrice);
 }
 
 PracticeEventTrace Mapping<PracticeEventTrace>::read(Import& codec, const browser::PracticeEventTrace& source, const std::string& path)
@@ -1494,6 +1963,51 @@ browser::PracticeEventTrace Mapping<PracticeEventTrace>::write(const Export& cod
     return result;
 }
 
+void Mapping<PracticeEventTrace>::digest(Digest& codec, const PracticeEventTrace& source)
+{
+    codec.fields("tSec", source.tSec);
+    codec.fields("kind", source.kind);
+    codec.fields("regionId", source.regionId);
+    codec.fields("targetPracticeId", source.targetPracticeId);
+    codec.fields("slotIndex", source.slotIndex);
+    codec.fields("rootId", source.rootId);
+    codec.fields("parentId", source.parentId);
+    codec.fields("providers", source.providers);
+    codec.fields("practiceId", source.practiceId);
+    codec.fields("activationType", source.activationType);
+    codec.fields("id", source.id);
+    codec.fields("amount", source.amount);
+    codec.fields("traits", source.traits);
+    codec.fields("tags", source.tags);
+    codec.fields("pool", source.pool);
+    codec.fields("scholarStaffed", source.scholarStaffed);
+    codec.fields("discharge", source.discharge);
+    codec.fields("phase", source.phase);
+    codec.fields("premature", source.premature);
+    codec.fields("faction", source.faction);
+    codec.fields("controller", source.controller);
+    codec.fields("instanceId", source.instanceId);
+    codec.fields("reason", source.reason);
+    codec.fields("cause", source.cause);
+    codec.fields("targetRegionId", source.targetRegionId);
+    codec.fields("structureId", source.structureId);
+    codec.fields("previousController", source.previousController);
+    codec.fields("military", source.military);
+    codec.fields("untilSec", source.untilSec);
+    codec.fields("classId", source.classId);
+    codec.fields("actionKind", source.actionKind);
+    codec.fields("action", source.action);
+    codec.fields("outcome", source.outcome);
+    codec.fields("sourceRegionId", source.sourceRegionId);
+    codec.fields("strengthBefore", source.strengthBefore);
+    codec.fields("strengthAfter", source.strengthAfter);
+    codec.fields("martial", source.martial);
+    codec.fields("destinationId", source.destinationId);
+    codec.fields("sourceRegionIds", source.sourceRegionIds);
+    codec.fields("charge", source.charge);
+    codec.fields("threshold", source.threshold);
+}
+
 DetailedSettlementMealRelief Mapping<DetailedSettlementMealRelief>::read(Import& codec, const browser::DetailedSettlementMealRelief& source, const std::string& path)
 {
     DetailedSettlementMealRelief result{};
@@ -1514,6 +2028,15 @@ browser::DetailedSettlementMealRelief Mapping<DetailedSettlementMealRelief>::wri
     codec.write(result.shortage, source.shortage);
     codec.write(result.fullyFed, source.fullyFed);
     return result;
+}
+
+void Mapping<DetailedSettlementMealRelief>::digest(Digest& codec, const DetailedSettlementMealRelief& source)
+{
+    codec.fields("tSec", source.tSec);
+    codec.fields("faction", source.faction);
+    codec.fields("amount", source.amount);
+    codec.fields("shortage", source.shortage);
+    codec.fields("fullyFed", source.fullyFed);
 }
 
 DetailedSettlementHistory Mapping<DetailedSettlementHistory>::read(Import& codec, const browser::DetailedSettlementHistory& source, const std::string& path)
@@ -1538,6 +2061,15 @@ browser::DetailedSettlementHistory Mapping<DetailedSettlementHistory>::write(con
     return result;
 }
 
+void Mapping<DetailedSettlementHistory>::digest(Digest& codec, const DetailedSettlementHistory& source)
+{
+    codec.fields("deaths", source.deaths);
+    codec.fields("victories", source.victories);
+    codec.fields("springDeaths", source.springDeaths);
+    codec.fields("lastDeathSec", source.lastDeathSec);
+    codec.fields("lastDeathCount", source.lastDeathCount);
+}
+
 ControlUnrest Mapping<ControlUnrest>::read(Import& codec, const browser::ControlUnrest& source, const std::string& path)
 {
     ControlUnrest result{};
@@ -1556,6 +2088,13 @@ browser::ControlUnrest Mapping<ControlUnrest>::write(const Export& codec, const 
     return result;
 }
 
+void Mapping<ControlUnrest>::digest(Digest& codec, const ControlUnrest& source)
+{
+    codec.fields("startedSec", source.startedSec);
+    codec.fields("untilSec", source.untilSec);
+    codec.fields("previousController", source.previousController);
+}
+
 DetailedSettlementControl Mapping<DetailedSettlementControl>::read(Import& codec, const browser::DetailedSettlementControl& source, const std::string& path)
 {
     DetailedSettlementControl result{};
@@ -1572,6 +2111,13 @@ browser::DetailedSettlementControl Mapping<DetailedSettlementControl>::write(con
     codec.write(result.claimant, source.claimant);
     codec.write(result.claimChecks, source.claimChecks);
     return result;
+}
+
+void Mapping<DetailedSettlementControl>::digest(Digest& codec, const DetailedSettlementControl& source)
+{
+    codec.fields("unrest", source.unrest);
+    codec.fields("claimant", source.claimant);
+    codec.fields("claimChecks", source.claimChecks);
 }
 
 DetailedSettlementGarrison Mapping<DetailedSettlementGarrison>::read(Import& codec, const browser::DetailedSettlementGarrison& source, const std::string& path)
@@ -1596,6 +2142,15 @@ browser::DetailedSettlementGarrison Mapping<DetailedSettlementGarrison>::write(c
     return result;
 }
 
+void Mapping<DetailedSettlementGarrison>::digest(Digest& codec, const DetailedSettlementGarrison& source)
+{
+    codec.fields("supplied", source.supplied);
+    codec.fields("paid", source.paid);
+    codec.fields("required", source.required);
+    codec.fields("tSec", source.tSec);
+    codec.fields("supportTargetRegionId", source.supportTargetRegionId);
+}
+
 DetailedSettlementLastDefense Mapping<DetailedSettlementLastDefense>::read(Import& codec, const browser::DetailedSettlementLastDefense& source, const std::string& path)
 {
     DetailedSettlementLastDefense result{};
@@ -1612,6 +2167,13 @@ browser::DetailedSettlementLastDefense Mapping<DetailedSettlementLastDefense>::w
     codec.write(result.result, source.result);
     codec.write(result.sourceRegionId, source.sourceRegionId);
     return result;
+}
+
+void Mapping<DetailedSettlementLastDefense>::digest(Digest& codec, const DetailedSettlementLastDefense& source)
+{
+    codec.fields("tSec", source.tSec);
+    codec.fields("result", source.result);
+    codec.fields("sourceRegionId", source.sourceRegionId);
 }
 
 PoliticalForceEntry Mapping<PoliticalForceEntry>::read(Import& codec, const browser::PoliticalForceEntry& source, const std::string& path)
@@ -1632,6 +2194,14 @@ browser::PoliticalForceEntry Mapping<PoliticalForceEntry>::write(const Export& c
     codec.write(result.defenseOnly, source.defenseOnly);
     codec.write(result.untilSec, source.untilSec);
     return result;
+}
+
+void Mapping<PoliticalForceEntry>::digest(Digest& codec, const PoliticalForceEntry& source)
+{
+    codec.fields("allegiance", source.allegiance);
+    codec.fields("amount", source.amount);
+    codec.fields("defenseOnly", source.defenseOnly);
+    codec.fields("untilSec", source.untilSec);
 }
 
 SupportBank Mapping<SupportBank>::read(Import& codec, const browser::SupportBank& source, const std::string& path)
@@ -1656,6 +2226,15 @@ browser::SupportBank Mapping<SupportBank>::write(const Export& codec, const Supp
     return result;
 }
 
+void Mapping<SupportBank>::digest(Digest& codec, const SupportBank& source)
+{
+    codec.fields("formation", source.formation);
+    codec.fields("siege", source.siege);
+    codec.fields("mobility", source.mobility);
+    codec.fields("coordination", source.coordination);
+    codec.fields("greatHost", source.greatHost);
+}
+
 SeasonalFoodBoost Mapping<SeasonalFoodBoost>::read(Import& codec, const browser::SeasonalFoodBoost& source, const std::string& path)
 {
     SeasonalFoodBoost result{};
@@ -1676,6 +2255,14 @@ browser::SeasonalFoodBoost Mapping<SeasonalFoodBoost>::write(const Export& codec
     return result;
 }
 
+void Mapping<SeasonalFoodBoost>::digest(Digest& codec, const SeasonalFoodBoost& source)
+{
+    codec.fields("year", source.year);
+    codec.fields("practiceId", source.practiceId);
+    codec.fields("amount", source.amount);
+    codec.fields("seasons", source.seasons);
+}
+
 CandidateDevelopment Mapping<CandidateDevelopment>::read(Import& codec, const browser::CandidateDevelopment& source, const std::string& path)
 {
     CandidateDevelopment result{};
@@ -1692,6 +2279,12 @@ browser::CandidateDevelopment Mapping<CandidateDevelopment>::write(const Export&
     return result;
 }
 
+void Mapping<CandidateDevelopment>::digest(Digest& codec, const CandidateDevelopment& source)
+{
+    codec.fields("scholar", source.scholar);
+    codec.fields("warrior", source.warrior);
+}
+
 HappinessFloor Mapping<HappinessFloor>::read(Import& codec, const browser::HappinessFloor& source, const std::string& path)
 {
     HappinessFloor result{};
@@ -1706,6 +2299,12 @@ browser::HappinessFloor Mapping<HappinessFloor>::write(const Export& codec, cons
     codec.write(result.status, source.status);
     codec.write(result.remainingResolutions, source.remainingResolutions);
     return result;
+}
+
+void Mapping<HappinessFloor>::digest(Digest& codec, const HappinessFloor& source)
+{
+    codec.fields("status", source.status);
+    codec.fields("remainingResolutions", source.remainingResolutions);
 }
 
 DetailedSettlement Mapping<DetailedSettlement>::read(Import& codec, const browser::DetailedSettlement& source, const std::string& path)
@@ -1766,6 +2365,33 @@ browser::DetailedSettlement Mapping<DetailedSettlement>::write(const Export& cod
     return result;
 }
 
+void Mapping<DetailedSettlement>::digest(Digest& codec, const DetailedSettlement& source)
+{
+    codec.fields("birthAllegianceCredits", source.birthAllegianceCredits);
+    codec.fields("populationByClass", source.populationByClass);
+    codec.fields("unlockedPracticeSlots", source.unlockedPracticeSlots);
+    codec.fields("practiceSlots", source.practiceSlots);
+    codec.fields("structureSlots", source.structureSlots);
+    codec.fields("elderOrder", source.elderOrder);
+    codec.fields("lastMeal", source.lastMeal);
+    codec.fields("lastMoonResult", source.lastMoonResult);
+    codec.fields("practiceActivationTrace", source.practiceActivationTrace);
+    codec.fields("mealRelief", source.mealRelief);
+    codec.fields("history", source.history);
+    codec.fields("control", source.control);
+    codec.fields("garrison", source.garrison);
+    codec.fields("lastDefense", source.lastDefense);
+    codec.fields("politicalForce", source.politicalForce);
+    codec.fields("supportBank", source.supportBank);
+    codec.fields("seasonalFoodBoost", source.seasonalFoodBoost);
+    codec.fields("candidateDevelopment", source.candidateDevelopment);
+    codec.fields("regionalChaos", source.regionalChaos);
+    codec.fields("research", source.research);
+    codec.fields("previewBonus", source.previewBonus);
+    codec.fields("shopQualityBonus", source.shopQualityBonus);
+    codec.fields("happinessFloor", source.happinessFloor);
+}
+
 NeutralStock Mapping<NeutralStock>::read(Import& codec, const browser::NeutralStock& source, const std::string& path)
 {
     NeutralStock result{};
@@ -1792,6 +2418,17 @@ browser::NeutralStock Mapping<NeutralStock>::write(const Export& codec, const Ne
     return result;
 }
 
+void Mapping<NeutralStock>::digest(Digest& codec, const NeutralStock& source)
+{
+    codec.fields("id", source.id);
+    codec.fields("label", source.label);
+    codec.fields("traits", source.traits);
+    codec.fields("price", source.price);
+    codec.fields("capacity", source.capacity);
+    codec.fields("replenishment", source.replenishment);
+    codec.fields("stock", source.stock);
+}
+
 NeutralMarket Mapping<NeutralMarket>::read(Import& codec, const browser::NeutralMarket& source, const std::string& path)
 {
     NeutralMarket result{};
@@ -1816,6 +2453,16 @@ browser::NeutralMarket Mapping<NeutralMarket>::write(const Export& codec, const 
     return result;
 }
 
+void Mapping<NeutralMarket>::digest(Digest& codec, const NeutralMarket& source)
+{
+    codec.fields("template_", source.template_);
+    codec.fields("defense", source.defense);
+    codec.fields("housing", source.housing);
+    codec.fields("currencyStock", source.currencyStock);
+    codec.fields("practices", source.practices);
+    codec.fields("stocks", source.stocks);
+}
+
 Town Mapping<Town>::read(Import& codec, const browser::Town& source, const std::string& path)
 {
     Town result{};
@@ -1832,6 +2479,13 @@ browser::Town Mapping<Town>::write(const Export& codec, const Town& source)
     codec.write(result.activated, source.activated);
     codec.write(result.market, source.market);
     return result;
+}
+
+void Mapping<Town>::digest(Digest& codec, const Town& source)
+{
+    codec.fields("type", source.type);
+    codec.fields("activated", source.activated);
+    codec.fields("market", source.market);
 }
 
 Site Mapping<Site>::read(Import& codec, const browser::Site& source, const std::string& path)
@@ -1860,6 +2514,17 @@ browser::Site Mapping<Site>::write(const Export& codec, const Site& source)
     return result;
 }
 
+void Mapping<Site>::digest(Digest& codec, const Site& source)
+{
+    codec.fields("id", source.id);
+    codec.fields("regionId", source.regionId);
+    codec.fields("simulationMode", source.simulationMode);
+    codec.fields("name", source.name);
+    codec.fields("detailedState", source.detailedState);
+    codec.fields("town", source.town);
+    codec.fields("neutral", source.neutral);
+}
+
 World Mapping<World>::read(Import& codec, const browser::World& source, const std::string& path)
 {
     World result{};
@@ -1878,6 +2543,14 @@ browser::World Mapping<World>::write(const Export& codec, const World& source)
     codec.write(result.connections, source.connections);
     codec.write(result.sites, source.sites);
     return result;
+}
+
+void Mapping<World>::digest(Digest& codec, const World& source)
+{
+    codec.fields("definitionId", source.definitionId);
+    codec.fields("regions", source.regions);
+    codec.fields("connections", source.connections);
+    codec.fields("sites", source.sites);
 }
 
 PracticeEvent Mapping<PracticeEvent>::read(Import& codec, const browser::PracticeEvent& source, const std::string& path, std::uint32_t row)
@@ -1974,6 +2647,51 @@ browser::PracticeEvent Mapping<PracticeEvent>::write(const Export& codec, const 
     return result;
 }
 
+void Mapping<PracticeEvent>::digest(Digest& codec, const PracticeEvent& source, std::uint32_t row)
+{
+    codec.fields("tSec", source.tSec);
+    codec.fields("kind", source.kind);
+    codec.fields("regionId", source.regionId);
+    codec.fields("targetPracticeId", codec.eventPayload(row).targetPracticeId);
+    codec.fields("slotIndex", codec.eventPayload(row).slotIndex);
+    codec.fields("rootId", source.rootId);
+    codec.fields("parentId", source.parentId);
+    codec.fields("providers", codec.eventPayload(row).providers);
+    codec.fields("practiceId", codec.eventPayload(row).practiceId);
+    codec.fields("activationType", codec.eventPayload(row).activationType);
+    codec.fields("id", source.id);
+    codec.fields("amount", codec.eventPayload(row).amount);
+    codec.fields("traits", codec.eventPayload(row).traits);
+    codec.fields("tags", codec.eventPayload(row).tags);
+    codec.fields("pool", codec.eventPayload(row).pool);
+    codec.fields("scholarStaffed", codec.eventPayload(row).scholarStaffed);
+    codec.fields("discharge", codec.eventPayload(row).discharge);
+    codec.fields("phase", codec.eventPayload(row).phase);
+    codec.fields("premature", codec.eventPayload(row).premature);
+    codec.fields("faction", codec.eventPayload(row).faction);
+    codec.fields("controller", codec.eventPayload(row).controller);
+    codec.fields("instanceId", codec.eventPayload(row).instanceId);
+    codec.fields("reason", codec.eventPayload(row).reason);
+    codec.fields("cause", codec.eventPayload(row).cause);
+    codec.fields("targetRegionId", codec.eventPayload(row).targetRegionId);
+    codec.fields("structureId", codec.eventPayload(row).structureId);
+    codec.fields("previousController", codec.eventPayload(row).previousController);
+    codec.fields("military", codec.eventPayload(row).military);
+    codec.fields("untilSec", codec.eventPayload(row).untilSec);
+    codec.fields("classId", codec.eventPayload(row).classId);
+    codec.fields("actionKind", codec.eventPayload(row).actionKind);
+    codec.fields("action", codec.eventPayload(row).action);
+    codec.fields("outcome", codec.eventPayload(row).outcome);
+    codec.fields("sourceRegionId", codec.eventPayload(row).sourceRegionId);
+    codec.fields("strengthBefore", codec.eventPayload(row).strengthBefore);
+    codec.fields("strengthAfter", codec.eventPayload(row).strengthAfter);
+    codec.fields("martial", codec.eventPayload(row).martial);
+    codec.fields("destinationId", codec.eventPayload(row).destinationId);
+    codec.fields("sourceRegionIds", codec.eventPayload(row).sourceRegionIds);
+    codec.fields("charge", codec.eventPayload(row).charge);
+    codec.fields("threshold", codec.eventPayload(row).threshold);
+}
+
 StockTransfersTransfersEntry Mapping<StockTransfersTransfersEntry>::read(Import& codec, const browser::StockTransfersTransfersEntry& source, const std::string& path)
 {
     StockTransfersTransfersEntry result{};
@@ -2010,6 +2728,22 @@ browser::StockTransfersTransfersEntry Mapping<StockTransfersTransfersEntry>::wri
     return result;
 }
 
+void Mapping<StockTransfersTransfersEntry>::digest(Digest& codec, const StockTransfersTransfersEntry& source)
+{
+    codec.fields("transferId", source.transferId);
+    codec.fields("boundarySec", source.boundarySec);
+    codec.fields("systemId", source.systemId);
+    codec.fields("resourceId", source.resourceId);
+    codec.fields("reason", source.reason);
+    codec.fields("kind", source.kind);
+    codec.fields("sourceRegionId", source.sourceRegionId);
+    codec.fields("destinationRegionId", source.destinationRegionId);
+    codec.fields("slotIndex", source.slotIndex);
+    codec.fields("practiceId", source.practiceId);
+    codec.fields("traits", source.traits);
+    codec.fields("amount", source.amount);
+}
+
 PracticeEventJournalStockTransfers Mapping<PracticeEventJournalStockTransfers>::read(Import& codec, const browser::PracticeEventJournalStockTransfers& source, const std::string& path)
 {
     PracticeEventJournalStockTransfers result{};
@@ -2024,6 +2758,12 @@ browser::PracticeEventJournalStockTransfers Mapping<PracticeEventJournalStockTra
     codec.write(result.tSec, source.tSec);
     codec.write(result.transfers, source.transfers);
     return result;
+}
+
+void Mapping<PracticeEventJournalStockTransfers>::digest(Digest& codec, const PracticeEventJournalStockTransfers& source)
+{
+    codec.fields("tSec", source.tSec);
+    codec.fields("transfers", source.transfers);
 }
 
 PracticeEventJournal Mapping<PracticeEventJournal>::read(Import& codec, const browser::PracticeEventJournal& source, const std::string& path)
@@ -2050,6 +2790,16 @@ browser::PracticeEventJournal Mapping<PracticeEventJournal>::write(const Export&
     return result;
 }
 
+void Mapping<PracticeEventJournal>::digest(Digest& codec, const PracticeEventJournal& source)
+{
+    codec.fields("nextId", source.nextId);
+    codec.fields("pending", source.pending);
+    codec.fields("trace", source.trace);
+    codec.fields("stockTransfers", source.stockTransfers);
+    codec.fields("activeRoot", source.activeRoot);
+    codec.fields("activeEvent", source.activeEvent);
+}
+
 CivilizationCandidateDevelopment Mapping<CivilizationCandidateDevelopment>::read(Import& codec, const browser::CivilizationCandidateDevelopment& source, const std::string& path)
 {
     CivilizationCandidateDevelopment result{};
@@ -2064,6 +2814,12 @@ browser::CivilizationCandidateDevelopment Mapping<CivilizationCandidateDevelopme
     codec.write(result.scholar, source.scholar);
     codec.write(result.warrior, source.warrior);
     return result;
+}
+
+void Mapping<CivilizationCandidateDevelopment>::digest(Digest& codec, const CivilizationCandidateDevelopment& source)
+{
+    codec.fields("scholar", source.scholar);
+    codec.fields("warrior", source.warrior);
 }
 
 ChaosLastMonsterSpawn Mapping<ChaosLastMonsterSpawn>::read(Import& codec, const browser::ChaosLastMonsterSpawn& source, const std::string& path)
@@ -2092,6 +2848,17 @@ browser::ChaosLastMonsterSpawn Mapping<ChaosLastMonsterSpawn>::write(const Expor
     return result;
 }
 
+void Mapping<ChaosLastMonsterSpawn>::digest(Digest& codec, const ChaosLastMonsterSpawn& source)
+{
+    codec.fields("tSec", source.tSec);
+    codec.fields("cause", source.cause);
+    codec.fields("outcome", source.outcome);
+    codec.fields("sourceRegionId", source.sourceRegionId);
+    codec.fields("targetRegionId", source.targetRegionId);
+    codec.fields("strengthBefore", source.strengthBefore);
+    codec.fields("strengthAfter", source.strengthAfter);
+}
+
 LastMoonIncomeFaithPopulation Mapping<LastMoonIncomeFaithPopulation>::read(Import& codec, const browser::LastMoonIncomeFaithPopulation& source, const std::string& path)
 {
     LastMoonIncomeFaithPopulation result{};
@@ -2110,6 +2877,14 @@ browser::LastMoonIncomeFaithPopulation Mapping<LastMoonIncomeFaithPopulation>::w
     codec.write(result.gold, source.gold);
     codec.write(result.diamond, source.diamond);
     return result;
+}
+
+void Mapping<LastMoonIncomeFaithPopulation>::digest(Digest& codec, const LastMoonIncomeFaithPopulation& source)
+{
+    codec.fields("bronze", source.bronze);
+    codec.fields("silver", source.silver);
+    codec.fields("gold", source.gold);
+    codec.fields("diamond", source.diamond);
 }
 
 ChaosLastMoonIncome Mapping<ChaosLastMoonIncome>::read(Import& codec, const browser::ChaosLastMoonIncome& source, const std::string& path)
@@ -2160,6 +2935,28 @@ browser::ChaosLastMoonIncome Mapping<ChaosLastMoonIncome>::write(const Export& c
     return result;
 }
 
+void Mapping<ChaosLastMoonIncome>::digest(Digest& codec, const ChaosLastMoonIncome& source)
+{
+    codec.fields("prematureDeaths", source.prematureDeaths);
+    codec.fields("oldAgeDeaths", source.oldAgeDeaths);
+    codec.fields("externalEmigrants", source.externalEmigrants);
+    codec.fields("primordialPressure", source.primordialPressure);
+    codec.fields("unrestPressure", source.unrestPressure);
+    codec.fields("prematureDeathPressure", source.prematureDeathPressure);
+    codec.fields("prematureDeathMitigation", source.prematureDeathMitigation);
+    codec.fields("externalEmigrationPressure", source.externalEmigrationPressure);
+    codec.fields("oldAgeDeathPressure", source.oldAgeDeathPressure);
+    codec.fields("internalMigrationPressure", source.internalMigrationPressure);
+    codec.fields("rawPressure", source.rawPressure);
+    codec.fields("faithPopulation", source.faithPopulation);
+    codec.fields("resistance", source.resistance);
+    codec.fields("populationResistance", source.populationResistance);
+    codec.fields("incomingChaos", source.incomingChaos);
+    codec.fields("totalIncome", source.totalIncome);
+    codec.fields("accumulatedChaos", source.accumulatedChaos);
+    codec.fields("spawned", source.spawned);
+}
+
 ChaosPendingLosses Mapping<ChaosPendingLosses>::read(Import& codec, const browser::ChaosPendingLosses& source, const std::string& path)
 {
     ChaosPendingLosses result{};
@@ -2180,6 +2977,15 @@ browser::ChaosPendingLosses Mapping<ChaosPendingLosses>::write(const Export& cod
     codec.write(result.internalMigrants, source.internalMigrants);
     codec.write(result.prematureDeathMitigation, source.prematureDeathMitigation);
     return result;
+}
+
+void Mapping<ChaosPendingLosses>::digest(Digest& codec, const ChaosPendingLosses& source)
+{
+    codec.fields("prematureDeaths", source.prematureDeaths);
+    codec.fields("oldAgeDeaths", source.oldAgeDeaths);
+    codec.fields("externalEmigrants", source.externalEmigrants);
+    codec.fields("internalMigrants", source.internalMigrants);
+    codec.fields("prematureDeathMitigation", source.prematureDeathMitigation);
 }
 
 CivilizationChaos Mapping<CivilizationChaos>::read(Import& codec, const browser::CivilizationChaos& source, const std::string& path)
@@ -2214,6 +3020,20 @@ browser::CivilizationChaos Mapping<CivilizationChaos>::write(const Export& codec
     return result;
 }
 
+void Mapping<CivilizationChaos>::digest(Digest& codec, const CivilizationChaos& source)
+{
+    codec.fields("chaosPower", source.chaosPower);
+    codec.fields("monsterCount", source.monsterCount);
+    codec.fields("spatialSpawns", source.spatialSpawns);
+    codec.fields("monsterPressure", source.monsterPressure);
+    codec.fields("expansionEvents", source.expansionEvents);
+    codec.fields("lastPressureRegionId", source.lastPressureRegionId);
+    codec.fields("lastMonsterSpawn", source.lastMonsterSpawn);
+    codec.fields("lastMoonIncome", source.lastMoonIncome);
+    codec.fields("pendingLosses", source.pendingLosses);
+    codec.fields("pendingUnrestIncome", source.pendingUnrestIncome);
+}
+
 CivilizationHistory Mapping<CivilizationHistory>::read(Import& codec, const browser::CivilizationHistory& source, const std::string& path)
 {
     CivilizationHistory result{};
@@ -2238,6 +3058,16 @@ browser::CivilizationHistory Mapping<CivilizationHistory>::write(const Export& c
     return result;
 }
 
+void Mapping<CivilizationHistory>::digest(Digest& codec, const CivilizationHistory& source)
+{
+    codec.fields("lostSettlements", source.lostSettlements);
+    codec.fields("victories", source.victories);
+    codec.fields("raids", source.raids);
+    codec.fields("conquests", source.conquests);
+    codec.fields("monsterTrophies", source.monsterTrophies);
+    codec.fields("trades", source.trades);
+}
+
 CivilizationResearch Mapping<CivilizationResearch>::read(Import& codec, const browser::CivilizationResearch& source, const std::string& path)
 {
     CivilizationResearch result{};
@@ -2250,6 +3080,11 @@ browser::CivilizationResearch Mapping<CivilizationResearch>::write(const Export&
     browser::CivilizationResearch result{};
     codec.write(result.total, source.total);
     return result;
+}
+
+void Mapping<CivilizationResearch>::digest(Digest& codec, const CivilizationResearch& source)
+{
+    codec.fields("total", source.total);
 }
 
 CivilizationRetiredVassalsEntry Mapping<CivilizationRetiredVassalsEntry>::read(Import& codec, const browser::CivilizationRetiredVassalsEntry& source, const std::string& path)
@@ -2280,6 +3115,18 @@ browser::CivilizationRetiredVassalsEntry Mapping<CivilizationRetiredVassalsEntry
     return result;
 }
 
+void Mapping<CivilizationRetiredVassalsEntry>::digest(Digest& codec, const CivilizationRetiredVassalsEntry& source)
+{
+    codec.fields("vassalId", source.vassalId);
+    codec.fields("retirementRegionId", source.retirementRegionId);
+    codec.fields("classId", source.classId);
+    codec.fields("completedCommissions", source.completedCommissions);
+    codec.fields("finalCunning", source.finalCunning);
+    codec.fields("finalWisdom", source.finalWisdom);
+    codec.fields("finalEffectiveness", source.finalEffectiveness);
+    codec.fields("finalIntelligence", source.finalIntelligence);
+}
+
 PhaseModifiers Mapping<PhaseModifiers>::read(Import& codec, const browser::PhaseModifiers& source, const std::string& path)
 {
     PhaseModifiers result{};
@@ -2298,6 +3145,13 @@ browser::PhaseModifiers Mapping<PhaseModifiers>::write(const Export& codec, cons
     return result;
 }
 
+void Mapping<PhaseModifiers>::digest(Digest& codec, const PhaseModifiers& source)
+{
+    codec.fields("housingByRegion", source.housingByRegion);
+    codec.fields("foodByRegion", source.foodByRegion);
+    codec.fields("faithResistance", source.faithResistance);
+}
+
 CivilizationGreen Mapping<CivilizationGreen>::read(Import& codec, const browser::CivilizationGreen& source, const std::string& path)
 {
     CivilizationGreen result{};
@@ -2310,6 +3164,11 @@ browser::CivilizationGreen Mapping<CivilizationGreen>::write(const Export& codec
     browser::CivilizationGreen result{};
     codec.write(result.tier, source.tier);
     return result;
+}
+
+void Mapping<CivilizationGreen>::digest(Digest& codec, const CivilizationGreen& source)
+{
+    codec.fields("tier", source.tier);
 }
 
 VassalLegacyFutureStartingStatBonuses Mapping<VassalLegacyFutureStartingStatBonuses>::read(Import& codec, const browser::VassalLegacyFutureStartingStatBonuses& source, const std::string& path)
@@ -2332,6 +3191,14 @@ browser::VassalLegacyFutureStartingStatBonuses Mapping<VassalLegacyFutureStartin
     return result;
 }
 
+void Mapping<VassalLegacyFutureStartingStatBonuses>::digest(Digest& codec, const VassalLegacyFutureStartingStatBonuses& source)
+{
+    codec.fields("cunning", source.cunning);
+    codec.fields("wisdom", source.wisdom);
+    codec.fields("effectiveness", source.effectiveness);
+    codec.fields("intelligence", source.intelligence);
+}
+
 CivilizationVassalLegacy Mapping<CivilizationVassalLegacy>::read(Import& codec, const browser::CivilizationVassalLegacy& source, const std::string& path)
 {
     CivilizationVassalLegacy result{};
@@ -2346,6 +3213,12 @@ browser::CivilizationVassalLegacy Mapping<CivilizationVassalLegacy>::write(const
     codec.write(result.futureStartingPrestigeBonus, source.futureStartingPrestigeBonus);
     codec.write(result.futureStartingStatBonuses, source.futureStartingStatBonuses);
     return result;
+}
+
+void Mapping<CivilizationVassalLegacy>::digest(Digest& codec, const CivilizationVassalLegacy& source)
+{
+    codec.fields("futureStartingPrestigeBonus", source.futureStartingPrestigeBonus);
+    codec.fields("futureStartingStatBonuses", source.futureStartingStatBonuses);
 }
 
 VassalStats Mapping<VassalStats>::read(Import& codec, const browser::VassalStats& source, const std::string& path)
@@ -2366,6 +3239,14 @@ browser::VassalStats Mapping<VassalStats>::write(const Export& codec, const Vass
     codec.write(result.effectiveness, source.effectiveness);
     codec.write(result.intelligence, source.intelligence);
     return result;
+}
+
+void Mapping<VassalStats>::digest(Digest& codec, const VassalStats& source)
+{
+    codec.fields("cunning", source.cunning);
+    codec.fields("wisdom", source.wisdom);
+    codec.fields("effectiveness", source.effectiveness);
+    codec.fields("intelligence", source.intelligence);
 }
 
 LifeMapPendingResolution Mapping<LifeMapPendingResolution>::read(Import& codec, const browser::LifeMapPendingResolution& source, const std::string& path)
@@ -2390,6 +3271,15 @@ browser::LifeMapPendingResolution Mapping<LifeMapPendingResolution>::write(const
     return result;
 }
 
+void Mapping<LifeMapPendingResolution>::digest(Digest& codec, const LifeMapPendingResolution& source)
+{
+    codec.fields("kind", source.kind);
+    codec.fields("nodeId", source.nodeId);
+    codec.fields("startSec", source.startSec);
+    codec.fields("resolveSec", source.resolveSec);
+    codec.fields("phaseCost", source.phaseCost);
+}
+
 LifeMap Mapping<LifeMap>::read(Import& codec, const browser::LifeMap& source, const std::string& path)
 {
     LifeMap result{};
@@ -2412,6 +3302,16 @@ browser::LifeMap Mapping<LifeMap>::write(const Export& codec, const LifeMap& sou
     codec.write(result.nodeStates, source.nodeStates);
     codec.write(result.pendingResolution, source.pendingResolution);
     return result;
+}
+
+void Mapping<LifeMap>::digest(Digest& codec, const LifeMap& source)
+{
+    codec.fields("graph", source.graph);
+    codec.fields("currentNodeId", source.currentNodeId);
+    codec.fields("completedNodeIds", source.completedNodeIds);
+    codec.fields("availableNodeIds", source.availableNodeIds);
+    codec.fields("nodeStates", source.nodeStates);
+    codec.fields("pendingResolution", source.pendingResolution);
 }
 
 LifeEventsIntervention Mapping<LifeEventsIntervention>::read(Import& codec, const browser::LifeEventsIntervention& source, const std::string& path)
@@ -2444,6 +3344,20 @@ browser::LifeEventsIntervention Mapping<LifeEventsIntervention>::write(const Exp
     codec.write(result.qualityBonus, source.qualityBonus);
     codec.write(result.capacity, source.capacity);
     return result;
+}
+
+void Mapping<LifeEventsIntervention>::digest(Digest& codec, const LifeEventsIntervention& source)
+{
+    codec.fields("kind", source.kind);
+    codec.fields("targetRegionId", source.targetRegionId);
+    codec.fields("practiceId", source.practiceId);
+    codec.fields("mode", source.mode);
+    codec.fields("tier", source.tier);
+    codec.fields("resultingTier", source.resultingTier);
+    codec.fields("instanceId", source.instanceId);
+    codec.fields("structureId", source.structureId);
+    codec.fields("qualityBonus", source.qualityBonus);
+    codec.fields("capacity", source.capacity);
 }
 
 VassalLifeEventsEntry Mapping<VassalLifeEventsEntry>::read(Import& codec, const browser::VassalLifeEventsEntry& source, const std::string& path)
@@ -2484,6 +3398,24 @@ browser::VassalLifeEventsEntry Mapping<VassalLifeEventsEntry>::write(const Expor
     codec.write(result.fromRegionId, source.fromRegionId);
     codec.write(result.toRegionId, source.toRegionId);
     return result;
+}
+
+void Mapping<VassalLifeEventsEntry>::digest(Digest& codec, const VassalLifeEventsEntry& source)
+{
+    codec.fields("eventId", source.eventId);
+    codec.fields("kind", source.kind);
+    codec.fields("tSec", source.tSec);
+    codec.fields("text", source.text);
+    codec.fields("nodeId", source.nodeId);
+    codec.fields("offerId", source.offerId);
+    codec.fields("intervention", source.intervention);
+    codec.fields("result", source.result);
+    codec.fields("age", source.age);
+    codec.fields("choiceId", source.choiceId);
+    codec.fields("statId", source.statId);
+    codec.fields("causeOfDeath", source.causeOfDeath);
+    codec.fields("fromRegionId", source.fromRegionId);
+    codec.fields("toRegionId", source.toRegionId);
 }
 
 CommissionOffer Mapping<CommissionOffer>::read(Import& codec, const browser::CommissionOffer& source, const std::string& path)
@@ -2530,6 +3462,27 @@ browser::CommissionOffer Mapping<CommissionOffer>::write(const Export& codec, co
     codec.write(result.nodeLabel, source.nodeLabel);
     codec.write(result.amount, source.amount);
     return result;
+}
+
+void Mapping<CommissionOffer>::digest(Digest& codec, const CommissionOffer& source)
+{
+    codec.fields("id", source.id);
+    codec.fields("difficulty", source.difficulty);
+    codec.fields("label", source.label);
+    codec.fields("description", source.description);
+    codec.fields("event", source.event);
+    codec.fields("prestige", source.prestige);
+    codec.fields("offerId", source.offerId);
+    codec.fields("parameter", source.parameter);
+    codec.fields("tag", source.tag);
+    codec.fields("statId", source.statId);
+    codec.fields("statLabel", source.statLabel);
+    codec.fields("regionId", source.regionId);
+    codec.fields("locationLabel", source.locationLabel);
+    codec.fields("minimumQuality", source.minimumQuality);
+    codec.fields("nodeFamily", source.nodeFamily);
+    codec.fields("nodeLabel", source.nodeLabel);
+    codec.fields("amount", source.amount);
 }
 
 ActiveCommission Mapping<ActiveCommission>::read(Import& codec, const browser::ActiveCommission& source, const std::string& path)
@@ -2582,6 +3535,30 @@ browser::ActiveCommission Mapping<ActiveCommission>::write(const Export& codec, 
     codec.write(result.progress, source.progress);
     codec.write(result.startingStat, source.startingStat);
     return result;
+}
+
+void Mapping<ActiveCommission>::digest(Digest& codec, const ActiveCommission& source)
+{
+    codec.fields("id", source.id);
+    codec.fields("difficulty", source.difficulty);
+    codec.fields("label", source.label);
+    codec.fields("description", source.description);
+    codec.fields("event", source.event);
+    codec.fields("prestige", source.prestige);
+    codec.fields("offerId", source.offerId);
+    codec.fields("parameter", source.parameter);
+    codec.fields("tag", source.tag);
+    codec.fields("statId", source.statId);
+    codec.fields("statLabel", source.statLabel);
+    codec.fields("regionId", source.regionId);
+    codec.fields("locationLabel", source.locationLabel);
+    codec.fields("minimumQuality", source.minimumQuality);
+    codec.fields("nodeFamily", source.nodeFamily);
+    codec.fields("nodeLabel", source.nodeLabel);
+    codec.fields("amount", source.amount);
+    codec.fields("acceptedSec", source.acceptedSec);
+    codec.fields("progress", source.progress);
+    codec.fields("startingStat", source.startingStat);
 }
 
 Vassal Mapping<Vassal>::read(Import& codec, const browser::Vassal& source, const std::string& path)
@@ -2656,6 +3633,40 @@ browser::Vassal Mapping<Vassal>::write(const Export& codec, const Vassal& source
     return result;
 }
 
+void Mapping<Vassal>::digest(Digest& codec, const Vassal& source)
+{
+    codec.fields("classId", source.classId);
+    codec.fields("founderClassId", source.founderClassId);
+    codec.fields("archetype", source.archetype);
+    codec.fields("candidateId", source.candidateId);
+    codec.fields("locationRegionId", source.locationRegionId);
+    codec.fields("originRegionId", source.originRegionId);
+    codec.fields("prestige", source.prestige);
+    codec.fields("stats", source.stats);
+    codec.fields("portrait", source.portrait);
+    codec.fields("signatureNode", source.signatureNode);
+    codec.fields("vassalId", source.vassalId);
+    codec.fields("initialAge", source.initialAge);
+    codec.fields("selectedSec", source.selectedSec);
+    codec.fields("selectedYear", source.selectedYear);
+    codec.fields("developmentProgress", source.developmentProgress);
+    codec.fields("developmentChoiceQueue", source.developmentChoiceQueue);
+    codec.fields("nextDevelopmentChoiceId", source.nextDevelopmentChoiceId);
+    codec.fields("lifeMap", source.lifeMap);
+    codec.fields("lifeEvents", source.lifeEvents);
+    codec.fields("isDead", source.isDead);
+    codec.fields("endedReason", source.endedReason);
+    codec.fields("deathCause", source.deathCause);
+    codec.fields("endSec", source.endSec);
+    codec.fields("heirlooms", source.heirlooms);
+    codec.fields("commissionOffers", source.commissionOffers);
+    codec.fields("deathSec", source.deathSec);
+    codec.fields("discoveryAccess", source.discoveryAccess);
+    codec.fields("commissionHistory", source.commissionHistory);
+    codec.fields("completedCommissions", source.completedCommissions);
+    codec.fields("commission", source.commission);
+}
+
 Lineage Mapping<Lineage>::read(Import& codec, const browser::Lineage& source, const std::string& path)
 {
     Lineage result{};
@@ -2694,6 +3705,23 @@ browser::Lineage Mapping<Lineage>::write(const Export& codec, const Lineage& sou
     return result;
 }
 
+void Mapping<Lineage>::digest(Digest& codec, const Lineage& source)
+{
+    codec.fields("tenuresRemaining", source.tenuresRemaining);
+    codec.fields("nextVassalId", source.nextVassalId);
+    codec.fields("founderClassId", source.founderClassId);
+    codec.fields("establishedClassId", source.establishedClassId);
+    codec.fields("currentVassalId", source.currentVassalId);
+    codec.fields("selectedVassalIds", source.selectedVassalIds);
+    codec.fields("vassalsById", source.vassalsById);
+    codec.fields("pendingCandidates", source.pendingCandidates);
+    codec.fields("candidateRerollCount", source.candidateRerollCount);
+    codec.fields("nextHeirloomInstanceId", source.nextHeirloomInstanceId);
+    codec.fields("pendingHeirloomLoadout", source.pendingHeirloomLoadout);
+    codec.fields("pendingVaultOverflow", source.pendingVaultOverflow);
+    codec.fields("lastInheritanceReport", source.lastInheritanceReport);
+}
+
 MigrationIntent Mapping<MigrationIntent>::read(Import& codec, const browser::MigrationIntent& source, const std::string& path)
 {
     MigrationIntent result{};
@@ -2714,6 +3742,15 @@ browser::MigrationIntent Mapping<MigrationIntent>::write(const Export& codec, co
     codec.write(result.composition, source.composition);
     codec.write(result.requested, source.requested);
     return result;
+}
+
+void Mapping<MigrationIntent>::digest(Digest& codec, const MigrationIntent& source)
+{
+    codec.fields("reason", source.reason);
+    codec.fields("sourceId", source.sourceId);
+    codec.fields("sourceClassId", source.sourceClassId);
+    codec.fields("composition", source.composition);
+    codec.fields("requested", source.requested);
 }
 
 MoonTurn Mapping<MoonTurn>::read(Import& codec, const browser::MoonTurn& source, const std::string& path)
@@ -2746,6 +3783,19 @@ browser::MoonTurn Mapping<MoonTurn>::write(const Export& codec, const MoonTurn& 
     return result;
 }
 
+void Mapping<MoonTurn>::digest(Digest& codec, const MoonTurn& source)
+{
+    codec.fields("moonIndex", source.moonIndex);
+    codec.fields("startedSec", source.startedSec);
+    codec.fields("phaseId", source.phaseId);
+    codec.fields("phaseIndex", source.phaseIndex);
+    codec.fields("regions", source.regions);
+    codec.fields("migrationIntents", source.migrationIntents);
+    codec.fields("movements", source.movements);
+    codec.fields("unresolved", source.unresolved);
+    codec.fields("migrationIntentSummaries", source.migrationIntentSummaries);
+}
+
 CivilizationTreasury Mapping<CivilizationTreasury>::read(Import& codec, const browser::CivilizationTreasury& source, const std::string& path)
 {
     CivilizationTreasury result{};
@@ -2758,6 +3808,11 @@ browser::CivilizationTreasury Mapping<CivilizationTreasury>::write(const Export&
     browser::CivilizationTreasury result{};
     codec.write(result.grossIncome, source.grossIncome);
     return result;
+}
+
+void Mapping<CivilizationTreasury>::digest(Digest& codec, const CivilizationTreasury& source)
+{
+    codec.fields("grossIncome", source.grossIncome);
 }
 
 CivilizationRemnant Mapping<CivilizationRemnant>::read(Import& codec, const browser::CivilizationRemnant& source, const std::string& path)
@@ -2776,6 +3831,13 @@ browser::CivilizationRemnant Mapping<CivilizationRemnant>::write(const Export& c
     codec.write(result.classId, source.classId);
     codec.write(result.faction, source.faction);
     return result;
+}
+
+void Mapping<CivilizationRemnant>::digest(Digest& codec, const CivilizationRemnant& source)
+{
+    codec.fields("capitalRegionId", source.capitalRegionId);
+    codec.fields("classId", source.classId);
+    codec.fields("faction", source.faction);
 }
 
 Civilization Mapping<Civilization>::read(Import& codec, const browser::Civilization& source, const std::string& path)
@@ -2830,6 +3892,30 @@ browser::Civilization Mapping<Civilization>::write(const Export& codec, const Ci
     return result;
 }
 
+void Mapping<Civilization>::digest(Digest& codec, const Civilization& source)
+{
+    codec.fields("capitalRegionId", source.capitalRegionId);
+    codec.fields("capitalSiteId", source.capitalSiteId);
+    codec.fields("practiceEvents", source.practiceEvents);
+    codec.fields("candidateDevelopment", source.candidateDevelopment);
+    codec.fields("chaos", source.chaos);
+    codec.fields("history", source.history);
+    codec.fields("research", source.research);
+    codec.fields("retiredVassals", source.retiredVassals);
+    codec.fields("phaseModifiers", source.phaseModifiers);
+    codec.fields("green", source.green);
+    codec.fields("vassalLegacy", source.vassalLegacy);
+    codec.fields("heirloomVault", source.heirloomVault);
+    codec.fields("vassalLineage", source.vassalLineage);
+    codec.fields("currentMoonTurn", source.currentMoonTurn);
+    codec.fields("lastMoonTurn", source.lastMoonTurn);
+    codec.fields("lastPopulationAgingYear", source.lastPopulationAgingYear);
+    codec.fields("prestige", source.prestige);
+    codec.fields("treasury", source.treasury);
+    codec.fields("nextPracticeInstanceId", source.nextPracticeInstanceId);
+    codec.fields("remnant", source.remnant);
+}
+
 LegacyFeedEntry Mapping<LegacyFeedEntry>::read(Import& codec, const browser::LegacyFeedEntry& source, const std::string& path)
 {
     LegacyFeedEntry result{};
@@ -2842,6 +3928,11 @@ browser::LegacyFeedEntry Mapping<LegacyFeedEntry>::write(const Export& codec, co
     browser::LegacyFeedEntry result{};
     codec.write(result.id, source.id);
     return result;
+}
+
+void Mapping<LegacyFeedEntry>::digest(Digest& codec, const LegacyFeedEntry& source)
+{
+    codec.fields("id", source.id);
 }
 
 SkillModifiersGlobal Mapping<SkillModifiersGlobal>::read(Import& codec, const browser::SkillModifiersGlobal& source, const std::string& path)
@@ -2864,6 +3955,14 @@ browser::SkillModifiersGlobal Mapping<SkillModifiersGlobal>::write(const Export&
     return result;
 }
 
+void Mapping<SkillModifiersGlobal>::digest(Digest& codec, const SkillModifiersGlobal& source)
+{
+    codec.fields("apCapBonus", source.apCapBonus);
+    codec.fields("editableHistoryWindowBonusSec", source.editableHistoryWindowBonusSec);
+    codec.fields("projectionHorizonBonusSec", source.projectionHorizonBonusSec);
+    codec.fields("populationFoodMult", source.populationFoodMult);
+}
+
 SkillModifiers Mapping<SkillModifiers>::read(Import& codec, const browser::SkillModifiers& source, const std::string& path)
 {
     SkillModifiers result{};
@@ -2880,6 +3979,12 @@ browser::SkillModifiers Mapping<SkillModifiers>::write(const Export& codec, cons
     return result;
 }
 
+void Mapping<SkillModifiers>::digest(Digest& codec, const SkillModifiers& source)
+{
+    codec.fields("global", source.global);
+    codec.fields("pawnById", source.pawnById);
+}
+
 SkillRuntime Mapping<SkillRuntime>::read(Import& codec, const browser::SkillRuntime& source, const std::string& path)
 {
     SkillRuntime result{};
@@ -2894,6 +3999,12 @@ browser::SkillRuntime Mapping<SkillRuntime>::write(const Export& codec, const Sk
     codec.write(result.modifiers, source.modifiers);
     codec.write(result.unlocks, source.unlocks);
     return result;
+}
+
+void Mapping<SkillRuntime>::digest(Digest& codec, const SkillRuntime& source)
+{
+    codec.fields("modifiers", source.modifiers);
+    codec.fields("unlocks", source.unlocks);
 }
 
 core::RngState Mapping<core::RngState>::read(Import& codec, const browser::RngSeeds& source, const std::string& path)
@@ -2920,6 +4031,16 @@ browser::RngSeeds Mapping<core::RngState>::write(const Export& codec, const core
     return result;
 }
 
+void Mapping<core::RngState>::digest(Digest& codec, const core::RngState& source)
+{
+    codec.fields("seed", source.seed);
+    codec.fields("baseSeed", source.baseSeed);
+    codec.fields("vassalSeed", source.vassalSeed);
+    codec.fields("vassalDevelopmentSeed", source.vassalDevelopmentSeed);
+    codec.fields("vassalLifeMapSeed", source.vassalLifeMapSeed);
+    codec.fields("vassalPortraitSeed", source.vassalPortraitSeed);
+}
+
 RunStatus Mapping<RunStatus>::read(Import& codec, const browser::RunStatus& source, const std::string& path)
 {
     RunStatus result{};
@@ -2938,6 +4059,14 @@ browser::RunStatus Mapping<RunStatus>::write(const Export& codec, const RunStatu
     codec.write(result.year, source.year);
     codec.write(result.tSec, source.tSec);
     return result;
+}
+
+void Mapping<RunStatus>::digest(Digest& codec, const RunStatus& source)
+{
+    codec.fields("complete", source.complete);
+    codec.fields("reason", source.reason);
+    codec.fields("year", source.year);
+    codec.fields("tSec", source.tSec);
 }
 
 HotState Mapping<HotState>::read(Import& codec, const browser::GameState& source, const std::string& path)
@@ -3005,4 +4134,36 @@ browser::GameState Mapping<HotState>::write(const Export& codec, const HotState&
     codec.write(result.rulesetId, source.rulesetId);
     codec.write(result.runStatus, source.runStatus);
     return result;
+}
+
+void Mapping<HotState>::digest(Digest& codec, const HotState& source)
+{
+    codec.fields("gameStateSchemaVersion", source.gameStateSchemaVersion);
+    codec.fields("phase", source.phase);
+    codec.fields("turn", source.turn);
+    codec.fields("seasons", source.seasons);
+    codec.fields("currentSeasonIndex", source.currentSeasonIndex);
+    codec.fields("year", source.year);
+    codec.fields("simStepIndex", source.simStepIndex);
+    codec.fields("tSec", source.tSec);
+    codec.fields("seasonTimeRemaining", source.seasonTimeRemaining);
+    codec.fields("seasonDurationSec", source.seasonDurationSec);
+    codec.fields("simTime", source.simTime);
+    codec.fields("seasonClockSec", source.seasonClockSec);
+    codec.fields("paused", source.paused);
+    codec.fields("actionPoints", source.actionPoints);
+    codec.fields("actionPointCap", source.actionPointCap);
+    codec.fields("apCapOverride", source.apCapOverride);
+    codec.fields("variantFlags", source.variantFlags);
+    codec.fields("gameConfig", codec.state.content->configHash);
+    codec.fields("world", source.world);
+    codec.fields("civilization", source.civilization);
+    codec.fields("gameEventFeed", source.gameEventFeed);
+    codec.fields("nextGameEventFeedId", source.nextGameEventFeedId);
+    codec.fields("skillProgressionDefs", source.skillProgressionDefs);
+    codec.fields("skillRuntime", source.skillRuntime);
+    codec.fields("persistentKnowledge", source.persistentKnowledge);
+    codec.fields("rng", source.rng);
+    codec.fields("rulesetId", source.rulesetId);
+    codec.fields("runStatus", source.runStatus);
 }

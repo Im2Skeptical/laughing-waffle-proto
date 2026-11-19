@@ -13,6 +13,9 @@
 #include "sim/browser/detail/json_path.hpp"
 
 #include <algorithm>
+#include <bit>
+#include <cmath>
+#include <tuple>
 
 namespace waffle::sim {
 namespace {
@@ -346,6 +349,171 @@ struct Export {
     }
 };
 
+#include "sim/state/mirror_fields.generated.inc"
+
+struct Digest : Export {
+    std::uint64_t& hash;
+
+    void word(std::uint64_t value) const
+    {
+        // Mix values explicitly so endianness, padding and STL layout
+        // cannot affect the stream.
+        hash = std::rotl(hash ^ value, 27) * UINT64_C(0x9e3779b185ebca87);
+    }
+
+    void add(std::string_view value)
+    {
+        word(value.size());
+        std::uint64_t bytes = 0;
+        unsigned shift = 0;
+        for (const unsigned char byte : value) {
+            bytes |= static_cast<std::uint64_t>(byte) << shift;
+            shift += 8;
+            if (shift == 64) {
+                word(bytes);
+                bytes = 0;
+                shift = 0;
+            }
+        }
+        if (shift != 0) word(bytes);
+    }
+
+    void add(const core::json::Value& value)
+    {
+        using Kind = core::json::Value::Kind;
+        word(static_cast<std::uint64_t>(value.kind()));
+        switch (value.kind()) {
+        case Kind::null: break;
+        case Kind::boolean: add(value.as_bool()); break;
+        case Kind::number: add(value.as_number()); break;
+        case Kind::string: add(value.as_string()); break;
+        case Kind::array: add(value.as_array()); break;
+        case Kind::object:
+            word(value.as_object().size());
+            for (const auto& property : value.as_object()) {
+                add(property.key);
+                add(property.value);
+            }
+            break;
+        }
+    }
+
+    template<class T>
+    void fields(std::string_view name, const T& value)
+    {
+        try {
+            add(value);
+        } catch (const std::domain_error& error) {
+            throw std::domain_error(std::string(name) + "." + error.what());
+        }
+    }
+
+    template<class T>
+    void add(const T& value, std::uint32_t row = no_index)
+    {
+        if constexpr (std::is_same_v<T, double>) {
+            if (!std::isfinite(value)) throw std::domain_error("non-finite number");
+            word(std::bit_cast<std::uint64_t>(value));
+        } else if constexpr (std::is_integral_v<T> || std::is_enum_v<T>) {
+            word(static_cast<std::uint64_t>(value));
+        } else if constexpr (std::is_same_v<T, std::string>) {
+            add(std::string_view(value));
+        } else if constexpr (std::is_same_v<T, HistoryTextId>) {
+            add(payload->text.at(value.value));
+        } else if constexpr (wrapped<T, Id>) {
+            add(state.name(value));
+        } else if constexpr (wrapped<T, std::optional>) {
+            word(value.has_value());
+            if (value) add(*value);
+        } else if constexpr (wrapped<T, browser::OptionalNullable>) {
+            word(value.has_key());
+            if (value.has_key()) add(value.value());
+        } else if constexpr (wrapped<T, std::vector>) {
+            word(value.size());
+            for (const auto& element : value) add(element);
+        } else if constexpr (wrapped<T, std::variant>) {
+            word(value.index());
+            std::visit([&](const auto& element) { add(element); }, value);
+        } else if constexpr (requires { typename std::tuple_size<T>::type; }) {
+            std::apply([&](const auto&... fields) { (add(fields), ...); }, value);
+        } else if constexpr (requires { mirror_fields(value, [](const auto&) {}); }) {
+            mirror_fields(value, [&](const auto& field) { add(field); });
+        } else if constexpr (std::is_same_v<T, PracticeEvent>) {
+            Digest eventCodec{{state, &state.pendingPracticePayload}, hash};
+            Mapping<T>::digest(eventCodec, value, row);
+        } else if constexpr (requires { Mapping<T>::digest(*this, value, row); }) {
+            Mapping<T>::digest(*this, value, row);
+        } else {
+            Mapping<T>::digest(*this, value);
+        }
+    }
+
+    template<class Key, class T>
+    void add(const Entry<Key, T>& entry)
+    {
+        add(entry.key);
+        add(entry.value);
+    }
+
+    template<class T>
+    void add(Range<T> range)
+    {
+        word(range.size());
+        auto row = range.begin;
+        for (const auto& element : range_view(range)) {
+            if constexpr (std::is_same_v<T, PracticeEvent> || std::is_same_v<T, JointCohort>)
+                add(element, row++);
+            else
+                add(element);
+        }
+    }
+
+    template<class T>
+    void add(Index<T> index)
+    {
+        add(state.tables.at(index), index.value);
+    }
+
+    template<class T, class Field>
+    void add(ColdRef<T, Field> ref)
+    {
+        add(state.cold.at(ref.row).get());
+    }
+
+    template<class T, std::uint32_t Limit, class Field>
+    void add(HistoryRef<T, Limit, Field> ref)
+    {
+        const auto& history = state.histories.at(ref.row);
+        word(history.size());
+        history.for_each([&](const T& row, const HistoryPayload& page) {
+            Digest{{state, &page}, hash}.add(row);
+        });
+    }
+
+    void add(const PracticeBoard& board)
+    {
+        // Match the adapter's slot order, including empty slots.
+        for (const auto index : board.slots) {
+            word(static_cast<bool>(index));
+            if (index) add(index);
+        }
+    }
+
+    void add(const StructureBoard& board)
+    {
+        word(board.footprint.size());
+        for (const auto& origin : state.tables.view(board.origins)) add(origin);
+        word(no_index); // End of occupied origins.
+    }
+
+    void migration_transfer_id(const MigrationMovement& movement)
+    {
+        std::string id;
+        Export::migration_transfer_id(id, movement);
+        add(id);
+    }
+};
+
 #include "sim/state/mapping.generated.inc"
 
 PracticeBoard Import::practices(const browser::DetailedSettlementPracticeSlots& source, const std::string& path)
@@ -480,6 +648,15 @@ browser::GameState export_runtime(const RuntimeState& state)
 {
     if (!state.content) throw std::invalid_argument("$.gameConfig: runtime has no captured content");
     return Mapping<HotState>::write(Export{state}, state.hot);
+}
+
+std::uint64_t state_digest(const RuntimeState& state)
+{
+    std::uint64_t hash = UINT64_C(0x6a09e667f3bcc909);
+    Digest digest{{state}, hash};
+    digest.add(state.seasonChanged);
+    digest.add(state.hot);
+    return hash ^ (hash >> 32);
 }
 
 }
