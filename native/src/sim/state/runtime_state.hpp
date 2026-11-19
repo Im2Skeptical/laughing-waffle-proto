@@ -122,6 +122,7 @@ struct RuntimeState {
     FaithStageCache faithStage;
     FoodStageCache foodStage;
     HousingStageCache housingStage;
+    runtime::Range<runtime::MoonRegionResultDeath> deathReports;
     settlement::MigrationReservationCache migrationReservations;
     PopulationVocabulary populationVocabulary;
     settlement::MigrationCache migration;

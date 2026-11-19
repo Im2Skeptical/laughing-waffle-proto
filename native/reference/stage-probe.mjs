@@ -24,6 +24,7 @@ import { diffStates, formatStateDiff, HASHES_FILE, readHashes } from "./diff.mjs
 import { advance, applyActions, assertHash, createStart, groupReplayActions, loadScenario } from "./trace.mjs";
 import { checkFoodContention, checkSeasonalFoodBoost } from "./food-contention.mjs";
 import { checkHousingExhibit, checkHousingFaithExhibit } from "./housing-exhibit.mjs";
+import { deathExhibits } from "./scenarios/death-exhibits.mjs";
 
 const here = fileURLToPath(new URL(".", import.meta.url));
 const artifactDir = join(REPO_ROOT, "artifacts", "native-reference", "stages");
@@ -48,7 +49,7 @@ const suite = {
     3334],
   // Both Charge Birth boundaries have no newborns. At Migration 2041 a child matures.
   "seed-42-charge": [1, 19, ...chargeCascadeSeconds].sort((a, b) => a - b),
-  "seed-123-migration": [2033, 2039, 2041, 2123, 2129, 2675],
+  "seed-123-migration": [2033, 2034, 2039, 2041, 2123, 2124, 2129, 2130, 2675, 2676],
   "seed-1-territory": [6, 9, 17],
 };
 
@@ -307,6 +308,40 @@ function writeOrCheck(id, sec, files, check) {
   }
 }
 
+function captureDeathExhibits(id, second, files, check) {
+  for (const exhibit of deathExhibits) {
+    if (exhibit.source !== id || exhibit.second !== second) continue;
+    const source = JSON.parse(files.get("manifest.json"));
+    const from = source.stages.find(({ name }) => name === exhibit.from);
+    const { state } = JSON.parse(files.get(source.boundaries[from.before].file));
+    attachRngHelpers(state);
+    const captures = new Map();
+    const stages = [];
+    const boundaries = [];
+    const writeBoundary = (name, edge) => {
+      const file = edge + "-" + name + ".json";
+      const data = snapshot(state, null, exhibit.id + "/" + file);
+      const index = boundaries.length;
+      boundaries.push({ file, tick: tickCount, simStepIndex: state.simStepIndex, tSec: state.tSec,
+        stateHash: sha256Value(data.state), sidecar: data.sidecar });
+      captures.set(file, JSON.stringify(data));
+      return index;
+    };
+    exhibit.execute(state, (name, step) => {
+      const before = writeBoundary(name, "before");
+      step();
+      const after = writeBoundary(name, "after");
+      stages.push({ name, firstTick: tickCount, lastTick: tickCount, before, after });
+    }, requireThat, advanceClock);
+    captures.set("manifest.json", JSON.stringify({
+      formatVersion: 1, baseline: source.baseline, scenario: exhibit.id, second: state.tSec,
+      ticksPerSecond: tickCount, stages, boundaries, end: boundaries.length - 1,
+      preparedFrom: { scenario: id, second, stage: exhibit.from },
+    }, null, 2) + "\n");
+    writeOrCheck(exhibit.id, state.tSec, captures, check);
+  }
+}
+
 function main(args) {
   const check = args.includes("--check");
   const positional = args.filter(arg => arg !== "--check");
@@ -341,6 +376,7 @@ function main(args) {
         id + "/" + sec + ": start state differs from the preceding trace row");
       const { files, stageCount } = captureSecond(id, baseline, live, sec, actions, hashes);
       writeOrCheck(id, sec, files, check);
+      captureDeathExhibits(id, sec, files, check);
       stages += stageCount;
     }
     console.log(id + ": " + (check ? "checked " : "captured ") + seconds.length +

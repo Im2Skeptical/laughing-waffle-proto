@@ -429,6 +429,9 @@ RuntimeState import_live_state(const browser::GameState& state, std::shared_ptr<
     settlement::prepare_prelude(result);
     settlement::prepare_birth(result);
     settlement::prepare_migration(result);
+    if (result.hot.variantFlags.settlementPrototypeEnabled)
+        result.deathReports = result.tables.table<MoonRegionResultDeath>().append(
+            3 * result.hot.world.sites.size(), "Death reports");
     stages::prepare_faith(result);
     stages::prepare_food(result);
     stages::prepare_housing(result);
