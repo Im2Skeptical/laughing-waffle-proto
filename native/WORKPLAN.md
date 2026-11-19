@@ -2712,6 +2712,111 @@ foreach ($preset in 'optimized','optimized-clang') {
 
 **Cross-runtime handoff.** The browser and native timegraphs share the dense every-second summary and independent restore contracts. The native measurements show how much consecutive per-region series repeat. The browser can measure that repetition on the same fixtures before considering a page encoding. The Windows memory and loaded-worker timings apply to the native desktop runtime. Device and input-to-visible latency remain with the connected slice. No supervisor decision is required for N04c.
 
+### N04d - Windows connected playable slice
+
+Windows implementation complete on `t3/native-connected-slice`. Start with the
+[design and launch guide](docs/connected-slice.md). The game builds an ordinary
+New Game from a seed or admits a generated regional browser state or runner save.
+The regional map, roads, controllers, settlement board and Practice inspector
+read the same immutable live or viewed snapshot. In Practice Reform, stage a
+reorder, see its time cost and confirm. Ported actions enter the journal and
+advance to resolution. A new forecast replaces the old one and publishes the
+population strip incrementally. Press or drag to inspect a revealed second and
+use Live to return. The opening waits for forecast completion.
+
+#### Performance
+
+Windows 11 x64 build 26200, i9-10900K, RTX 3080, SDL Direct3D 11, 1120×640,
+VSync off. Three fresh processes per preset. The 20-region seed-1 workload uses
+the N04c longevity settings (`phaseDurationSec=64`,
+`monsterExpansionThreshold=1000000000`), leaving the 8-second seasons intact.
+An opening forecast and one untimed scrub warm the path before a real Practice
+reorder replaces the generation. All six replacements reached second 32,192
+from a live frontier of 192, covering 1,000 years beyond live.
+
+Values are medians of the three per-run statistics. Startup measures from app
+entry to first SDL present and to the first playable present. Frame samples
+include session polling, graph and UI rendering, and present while the forecast
+was running. The summary row includes only frames that consumed new rows.
+Isolated reconstruction replays the same sampled offsets on packed anchors
+built from published states and excludes queueing, layout and render. The
+combined row pairs this timing with the actual restore frame's render/present
+time. Input-to-present includes scheduling, polling, reconstruction and
+rendering from the scripted plot pointer path. Memory is sampled at completion
+before the independent reconstruction probe.
+
+| Measurement | `optimized` MSVC | `optimized-clang` |
+| --- | ---: | ---: |
+| First present / playable, ms | 602 / 729 | 445 / 573 |
+| Replacement forecast wall time, ms | 279 | 237 |
+| Active forecast frames / loaded scrubs, median count | 261 / 130 | 210 / 104 |
+| Frame time p50 / p95 / p99, ms | 1.095 / 1.388 / 1.602 | 1.008 / 2.255 / 2.599 |
+| Summary transfer and chart update p95, ms | 0.027 | 0.060 |
+| Rendering and present p95, ms | 1.249 | 2.022 |
+| Isolated reconstruction p95, ms | 0.180 | 0.158 |
+| Reconstruction plus render p95, ms | 1.445 | 2.237 |
+| Loaded scrub input-to-present p95, ms / frames | 2.573 / 2 | 4.122 / 2 |
+| Working set / private bytes, MiB | 190.6 / 217.3 | 189.0 / 217.2 |
+| Forecast ledger / texture estimate, MiB | 104.1 / 13.9 | 104.3 / 13.9 |
+
+Every sampled loaded scrub presented within two harness frames. The worst
+elapsed input-to-present across the six runs was 5.385 ms. Raw per-run timings
+are in `artifacts/n04d/bench-optimized-*.json` and
+`artifacts/n04d/bench-optimized-clang-*.json`.
+
+#### Verification and reproduction
+
+Both presets passed 45/45 CTests, including seeded New Game, browser state
+admission and runner-envelope import at a nonzero live frontier. The smoke
+asserts the board order, action count, cost spent and generation change. It
+submits superseding scrub requests, compares the displayed state's parity digest
+with `rebuildStateAtSecond`, rejects an edit while viewing the forecast and
+returns to the same live state. Seed 42 captured live at t=148 and preview at
+t=227. On each preset, step parity passed 30 windows and 153 comparisons with
+zero masks. Replay parity passed 33 journals, 242 browser checkpoints in three
+replay modes and 55 rejected actions.
+
+From the worktree root, with the shared toolchain junction already in place:
+
+```powershell
+. native/tools/env.ps1
+Push-Location native
+foreach ($preset in 'optimized','optimized-clang') {
+    cmake --preset $preset
+    cmake --build --preset $preset
+    ctest --preset $preset --output-on-failure
+}
+Pop-Location
+node native/reference/trace.mjs
+foreach ($preset in 'optimized','optimized-clang') {
+    $parity = "native/build/$preset/src/sim/waffle_parity.exe"
+    node native/reference/step-windows.mjs $parity
+    node native/reference/replay-windows.mjs $parity
+}
+
+New-Item -ItemType Directory -Force artifacts/n04d | Out-Null
+node -e "const fs=require('node:fs'),s=JSON.parse(fs.readFileSync('native/reference/fixtures/seed-1/state-0.json')); Object.assign(s.gameConfig.settings.values,{phaseDurationSec:64,monsterExpansionThreshold:1e9}); fs.writeFileSync('artifacts/n04d/seed-1-n04c-long.json',JSON.stringify(s))"
+$env:SDL_RENDER_DRIVER = 'direct3d11'
+foreach ($preset in 'optimized','optimized-clang') {
+    foreach ($sample in 1..3) {
+        & "native/build/$preset/waffle_native_game.exe" --bench 2400 "artifacts/n04d/bench-$preset-$sample.json" --load artifacts/n04d/seed-1-n04c-long.json
+    }
+}
+& native/build/optimized/waffle_native_game.exe --seed 42 --capture artifacts/n04d
+```
+
+Captures in `artifacts/n04d/`: `01-regional-map.png`,
+`02-practice-inspection.png`, `03-forecast-preview.png` and
+`04-return-to-live.png`.
+
+**Remaining coverage.** Full Life Map and shop workflows, native saves,
+browser persistent-knowledge overlays, illustrated regional terrain, previous
+forecast overlays, reveal and time-advance animations, and Pixel validation.
+Browser source and existing art are unchanged. The cross-runtime result is
+that bounded dense summary reads and direct, generation-checked priority
+restores fit the Windows input budget under this forecast workload. Browser
+worker transport and physical device timing still need their own measurements.
+
 ## N05 - Iteration and installed profiles (pending N04)
 
 Finish development, performance and full-art installed profiles sharing the same
