@@ -146,7 +146,12 @@ void check_case(RuntimeState& state, const Value& test)
 
 void check_moon_buffers(RuntimeState state)
 {
-    const auto before = state.tables.live_bytes();
+    const auto moonRows = [&] {
+        return std::array{state.tables.rows<Entry<RegionId, MoonRegionResult>>().size(),
+                          state.tables.rows<MoonRegionResult>().size(),
+                          state.tables.rows<MoonRegionResultBirth>().size()};
+    };
+    const auto before = moonRows();
     for (int second = 1; second <= 60; ++second) {
         expect(advance_one_second(state), "clock did not advance");
         if (second == 6) {
@@ -157,11 +162,15 @@ void check_moon_buffers(RuntimeState state)
             expect(fork.hot.civilization.lastMoonTurn->startedSec == 1 && turn.phaseIndex == 5,
                    "rollover changed the source copy");
             const auto& site = site_at(fork, detailed_sites(fork).front());
-            expect(fork.tables.at(*site.detailedState.lastMoonResult).currencySpent == 17,
-                   "rollover lost the previous region result");
+            const auto& previous = fork.tables.at(*site.detailedState.lastMoonResult);
+            expect(previous.currencySpent == 17, "rollover lost the previous region result");
+            expect(previous.birth && fork.tables.at(*previous.birth).tSec == 1,
+                   "rollover overwrote the previous Birth report");
         }
     }
-    expect(state.tables.live_bytes() == before, "steady-state moon rollover grew the arenas");
+    // More people and age bins can grow the population tables. Rollover and
+    // Birth report publication always use the rows reserved at admission.
+    expect(moonRows() == before, "steady-state moon rollover grew the report arenas");
 }
 
 }

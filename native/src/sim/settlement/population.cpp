@@ -431,4 +431,21 @@ void combine_specialist_cohorts(const std::array<Cohort, 3>& parts, Cohort& comb
     for (const auto& part : parts) add_age_cohort(combined, view(part), 1, scratch);
 }
 
+void write_legacy_cohorts(RuntimeState& state, SiteId site, Residency residency,
+                          const std::array<Cohort, 3>& parts, const Cohort& combined)
+{
+    auto& populations = site_at(state, site).detailedState.populationByClass;
+    auto& population = residency == Residency::villager ? populations.villager : populations.stranger;
+    auto& storage = state.indexes.sites[site.value].elderStorage[static_cast<std::size_t>(residency)];
+    auto& table = state.tables.table<ElderCohort>();
+    seed_storage(storage[0], population.eldersByAge);
+    seed_storage(storage[1], population.specialists.scholar.eldersByAge);
+    seed_storage(storage[2], population.specialists.warrior.eldersByAge);
+    copy_cohort(population, combined, acquire_rows(table, storage[0], combined.elders.size()), state);
+    copy_cohort(population.specialists.scholar, parts[1],
+                acquire_rows(table, storage[1], parts[1].elders.size()), state);
+    copy_cohort(population.specialists.warrior, parts[2],
+                acquire_rows(table, storage[2], parts[2].elders.size()), state);
+}
+
 }

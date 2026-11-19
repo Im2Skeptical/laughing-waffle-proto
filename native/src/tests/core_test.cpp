@@ -285,6 +285,29 @@ void check_rng(const json::Value& vectors)
     }
 }
 
+void check_rng_counts()
+{
+    constexpr auto increment = double(rng_seed_increment);
+    constexpr std::array seeds{
+        -0x1p63, -1.25, 0.25, 1.0, 0x1p32 - increment, 0x1p53 - increment * 512,
+        0x1p53 - increment * 512 + 1, 0x1p53 - increment * 10, 0x1p53, 0x1p63 - 2048, 0x1p64};
+    constexpr std::array probabilities{0.0, 0x1p-33, 0.02, 0.5, 1.0 - 0x1p-40, 1.0};
+    for (const double seed : seeds) {
+        for (const double probability : probabilities) {
+            for (const std::uint64_t draws : {0, 1, 512, 513}) {
+                RngState scalar{seed, 1, 2, 3, 4, 5};
+                auto bulk = scalar;
+                std::uint64_t expected = 0;
+                for (std::uint64_t i = 0; i < draws; ++i)
+                    expected += rng_next_float(scalar, RngStream::main) < probability;
+                expect(rng_count_below(bulk, draws, probability) == expected &&
+                       json::stringify(serialize_rng(bulk)) == json::stringify(serialize_rng(scalar)),
+                       "bulk draws must preserve scalar counts and RNG state");
+            }
+        }
+    }
+}
+
 void check_states(const std::filesystem::path& manifest)
 {
     const auto states = json::parse(read_file(manifest));
@@ -315,6 +338,7 @@ try {
         check_numbers(vectors);
         check_json_and_hashes(vectors);
         check_rng(vectors);
+        check_rng_counts();
     } else if (mode == "states") {
         check_states(argv[2]);
     } else if (mode == "math") {

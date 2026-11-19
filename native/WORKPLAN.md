@@ -680,6 +680,75 @@ holder checks. Native uses that existing lookup in both payment paths.
 There are no new intentional browser divergences. Android runtime parity
 and performance remain unverified.
 
+**N03e-4 result (19 Nov 2026).** `t3/native-birth-annual-cohorts-1` resumes
+`0405ee81` on the merged N03e-3 pipeline. Birth rotates the moon and copies
+the previous reports, clears Faith Resistance, activates Birth Practices
+through `practice::activate`, then rolls births, maturation and new Elders
+in browser site, residency and specialty order. It ages existing Elders at
+the first Birth boundary of the year, updates joint or legacy cohorts, and
+carries proportional allegiance credits from the pre-birth distribution.
+The main RNG advances for every browser draw, including certain outcomes. Birth reserves report
+and credit rows at admission. Per-thread scratch and population tables grow
+geometrically at new high-water marks. No schema or browser source changed.
+
+From `native/`, `cmake --preset optimized`,
+`cmake --build --preset optimized --parallel 8` and
+`ctest --preset optimized --output-on-failure` passed 30/30 tests on
+Windows. From the root, `node native/reference/trace.mjs`,
+`node native/reference/stage-probe.mjs --all` and `--all --check` confirmed
+official replay hashes. `node native/reference/stage-pairs.mjs
+native/build/optimized/src/sim/waffle_parity.exe birth` passed 20/20
+unmasked pairs, including mixed allegiances and all age strata, all four
+Faith tiers, the concurrent Birth/year wrap at seed-1/97, and zero births
+with one maturation at seed-123-migration/2041.
+`node native/reference/step-windows.mjs native/build/optimized/src/sim/waffle_parity.exe`
+passed 14 windows and 120 comparisons. The runtime corpus round-tripped
+27 trace states and the checked-in seed-1 snapshot. Both schema generators
+pass `--check`, and `npm run verify` passed. The aging year, Faith Resistance and Birth report headers,
+rates and age advances are now visible in step parity. The three full Birth report masks became
+count-only masks, and the credit and main RNG masks track dependency on the
+still-unported Death stage. There are 160 shared masks and zero N03e-4 masks.
+
+The optimized timings use µs per sim-second, on the Windows i9-10900K with
+MSVC 19.50.
+
+| Work measured | Opening seed-1/0 | Late seed-2026-late/3200 |
+| --- | ---: | ---: |
+| Exact cohorts after Practices | 2.34 | 4.18 |
+| Prototype binomial cohorts after Practices | 2.30 | 2.40 |
+| Full exact Birth stage | 7.79 | 8.49 |
+| Full prototype Birth stage | 7.91 | 6.36 |
+| Whole exact pipeline | 31.01 | 25.07 |
+
+`powershell -NoProfile -ExecutionPolicy Bypass -File artifacts/native-birth/measure.ps1`
+builds and times the ignored exact and sampled harnesses. Each stage result
+is the mean of the boundary medians, from 6,000 warm runs each at opening
+seconds 1, 7, 13, 19, 25, 31 and 37 and late seconds 3205 and 3211. One
+Birth invocation is amortized across six seconds. To time a full exact
+stage directly, use `waffle_parity stage --stage birth --before <before>
+--after <after> --time` with the captured boundary files. The pipeline medians use
+five runs of `waffle_parity step --from <window>/state-<start>.json
+--seconds <k> --expect-dir <window> --masks native/reference/parity-masks.json
+--time`, with `k=39` and `k=11` respectively. The five-run ranges were
+27.63–35.58 opening and 24.50–30.14 late. Logs and benchmark sources are in
+`artifacts/native-birth/`. The exact cohort resolver counted zero heap
+allocations across 54,000 warmed invocations. The opening repeated-copy
+benchmark counted 24 allocations at the first boundary and six at each
+later boundary, all in the rollover and Practice prefix. The late prefix
+counted zero.
+
+**Divergence proposal for supervisor review.** Inverse-binomial sampling
+uses one uniform draw for an eligible cohort, with exact per-person draws
+for fewer than 16 people or a numerically tiny starting probability mass.
+This would change Birth and downstream Death outcomes, so adopting it
+would require versioning the RNG rule and regenerating golden traces.
+It improves late cohort cost and still exceeds the 1 µs/sim-second budget.
+The committed path retains exact draws. Recipe cost and population commit
+cost remain open performance seams. Android execution remains unverified.
+The exact bulk RNG helper is reusable in Death when a roll has no observable
+per-person side effects. Browser speedup from the same arithmetic remains
+unmeasured.
+
 ## N03f - Actions, replay and new game (pending N03e)
 
 Action application and `rebuildStateAtSecond` (L2), then new game and world

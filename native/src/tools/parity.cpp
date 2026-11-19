@@ -295,6 +295,7 @@ int step(const StepOptions& options)
 struct StageOptions {
     std::string_view name;
     std::filesystem::path before, after, masks, topologyDir;
+    bool time{};
 };
 
 StageOptions parse_stage_options(int argc, char** argv)
@@ -302,6 +303,10 @@ StageOptions parse_stage_options(int argc, char** argv)
     StageOptions options;
     for (int index = 2; index < argc; ++index) {
         const std::string_view flag = argv[index];
+        if (flag == "--time" && !options.time) {
+            options.time = true;
+            continue;
+        }
         if (index + 1 == argc) throw std::invalid_argument("stage: missing value for " + std::string(flag));
         const std::string_view value = argv[++index];
         if (value.empty()) throw std::invalid_argument("stage: empty value for " + std::string(flag));
@@ -314,8 +319,36 @@ StageOptions parse_stage_options(int argc, char** argv)
     }
     if (options.name.empty() || options.before.empty() || options.after.empty())
         throw std::invalid_argument("Usage: waffle_parity stage --stage <name> --before <file> "
-                                    "--after <file> [--masks <file>] [--topology-dir <directory>]");
+                                    "--after <file> [--masks <file>] [--topology-dir <directory>] [--time]");
     return options;
+}
+
+void time_stage(sim::Stage stage, const sim::RuntimeState& initial, sim::StageContext initialContext)
+{
+    using Clock = std::chrono::steady_clock;
+    constexpr std::size_t warmups = 64;
+    constexpr std::size_t repeats = 6000;
+    auto input = initial;
+    std::vector<double> timings;
+    timings.reserve(repeats);
+    for (std::size_t run = 0; run < warmups + repeats; ++run) {
+        input = initial;
+        auto context = initialContext;
+        const auto start = Clock::now();
+        sim::run_stage(stage, input, context);
+        const auto elapsed = Clock::now() - start;
+        if (run >= warmups)
+            timings.push_back(std::chrono::duration<double, std::micro>(elapsed).count());
+    }
+    std::ranges::sort(timings);
+    const auto perInvocation = timings[repeats / 2];
+    std::cout << perInvocation << " median us/invocation";
+    if (stage == sim::Stage::birth) {
+        const auto duration = initial.content->config.settings.values.phaseDurationSec;
+        const auto secondsPerMoon = 6 * std::max(1.0, waffle::core::js::floor(duration));
+        std::cout << ", " << perInvocation / secondsPerMoon << " us/sim-second";
+    }
+    std::cout << " (" << repeats << " timed invocations).\n";
 }
 
 Value read_stage_boundary(const std::filesystem::path& path, sim::Stage stage)
@@ -365,6 +398,8 @@ int stage(const StageOptions& options)
     } else {
         context.lunar = sim::lunar_schedule_at_second(second, state.content->config.settings.values.phaseDurationSec);
     }
+    const auto timingInput = options.time ? std::optional{state} : std::nullopt;
+    const auto timingContext = context;
     const bool ported = sim::run_stage(*selected, state, context);
     if (clock && !context.clockBoundary)
         throw std::invalid_argument("stage: advance_clock requires an advancing anchor");
@@ -393,6 +428,7 @@ int stage(const StageOptions& options)
             return 3;
         }
         std::cout << "Stage parity matched " << name << ".\n";
+        if (timingInput) time_stage(*selected, *timingInput, timingContext);
         return 0;
     }
     std::cout << "Divergent stage " << name << (ported ? "" : " (not ported)") << " (" << diff.differing_leaves

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "sim/state/rows.generated.hpp"
+#include "sim/settlement/birth_storage.hpp"
 #include "sim/settlement/migration.hpp"
 #include "sim/settlement/migration_reservation.hpp"
 #include "sim/practice/runtime.hpp"
@@ -105,6 +106,7 @@ struct RuntimeState {
     std::shared_ptr<const WorldTopology> topology;
     runtime::IdTables addedIds;
     SettlementPreludeCache settlementPrelude;
+    settlement::BirthStorage birthStorage;
     FaithStageCache faithStage;
     FoodStageCache foodStage;
     settlement::MigrationReservationCache migrationReservations;
