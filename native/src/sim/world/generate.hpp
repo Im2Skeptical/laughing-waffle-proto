@@ -20,6 +20,7 @@ struct RegionalWorld {
         std::string biome;
         std::string colour;
         std::vector<int> neighbors;
+        std::array<double, 2> labelPoint{};
     };
     std::string definitionId;
     std::array<Region, regional_region_count> regions;

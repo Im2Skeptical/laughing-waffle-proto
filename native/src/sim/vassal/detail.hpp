@@ -1,5 +1,6 @@
 #pragma once
 
+#include "sim/content/compiled_content.hpp"
 #include "sim/state/runtime_state.hpp"
 
 #include <algorithm>
@@ -89,6 +90,29 @@ Bonuses bonuses(const RuntimeState& state, const Vassal& actor);
 bool spend_mandate(RuntimeState& state, Vassal& actor);
 void inherit(RuntimeState& state, Vassal& actor);
 void generate_candidates(RuntimeState& state);
+browser::LifeMapNodeStateOptions campaign_options(const RuntimeState& state, const Vassal& actor,
+                                                   const browser::LifeMapNodeState& node);
+
+template<class Bands>
+double balance_value(const content::BalanceValue& assignment, const Bands& bands)
+{
+    if (const auto* amount = std::get_if<double>(&assignment)) return *amount;
+    using enum browser::BalancePreset;
+    switch (std::get<browser::BalancePreset>(assignment)) {
+    case cheap: return bands.cheap;
+    case fair: return bands.fair;
+    case expensive: return bands.expensive;
+    default: return 0;
+    }
+}
+
+inline double year_phases(const RuntimeState& state, double years)
+{
+    const auto& settings = state.compiledContent->settings();
+    const auto seasons = state.hot.seasons.size() == 0 ? 4 : state.hot.seasons.size();
+    const auto phases = static_cast<double>(seasons) * settings.seasonDurationSec / settings.phaseDurationSec;
+    return std::max(years > 0 ? 1.0 : 0.0, core::js::round(years * phases));
+}
 
 std::vector<SiteId> player_sites(const RuntimeState& state);
 void add_event(RuntimeState& state, Vassal& actor, std::string_view kind,

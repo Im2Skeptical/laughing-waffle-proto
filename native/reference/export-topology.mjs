@@ -84,6 +84,13 @@ function capture(definitionId) {
     .filter(next => order.get(next) > order.get(id))
     .map(next => ({ regionAId: id, regionBId: next })));
   assert.deepEqual(edges, getWorldConnectionCandidates(definition), definitionId + ": candidate road order");
+  const reachable = new Set([regions[0].id]);
+  for (const id of reachable) for (const next of regions[order.get(id)].neighbors) reachable.add(next);
+  // Campaign falls back to label-point distance between disconnected regions.
+  if (reachable.size !== regions.length) for (const [index, region] of regions.entries()) {
+    const point = definition.regions[index].display?.labelPoint;
+    if (point) region.labelPoint = point;
+  }
   return { formatVersion, definitionId, generatorRevision, regions, biomeComponents: [...biomeComponents] };
 }
 
