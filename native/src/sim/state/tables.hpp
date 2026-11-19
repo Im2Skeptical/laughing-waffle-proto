@@ -6,6 +6,7 @@
 #include <compare>
 #include <cstdint>
 #include <limits>
+#include <memory_resource>
 #include <span>
 #include <stdexcept>
 #include <string_view>
@@ -65,9 +66,18 @@ struct Entry {
 
 std::uint32_t checked_index(std::size_t value, std::string_view path);
 
+// These columns can live in either hot state or a generated history payload.
+// The adapter uses the same table type for either memory resource.
+struct StockProvider;
+
+template<class T>
+inline constexpr bool history_column = std::is_same_v<T, StockProvider> || std::is_same_v<T, TraitId> ||
+    std::is_same_v<T, TagId> || std::is_same_v<T, RegionId>;
+
 template<class T>
 struct Table {
-    std::vector<T> values;
+    using Allocator = std::conditional_t<history_column<T>, std::pmr::polymorphic_allocator<T>, std::allocator<T>>;
+    std::vector<T, Allocator> values;
 
     Range<T> append(std::size_t count, std::string_view path)
     {
@@ -112,6 +122,25 @@ private:
     }
 };
 
+template<class... Ts>
+struct ArenaTables : Tables<Ts...> {
+    static_assert((history_column<Ts> && ...));
+    using Base = Tables<Ts...>;
+    using Sizes = std::array<std::size_t, sizeof...(Ts)>;
+
+    explicit ArenaTables(std::pmr::memory_resource* memory)
+        : Base{Table<Ts>{std::pmr::vector<Ts>(memory)}...} {}
+    ArenaTables(const ArenaTables& source, std::pmr::memory_resource* memory)
+        : Base{Table<Ts>{std::pmr::vector<Ts>(source.template rows<Ts>(), memory)}...} {}
+
+    Sizes checkpoint() const { return {this->template rows<Ts>().size()...}; }
+    void rollback(const Sizes& sizes)
+    {
+        std::size_t index = 0;
+        (this->template rows<Ts>().resize(sizes[index++]), ...);
+    }
+};
+
 struct PracticeSlot;
 struct StructureCell;
 
@@ -127,15 +156,27 @@ struct StructureBoard {
 
 // A per-domain insertion-ordered dictionary. Both strings and their offsets
 // occupy flat buffers, including for identities created after admission.
-struct Strings {
-    std::vector<char> bytes;
-    std::vector<Range<char>> offsets;
+template<template<class> class Allocator>
+struct BasicStrings {
+    std::vector<char, Allocator<char>> bytes;
+    std::vector<Range<char>, Allocator<Range<char>>> offsets;
+
+    BasicStrings() = default;
+    explicit BasicStrings(std::pmr::memory_resource* memory)
+        requires std::is_constructible_v<Allocator<char>, std::pmr::memory_resource*>
+        : bytes(memory), offsets(memory) {}
+    BasicStrings(const BasicStrings& source, std::pmr::memory_resource* memory)
+        requires std::is_constructible_v<Allocator<char>, std::pmr::memory_resource*>
+        : bytes(source.bytes, memory), offsets(source.offsets, memory) {}
 
     std::optional<std::uint32_t> find(std::string_view name) const;
     std::string_view at(std::uint32_t ordinal) const;
     void append(std::string_view name, std::string_view path);
     std::size_t live_bytes() const { return bytes.size() + offsets.size() * sizeof(Range<char>); }
 };
+
+using Strings = BasicStrings<std::allocator>;
+using ArenaStrings = BasicStrings<std::pmr::polymorphic_allocator>;
 
 template<class Key>
 struct Dictionary : Strings {};
