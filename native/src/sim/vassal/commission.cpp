@@ -229,11 +229,29 @@ void credit_prestige(RuntimeState& state, Vassal& actor, double amount)
 {
     const auto income = whole(amount);
     post_income(state, actor, income);
-    if (income == 0 || !active_scholar(actor) || !active_goal(actor)) return;
+    if (income != 0) record_commission_event(state, actor, "prestigeGained", {}, income);
+}
+
+void record_commission_event(RuntimeState& state, Vassal& actor, std::string_view kind,
+                             std::string_view subject, double amount)
+{
+    if (!active_scholar(actor) || !active_goal(actor)) return;
     auto& goal = *actor.commission.value();
-    if (state.name(goal.event) != "prestigeGained") return;
+    if (state.name(goal.event) != kind) return;
+    if (goal.nodeFamily && state.name(*goal.nodeFamily) != subject) return;
+    if (goal.statId && !stat_increased(state, actor, goal)) return;
+    if (goal.tag) {
+        const auto& cards = state.content->config.gamepieces;
+        const auto has_tag = [&](const auto& definitions) {
+            const auto found = std::ranges::find(definitions, subject, &std::remove_cvref_t<decltype(definitions)>::value_type::first);
+            return found != definitions.end() &&
+                std::ranges::find(found->second.tags, state.name(*goal.tag)) != found->second.tags.end();
+        };
+        if (!(kind == "practiceInstalled" ? has_tag(cards.practices) : has_tag(cards.structures))) return;
+    }
+    if (goal.regionId || goal.minimumQuality) return;
     if (goal.amount) {
-        goal.progress = std::min(*goal.amount, goal.progress + income);
+        goal.progress = std::min(*goal.amount, goal.progress + whole(amount));
         if (goal.progress < *goal.amount) return;
     }
     finish_commission(state, actor, goal);

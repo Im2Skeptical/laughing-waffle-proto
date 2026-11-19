@@ -386,4 +386,61 @@ Inventory shop_inventory(RuntimeState& state, Vassal& actor, browser::LifeMapNod
     return offers;
 }
 
+browser::OptionalNullable<browser::LifeMapNodeStateShopSelection>
+shop_specialties(RuntimeState& state, const Vassal& actor, const browser::LifeMapNodeState& node)
+{
+    using Selection = browser::LifeMapNodeStateShopSelection;
+    if (node.family != "practiceReform" && node.family != "publicWorks")
+        return browser::OptionalNullable<Selection>(std::nullopt);
+    auto eligibility = node;
+    eligibility.discoveryAccess = actor.discoveryAccess;
+    const auto definitions = candidates_for(state, actor, eligibility, {}, {}, research_unlock(state));
+    Selection selection;
+    if (node.family == "practiceReform") {
+        selection.kind = "practice";
+        const auto matches = [](const auto& candidate, std::string_view tag) {
+            return tag == "Food" ? std::ranges::find(candidate.practice->tags, tag) != candidate.practice->tags.end()
+                                 : produces_stock(*candidate.practice, tag);
+        };
+        const auto enabled = [&](std::string_view tag) {
+            return std::ranges::any_of(definitions, [&](const auto& def) { return matches(def, tag); });
+        };
+        browser::StringArray basics, other;
+        for (const auto tag : {"Food", "Construction", "Currency"})
+            if (enabled(tag)) basics.emplace_back(tag);
+        shuffle(state, basics);
+        const auto first = basics.empty() ? std::string("Food") : basics.front();
+        for (const auto& def : definitions) {
+            for (const auto& tag : def.practice->stockTraits) {
+                if (tag != first && produces_stock(*def.practice, tag) && std::ranges::find(other, tag) == other.end())
+                    other.push_back(tag);
+            }
+        }
+        std::ranges::sort(other);
+        shuffle(state, other);
+        const auto add = [&](const std::string& tag) {
+            auto lower = tag;
+            for (auto& ch : lower) if (ch >= 'A' && ch <= 'Z') ch += 'a' - 'A';
+            selection.choices.push_back({tag, tag, tag == "Food" ? "stock-edible" : "stock-" + lower,
+                tag == "Food" ? "Practices with the Food tag." : "Practices producing " + tag + " Stock.", enabled(tag)});
+        };
+        add(first);
+        if (!other.empty()) add(other.front());
+        selection.choices.push_back({"random", "Random", {}, "Open the general Practice pool. Gain 10 Prestige now.",
+            !definitions.empty(), 10});
+    } else {
+        selection.kind = "structure";
+        const auto add = [&](std::string tag, std::string icon, std::string description) {
+            const auto enabled = std::ranges::any_of(definitions, [&](const auto& def) {
+                return structure_category(*def.structure) == tag;
+            });
+            selection.choices.push_back({tag, tag, std::move(icon), std::move(description), enabled});
+        };
+        add("Housing", "housingCapacity", "Housing structures.");
+        add("Stock", "stock-construction", "Structures increasing Stock capacity.");
+        add("Special", "activation", "Other special structures.");
+    }
+    return browser::OptionalNullable<Selection>(std::move(selection));
+}
+
 }

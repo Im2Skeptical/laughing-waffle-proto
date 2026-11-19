@@ -29,6 +29,13 @@ add_library(waffle_sim STATIC
 	vassal/commission.cpp
 	vassal/inheritance.cpp
 	vassal/candidates.cpp
+	vassal/actions.cpp
+	vassal/action_graph.cpp
+	vassal/action_choices.cpp
+	vassal/action_structures.cpp
+	vassal/node_actions.cpp
+	step/actions.cpp
+	step/replay.cpp
 	step/advance_second.cpp
 	step/stages.cpp
 	stages/advance_clock.cpp
