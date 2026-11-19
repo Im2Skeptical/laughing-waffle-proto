@@ -54,12 +54,12 @@ bool inventoryChoice(const LifeChoice& choice)
     return choice.command.kind == "vassalConfirmHeirloomLoadout" || choice.command.kind == "vassalResolveVaultOverflow";
 }
 
-std::string lifeControl(std::size_t index, const LifeChoice& choice, bool selected, bool disabled,
-                        const std::map<std::string, std::string, std::less<>>& sprites)
+std::string lifeControl(std::size_t index, const LifeChoice& choice, bool selected, bool disabled)
 {
     std::string art;
-    if (const auto sprite = sprites.find(choice.art); sprite != sprites.end())
-        art = "<div class=\"life-choice-art\" style=\"decorator:image(" + sprite->second + " contain);\"></div>";
+    if (!choice.art.empty())
+        art = "<div class=\"life-choice-art\" style=\"decorator:image(/images/dark-fantasy/heirlooms-v1/" +
+            escape(choice.art) + ".png contain);\"></div>";
     return "<button class=\"button life-choice" + std::string(selected ? " chosen" : "") +
         (choice.reason.empty() ? "" : " blocked") + "\" data-op=\"life-choice\" data-id=\"" +
         std::to_string(index) + "\" data-help=\"" + escape(choice.reason.empty() ? choice.detail : choice.reason) +
@@ -190,7 +190,7 @@ void View::refreshLife(const Snapshot& snapshot)
         }
         for (std::size_t i = 0; !life_.shop && i < life_.choices.size(); ++i) {
             const auto& choice = life_.choices[i];
-            html += lifeControl(i, choice, choice.selected || std::ranges::find(heirloomPicks_, i) != heirloomPicks_.end(), disabled, sprites_);
+            html += lifeControl(i, choice, choice.selected || std::ranges::find(heirloomPicks_, i) != heirloomPicks_.end(), disabled);
         }
         if (life_.decision == "Successor's Heirlooms" || life_.decision == "Heirloom vault overflow") {
             const bool overflow = life_.decision == "Heirloom vault overflow";
@@ -300,7 +300,7 @@ std::string View::shopDetail(bool disabled) const
         }
     }
     for (std::size_t i = 0; i < life_.choices.size(); ++i)
-        html += lifeControl(i, life_.choices[i], false, disabled, sprites_);
+        html += lifeControl(i, life_.choices[i], false, disabled);
     return html;
 }
 

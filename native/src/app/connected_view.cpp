@@ -318,7 +318,8 @@ void View::refreshMarkers(const Snapshot* snapshot)
         };
         for (std::size_t holder = 0; holder < holderClass.size(); ++holder) {
             const bool changed = change(holderClass[holder], holder == static_cast<std::size_t>(region.holder));
-            markersDirty_ |= changed;
+            if (holder == static_cast<std::size_t>(Holder::player) ||
+                holder == static_cast<std::size_t>(Holder::monster)) markersDirty_ |= changed;
         }
         markersDirty_ |= change("selected", region.id == selection_.region);
     }
@@ -371,7 +372,8 @@ void View::positionMarkers()
                 const auto place = [&](float offsetX, float offsetY) {
                     const float x = std::clamp(anchorX - size.x / 2 + offsetX, 2.f, area.w - size.x - 2);
                     const float y = std::clamp(anchorY + offsetY, 2.f, area.h - size.y - 2);
-                    const SDL_FRect box{x - 2, y - 2, size.x + 4, size.y + 4};
+                    const float padding = tier < 2 ? 2.f : 4.f * density_;
+                    const SDL_FRect box{x - padding, y - padding, size.x + 2 * padding, size.y + 2 * padding};
                     if (std::ranges::any_of(placed, [&](const auto& other) { return SDL_HasRectIntersectionFloat(&box, &other); }))
                         return false;
                     marker.SetProperty("left", number(x) + "px");
@@ -380,14 +382,15 @@ void View::positionMarkers()
                     const SDL_FPoint from{area.x + anchorX, area.y + anchorY};
                     const SDL_FPoint to{area.x + std::clamp(anchorX, x, x + size.x),
                         area.y + std::clamp(anchorY, y, y + size.y)};
-                    if (!inside || std::hypot(from.x - to.x, from.y - to.y) > gap + 2)
+                    if (pinned && (!inside || std::hypot(from.x - to.x, from.y - to.y) > gap + 2))
                         markerLeaders_.emplace_back(from, to);
                     return true;
                 };
                 const float above = -size.y - gap;
-                visible = place(0, gap) || place(0, above) ||
-                    place(size.x * .45f, gap) || place(-size.x * .45f, gap) ||
-                    place(size.x * .45f, above) || place(-size.x * .45f, above);
+                visible = place(0, gap) || place(0, above);
+                if (pinned && !visible)
+                    visible = place(size.x * .45f, gap) || place(-size.x * .45f, gap) ||
+                        place(size.x * .45f, above) || place(-size.x * .45f, above);
                 if (pinned && !visible) {
                     // The selected and hovered names have first use of every
                     // open strip of the atlas, including when panned offscreen.
