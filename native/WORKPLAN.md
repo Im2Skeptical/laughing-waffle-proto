@@ -2174,6 +2174,132 @@ Windows and Pixel 6 during sustained forecasting. Report raw workload, horizon,
 build/profile, device/OS, warmup and repeated-run results. Record failures rather
 than changing gameplay or silently reducing the workload to pass.
 
+### N04a - Headless forecast core (Windows verified, allocator budget open)
+
+Implementation on `t3/native-timegraph-core` from `e1abfab6`. The
+[design note](docs/timegraph-core.md) landed first in `a2968d10`.
+`waffle_timegraph` owns one simulation worker, dense typed rows, 64-second
+anchors, prioritized asynchronous restore, edit generations and cancellation.
+Its read API copies immutable publication data. A retained generation keeps
+only the caller's previously revealed prefix. The controller will own reveal,
+New Game's wait for the complete opening projection, and live action commits.
+
+**Verification.** Run from the repository root in PowerShell.
+
+```powershell
+. native/tools/env.ps1
+Push-Location native
+foreach ($preset in 'optimized','optimized-clang') {
+    cmake --preset $preset
+    cmake --build --preset $preset --parallel 6
+    ctest --preset $preset --output-on-failure
+}
+Pop-Location
+node native/reference/trace.mjs
+foreach ($preset in 'optimized','optimized-clang') {
+    $exe = "native/build/$preset/src/sim/waffle_parity.exe"
+    node native/reference/step-windows.mjs $exe
+    node native/reference/replay-windows.mjs $exe
+}
+```
+
+Both presets passed **42/42 CTests**, including all 38 existing tests and the
+zero steady-state sim allocation gate. Step verification passed 30 windows
+and 153 comparisons with zero masks. Replay matched 58 browser checkpoints
+in three modes across 7 journals and 18 action kinds. The new tests check
+summary and anchor hashes against single-threaded `waffle_parity run`,
+random restores during active forecasts, an already-applied action boundary,
+independent copies, stale cancellation, retained coverage, storage pressure,
+and both Monster Overrun and territorial loss terminals. Both Windows workers
+also matched 32,001 summary hashes and 501 anchors against the MSVC serial
+seed-1 longevity run. The separate seed-42 Shops journal matched 193 rows
+and four anchors on both builds. Logs and streams are in `artifacts/n04a/`.
+
+To reproduce the long hash check, derive `artifacts/n04a/seed-1-longevity.json`
+from the seed-1 input below using the two N03g setting changes. Run
+`waffle_parity run` with that file on MSVC, then verify the stream on both
+presets.
+
+```powershell
+$inputState = 'artifacts/n04a/seed-1-longevity.json'
+$oracle = 'artifacts/n04a/long-hash.tsv'
+$msvc = 'native/build/optimized/src/sim/waffle_parity.exe'
+& $msvc run --from $inputState --seconds 32000 --hashes artifacts/n04a/long-hash-states.tsv --timegraph-hashes $oracle
+foreach ($preset in 'optimized','optimized-clang') {
+    $exe = "native/build/$preset/src/sim/waffle_parity.exe"
+    & $exe timegraph --from $inputState --seconds 32000 --repeats 1 --samples 0 --expect $oracle
+}
+```
+
+**Desktop bench.** Windows x64 on i9-10900K. Each CLI invocation warms up for
+512 advances, then runs three repeated forecasts and three separate loaded
+restore passes. Throughput includes worker submission, summaries, anchors
+and final publication. It excludes fixture parsing and digest validation.
+Restores measure request-to-independent-state latency for up to 256 random
+published targets per pass, sampled as coverage advances. The table uses
+median wall time and median of the per-pass percentiles. Ordinary runs both
+stop at Monster Overrun. The N03g longevity variants use `phaseDurationSec=64`
+and `monsterExpansionThreshold=1000000000` to suppress expansion.
+
+| Fixture | Preset | Seconds | Wall ms | Sim-s/s | µs/row | Restore p50 / p95 / p99 ms | Charged / process private MiB |
+| --- | --- | --- | ---: | ---: | ---: | --- | --- |
+| Seed 1 ordinary | MSVC | 0–4,890 | 118.962 | 41,106 | 24.32 | 0.665 / 1.284 / 1.392 | 51.89 / 97.56 |
+| Seed 2026 late ordinary | MSVC | 3,200–5,676 | 71.313 | 34,720 | 28.79 | 0.721 / 1.338 / 1.448 | 39.34 / 62.88 |
+| Seed 1 longevity | MSVC | 0–32,000 | 294.635 | 108,609 | 9.21 | 0.232 / 0.333 / 0.384 | 164.42 / 231.87 |
+| Seed 2026 late longevity | MSVC | 3,200–35,200 | 304.175 | 105,202 | 9.51 | 0.253 / 0.350 / 0.401 | 179.45 / 252.10 |
+| Seed 1 ordinary | Clang | 0–4,890 | 94.900 | 51,528 | 19.40 | 0.543 / 1.067 / 1.231 | 51.89 / 96.94 |
+| Seed 2026 late ordinary | Clang | 3,200–5,676 | 57.480 | 43,076 | 23.21 | 0.628 / 1.114 / 1.206 | 39.34 / 63.29 |
+| Seed 1 longevity | Clang | 0–32,000 | 225.573 | 141,861 | 7.05 | 0.197 / 0.268 / 0.308 | 164.42 / 232.23 |
+| Seed 2026 late longevity | Clang | 3,200–35,200 | 235.768 | 135,727 | 7.37 | 0.217 / 0.302 / 0.347 | 179.45 / 252.01 |
+
+These desktop medians meet the about 31 µs/published-second goal. A pass
+overlapping other native builds was substantially slower, with approximately
+94% total CPU load. **Pixel 6 is unmeasured.** Its restore targets under
+forecast load are p95 ≤4 ms and p99 ≤8 ms. Desktop headless timings leave
+input-to-visible latency for the connected slice to measure.
+
+```powershell
+$opening = 'native/reference/fixtures/seed-1/state-0.json'
+$late = 'artifacts/native-reference/traces/seed-2026-late/state-3200.json'
+foreach ($preset in 'optimized','optimized-clang') {
+    $exe = "native/build/$preset/src/sim/waffle_parity.exe"
+    & $exe timegraph --from $opening --seconds 32000 --repeats 3 --samples 256 --report "artifacts/n04a/seed-1-$preset.json"
+    & $exe timegraph --from $late --seconds 32000 --repeats 3 --samples 256 --report "artifacts/n04a/seed-2026-late-$preset.json"
+    & $exe timegraph --from $opening --seconds 32000 --repeats 3 --samples 256 --longevity --report "artifacts/n04a/seed-1-long-$preset.json"
+    & $exe timegraph --from $late --seconds 32000 --repeats 3 --samples 256 --longevity --report "artifacts/n04a/seed-2026-late-long-$preset.json"
+}
+```
+
+**Allocation and remaining budget work.** The 20-region row is 2,728 B.
+Each full longevity run uses 83.28 MiB of summary pages and 501 anchors,
+which charge 57.14 MiB on seed 1 and 72.17 MiB on seed 2026 late. Ordinary
+row writes allocate nothing. A new page and a value anchor allocate every
+64 seconds. Their storage is required to retain the row series and bound
+scrub to 63 replay steps. A restore allocates its result channel and an
+independent mutable state. The sim pipeline allocation gate is unchanged.
+
+The ledger stops at 256 MiB across both generations and budgets 24 MiB for
+working state, immutable content and shared simulation allocations. In a
+two-generation seed-1 longevity probe, the prior generation kept all
+32,001 rows, the successor stopped at second 20,863, and the store charged
+255.94 MiB. Windows private process memory reached 382 MiB in that probe
+(`artifacts/n04a/two-generations.log`). The cap is verified for accounted
+forecast storage. Shared history/slab capacity and process allocator
+overhead are outside exact accounting. The two-generation probe exceeded
+256 MiB in private process memory. Expose retained arena byte counts and attribute them across
+generations before relying on the budget for a device. Check uninterrupted
+editing with repeated retention and restore on a physical Pixel 6.
+
+**Cross-runtime handoff.** The native worker uses the browser's dense summary,
+terminal boundary, previous reveal and isolated restore contracts. Four
+representative snapshot rows matched the browser selectors directly
+(`artifacts/n04a/browser-summary.mjs`).
+The packed anchors and memory findings are specific to the native runtime.
+Leave browser stride and reveal tuning to its measured workloads.
+`npm run check:docs` passed. The supplemental browser `npm run verify`
+passed docs and architecture, then stopped at source reachability because
+this worktree lacks the `esbuild` dependency.
+
 ## N05 - Iteration and installed profiles (pending N04)
 
 Finish development, performance and full-art installed profiles sharing the same
