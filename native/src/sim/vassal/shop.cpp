@@ -193,7 +193,8 @@ std::vector<Candidate> candidates_for(const RuntimeState& state, const Vassal& a
     };
     std::vector<Candidate> candidates;
     if (!structureOnly) for (const auto& [id, def] : cards.practices) {
-        if (!legal(def, def.pool) || !matches_tag(def)) continue;
+        const auto pool = practice_pool(state, def);
+        if (!legal(def, pool) || (!matches_tag(def) && practice_prototype_tag(state, id) != requiredTag)) continue;
         if (stock && node.stockOutput && !produces_stock(def, *node.stockOutput)) continue;
         if (!stock && requiredTag.empty() && node.family == "practiceReform" && !specialty.empty()) {
             const bool matches = specialty == "Food" ? std::ranges::find(def.tags, "Food") != def.tags.end()
@@ -201,7 +202,7 @@ std::vector<Candidate> candidates_for(const RuntimeState& state, const Vassal& a
             if (!matches) continue;
         }
         if (std::ranges::any_of(board, [&](auto slot) { return slot.id == id && slot.quality == 3; })) continue;
-        candidates.push_back({&def, nullptr, def.pool});
+        candidates.push_back({&def, nullptr, pool});
     }
     if (!practiceOnly) for (const auto& [id, def] : cards.structures) {
         if (!legal(def, def.pool) || !matches_tag(def)) continue;
@@ -221,8 +222,9 @@ double ordinary_year_phases(const RuntimeState& state, double years)
 {
     const auto& settings = state.compiledContent->settings();
     const auto seasons = state.hot.seasons.size() == 0 ? 4 : state.hot.seasons.size();
-    return core::js::round(years * static_cast<double>(seasons) * settings.seasonDurationSec
-        / std::max(1.0, core::js::floor(settings.phaseDurationSec)));
+    return std::max(years > 0 ? 1.0 : 0.0,
+        core::js::round(years * static_cast<double>(seasons) * settings.seasonDurationSec
+            / std::max(1.0, core::js::floor(settings.phaseDurationSec))));
 }
 
 Inventory removal_offers(RuntimeState& state, const Site* site, const Vassal& actor,
@@ -350,7 +352,7 @@ Inventory shop_inventory(RuntimeState& state, Vassal& actor, browser::LifeMapNod
                 auto& change = offer.intervention;
                 if (change.mode == "learn") {
                     const auto quality = std::min<std::size_t>(3, quality_index(*change.resultingTier)
-                        + static_cast<std::size_t>(std::ceil(bonus)));
+                        + static_cast<std::size_t>(std::clamp(std::ceil(bonus), 0.0, 3.0)));
                     change.resultingTier = qualityIds[quality];
                     offer.label = "Learn " + title_quality(quality) + " " + practice_definition(state, *change.practiceId).label;
                 } else if (change.kind == "structure") change.qualityBonus = std::min(3.0, change.qualityBonus.value_or(0) + bonus);

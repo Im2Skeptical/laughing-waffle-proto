@@ -66,6 +66,7 @@ bool apply_timed_class_action(RuntimeState& state, Vassal& actor, const browser:
         add_event(state, actor, "classFounded", std::string(state.name(actor.vassalId)) + ":founded", {}, {}, {},
             std::string(state.name(actor.archetype)) + (scholar ? " established Scholars" : " established Warriors"));
     }
+    ensure_commission_offers(state, actor);
     practice::drain(state);
     return true;
 }

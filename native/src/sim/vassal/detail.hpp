@@ -22,6 +22,11 @@ struct SignatureDef {
     double color;
     std::string_view description, removal, tag;
 };
+struct CommissionDef {
+    std::string_view id, difficulty, label, description, event, parameter, minimumQuality;
+    double prestige, amount;
+};
+struct NodeFamilyLabel { std::string_view id, label; };
 #include "sim/vassal/tables.inc"
 
 inline constexpr std::array statIds{"cunning"sv, "wisdom"sv, "effectiveness"sv, "intelligence"sv};
@@ -94,6 +99,10 @@ browser::LifeMapNodeStateOptions campaign_options(const RuntimeState& state, con
                                                    const browser::LifeMapNodeState& node);
 browser::LifeMapNodeStateInventory shop_inventory(RuntimeState& state, Vassal& actor, browser::LifeMapNodeState& node);
 bool apply_timed_class_action(RuntimeState& state, Vassal& actor, const browser::LifeMapOptionClassAction& action);
+bool commission_due(const RuntimeState& state, const Vassal& actor);
+void ensure_commission_offers(RuntimeState& state, Vassal& actor);
+void step_commission(RuntimeState& state, Vassal& actor);
+void credit_prestige(RuntimeState& state, Vassal& actor, double amount);
 
 inline constexpr std::array qualityIds{"bronze"sv, "silver"sv, "gold"sv, "diamond"sv};
 inline std::size_t quality_index(std::string_view quality)
@@ -110,6 +119,25 @@ inline std::size_t research_unlock(const RuntimeState& state)
     if (research >= settings.researchGoldThreshold) return 2;
     if (research >= settings.researchSilverThreshold) return 1;
     return 0;
+}
+
+inline std::string_view practice_prototype_tag(const RuntimeState& state, std::string_view id)
+{
+    const auto& prototype = state.content->config.keywordPrototype;
+    if (!prototype) return {};
+    if (id == "barter") return "Economic Regions";
+    if (prototype->mode == "disciplines") {
+        if (id == "monsterHunting") return "Monster Trophies";
+        if (id == "copyingTexts") return "Synthesis";
+    } else if (id == "observation") return "Monster Trophies";
+    return {};
+}
+
+inline std::string_view practice_pool(const RuntimeState& state, const browser::PracticeDefinition& def)
+{
+    const auto& prototype = state.content->config.keywordPrototype;
+    return prototype && prototype->mode != "disciplines" && !practice_prototype_tag(state, def.id).empty()
+        ? "common"sv : std::string_view(def.pool);
 }
 
 template<class Bands>

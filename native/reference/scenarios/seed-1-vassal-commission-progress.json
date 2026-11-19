@@ -1,0 +1,20 @@
+{
+  "id": "seed-1-vassal-commission-progress",
+  "start": {
+    "kind": "vassalExhibit",
+    "seed": 1,
+    "variant": "commission-progress"
+  },
+  "actions": [],
+  "horizonSec": 2,
+  "keepSeconds": [
+    0,
+    1
+  ],
+  "windows": [
+    {
+      "startSec": 0,
+      "count": 3
+    }
+  ]
+}

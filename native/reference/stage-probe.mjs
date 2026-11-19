@@ -52,7 +52,8 @@ const suite = {
   "seed-42-charge": [1, 19, ...chargeCascadeSeconds].sort((a, b) => a - b),
   "seed-123-migration": [2033, 2034, 2039, 2041, 2123, 2124, 2129, 2130, 2675, 2676],
   "seed-1-territory": [6, 9, 17],
-  ...Object.fromEntries(vassalResolutionKinds.map(kind => ["seed-1-vassal-" + kind, [kind === "delve" ? 2 : 1]])),
+  ...Object.fromEntries(vassalResolutionKinds.map(kind => ["seed-1-vassal-" + kind,
+    kind.startsWith("commission-") || kind === "scholar-founding" ? [1, 2] : [kind === "delve" ? 2 : 1]])),
 };
 
 function requireThat(condition, message) {

@@ -148,3 +148,41 @@ inline constexpr std::string_view fullMapSeedCardIds[] = {
     {"rm_scrubForaging"},
     {"rm_saggingStorehouse"},
 };
+
+inline constexpr CommissionDef commissionDefs[] = {
+    {"practice", "easy", "Install a Practice", "Learn and install any new Practice through a shop node.", "practiceInstalled", "", "", 20, 0},
+    {"structure", "easy", "Start a Structure", "Set up construction of any Structure through a shop node. No need to finish building.", "structureStarted", "", "", 20, 0},
+    {"stat", "easy", "Increase {stat}", "Permanently increase {stat} after accepting this Commission.", "statIncreased", "statId", "", 20, 0},
+    {"relic", "easy", "Acquire a Relic", "Find and keep any Relic through a Relic node.", "relicAcquired", "", "", 20, 0},
+    {"node", "easy", "Visit {node}", "Enter a {node} node on your Life Map. Visiting is enough.", "nodeEntered", "nodeFamily", "", 20, 0},
+    {"route", "medium", "Build a route", "Build any new route through a Vassal node. Any endpoints count.", "routeBuilt", "", "", 40, 0},
+    {"travel", "medium", "Move to {location}", "Move your Vassal to {location} through a node action.", "locationMoved", "regionId", "", 40, 0},
+    {"prestige", "medium", "Gain 30 Prestige", "Earn 30 Prestige after accepting. Spending does not reduce progress.", "prestigeGained", "", "", 40, 30},
+    {"practiceTag", "hard", "Install a Practice: {tag}", "Learn and install a new Practice with the {tag} tag.", "practiceInstalled", "tag", "", 60, 0},
+    {"structureTag", "hard", "Start a Structure: {tag}", "Set up construction of a Structure with the {tag} tag. No need to finish building.", "structureStarted", "tag", "", 60, 0},
+    {"relicRarity", "hard", "Acquire a Gold Relic", "Find and keep a Gold or Diamond Relic through a Relic node.", "relicAcquired", "", "gold", 60, 0},
+};
+
+inline constexpr NodeFamilyLabel nodeFamilyLabels[] = {
+    {"philosopherFounding", "Philosopher Founding"},
+    {"warlordFounding", "Warlord Founding"},
+    {"training", "Training"},
+    {"discovery", "Discovery"},
+    {"campaign", "Campaign"},
+    {"challenge", "Challenge"},
+    {"patronage", "Patronage"},
+    {"development", "Development"},
+    {"crossroads", "Crossroads"},
+    {"practiceReform", "Practice Reform"},
+    {"publicWorks", "Public Works"},
+    {"neutralMarket", "Neutral Market"},
+    {"classMarket", "Class Market"},
+    {"foodShop", "Food Shop"},
+    {"housingShop", "Housing Shop"},
+    {"stockShop", "Stock Supply"},
+    {"crisis", "Crisis"},
+    {"legacy", "Legacy"},
+    {"signature", "Signature"},
+    {"relic", "Relic"},
+    {"specialRelic", "Special Relic"},
+};
