@@ -542,11 +542,15 @@ void View::drawGraph()
     SDL_SetRenderClipRect(renderer_, nullptr);
 }
 
-void View::frame()
+void View::prepareFrame()
 {
     now_ = SDL_GetTicks();
     refresh();
     context_.Update();
+}
+
+void View::drawFrame()
+{
     SDL_SetRenderClipRect(renderer_, nullptr);
     colour(renderer_, {22, 24, 20, 255});
     SDL_RenderClear(renderer_);

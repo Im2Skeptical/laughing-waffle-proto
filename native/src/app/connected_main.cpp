@@ -17,8 +17,9 @@ using waffle::core::json::Value;
 
 struct Options {
     Launch launch;
-    bool smoke{};
+    bool smoke{}, interactionSmoke{};
     unsigned frames{};
+    int width = 1120, height = 640;
     std::string capture, report;
 };
 
@@ -34,6 +35,11 @@ bool parse(int argc, char** argv, Options& options)
     for (int i = 1; i < argc; ++i) {
         const std::string_view arg = argv[i];
         if (arg == "--smoke") options.smoke = true;
+        else if (arg == "--interaction-smoke") options.interactionSmoke = true;
+        else if (arg == "--size" && i + 2 < argc) {
+            if (!parseNumber(argv[++i], options.width) || !parseNumber(argv[++i], options.height) ||
+                options.width < 640 || options.height < 360) return false;
+        }
         else if (arg == "--seed" && i + 1 < argc) {
             if (!parseNumber(argv[++i], options.launch.seed)) return false;
         } else if (arg == "--load" && i + 1 < argc) {
@@ -45,7 +51,7 @@ bool parse(int argc, char** argv, Options& options)
             if (i + 1 < argc && !std::string_view(argv[i + 1]).starts_with("--")) options.report = argv[++i];
         } else return false;
     }
-    return !(options.frames && (options.smoke || !options.capture.empty()));
+    return !(options.frames && (options.smoke || options.interactionSmoke || !options.capture.empty()));
 }
 
 struct Graphics {
@@ -81,12 +87,30 @@ Value stats(const std::vector<double>& samples)
         {"p99", Value(data.p99)}, {"max", Value(data.max)}});
 }
 
+double paint(View& view, Session& session, waffle::DemoClock& clock, Uint64 start)
+{
+    clock.seconds = elapsed(start) / 1000;
+    view.prepareFrame();
+    double summaryMs = 0;
+    if (session.previewing() && !session.previewReady()) {
+        // A restore can finish while RmlUi lays out the frame. Pick it up
+        // before drawing, without waiting on the worker or skipping a present.
+        const auto revision = session.viewRevision();
+        session.update();
+        summaryMs = session.summaryMs();
+        if (session.viewRevision() != revision) view.prepareFrame();
+    }
+    view.drawFrame();
+    return summaryMs;
+}
+
 void benchmark(SDL_Renderer* renderer, SdlRmlRenderer& bridge, View& view, Session& session, Selection& selection,
-    const Options& options, double startup, Uint64 start)
+    waffle::DemoClock& clock, const Options& options, double startup, Uint64 start)
 {
     const auto present = [&] {
-        view.frame();
+        const auto lateSummaryMs = paint(view, session, clock, start);
         check(SDL_RenderPresent(renderer), SDL_GetError());
+        return lateSummaryMs;
     };
     waitFor(session, [&] { return !session.opening(); }, [&](const char*) { present(); });
     const double ready = elapsed(start);
@@ -143,13 +167,14 @@ void benchmark(SDL_Renderer* renderer, SdlRmlRenderer& bridge, View& view, Sessi
         }
         const auto summaryBefore = session.chart().through;
         session.update();
+        const auto summaryMs = session.summaryMs();
         const auto renderStart = SDL_GetTicksNS();
-        present();
+        const auto lateSummaryMs = present();
         const auto end = SDL_GetTicksNS();
         if (forecasting) {
             frames.push_back(elapsed(frameStart, end));
             renders.push_back(elapsed(renderStart, end));
-            if (session.chart().through != summaryBefore) summaries.push_back(session.summaryMs());
+            if (session.chart().through != summaryBefore) summaries.push_back(summaryMs + lateSummaryMs);
         }
         if (input && session.previewReady()) {
             targets.push_back(session.displayed()->second);
@@ -204,21 +229,21 @@ int run(const Options& options)
     Session session;
     Selection selection;
     session.open(options.launch);
-    if (options.smoke && options.capture.empty()) {
+    if (options.smoke && !options.interactionSmoke && options.capture.empty()) {
         smoke(session, selection, {});
         return 0;
     }
     auto preparingArt = std::async(std::launch::async, prepareArtwork);
-    const bool automated = !options.capture.empty() || options.frames;
+    const bool automated = !options.capture.empty() || options.interactionSmoke || options.frames;
     waffle::Utf8Files files;
     waffle::DemoClock clock;
     Graphics graphics;
     SDL_SetHint(SDL_HINT_TOUCH_MOUSE_EVENTS, "1");
     SDL_SetHint(SDL_HINT_MOUSE_FOCUS_CLICKTHROUGH, "1");
     check(SDL_Init(SDL_INIT_VIDEO), SDL_GetError());
-    check(SDL_CreateWindowAndRenderer("Laughing Waffle", 1120, 640, SDL_WINDOW_RESIZABLE | SDL_WINDOW_HIGH_PIXEL_DENSITY,
+    check(SDL_CreateWindowAndRenderer("Laughing Waffle", options.width, options.height, SDL_WINDOW_RESIZABLE | SDL_WINDOW_HIGH_PIXEL_DENSITY,
         &graphics.window, &graphics.renderer), SDL_GetError());
-    SDL_SetWindowMinimumSize(graphics.window, 820, 450);
+    SDL_SetWindowMinimumSize(graphics.window, 640, 360);
     const bool paced = SDL_SetRenderVSync(graphics.renderer, automated ? 0 : 1);
     graphics.bridge = std::make_unique<SdlRmlRenderer>(graphics.renderer, WAFFLE_ART_ROOT);
     Rml::SetSystemInterface(&clock);
@@ -234,18 +259,25 @@ int run(const Options& options)
     graphics.bridge->SetPreparedAtlas({art.width, art.height}, std::move(art.rgba));
     View view(*context, graphics.renderer, session, selection, options.launch, std::move(art));
     const auto present = [&] {
-        clock.seconds = elapsed(start) / 1000;
-        view.frame();
+        paint(view, session, clock, start);
         check(graphics.bridge->error().empty() && clock.last_error.empty(), graphics.bridge->error() + clock.last_error);
         check(SDL_RenderPresent(graphics.renderer), SDL_GetError());
     };
     present();
     const auto first = elapsed(start);
-    if (!options.capture.empty()) {
-        std::filesystem::create_directories(std::filesystem::u8path(options.capture));
+    if (options.interactionSmoke || !options.capture.empty()) {
+        if (!options.capture.empty()) std::filesystem::create_directories(std::filesystem::u8path(options.capture));
         smoke(session, selection, [&](const char* capture) {
-            view.frame();
-            if (capture) {
+            if (capture && !options.capture.empty() && std::string_view(capture) != "06-forecast-running") {
+                // Settle decorative motion before capturing the named state.
+                for (int frame = 0; frame < 18; ++frame) {
+                    session.update();
+                    present();
+                    SDL_Delay(17);
+                }
+            }
+            paint(view, session, clock, start);
+            if (capture && !options.capture.empty()) {
                 const std::unique_ptr<SDL_Surface, decltype(&SDL_DestroySurface)> surface(
                     SDL_RenderReadPixels(graphics.renderer, nullptr), SDL_DestroySurface);
                 const auto path = options.capture + "/" + capture + ".png";
@@ -253,11 +285,11 @@ int run(const Options& options)
             }
             check(graphics.bridge->error().empty() && clock.last_error.empty(), graphics.bridge->error() + clock.last_error);
             check(SDL_RenderPresent(graphics.renderer), SDL_GetError());
-        });
+        }, &view);
         return 0;
     }
     if (options.frames) {
-        benchmark(graphics.renderer, *graphics.bridge, view, session, selection, options, first, start);
+        benchmark(graphics.renderer, *graphics.bridge, view, session, selection, clock, options, first, start);
         return 0;
     }
     for (;;) {
@@ -275,7 +307,8 @@ int main(int argc, char** argv)
 {
     Options options;
     if (!parse(argc, argv, options)) {
-        std::fputs("Usage: waffle_native_game [--seed N | --load browser.json] [--smoke [--capture DIR] | --bench FRAMES [JSON]]\n", stderr);
+        std::fputs("Usage: waffle_native_game [--seed N | --load browser.json] [--size WIDTH HEIGHT] "
+                   "[--smoke | --interaction-smoke | --capture DIR | --bench FRAMES [JSON]]\n", stderr);
         return 2;
     }
     try {

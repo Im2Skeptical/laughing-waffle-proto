@@ -15,7 +15,8 @@ public:
     View(Rml::Context& context, SDL_Renderer* renderer, Session& session, Selection& selection, Launch launch,
          Artwork art);
     ~View() override;
-    void frame();
+    void prepareFrame();
+    void drawFrame();
     bool input(SDL_Event event);
     bool scrubAt(float x);
     SDL_FRect plot() const;
