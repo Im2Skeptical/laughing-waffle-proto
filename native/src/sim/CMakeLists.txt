@@ -22,6 +22,7 @@ add_library(waffle_sim STATIC
 	territory/external.cpp
 	vassal/resolution.cpp
 	vassal/campaign.cpp
+	vassal/shop.cpp
 	vassal/inheritance.cpp
 	vassal/candidates.cpp
 	step/advance_second.cpp

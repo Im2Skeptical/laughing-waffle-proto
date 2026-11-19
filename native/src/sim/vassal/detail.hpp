@@ -14,7 +14,7 @@ using namespace std::literals;
 
 struct HeirloomDef {
     std::string_view id, label, quality;
-    double patronage, development, crossroads, cunning, wisdomMultiplier;
+    double patronage, development, crossroads, cunning, wisdomMultiplier, extraShopOffers;
     bool mandate;
 };
 struct SignatureDef {
@@ -92,6 +92,24 @@ void inherit(RuntimeState& state, Vassal& actor);
 void generate_candidates(RuntimeState& state);
 browser::LifeMapNodeStateOptions campaign_options(const RuntimeState& state, const Vassal& actor,
                                                    const browser::LifeMapNodeState& node);
+browser::LifeMapNodeStateInventory shop_inventory(RuntimeState& state, Vassal& actor, browser::LifeMapNodeState& node);
+
+inline constexpr std::array qualityIds{"bronze"sv, "silver"sv, "gold"sv, "diamond"sv};
+inline std::size_t quality_index(std::string_view quality)
+{
+    const auto found = std::ranges::find(qualityIds, quality);
+    return found == qualityIds.end() ? 0 : static_cast<std::size_t>(found - qualityIds.begin());
+}
+
+inline std::size_t research_unlock(const RuntimeState& state)
+{
+    const auto& settings = state.compiledContent->settings();
+    const auto research = std::max(0.0, state.hot.civilization.research.total);
+    if (research >= settings.researchDiamondThreshold) return 3;
+    if (research >= settings.researchGoldThreshold) return 2;
+    if (research >= settings.researchSilverThreshold) return 1;
+    return 0;
+}
 
 template<class Bands>
 double balance_value(const content::BalanceValue& assignment, const Bands& bands)

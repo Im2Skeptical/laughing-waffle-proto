@@ -90,13 +90,14 @@ bool complete(RuntimeState& state, Vassal& actor)
     if (found == states.end()) return false;
     auto& node = found->second;
     const bool encounter = pending.kind == browser::PendingLifeMapKind::campaignEncounter;
-    if (pending.kind == browser::PendingLifeMapKind::shopDelve) return false;
-    if (node.selectedOptionId) {
+    const bool delve = pending.kind == browser::PendingLifeMapKind::shopDelve;
+    const bool completesNode = !encounter && !delve;
+    if (!delve && node.selectedOptionId) {
         const auto option = std::ranges::find(node.options, *node.selectedOptionId, &browser::LifeMapOption::id);
         if (option != node.options.end() && option->classAction && option->classAction->onCompletion.value_or(false))
             return false;
     }
-    if (!encounter) {
+    if (completesNode) {
         const auto mods = bonuses(state, actor);
         double territory = 0;
         if (state.hot.rulesetId) {
@@ -130,7 +131,7 @@ bool complete(RuntimeState& state, Vassal& actor)
     node.resolved = true;
     node.resolvedSec = whole(state.hot.tSec);
     map.pendingResolution.reset();
-    if (!encounter) {
+    if (completesNode) {
         auto& completed = state.histories.at(map.completedNodeIds.row);
         bool recorded = false;
         completed.for_each([&](const NodeId& id, const HistoryPayload&) { recorded |= id == pending.nodeId; });
@@ -149,7 +150,7 @@ bool complete(RuntimeState& state, Vassal& actor)
             died = true;
         }
     }
-    add_event(state, actor, "nodeResolved", {}, pending.nodeId, *node.resolutionResult, age);
+    if (!delve) add_event(state, actor, "nodeResolved", {}, pending.nodeId, *node.resolutionResult, age);
     if (died) {
         replace(state, map.nodeStates, states);
         finish(state, actor, true);
@@ -160,6 +161,14 @@ bool complete(RuntimeState& state, Vassal& actor)
         node.accumulatedPhaseCost = 0;
         node.selectedOptionId.reset();
         node.options = campaign_options(state, actor, node);
+        replace(state, map.nodeStates, states);
+        return true;
+    }
+    if (delve) {
+        node.resolved = false;
+        ++node.inventoryRoll;
+        node.inventory = shop_inventory(state, actor, node);
+        add_event(state, actor, "shopDelved", {}, pending.nodeId, {}, age);
         replace(state, map.nodeStates, states);
         return true;
     }
