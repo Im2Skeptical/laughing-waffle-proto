@@ -1,0 +1,21 @@
+{
+  "id": "action-structure-shop",
+  "start": { "kind": "actionExhibit", "variant": "structure-shop", "seed": 42 },
+  "actions": [
+    { "tSec": 1, "kind": "vassalPurchaseShopOffer", "payload": {
+      "nodeId": "life-d02-r01", "offerId": "life-d02-r01:r0:structure:0"
+    } },
+    { "tSec": 5, "kind": "vassalMoveShopStructure", "payload": {
+      "nodeId": "life-d02-r01", "offerId": "life-d02-r01:r0:structure:0", "origin": 5
+    } },
+    { "tSec": 63, "kind": "vassalMoveShopStructure", "payload": {
+      "nodeId": "life-d02-r01", "offerId": "structure:R12:housing:2", "origin": 3
+    } },
+    { "tSec": 64, "kind": "vassalMoveShopStructure", "payload": {
+      "nodeId": "life-d02-r01", "offerId": "structure:R12:support", "origin": null
+    } },
+    { "tSec": 65, "kind": "vassalConfirmLifeNode", "payload": { "nodeId": "life-d02-r01" } }
+  ],
+  "horizonSec": 132,
+  "keepSeconds": [0, 1, 5, 63, 64, 65, 90, 124, 128, 132]
+}

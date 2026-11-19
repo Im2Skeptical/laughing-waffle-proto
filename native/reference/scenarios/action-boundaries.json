@@ -1,0 +1,15 @@
+{
+  "id": "action-boundaries",
+  "start": { "kind": "newGame", "seed": 1 },
+  "actions": [
+    { "tSec": 0, "kind": "debugSetCap", "payload": { "cap": 9, "points": 6 } },
+    { "tSec": 0, "kind": "settlementRerollVassals", "payload": {} },
+    { "tSec": 1, "kind": "settlementAssignGarrison", "payload": { "regionId": "R09" } },
+    { "tSec": 64, "kind": "debugSetCap", "payload": { "enabled": false } },
+    { "tSec": 64, "kind": "settlementRerollVassals", "payload": {} },
+    { "tSec": 65, "kind": "debugSetCap", "payload": { "cap": 15 } },
+    { "tSec": 95, "kind": "settlementAssignGarrison", "payload": { "regionId": "R16", "targetRegionId": null } }
+  ],
+  "horizonSec": 135,
+  "keepSeconds": [0, 1, 31, 63, 64, 65, 95, 128, 135]
+}

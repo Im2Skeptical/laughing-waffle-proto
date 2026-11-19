@@ -1,0 +1,11 @@
+{
+  "id": "action-founding",
+  "start": { "kind": "actionExhibit", "variant": "founding", "seed": 1 },
+  "actions": [
+    { "tSec": 0, "kind": "vassalEnterLifeNode", "payload": { "nodeId": "vassal-1-founding" } },
+    { "tSec": 1, "kind": "vassalSelectLifeOption", "payload": { "nodeId": "vassal-1-founding", "optionId": "train-estate" } },
+    { "tSec": 2, "kind": "vassalConfirmLifeNode", "payload": { "nodeId": "vassal-1-founding" } }
+  ],
+  "horizonSec": 68,
+  "keepSeconds": [0, 1, 2, 7, 8, 9, 32, 64, 68]
+}

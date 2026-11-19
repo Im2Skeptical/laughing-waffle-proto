@@ -1,0 +1,11 @@
+{
+  "id": "action-vault-overflow",
+  "start": { "kind": "actionExhibit", "variant": "overflow", "seed": 1 },
+  "actions": [
+    { "tSec": 1, "kind": "vassalResolveVaultOverflow", "payload": { "keepInstanceIds": [
+      "heirloom-7", "heirloom-2", "heirloom-2", "heirloom-3", "heirloom-4", "heirloom-5", "heirloom-6"
+    ] } }
+  ],
+  "horizonSec": 68,
+  "keepSeconds": [0, 1, 32, 64, 65, 68]
+}

@@ -95,14 +95,20 @@ Bonuses bonuses(const RuntimeState& state, const Vassal& actor);
 bool spend_mandate(RuntimeState& state, Vassal& actor);
 void inherit(RuntimeState& state, Vassal& actor);
 void generate_candidates(RuntimeState& state);
+std::optional<browser::LifeMapGraph> action_graph(const RuntimeState& state, const browser::Candidate& candidate,
+                                                 std::string_view id, double& seed);
 browser::LifeMapNodeStateOptions campaign_options(const RuntimeState& state, const Vassal& actor,
                                                    const browser::LifeMapNodeState& node);
 browser::LifeMapNodeStateInventory shop_inventory(RuntimeState& state, Vassal& actor, browser::LifeMapNodeState& node);
+browser::OptionalNullable<browser::LifeMapNodeStateShopSelection>
+shop_specialties(RuntimeState& state, const Vassal& actor, const browser::LifeMapNodeState& node);
 bool apply_timed_class_action(RuntimeState& state, Vassal& actor, const browser::LifeMapOptionClassAction& action);
 bool commission_due(const RuntimeState& state, const Vassal& actor);
 void ensure_commission_offers(RuntimeState& state, Vassal& actor);
 void step_commission(RuntimeState& state, Vassal& actor);
 void credit_prestige(RuntimeState& state, Vassal& actor, double amount);
+void record_commission_event(RuntimeState& state, Vassal& actor, std::string_view kind,
+                             std::string_view subject = {}, double amount = 0);
 
 inline constexpr std::array qualityIds{"bronze"sv, "silver"sv, "gold"sv, "diamond"sv};
 inline std::size_t quality_index(std::string_view quality)

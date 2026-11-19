@@ -254,6 +254,7 @@ function generate(schema, banner) {
   const types = [...orderedTypes(schema)];
   const root = cppType(schema.root);
   const hasGameConfig = types.some(([ref]) => ref === "GameConfig");
+  const hasCandidates = types.some(([ref]) => ref === "LineagePendingCandidates");
   const header = [
     banner, "#pragma once", "",
     '#include "core/json.hpp"',
@@ -267,6 +268,10 @@ function generate(schema, banner) {
     ...(hasGameConfig ? [
       "GameConfig import_game_config(const core::json::Value& value);",
       "core::json::Value export_game_config(const GameConfig& config);",
+    ] : []),
+    ...(hasCandidates ? [
+      "LineagePendingCandidates import_candidate_pool(const core::json::Value& value);",
+      "core::json::Value export_candidate_pool(const LineagePendingCandidates& candidates);",
     ] : []),
     "", "}", "",
   ].join("\n");
@@ -292,6 +297,11 @@ function generate(schema, banner) {
       'return read_GameConfig(value, "$.gameConfig");',
     ]), functionText("core::json::Value export_game_config(const GameConfig& config)", [
       "return write_GameConfig(config);",
+    ])] : []),
+    ...(hasCandidates ? [functionText("LineagePendingCandidates import_candidate_pool(const core::json::Value& value)", [
+      'return read_LineagePendingCandidates(value, "$.civilization.vassalLineage.pendingCandidates");',
+    ]), functionText("core::json::Value export_candidate_pool(const LineagePendingCandidates& candidates)", [
+      "return write_LineagePendingCandidates(candidates);",
     ])] : []),
     "}", "",
   ].join("\n");

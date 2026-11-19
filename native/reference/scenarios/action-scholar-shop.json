@@ -1,0 +1,21 @@
+{
+  "id": "action-scholar-shop",
+  "start": { "kind": "actionExhibit", "variant": "scholar-shop", "seed": 1 },
+  "actions": [
+    { "tSec": 0, "kind": "vassalConfirmHeirloomLoadout", "payload": { "equippedInstanceIds": ["heirloom-2"] } },
+    { "tSec": 0, "kind": "vassalChooseCommission", "payload": { "offerId": "vassal-1:commission:1:node" } },
+    { "tSec": 1, "kind": "vassalChooseDevelopmentStat", "payload": { "choiceId": "vassal-1:level:1", "statId": "cunning" } },
+    { "tSec": 3, "kind": "vassalPurchaseShopOffer", "payload": {
+      "nodeId": "life-milestone-milestone-1", "offerId": "life-milestone-milestone-1:r0:practice:1", "toIndex": 1
+    } },
+    { "tSec": 5, "kind": "vassalReorderShopPurchase", "payload": {
+      "nodeId": "life-milestone-milestone-1", "offerId": "life-milestone-milestone-1:r0:practice:1", "toIndex": 2
+    } },
+    { "tSec": 63, "kind": "vassalUndoShopPurchase", "payload": {
+      "nodeId": "life-milestone-milestone-1", "offerId": "life-milestone-milestone-1:r0:practice:1"
+    } },
+    { "tSec": 64, "kind": "vassalRerollShop", "payload": { "nodeId": "life-milestone-milestone-1" } }
+  ],
+  "horizonSec": 400,
+  "keepSeconds": [0, 1, 3, 5, 63, 64, 65, 128, 383, 384, 400]
+}

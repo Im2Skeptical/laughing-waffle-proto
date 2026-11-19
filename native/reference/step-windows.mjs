@@ -21,9 +21,15 @@ function main(args) {
     for (const { startSec, count, paused } of scenario.windows ?? []) {
       const id = String(startSec) + (paused ? "-paused" : "");
       const directory = join(captures, scenario.id, id);
-      console.log(scenario.id + "/" + id);
+      const from = scenario.start.anchorSec ?? 0;
+      const trace = join(REPO_ROOT, "artifacts", "native-reference", "traces", scenario.id);
+      const actions = paused ? [] : scenario.actions.filter(action => action.tSec < startSec + count);
+      const kinds = [...new Set(actions.map(action => action.kind))];
+      console.log(scenario.id + "/" + id + (kinds.length ? " applies " + kinds.join(", ") : ""));
       const result = spawnSync(binary, [
-        "step", "--from", join(directory, stateFile(startSec)), "--seconds", String(count - 1),
+        "step", "--from", actions.length ? join(trace, "initial.json") : join(directory, stateFile(startSec)),
+        "--seconds", String(count - 1),
+        ...(actions.length ? ["--warmup", String(startSec - from), "--actions", join(trace, "actions.json")] : []),
         "--expect-dir", directory, "--masks", masks,
       ], { stdio: "inherit" });
       if (result.error) throw result.error;

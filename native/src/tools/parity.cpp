@@ -7,6 +7,7 @@
 #include "tools/json_file.hpp"
 #include "tools/parity_masks.hpp"
 #include "tools/parity_run.hpp"
+#include "tools/replay_checks.hpp"
 #include "tools/reference_topology.hpp"
 
 #include <algorithm>
@@ -168,7 +169,7 @@ sim::RuntimeState admit_parity_state(const Value& input, const std::filesystem::
 }
 
 struct StepOptions {
-    std::filesystem::path from, expectDir, masks, report, topologyDir;
+    std::filesystem::path from, expectDir, masks, report, topologyDir, actions;
     std::optional<std::size_t> warmup;
     std::size_t seconds{};
     bool time{}, pause{};
@@ -194,6 +195,7 @@ StepOptions parse_step_options(int argc, char** argv)
         else if (flag == "--masks" && options.masks.empty()) options.masks = value;
         else if (flag == "--report" && options.report.empty()) options.report = value;
         else if (flag == "--topology-dir" && options.topologyDir.empty()) options.topologyDir = value;
+        else if (flag == "--actions" && options.actions.empty()) options.actions = value;
         else if (flag == "--warmup" && !options.warmup) {
             const auto end = value.data() + value.size();
             std::size_t seconds{};
@@ -214,7 +216,10 @@ StepOptions parse_step_options(int argc, char** argv)
     if (options.from.empty() || options.expectDir.empty() || options.masks.empty() || options.seconds == 0)
         throw std::invalid_argument("Usage: waffle_parity step --from <state.json> --seconds <k> "
                                     "--expect-dir <directory> --masks <masks.json> "
-                                    "[--warmup <k>] [--pause] [--report <path>] [--time] [--topology-dir <directory>]");
+                                    "[--warmup <k>] [--actions <journal.json>] [--pause] [--report <path>] "
+                                    "[--time] [--topology-dir <directory>]");
+    if (!options.actions.empty() && options.time)
+        throw std::invalid_argument("step: use run --report to time replay with actions");
     return options;
 }
 
@@ -291,13 +296,19 @@ int step(const StepOptions& options)
     auto initial = admit_parity_state(json::parse(read_file(options.from)), options.topologyDir);
     constexpr double maxSafeInteger = 0x1p53 - 1;
     const auto warmup = options.warmup.value_or(0);
+    const auto journal = waffle::tools::load_action_journal(options.actions);
+    if (!options.actions.empty()) sim::initialize_replay_clock(initial);
+    sim::ReplayCursor replay(journal, initial.hot.tSec, false);
     const double available = maxSafeInteger - initial.hot.tSec;
     if (initial.hot.tSec < 0 || static_cast<double>(warmup) > available ||
         static_cast<double>(options.seconds) > available - static_cast<double>(warmup))
         throw std::invalid_argument("step: comparison range falls outside nonnegative safe integer seconds");
+    waffle::tools::require_replay(replay.apply_boundary(initial));
     for (std::size_t second = 0; second < warmup; ++second) {
-        if (!sim::advance_one_second(initial))
+        if (const auto result = replay.advance(initial); !result) {
+            if (result.action) waffle::tools::require_replay(result);
             throw std::invalid_argument("step: warmup stopped at second " + std::to_string(initial.hot.tSec));
+        }
     }
     if (options.pause) {
         initial.hot.paused = true;
@@ -311,10 +322,13 @@ int step(const StepOptions& options)
         if (!options.report.empty()) write_file(options.report, json::stringify(report) + '\n');
     };
     std::size_t advances = 0;
-    for (std::size_t offset = 1; offset <= options.seconds; ++offset) {
+    for (std::size_t offset = options.actions.empty() ? 1 : 0; offset <= options.seconds; ++offset) {
         const auto target = static_cast<std::uint64_t>(start) + offset;
         const auto before = state.hot.tSec;
-        advances += sim::advance_one_second(state);
+        if (offset != 0 && sim::advance_one_second(state)) {
+            ++advances;
+            waffle::tools::require_replay(replay.apply_boundary(state));
+        }
         const auto source = options.expectDir / ("state-" + std::to_string(target) + ".json");
         auto expected = json::parse(read_file(source));
         auto actual = browser::export_game_state(sim::export_runtime(state));
@@ -324,7 +338,7 @@ int step(const StepOptions& options)
         if (!expectedSec || expectedSec->kind() != Value::Kind::number ||
             (expectedSec->as_number() != before && expectedSec->as_number() != static_cast<double>(target)))
             throw std::invalid_argument("step: unexpected tSec in " + source.string());
-        if (expectedSec->as_number() != before) {
+        if (expectedSec->as_number() != before || offset == 0) {
             expected = masks.apply(expected);
             actual = masks.apply(actual);
         }
