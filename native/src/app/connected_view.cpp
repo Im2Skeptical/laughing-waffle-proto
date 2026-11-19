@@ -325,6 +325,7 @@ void View::refreshMarkers(const Snapshot* snapshot)
 {
     auto& markers = element("markers");
     if (!snapshot) {
+        markerLeaders_.clear();
         if (markers.HasChildNodes()) markers.SetInnerRML("");
         return;
     }
@@ -345,7 +346,7 @@ void View::refreshMarkers(const Snapshot* snapshot)
         };
         for (std::size_t holder = 0; holder < holderClass.size(); ++holder) {
             const bool changed = change(holderClass[holder], holder == static_cast<std::size_t>(region.holder));
-            if (holder == static_cast<std::size_t>(Holder::player)) markersDirty_ |= changed;
+            markersDirty_ |= changed;
         }
         markersDirty_ |= change("selected", region.id == selection_.region);
     }
@@ -354,35 +355,73 @@ void View::refreshMarkers(const Snapshot* snapshot)
 void View::positionMarkers()
 {
     auto& markers = element("markers");
-    if (!markers.GetNumChildren()) return;
+    const auto* snapshot = session_.displayed();
+    if (!snapshot || !markers.GetNumChildren()) return;
     if (markerSizesDirty_) {
         context_.Update();
         markerSizesDirty_ = false;
     }
     const auto area = bounds("map");
     const auto& shapes = session_.shapes();
+    markerLeaders_.clear();
     std::vector<SDL_FRect> placed;
-    placed.reserve(markers.GetNumChildren());
-    for (int priority = 0; priority < 3; ++priority) {
+    placed.reserve(markers.GetNumChildren() + 2);
+    const auto reserve = [&](const char* id) {
+        auto rect = bounds(id);
+        rect.x -= area.x;
+        rect.y -= area.y;
+        placed.push_back(rect);
+    };
+    reserve("legend");
+    reserve("map-tools");
+    const auto priority = [&](const Region& region) {
+        if (region.id == selection_.region) return 0;
+        if (region.id == hoveredRegion_) return 1;
+        if (region.id == snapshot->capital || region.holder == Holder::player) return 2;
+        return region.holder == Holder::monster ? 3 : 4;
+    };
+    for (int tier = 0; tier < 5; ++tier) {
         for (int i = 0; i < markers.GetNumChildren(); ++i) {
+            const auto index = static_cast<std::size_t>(i);
+            const auto& region = snapshot->regions[index];
+            if (priority(region) != tier) continue;
             auto& marker = *markers.GetChild(i);
-            if ((marker.IsClassSet("selected") ? 0 : marker.IsClassSet("player") ? 1 : 2) != priority) continue;
-            const auto point = map_.project(shapes[static_cast<std::size_t>(i)].label, area);
+            marker.SetClass("hovered", region.id == hoveredRegion_);
+            const auto point = map_.project(shapes[index].label, area);
             const auto size = marker.GetBox().GetSize(Rml::BoxArea::Border);
+            const bool pinned = tier < 2;
+            const bool inside = contains(area, point);
             bool visible = false;
-            if (contains(area, point) && size.x + 4 < area.w) {
-                const float x = std::clamp(point.x - area.x - size.x / 2, 2.f, area.w - size.x - 2);
-                for (const float offset : {7.f, -size.y - 8}) {
-                    const float y = point.y - area.y + offset;
-                    const SDL_FRect label{x - 1, y - 1, size.x + 2, size.y + 2};
-                    if (y < 2 || y + size.y > area.h - 30 * density_ ||
-                        std::ranges::any_of(placed, [&](const auto& other) { return SDL_HasRectIntersectionFloat(&label, &other); }))
-                        continue;
+            if ((inside || pinned) && size.x + 4 < area.w && size.y + 4 < area.h) {
+                const float anchorX = std::clamp(point.x - area.x, 2.f, area.w - 2);
+                const float anchorY = std::clamp(point.y - area.y, 2.f, area.h - 2);
+                const float gap = 7.f * density_;
+                const auto place = [&](float offsetX, float offsetY) {
+                    const float x = std::clamp(anchorX - size.x / 2 + offsetX, 2.f, area.w - size.x - 2);
+                    const float y = std::clamp(anchorY + offsetY, 2.f, area.h - size.y - 2);
+                    const SDL_FRect box{x - 2, y - 2, size.x + 4, size.y + 4};
+                    if (std::ranges::any_of(placed, [&](const auto& other) { return SDL_HasRectIntersectionFloat(&box, &other); }))
+                        return false;
                     marker.SetProperty("left", number(x) + "px");
                     marker.SetProperty("top", number(y) + "px");
-                    placed.push_back(label);
-                    visible = true;
-                    break;
+                    placed.push_back(box);
+                    const SDL_FPoint from{area.x + anchorX, area.y + anchorY};
+                    const SDL_FPoint to{area.x + std::clamp(anchorX, x, x + size.x),
+                        area.y + std::clamp(anchorY, y, y + size.y)};
+                    if (!inside || std::hypot(from.x - to.x, from.y - to.y) > gap + 2)
+                        markerLeaders_.emplace_back(from, to);
+                    return true;
+                };
+                const float above = -size.y - gap;
+                visible = place(0, gap) || place(0, above) ||
+                    place(size.x * .45f, gap) || place(-size.x * .45f, gap) ||
+                    place(size.x * .45f, above) || place(-size.x * .45f, above);
+                if (pinned && !visible) {
+                    // The selected and hovered names have first use of every
+                    // open strip of the atlas, including when panned offscreen.
+                    for (float y = 3; y + size.y < area.h && !visible; y += size.y + 4)
+                        visible = place(0, y - anchorY) || place(-anchorX, y - anchorY) ||
+                            place(area.w - anchorX, y - anchorY);
                 }
             }
             marker.SetClass("occluded", !visible);
@@ -753,9 +792,12 @@ void View::drawFrame()
     SDL_RenderClear(renderer_);
     const auto screen = shell_.screen();
     if (const auto* snapshot = session_.displayed(); snapshot && !session_.opening() &&
-        (screen == Screen::game || screen == Screen::save))
+        (screen == Screen::game || screen == Screen::save)) {
         map_.draw(renderer_, bounds("map"), *snapshot, session_.shapes(), selection_.region, hoveredRegion_,
             drag_ == Drag::map && !moved_, now_, reduced_);
+        for (const auto& [anchor, label] : markerLeaders_)
+            line(renderer_, anchor, label, {199, 175, 120, 255});
+    }
     SDL_SetRenderDrawBlendMode(renderer_, SDL_BLENDMODE_BLEND_PREMULTIPLIED);
     context_.Render();
     SDL_SetRenderDrawBlendMode(renderer_, SDL_BLENDMODE_NONE);

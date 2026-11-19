@@ -359,8 +359,12 @@ void View::pointer(const SDL_Event& event)
         pointer_ = {event.motion.x, event.motion.y};
         hoveredAt_ = SDL_GetTicks();
         const auto map = bounds("map");
-        hoveredRegion_ = game && !dialog_ && contains(map, pointer_) && !contains(bounds("map-tools"), pointer_)
+        auto hovered = game && !dialog_ && contains(map, pointer_) && !contains(bounds("map-tools"), pointer_)
             ? hit(pointer_).value_or("") : "";
+        if (hovered != hoveredRegion_) {
+            hoveredRegion_ = std::move(hovered);
+            markersDirty_ = true;
+        }
         hoverSecond_ = game && !touch_ && session_.chart().through && contains(plot(), pointer_)
             ? std::optional(secondAt(pointer_.x)) : std::nullopt;
         if (drag_ == Drag::graph) scrubAt(pointer_.x);
@@ -407,6 +411,7 @@ void View::pointer(const SDL_Event& event)
                 drag_ = Drag::map;
                 map_.beginPan();
                 hoveredRegion_ = hit(pointer_).value_or("");
+                markersDirty_ = true;
             } else {
                 const auto* snapshot = session_.displayed();
                 const auto* site = selection_.selected(snapshot);
@@ -480,6 +485,7 @@ void View::cancelInput()
     if (pointerDown_) context_.ProcessMouseButtonUp(0, 0);
     pointerDown_ = longPress_ = moved_ = false;
     drag_ = Drag::none;
+    markersDirty_ |= !hoveredRegion_.empty();
     hoveredRegion_.clear();
     hoverSecond_.reset();
     dropTarget_.reset();

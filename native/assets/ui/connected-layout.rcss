@@ -57,6 +57,7 @@ body { width: 100%; height: 100%; margin: 0; }
 .crown { background-color: #3e2c20; border-color: #cda074; }
 .monster { background-color: #3e2624; border-color: #ce8b7b; }
 .marker.selected { border-color: #ffda88; color: #fff2c8; }
+.marker.hovered { border-color: #fff0b9; color: #fff2c8; }
 .marker.occluded { visibility: hidden; }
 #legend { position: absolute; bottom: 7dp; left: 7dp; background-color: #20221cf0;
   padding: 4dp 7dp; border: 1dp #716147; pointer-events: none; white-space: nowrap; }

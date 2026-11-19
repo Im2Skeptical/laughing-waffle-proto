@@ -86,6 +86,7 @@ private:
     bool loadingVisible_{true}, loadingFailed_{};
     bool opening_{}, busy_{}, previewing_{}, markersDirty_{true};
     bool markerSizesDirty_{};
+    std::vector<std::pair<SDL_FPoint, SDL_FPoint>> markerLeaders_;
     bool reduced_{}, dialog_{}, noticeError_{}, touch_{}, longPress_{}, pointerDown_{};
     SDL_Keycode keyDown_{};
     Rml::ObserverPtr<Rml::Element> keyControl_;
