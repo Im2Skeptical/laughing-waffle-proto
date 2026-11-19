@@ -1,9 +1,10 @@
 import { getMoonPhaseAtSecond } from "../../../src/model/moon-phases.js";
 import { runDeathPhase } from "../../../src/model/detailed-settlements/phases/death.js";
-import { cancelMoonMigrationForRegion, runMigrationPhase } from "../../../src/model/detailed-settlements/phases/migration.js";
+import { runMigrationPhase } from "../../../src/model/detailed-settlements/phases/migration.js";
 import { resetEmptyStrangerCohort } from "../../../src/model/detailed-settlements/phases/shared.js";
 import { getDetailedSettlementSites, refreshGreenAscendancy } from "../../../src/model/detailed-settlements/queries.js";
 import { stockTraits } from "../../../src/model/detailed-settlements/stock.js";
+import { stepUnrest } from "../../../src/model/detailed-settlements/territory.js";
 
 const moon = state => state.civilization.currentMoonTurn;
 const phase = state => getMoonPhaseAtSecond(state, state.tSec);
@@ -76,17 +77,14 @@ export const deathExhibits = [
       const move = turn.movements[0];
       requireThat(move.survivors > 0, "Expected arrivals to commit before expiry");
       advanceClock(state);
-      const { regionId, detailedState } = state.world.sites.find(site => site.regionId === move.destinationRegionId);
+      const { detailedState } = state.world.sites.find(site => site.regionId === move.destinationRegionId);
       detailedState.control = {
         unrest: { startedSec: state.tSec - 1, untilSec: state.tSec, previousController: "external-a" },
         claimant: null, claimChecks: 0,
       };
+      // The browser prelude, so expiry cancels the bookings and restores the storefront.
       run("prelude", () => {
-        const chaos = state.civilization.chaos;
-        const { unrestChaosPerYear, seasonDurationSec } = state.gameConfig.settings.values;
-        chaos.pendingUnrestIncome = (chaos.pendingUnrestIncome ?? 0) + unrestChaosPerYear / (4 * seasonDurationSec);
-        // Exercise the cancellation seam before N03e-8 restores the storefront.
-        cancelMoonMigrationForRegion(state, regionId);
+        stepUnrest(state);
         refreshGreenAscendancy(state);
         for (const site of getDetailedSettlementSites(state)) resetEmptyStrangerCohort(site.detailedState);
       });

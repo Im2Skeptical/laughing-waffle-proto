@@ -10,9 +10,7 @@
   - 33/33 enabled CTests passed.
   - 23 step windows passed (138 comparisons) with 14 Vassal masks.
   - Every stage pair passed except prelude at
-    `death-committed-arrivals/2035`, which starts at
-    `$.civilization.practiceEvents.nextId`. It predates the pause merges
-    and is unresolved.
+    `death-committed-arrivals/2035`. That was fixed after resume (see below).
 
   Pipeline cost on the idle i9-10900K: 21.5 µs/sim-s at opening and 29.4
   late. Food is 9.7, Birth 3.8, phase drain 2.9 and seasonal 1.2. The
@@ -43,8 +41,14 @@
     `t3/native-pipeline-performance-3`. The supervisor audits it.
   - N03f-3 new-game state builder: sol 6.2 worker on
     `t3/native-new-game-state-builder`.
-  - The prelude `death-committed-arrivals/2035` mismatch: the supervisor,
-    on `t3/native-rebuild-planning`.
+  - Fixed by the supervisor on resume: the prelude
+    `death-committed-arrivals/2035` mismatch. The exhibit had used a
+    hand-built prelude that skipped Unrest expiry and the storefront
+    transition, from before N03e-8 was merged. Native ran the full
+    browser rule. The exhibit now calls the browser's `stepUnrest`. Results:
+    prelude 111/111, death 17/17, migration 19/19 and 33/33 CTests.
+    `waffle_parity stage --write-actual <file>` now writes the native result
+    so that differences can be diffed.
 - Accepted choices: [README](README.md), [ARCHITECTURE](ARCHITECTURE.md) and
   [THIRD_PARTY.md](THIRD_PARTY.md). C++/SDL3/RmlUi stays the stack. The
   bootstrap renderer is SDL3's default 2D renderer, not RmlUi's SDL_GPU/SDL_GL3 samples.

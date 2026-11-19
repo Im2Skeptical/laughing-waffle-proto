@@ -342,7 +342,7 @@ int step(const StepOptions& options)
 
 struct StageOptions {
     std::string_view name;
-    std::filesystem::path before, after, masks, topologyDir;
+    std::filesystem::path before, after, masks, topologyDir, writeActual;
     bool time{};
 };
 
@@ -363,11 +363,12 @@ StageOptions parse_stage_options(int argc, char** argv)
         else if (flag == "--after" && options.after.empty()) options.after = value;
         else if (flag == "--masks" && options.masks.empty()) options.masks = value;
         else if (flag == "--topology-dir" && options.topologyDir.empty()) options.topologyDir = value;
+        else if (flag == "--write-actual" && options.writeActual.empty()) options.writeActual = value;
         else throw std::invalid_argument("stage: unknown or repeated option " + std::string(flag));
     }
     if (options.name.empty() || options.before.empty() || options.after.empty())
         throw std::invalid_argument("Usage: waffle_parity stage --stage <name> --before <file> "
-                                    "--after <file> [--masks <file>] [--topology-dir <directory>] [--time]");
+                                    "--after <file> [--masks <file>] [--topology-dir <directory>] [--write-actual <file>] [--time]");
     return options;
 }
 
@@ -459,6 +460,7 @@ int stage(const StageOptions& options)
     });
 
     auto actual = browser::export_game_state(sim::export_runtime(state));
+    if (!options.writeActual.empty()) write_file(options.writeActual, json::stringify(actual) + '\n');
     auto expected = *after.find("state");
     if (!options.masks.empty()) {
         const waffle::tools::ParityMasks masks(json::parse(read_file(options.masks)));

@@ -513,6 +513,10 @@ ported stage matches, 1 on a difference with the first path, and 2 on
 invalid input. A stage with deferred work reports `not ported` and exits 3
 when the compared fields match, or 1 when they differ.
 
+To inspect a difference, `--write-actual <file>` writes the native
+result as exported GameState JSON, before masks. Diff it against the
+captured `after` state.
+
 ## Porting a stage
 
 Edit the matching file under [`stages/`](stages), such as
