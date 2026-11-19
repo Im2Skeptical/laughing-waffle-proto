@@ -1,0 +1,11 @@
+{
+  "id": "action-regional-practices",
+  "start": { "kind": "actionExhibit", "variant": "regional-practices", "seed": 1 },
+  "actions": [
+    { "tSec": 0, "kind": "regionInstallPractice", "payload": { "regionId": "R09", "practiceId": "cultivate" } },
+    { "tSec": 63, "kind": "regionInstallPractice", "payload": { "regionId": "R09", "practiceId": "store" } },
+    { "tSec": 65, "kind": "regionUninstallPractice", "payload": { "regionId": "R09", "installedIndex": 0 } }
+  ],
+  "horizonSec": 68,
+  "keepSeconds": [0, 31, 63, 64, 65, 68]
+}

@@ -1,0 +1,9 @@
+[
+  { "reason": "badOverrides", "action": { "tSec": 0, "kind": "debugSetSettlementSlotOverrides", "payload": { "overrides": [] } } },
+  { "reason": "missingCandidateIndex", "action": { "tSec": 0, "kind": "settlementSelectVassal", "payload": {} } },
+  { "reason": "selectionPoolMismatch", "action": { "tSec": 0, "kind": "settlementSelectVassal", "payload": { "candidateIndex": 0, "expectedPoolHash": "stale" } } },
+  { "reason": "garrisonUnavailable", "action": { "tSec": 0, "kind": "settlementAssignGarrison", "payload": { "regionId": "unknown" } } },
+  { "reason": "supportTargetUnavailable", "action": { "tSec": 0, "kind": "settlementAssignGarrison", "payload": { "regionId": "R09", "targetRegionId": "unknown" } } },
+  { "reason": "unsupportedAction", "action": { "tSec": 0, "kind": "placePawn", "payload": {} } },
+  { "reason": "invalidPracticeId", "action": { "tSec": 0, "kind": "regionInstallPractice", "payload": { "regionId": "R09", "practiceId": "unknown" } } }
+]

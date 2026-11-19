@@ -91,6 +91,8 @@ if(NOT ANDROID)
 	target_link_libraries(waffle_regional_generation_test PRIVATE waffle_sim)
 	add_executable(waffle_faith_stage_test ../tests/faith_stage_test.cpp)
 	target_link_libraries(waffle_faith_stage_test PRIVATE waffle_sim)
+	add_executable(waffle_action_validation_test ../tests/action_validation_test.cpp)
+	target_link_libraries(waffle_action_validation_test PRIVATE waffle_sim)
 	if(MINGW)
 		target_link_options(waffle_browser_tests PRIVATE -static)
 		target_link_options(waffle_step_clock_test PRIVATE -static)
@@ -100,6 +102,7 @@ if(NOT ANDROID)
 		target_link_options(waffle_world_topology_test PRIVATE -static)
 		target_link_options(waffle_regional_generation_test PRIVATE -static)
 		target_link_options(waffle_faith_stage_test PRIVATE -static)
+		target_link_options(waffle_action_validation_test PRIVATE -static)
 	endif()
 
 	set(native_dir "${CMAKE_CURRENT_SOURCE_DIR}/../..")
@@ -141,6 +144,16 @@ if(NOT ANDROID)
 		--from "${native_dir}/reference/fixtures/seed-1/state-0.json" --seconds 256
 		--hashes "${CMAKE_CURRENT_BINARY_DIR}/native-run-smoke.tsv"
 		--expect "${native_dir}/src/tests/vectors/native-run-seed-1.tsv" --anchors)
+	add_test(NAME native_action_replay COMMAND waffle_parity run
+		--from "${native_dir}/reference/fixtures/seed-1/state-0.json" --seconds 135
+		--actions "${native_dir}/reference/fixtures/action-boundaries/actions.json"
+		--browser-checkpoints "${native_dir}/reference/fixtures/action-boundaries/replay-checkpoints.tsv"
+		--hashes "${CMAKE_CURRENT_BINARY_DIR}/native-action-replay.tsv" --anchors)
+	set_tests_properties(native_action_replay PROPERTIES TIMEOUT 60)
+	add_test(NAME native_action_validation COMMAND waffle_action_validation_test
+		"${native_dir}/reference/fixtures/seed-1/state-0.json"
+		"${native_dir}/reference/fixtures/action-boundaries/rejections.json")
+	set_tests_properties(native_action_validation PROPERTIES TIMEOUT 60)
 	add_test(NAME native_run_cross_compiler COMMAND waffle_parity run
 		--from "${native_dir}/reference/fixtures/seed-1/state-0.json" --seconds 2048
 		--hashes "${CMAKE_CURRENT_BINARY_DIR}/native-run-cross-compiler.tsv"

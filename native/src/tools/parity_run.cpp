@@ -4,6 +4,7 @@
 #include "sim/step/advance_second.hpp"
 #include "tools/json_file.hpp"
 #include "tools/reference_topology.hpp"
+#include "tools/replay_checks.hpp"
 
 #include <algorithm>
 #include <charconv>
@@ -28,11 +29,11 @@ namespace json = core::json;
 namespace browser = sim::browser;
 using json::Value;
 using Clock = std::chrono::steady_clock;
-constexpr std::size_t stride = 64;
+constexpr auto stride = sim::replay_anchor_stride;
 constexpr std::string_view streamVersion = "waffle-state-digest-v1";
 
 struct Options {
-    std::filesystem::path from, hashes, expect, report, snapshot, topologyDir;
+    std::filesystem::path from, hashes, expect, report, snapshot, topologyDir, actions, checkpoints;
     std::optional<std::size_t> seconds;
     bool anchors = false;
 };
@@ -54,6 +55,8 @@ Options parse_options(int argc, char** argv)
         else if (flag == "--report" && options.report.empty()) options.report = value;
         else if (flag == "--snapshot" && options.snapshot.empty()) options.snapshot = value;
         else if (flag == "--topology-dir" && options.topologyDir.empty()) options.topologyDir = value;
+        else if (flag == "--actions" && options.actions.empty()) options.actions = value;
+        else if (flag == "--browser-checkpoints" && options.checkpoints.empty()) options.checkpoints = value;
         else if (flag == "--seconds" && !options.seconds) {
             std::size_t seconds{};
             const auto end = value.data() + value.size();
@@ -68,20 +71,16 @@ Options parse_options(int argc, char** argv)
     if (options.from.empty() || !options.seconds || options.hashes.empty())
         throw std::invalid_argument("Usage: waffle_parity run --from <state.json> --seconds <n> --hashes <path> "
                                     "[--expect <path>] [--anchors] [--report <path>] [--snapshot <path>] "
-                                    "[--topology-dir <directory>]");
+                                    "[--topology-dir <directory>] [--actions <journal.json>] "
+                                    "[--browser-checkpoints <sha256.tsv>]");
+    if (!options.checkpoints.empty() && !options.anchors)
+        throw std::invalid_argument("run: --browser-checkpoints requires --anchors");
     if (options.hashes == options.expect)
         throw std::invalid_argument("run: --hashes and --expect need separate paths");
     return options;
 }
 
 Value number(std::size_t value) { return Value(static_cast<double>(value)); }
-
-void advance(sim::RuntimeState& state)
-{
-    const auto second = state.hot.tSec;
-    if (!sim::advance_one_second(state) || state.hot.tSec != second + 1)
-        throw std::runtime_error("run: cannot advance from second " + std::to_string(second));
-}
 
 std::uint64_t digest(const sim::RuntimeState& state)
 {
@@ -167,18 +166,21 @@ Value percentiles(std::vector<double>& samples)
     return Value(Value::Object{{"count", number(samples.size())}, {"p50Ms", at(50)}, {"p95Ms", at(95)}});
 }
 
-void verify_replay(sim::RuntimeState state, std::span<const std::uint64_t> expected, std::string_view method)
+void verify_replay(sim::RuntimeState state, const sim::ActionJournal& journal,
+                   std::span<const std::uint64_t> expected, std::string_view method)
 {
     const auto anchor = state.hot.tSec;
+    sim::ReplayCursor replay(journal, anchor, true);
     for (std::size_t i = 0; i < expected.size(); ++i) {
-        if (i != 0) advance(state);
+        if (i != 0) require_replay(replay.advance(state));
         if (digest(state) != expected[i])
             throw std::runtime_error(std::string(method) + " anchor " + std::to_string(anchor) +
                                      " diverged at second " + std::to_string(state.hot.tSec));
     }
 }
 
-Value verify_restores(const std::vector<sim::RuntimeState>& anchors, const std::vector<std::uint64_t>& hashes,
+Value verify_restores(const sim::RuntimeState& initial, const sim::ActionJournal& journal,
+                      const std::vector<sim::RuntimeState>& anchors, const std::vector<std::uint64_t>& hashes,
                       const Value* topology, const std::filesystem::path& artifacts)
 {
     const auto fullWindows = (hashes.size() - 1) / stride;
@@ -192,13 +194,13 @@ Value verify_restores(const std::vector<sim::RuntimeState>& anchors, const std::
         const auto remaining = std::min(stride, hashes.size() - anchorIndex * stride);
         const auto expected = std::span(hashes).subspan(anchorIndex * stride, remaining);
 
-        // Measure a copy plus a full 63-second scrub separately from hashing.
+        // Measure a full 63-second restore separately from hashing.
         const auto begin = Clock::now();
-        auto restored = anchor;
-        for (std::size_t i = 1; i < remaining; ++i) advance(restored);
+        const auto restored = sim::rebuildStateAtSecond(initial, journal, anchor.hot.tSec + remaining - 1, anchors);
         restore.push_back(elapsed_ms(begin));
-        if (digest(restored) != expected.back()) throw std::logic_error("timed restore diverged");
-        verify_replay(anchor, expected, "value copy");
+        require_replay(restored.result);
+        if (digest(*restored.state) != expected.back()) throw std::logic_error("timed restore diverged");
+        verify_replay(anchor, journal, expected, "value copy");
 
         // Pick five anchors across the sampled range, including both ends.
         const auto adapterSamples = std::min<std::size_t>(5, samples);
@@ -221,13 +223,58 @@ Value verify_restores(const std::vector<sim::RuntimeState>& anchors, const std::
             throw std::runtime_error("adapter changed state at second " + std::to_string(anchor.hot.tSec) +
                                      " (see .before.json and .after.json next to the hash stream)");
         }
-        verify_replay(std::move(reloaded), expected, "adapter");
+        verify_replay(std::move(reloaded), journal, expected, "adapter");
         saves.emplace_back(Value::Object{{"second", Value(anchor.hot.tSec)}, {"jsonBytes", number(saved.size())}});
+    }
+    std::vector<double> randomTimes;
+    std::uint32_t sampleSeed = 4221;
+    for (std::size_t sample = 0; sample < 256; ++sample) {
+        // This stream selects benchmark targets outside gameplay.
+        sampleSeed = sampleSeed * 1664525u + 1013904223u;
+        const auto offset = sampleSeed % hashes.size();
+        const auto begin = Clock::now();
+        const auto rebuilt = sim::rebuildStateAtSecond(initial, journal, initial.hot.tSec + offset, anchors);
+        randomTimes.push_back(elapsed_ms(begin));
+        require_replay(rebuilt.result);
+        if (digest(*rebuilt.state) != hashes[offset]) throw std::logic_error("random restore diverged");
     }
     return Value(Value::Object{
         {"restoreAndReplay", percentiles(restore)}, {"save", percentiles(saveTimes)}, {"load", percentiles(loadTimes)},
-        {"adapterSamples", Value(std::move(saves))},
+        {"adapterSamples", Value(std::move(saves))}, {"randomRestore", percentiles(randomTimes)},
     });
+}
+
+std::vector<std::pair<double, std::string>> load_checkpoints(const std::filesystem::path& path)
+{
+    if (path.empty()) return {};
+    std::ifstream stream(path, std::ios::binary);
+    if (expected_line(stream) != "tSec\tsha256") throw std::invalid_argument("run: invalid browser checkpoint header");
+    std::vector<std::pair<double, std::string>> rows;
+    for (auto line = expected_line(stream); !line.empty(); line = expected_line(stream)) {
+        const auto tab = line.find('\t');
+        if (tab == std::string::npos || line.size() != tab + 65)
+            throw std::invalid_argument("run: invalid browser checkpoint row");
+        std::uint64_t second{};
+        const auto end = line.data() + tab;
+        const auto parsed = std::from_chars(line.data(), end, second);
+        if (parsed.ec != std::errc{} || parsed.ptr != end || second >= (1ull << 53) ||
+            (!rows.empty() && second <= rows.back().first))
+            throw std::invalid_argument("run: invalid browser checkpoint second");
+        rows.emplace_back(static_cast<double>(second), line.substr(tab + 1));
+    }
+    if (rows.empty() || !stream.eof()) throw std::invalid_argument("run: missing or invalid browser checkpoints");
+    return rows;
+}
+
+void verify_checkpoint(const sim::RuntimeState& state, const std::string& expected, std::string_view method,
+                       const std::filesystem::path& artifacts)
+{
+    const auto data = browser::export_game_state(sim::export_runtime(state));
+    const auto actual = json::sha256_value(data);
+    if (actual == expected) return;
+    write_file(artifacts.string() + ".actual.json", json::stringify(data));
+    throw std::runtime_error(std::string(method) + " browser hash at second " +
+        std::to_string(static_cast<std::uint64_t>(state.hot.tSec)) + ": expected " + expected + ", got " + actual);
 }
 
 }
@@ -243,6 +290,15 @@ int parity_run(int argc, char** argv)
     const auto* topologyData = topology ? &*topology : nullptr;
     auto state = sim::admit_runtime(mirror, topologyData, input.find("gameConfig"));
     const auto beginSec = state.hot.tSec;
+    if (!options.actions.empty()) sim::initialize_replay_clock(state);
+    if (beginSec < 0 || beginSec >= 0x1p53 || static_cast<double>(seconds) > (0x1p53 - 1) - beginSec)
+        throw std::invalid_argument("run: range falls outside nonnegative safe integer seconds");
+    const auto initial = state;
+    const auto journal = load_action_journal(options.actions);
+    const auto checkpoints = load_checkpoints(options.checkpoints);
+    if (!checkpoints.empty() &&
+        (checkpoints.front().first < beginSec || checkpoints.back().first > beginSec + seconds))
+        throw std::invalid_argument("run: browser checkpoints outside the run");
 
     // Time a full uninterrupted advance pass before collecting hashes or
     // retaining anchors. Check its endpoint against the instrumented pass.
@@ -251,8 +307,9 @@ int parity_run(int argc, char** argv)
     Value forecastSize;
     {
         auto forecast = state;
+        sim::ReplayCursor replay(journal, beginSec, false);
         const auto forecastBegin = Clock::now();
-        for (std::size_t i = 0; i < seconds; ++i) advance(forecast);
+        require_replay(replay.advance_to(forecast, beginSec + seconds));
         forecastMs = elapsed_ms(forecastBegin);
         forecastHash = digest(forecast);
         forecastSize = state_size(forecast, 0);
@@ -278,9 +335,14 @@ int parity_run(int argc, char** argv)
     }
     Value::Array sizes;
     std::uint64_t lastHash{};
+    std::size_t checkpointIndex = 0;
+    sim::ReplayCursor replay(journal, beginSec, false);
+    require_replay(replay.apply_boundary(state));
     const auto validationBegin = Clock::now();
     for (std::size_t i = 0; i <= seconds; ++i) {
-        if (i != 0) advance(state);
+        if (i != 0) require_replay(replay.advance(state));
+        if (checkpointIndex < checkpoints.size() && checkpoints[checkpointIndex].first == state.hot.tSec)
+            verify_checkpoint(state, checkpoints[checkpointIndex++].second, "continuous", options.hashes);
         lastHash = digest(state);
         std::ostringstream line;
         line << static_cast<std::uint64_t>(state.hot.tSec) << '\t' << std::hex << std::setfill('0') << std::setw(16)
@@ -318,12 +380,21 @@ int parity_run(int argc, char** argv)
     });
     if (options.anchors) {
         report.set("anchorCopy", percentiles(copyTimes));
-        report.set("restore", verify_restores(anchors, hashes, topologyData, options.hashes));
+        report.set("restore", verify_restores(initial, journal, anchors, hashes, topologyData, options.hashes));
+        for (const auto& [second, expectedHash] : checkpoints) {
+            const auto rebuilt = sim::rebuildStateAtSecond(initial, journal, second, anchors);
+            require_replay(rebuilt.result);
+            verify_checkpoint(*rebuilt.state, expectedHash, "anchored rebuild", options.hashes);
+            const auto fromInitial = sim::rebuildStateAtSecond(initial, journal, second);
+            require_replay(fromInitial.result);
+            verify_checkpoint(*fromInitial.state, expectedHash, "initial-state rebuild", options.hashes);
+        }
     }
     if (!options.report.empty()) write_file(options.report, json::stringify(report) + '\n');
     std::cout << "Checked " << seconds << " advances from second " << beginSec
               << " at " << 1000.0 * seconds / std::max(forecastMs, 0.001) << " sim-s/s";
     if (options.anchors) std::cout << ", " << anchors.size() << " anchors and sampled value/adapter restores";
+    if (!checkpoints.empty()) std::cout << ", " << checkpoints.size() << " browser checkpoints in three replay modes";
     std::cout << '\n';
     return 0;
 }

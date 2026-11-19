@@ -25,6 +25,7 @@ import { createFoodContention } from "./food-contention.mjs";
 import { prepareTerritoryExhibit } from "./territory-exhibit.mjs";
 import { prepareHousingExhibit } from "./housing-exhibit.mjs";
 import { prepareVassalExhibit, vassalResolutionKinds } from "./vassal-exhibit.mjs";
+import { prepareActionExhibit } from "./action-exhibit.mjs";
 
 const here = fileURLToPath(new URL(".", import.meta.url));
 const scenariosDir = join(here, "scenarios");
@@ -53,7 +54,7 @@ export function loadScenario(id) {
   requireThat(scenario.id === id, id + ": scenario id must match its file name");
   requireThat(start && integerInRange(start.seed, 1, 0xffffffff), id + ": expected a nonzero uint32 seed");
   requireThat(start.kind === "newGame" || start.kind === "chargeExhibit" || start.kind === "foodContention" ||
-    start.kind === "territoryExhibit" || start.kind === "housingExhibit" ||
+    start.kind === "territoryExhibit" || start.kind === "housingExhibit" || start.kind === "actionExhibit" ||
     (start.kind === "vassalExhibit" && vassalResolutionKinds.includes(start.variant)) ||
     (start.kind === "performanceAnchor" && integerInRange(start.anchorSec, 1)),
   id + ": expected a supported start kind and its required parameters");
@@ -81,9 +82,6 @@ export function loadScenario(id) {
     const windowId = String(window.startSec) + (window.paused ? "-paused" : "");
     requireThat(!windowIds.has(windowId), id + ": duplicate window " + windowId);
     windowIds.add(windowId);
-    requireThat(window.paused || !actions.some(action =>
-      action.tSec > window.startSec && action.tSec < window.startSec + window.count),
-    id + ": step window " + windowId + " crosses a journal action");
   }
   return { scenario, startSec, endSec };
 }
@@ -94,6 +92,7 @@ export function createStart({ start }, startSec) {
   if (start.kind === "foodContention") return createFoodContention(state);
   if (start.kind === "housingExhibit") return prepareHousingExhibit(state);
   if (start.kind === "vassalExhibit") return prepareVassalExhibit(state, start.variant);
+  if (start.kind === "actionExhibit") return prepareActionExhibit(state, start.variant);
   if (start.kind === "newGame") return state;
   if (start.kind === "territoryExhibit") return prepareTerritoryExhibit(state);
 
@@ -179,6 +178,26 @@ function capture({ scenario, startSec, endSec }, baseline) {
   const validationEnd = Math.max(endSec, continuationWindows.at(-1).throughSec);
   const rows = [HASHES_HEADER];
   const files = new Map();
+  const replayRows = [HASHES_HEADER];
+  if (scenario.actions.length) {
+    files.set("initial.json", JSON.stringify(serializeGameState(live)));
+    files.set("actions.json", JSON.stringify(timeline.actions, null, 2) + "\n");
+  }
+  const rejectionsPath = join(fixturesDir, id, "rejections.json");
+  if (existsSync(rejectionsPath)) {
+    const raw = readFileSync(rejectionsPath, "utf8");
+    const before = serializeGameState(live);
+    const hash = sha256Value(before);
+    for (const { action, reason } of JSON.parse(raw)) {
+      requireThat(action.tSec === startSec, id + ": rejection fixture must use the initial second");
+      const copy = deserializeGameState(before);
+      const rejected = applyReplayActionsAtSecond(copy, [action], startSec);
+      requireThat(!rejected.ok && rejected.reason === reason,
+        id + ": expected " + action.kind + " to reject with " + reason + ", got " + rejected.reason);
+      assertHash(id, "rejected " + action.kind, startSec, before, serializeGameState(copy), hash);
+    }
+    files.set("rejections.json", raw);
+  }
   const windows = (scenario.windows ?? []).map(window => ({
     ...window,
     id: String(window.startSec) + (window.paused ? "-paused" : ""),
@@ -216,6 +235,7 @@ function capture({ scenario, startSec, endSec }, baseline) {
     }
 
     if (sec === keepSeconds[checkpointIndex]) {
+      replayRows.push(sec + "\t" + hash);
       const text = JSON.stringify(snapshot);
       files.set(stateFile(sec), text);
       let restored;
@@ -238,6 +258,7 @@ function capture({ scenario, startSec, endSec }, baseline) {
   }
 
   files.set(HASHES_FILE, rows.join("\n") + "\n");
+  if (scenario.actions.length) files.set("replay-checkpoints.tsv", replayRows.join("\n") + "\n");
   files.set("manifest.json", JSON.stringify({
     formatVersion: 1,
     baseline,
