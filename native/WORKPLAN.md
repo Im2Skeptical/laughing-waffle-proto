@@ -79,15 +79,24 @@
     motion, confirmations), and improve code-rendered visuals freely in the
     game's tone. The browser build is a content and layout reference only.
     Gameplay rules stay exactly as ported.
-  - N04e app shell (save slots, title screen, lifecycle, Android
-    packaging, touch, and Pixel 6 Pro measurements): sol 6.2 worker on
-    `t3/native-app-shell`.
-  - N04f interaction and presentation system (component states, feedback,
-    motion, procedural map terrain, reveal, timegraph strip polish): sol 6.2
-    worker on `t3/native-interaction`.
-  - N03i native catch-up to browser main 9123ed72 (PR #108, merged by the
-    supervisor after Cam's go-ahead): sol 6.2 worker on
-    `t3/native-catch-up-108`.
+  - N03i native catch-up to browser 9123ed72 (PR #108): merged from
+    3ccd066b. The baseline is now 9123ed72.
+    - `ensure_moon_region_result` (shared with Death and Migration) creates
+      a missing row by appending it to the current Moon's bank. Conquest
+      creates the row before the controller transfer, as in the browser.
+    - New journal `action-campaign-nest-mid-moon` (second-2 conquest).
+    - Supervisor re-run: 45/45 CTests on MSVC and clang, all 18 stages of
+      pairs, 30 windows with zero masks, 34 journals and 252 replay
+      checkpoints, and the New Game checks.
+    - Pipeline 16.0 / 18.2. Longevity forecast 32,000 s in 250 ms.
+  - N04e (38a8fa00) and N04f (658c93c8) are complete. They overlap in 8 app
+    files, so N04g integrates them: sol 6.2 worker on
+    `t3/native-app-integration`. It merges both, restyles the shell screens
+    with the N04f components, shows region names on the map, and runs the
+    Pixel validation (blocked during N04e by HiSuite holding ADB).
+  - Disk: C: fell to 2.2 GB free. The supervisor deleted `native/build`
+    in 39 merged worker worktrees (49.2 GB), keeping worktrees, branches
+    and artifacts. C: then had 59.5 GB free.
   - Next after N04f: the Life Map and Shop flows, built on the N04f
     components.
 - Previous wave:
