@@ -1,0 +1,30 @@
+{
+  "formatVersion": 1,
+  "topologies": [
+    {
+      "definitionId": "regional-v2:1",
+      "generatorRevision": 2,
+      "file": "regional-v2_1.json"
+    },
+    {
+      "definitionId": "regional-v2:123",
+      "generatorRevision": 2,
+      "file": "regional-v2_123.json"
+    },
+    {
+      "definitionId": "regional-v2:1867",
+      "generatorRevision": 2,
+      "file": "regional-v2_1867.json"
+    },
+    {
+      "definitionId": "regional-v2:2026",
+      "generatorRevision": 2,
+      "file": "regional-v2_2026.json"
+    },
+    {
+      "definitionId": "regional-v2:42",
+      "generatorRevision": 2,
+      "file": "regional-v2_42.json"
+    }
+  ]
+}

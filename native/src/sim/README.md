@@ -27,6 +27,70 @@ key, and `value()` on a present key returns an optional value. Dictionaries
 store ordered key/value pairs. Core JSON provides JS index ordering and
 value formatting. Export emits record fields in schema declaration order.
 
+## World topology admission
+
+`admit_runtime(browserState, &topologyJson, capturedConfig)` admits gameplay
+runs. The caller resolves `world.definitionId` in the export manifest and reads
+its topology JSON before calling the simulation library. Admission checks the
+definition and generator revision, the count, IDs and order of
+`world.regions`, symmetric authored adjacency and ordered biome components.
+It compiles captured content before interning live IDs and retains it in
+`RuntimeState::compiledContent`. Callers with the original `gameConfig` JSON
+pass it as `capturedConfig` so admission can reject differences in modifier
+query identity caused by record key order. Use the adapter-only
+`import_runtime` for round trips and isolated tests.
+
+The [WorldTopology](world/topology.hpp) in `RuntimeState::topology` is immutable
+and shared across state copies, alongside compiled content. Region IDs use
+the runtime's authored ordinals to index scalar fields and immutable spans
+in constant time without allocating.
+Live roads continue to use `world.connections` and the runtime road index.
+The browser export retains `world.definitionId`; topology is resolved again
+when readmitting a saved state.
+
+| Native field or accessor | Browser readers |
+| --- | --- |
+| `definition_id()`, `generator_revision()` | `world-state.js` resolves the world definition. `regional-map/definition.js` selects the generator and `external-world.js` gates generated settlement names by revision. Authored definitions have a null revision. |
+| `region_count()`, `regions()` | `scopes.js` orders region scopes. `external-world.js` enumerates neutral and Monster targets. `world-state.js` canonicalizes live roads by region order. `vassal-life-map/world-choices.js` orders destination IDs, and `regional-practices.js` checks region membership. |
+| `neighbors(region)` | `stock.js` orders remote suppliers and markets. `political-recipes.js` selects adjacent conversion targets. `territory.js` queries garrison neighbors and loss pressure. `biome-multipliers.js` traverses shared edges. `external-world.js` uses the same order for distances, Hunt and Monster expansion. `world-state.js`, `vassals.js` and `vassal-life-map/world-choices.js` use candidate road pairs, recovered by walking regions and taking only neighbors with a higher ordinal. |
+| `biome(region)`, `biome_component(region)`, `mountain_component(region)` | `practice-multipliers.js` tests terrain affinities and reads the ordered same-biome components from `biome-multipliers.js`. Both Quarrying and Irrigating use component sizes, regardless of ownership or roads. `mountain_component` is empty for other biomes. |
+| `region_name(region)` | `world-state.js` supplies names to `external-world.js` for evacuation records and to Vassal interventions, Life Map candidates, class actions, campaigns, commissions and travel choices. |
+| `neutral_settlement_name(region)` | `external-world.js` uses the generated name when creating a neutral settlement. An absent name selects the template name. |
+
+Food uses Stock routing. Migration reads live connections directly and can
+use Stock through its practices. The phase bodies require no other static
+map fields.
+
+For N03f, `regional-v2:<seed>` selects the unsigned 32-bit map seed and
+revision 2 from [definition.js](../../../src/model/regional-map/definition.js).
+Reproduce the pinned geometry with clustering `0.5`, size variation `0.85`,
+roughness `1` and feature set `0`. Preserve generated region order and the
+underlying terrain biome of occupied regions. Canonicalize each polygon
+vertex with the browser's rounding at `1e9` and pair regions by undirected
+shared edges in ascending definition-index pair order. This produces both
+neighbor order and candidate road order. Compute same-biome components by
+breadth-first traversal from the first unvisited region in that order.
+Generate region and neutral settlement names with the revision 2 naming
+algorithm over the original map geometry and its generator neighbor lists.
+The export fixtures cover these outputs. Initial live roads and markers
+belong to New Game setup and are separate L3 checks.
+
+From the repository root, regenerate or verify the fixture manifest and data:
+
+```powershell
+node native/reference/export-topology.mjs
+node native/reference/export-topology.mjs --check
+```
+
+The default inventory comes from the checked-in state fixtures, the reference
+corpus and the scenarios used for traces and stage probes. The exporter also
+accepts definition IDs and raw state or stage boundary JSON files, for example
+`node native/reference/export-topology.mjs --out-dir my-topologies regional-v2:123`.
+`waffle_parity step` and `stage` use [reference/topology](../../reference/topology)
+from the build's checkout by default. Both accept `--topology-dir <directory>`
+for an alternate export. CTest checks the exports against live browser queries
+and independently loads all manifest entries, including admission rejection controls.
+
 ## Captured content
 
 [`compile_content`](content/compiled_content.hpp) builds a shared immutable

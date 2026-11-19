@@ -418,7 +418,35 @@ zero allocations across 50,000 warmed invocations per input, including real
 bookings and unresolved reservations. Scratch and state arenas allocate
 when first populated or at a new high-water mark. Android was untested.
 
-Other active
+N03d-4 result, 19 Nov 2026. Gameplay admission retains immutable topology
+and compiled content and shares both across runtime copies. The parity
+tools resolve `world.definitionId` through the topology manifest. From
+`native/`, `cmake --preset optimized`, `cmake --build --preset optimized`
+and `ctest --preset optimized --output-on-failure` passed 27/27 tests,
+including `world_topology_test` and the step CLI controls. From the repo
+root, `node native/reference/export-topology.mjs --check` matched all four
+seeds, including physical neighbor order, symmetry, biomes, components and
+candidate road order. `node native/reference/trace.mjs` regenerated six
+scenarios. `waffle_browser_tests corpus` and `runtime-corpus` over
+`artifacts/native-reference/traces` and `native/reference/fixtures/seed-1`
+passed 25/25 trace states each. `waffle_world_topology_test
+native/reference/topology native/reference/fixtures/seed-1/state-0.json
+<all 25 trace state paths>` also passed admission and L0 for all 25.
+`node native/reference/step-windows.mjs native/build/optimized/src/sim/waffle_parity.exe`
+passed all nine trace windows and 107 comparisons with the existing masks.
+On the i9-10900K optimized build, median seed-1 topology construction took
+24.2 µs and full runtime admission took 17.46 ms, excluding file I/O and
+JSON parsing. A neighbor span, biome and mountain span lookup took
+4.29 ns per region over 20 million triplets per run, with zero allocations.
+N03e-3 integration must remove its temporary seed-1 stub. Rerun the exporter
+when integrating a scenario with a new world ID, such as seed-123 Migration.
+The [topology handoff](src/sim/README.md#world-topology-admission) records
+what N03f must reproduce for native generation. Device parity remains L4 work.
+
+19 Nov 2026: the Codex workspace ran out of credits. N03e-7a stopped
+mid-task. Its unverified partial work is preserved as WIP commit 3d01d5fb on
+`t3/port-native-migration-stage`. It includes a `seed-123-migration` scenario
+with natural movement at seconds 2033 and 2129, 32 people each. Other active
 workers may stop the same way. Their worktrees hold uncommitted work. Resume
 each from its branch and worktree. Also stopped, with WIP preserved:
 N03d-4 44d39ed4 on `t3/native-world-topology-admission` (the exporter found 4

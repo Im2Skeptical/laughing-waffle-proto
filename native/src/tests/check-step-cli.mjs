@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
-import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { copyFileSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 
 const [binary, nativeDir, outputDir] = process.argv.slice(2);
@@ -18,9 +18,9 @@ const expectedPath = join(outputDir, "state-1.json");
 const reportPath = join(outputDir, "report.json");
 const write = (path, value) => writeFileSync(path, JSON.stringify(value));
 
-function step(from, exitCode) {
+function step(from, exitCode, extra = []) {
   const result = spawnSync(binary, ["step", "--from", from, "--seconds", "1",
-    "--expect-dir", outputDir, "--masks", maskPath, "--report", reportPath], { encoding: "utf8" });
+    "--expect-dir", outputDir, "--masks", maskPath, "--report", reportPath, ...extra], { encoding: "utf8" });
   assert.equal(result.status, exitCode, result.error?.message ?? result.stdout + result.stderr);
   return result;
 }
@@ -56,6 +56,20 @@ write(expectedPath, gated);
 write(maskPath, masks);
 step(gatedPath, 0);
 assert.equal(JSON.parse(readFileSync(reportPath, "utf8")).advanced, 0);
+const alternateTopology = join(outputDir, "topology");
+mkdirSync(alternateTopology, { recursive: true });
+const alternateFile = "renamed-seed-1.json";
+copyFileSync(join(nativeDir, "reference", "topology", "regional-v2_1.json"), join(alternateTopology, alternateFile));
+write(join(alternateTopology, "manifest.json"), {
+  formatVersion: 1,
+  topologies: [{ definitionId: "regional-v2:1", generatorRevision: 2, file: alternateFile }],
+});
+step(gatedPath, 0, ["--topology-dir", alternateTopology]);
+const unknownPath = join(outputDir, "unknown-definition.json");
+const unknown = structuredClone(gated);
+unknown.world.definitionId = "regional-v2:999999";
+write(unknownPath, unknown);
+assert.match(step(unknownPath, 2).stderr, /world topology for regional-v2:999999: missing manifest entry/u);
 gated.runStatus.reason = "tenuresExhausted";
 write(expectedPath, gated);
 assert.match(step(gatedPath, 1).stdout, /First divergent path: \$\.runStatus\.reason/u);
