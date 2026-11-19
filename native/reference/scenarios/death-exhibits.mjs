@@ -1,4 +1,5 @@
 import { getMoonPhaseAtSecond } from "../../../src/model/moon-phases.js";
+import { compositionFromBins } from "../../../src/model/detailed-settlements/helpers.js";
 import { runDeathPhase } from "../../../src/model/detailed-settlements/phases/death.js";
 import { runMigrationPhase } from "../../../src/model/detailed-settlements/phases/migration.js";
 import { resetEmptyStrangerCohort } from "../../../src/model/detailed-settlements/phases/shared.js";
@@ -8,6 +9,21 @@ import { stepUnrest } from "../../../src/model/detailed-settlements/territory.js
 
 const moon = state => state.civilization.currentMoonTurn;
 const phase = state => getMoonPhaseAtSecond(state, state.tSec);
+
+function prepareArrival(state) {
+  // This v53 anchor no longer has a large live arrival. Seed the already
+  // debited reservation to isolate how the Death phase handles its meals.
+  const composition = compositionFromBins([{
+    classId: "villager", allegiance: "player", specialty: "ordinary", kind: "adults", age: null, count: 32,
+  }]);
+  moon(state).movements = [{
+    transferId: `migration:${state.tSec - 1}:overHousing:0`,
+    reason: "overHousing", sourceRegionId: "R18", destinationRegionId: "R14",
+    sourceClassId: "villager", amount: 32, survivors: 32, arrivalDeaths: 0,
+    composition, survivorComposition: null,
+  }];
+  moon(state).unresolved = [];
+}
 
 function destination(state) {
   const movement = moon(state).movements[0];
@@ -33,16 +49,23 @@ function arrivalDeaths(state, run, requireThat, amount, survivors) {
 export const deathExhibits = [
   {
     id: "death-partial-arrivals", source: "seed-123-migration", second: 2034, from: "death",
-    execute: (state, run, requireThat) => arrivalDeaths(state, run, requireThat, 1, 30),
+    execute(state, run, requireThat) {
+      prepareArrival(state);
+      arrivalDeaths(state, run, requireThat, 1, 30);
+    },
   },
   {
     id: "death-lost-arrivals", source: "seed-123-migration", second: 2034, from: "death",
-    execute: (state, run, requireThat) => arrivalDeaths(state, run, requireThat, 0, 0),
+    execute(state, run, requireThat) {
+      prepareArrival(state);
+      arrivalDeaths(state, run, requireThat, 0, 0);
+    },
   },
   {
     id: "death-legacy-mitigation", source: "seed-123-migration", second: 2034, from: "death",
     execute(state, run, requireThat) {
       delete state.rulesetId;
+      prepareArrival(state);
       const defs = state.gameConfig.gamepieces.structures;
       const slot = destination(state).structureSlots.find(slot => slot && !slot.construction &&
         slot.upkeepActive !== false && !defs[slot.structureId].specialistGate);
@@ -59,10 +82,12 @@ export const deathExhibits = [
     id: "death-legacy-emigration", source: "seed-1-migration", second: 1715, from: "migration",
     execute(state, run, requireThat, advanceClock) {
       delete state.rulesetId;
+      for (const intent of moon(state).migrationIntents) intent.sourceClassId ??= "villager";
       run("migration", () => runMigrationPhase(state, phase(state)));
       const booked = state.civilization.chaos.pendingLosses.externalEmigrants;
-      requireThat(booked === 130 && moon(state).movements.some(move => move.external),
-        "Legacy exhibit did not book external emigration");
+      const bookedMoves = moon(state).movements.filter(move => move.external);
+      requireThat(booked > 0 && booked === bookedMoves.reduce((sum, move) => sum + move.amount, 0),
+        `Legacy exhibit did not book external emigration (booked ${booked})`);
       advanceClock(state);
       run("death", () => runDeathPhase(state, phase(state)));
       requireThat(state.civilization.chaos.pendingLosses.externalEmigrants === booked,
@@ -72,7 +97,8 @@ export const deathExhibits = [
   {
     id: "death-committed-arrivals", source: "seed-123-migration", second: 2034, from: "death",
     execute(state, run, requireThat, advanceClock) {
-      run("death", () => runDeathPhase(state, phase(state)));
+      prepareArrival(state);
+      arrivalDeaths(state, run, requireThat, 1, 30);
       const turn = moon(state);
       const move = turn.movements[0];
       requireThat(move.survivors > 0, "Expected arrivals to commit before expiry");

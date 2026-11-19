@@ -529,7 +529,7 @@ Value read_stage_boundary(const std::filesystem::path& path, sim::Stage stage)
         !state || state->kind() != Value::Kind::object || !sidecar || sidecar->kind() != Value::Kind::object ||
         value.as_object().size() != 3)
         throw std::invalid_argument("stage: invalid boundary envelope in " + path.string());
-    const auto* seasonChanged = sidecar->find("_seasonChanged");
+    const auto* seasonChanged = sidecar->find("seasonChanged");
     const auto* boardDirty = sidecar->find("_boardDirty");
     const auto* chaosBefore = sidecar->find("chaosBefore");
     const auto chaosKind = stage == sim::Stage::phase_events_and_drain ? Value::Kind::number : Value::Kind::null;
@@ -551,7 +551,7 @@ int stage(const StageOptions& options)
     auto state = admit_parity_state(*before.find("state"), options.topologyDir);
     const auto& sidecar = *before.find("sidecar");
     sim::StageContext context{};
-    context.seasonChanged = sidecar.find("_seasonChanged")->as_bool();
+    context.seasonChanged = sidecar.find("seasonChanged")->as_bool();
     if (const auto& dirty = *sidecar.find("_boardDirty"); dirty.kind() != Value::Kind::null)
         context.boardDirty = dirty.as_bool();
     if (const auto& chaos = *sidecar.find("chaosBefore"); chaos.kind() != Value::Kind::null)
@@ -573,7 +573,7 @@ int stage(const StageOptions& options)
         throw std::invalid_argument("stage: advance_clock requires an advancing anchor");
 
     const Value actualSidecar(Value::Object{
-        {"_seasonChanged", Value(context.seasonChanged)},
+        {"seasonChanged", Value(context.seasonChanged)},
         {"_boardDirty", context.boardDirty ? Value(*context.boardDirty) : Value()},
         {"chaosBefore", context.chaosBefore ? Value(*context.chaosBefore) : Value()},
     });

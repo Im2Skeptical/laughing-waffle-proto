@@ -25,6 +25,7 @@ public:
 bool read_boolean(const Value& value, const std::string& path);
 double read_number(const Value& value, const std::string& path);
 double read_integer(const Value& value, const std::string& path);
+std::uint32_t read_uint32(const Value& value, const std::string& path);
 std::string read_string(const Value& value, const std::string& path);
 Value read_json(const Value& value, const std::string& path);
 const Value::Object& read_object(const Value& value, const std::string& path, std::string_view expected);
@@ -41,6 +42,7 @@ using Writer = Value (*)(const T&);
 inline Value write_boolean(const bool& value) { return Value(value); }
 inline Value write_number(const double& value) { return Value(value); }
 inline Value write_integer(const double& value) { return Value(value); }
+inline Value write_uint32(const std::uint32_t& value) { return Value(double(value)); }
 inline Value write_string(const std::string& value) { return Value(value); }
 inline Value write_json(const Value& value) { return value; }
 

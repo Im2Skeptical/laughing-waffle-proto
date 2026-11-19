@@ -135,7 +135,6 @@ struct RuntimeState {
     practice::RecipeStorage practiceRecipeStorage;
     territory::Cache territory;
     // The browser omits this latch on export and clears it on import.
-    bool seasonChanged{};
     // Derived from tSec and immutable settings. Zero triggers calculation.
     double nextLunarBoundarySec{};
     double nextVassalCheckSec{std::numeric_limits<double>::infinity()};

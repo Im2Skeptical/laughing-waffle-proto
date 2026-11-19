@@ -685,6 +685,7 @@ struct PracticeDefinition {
     std::optional<bool> locked{};
     std::optional<ExternalAction> externalAction{};
     std::optional<double> cadenceMoons{};
+    std::optional<bool> fullMapOffer{};
     std::optional<bool> scholarRequired{};
     std::optional<SpecialistClass> specialistRequired{};
     std::optional<double> supportMultiplier{};

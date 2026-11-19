@@ -89,7 +89,6 @@ bool advance_second(RuntimeState& state, StageObserver observer, void* observati
     if (hot.paused || terminal(hot)) return false;
 
     StageContext context{};
-    context.seasonChanged = state.seasonChanged;
     const auto run = [&](Stage stage) {
         if constexpr (Observe) observer(observation, stage, true);
         run_stage(stage, state, context);
@@ -99,14 +98,12 @@ bool advance_second(RuntimeState& state, StageObserver observer, void* observati
     const bool advanced = context.clockBoundary.has_value();
     if (advanced) {
         dispatch_second(state, context, run);
-        context.seasonChanged = false;
         if (context.clockBoundary->remainingTicks > 0 && !hot.paused && !terminal(hot)) {
             if constexpr (Observe) observer(observation, Stage::advance_clock, true);
             stages::finish_clock_tail(state, context);
             if constexpr (Observe) observer(observation, Stage::advance_clock, false);
         }
     }
-    state.seasonChanged = context.seasonChanged;
     return advanced;
 }
 

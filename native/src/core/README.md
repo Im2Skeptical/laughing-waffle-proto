@@ -4,7 +4,7 @@
 ordered JSON and SHA-256. Consumers should link the target to inherit its C++20
 and floating-point settings. The GameState RNG has five advancing seeds and
 `baseSeed` records the starting seed. The standalone `create_rng` has its own seed.
-The advancing seeds use binary64 addition. Only the PRNG working word wraps.
+The advancing seeds and the Mulberry32 mix use uint32 arithmetic. Each draw wraps the stored seed modulo 2^32 before mixing.
 
 JSON strings use UTF-8. A lone UTF-16 surrogate reached through a JSON escape
 is retained internally as WTF-8 and emitted using a Unicode escape. The

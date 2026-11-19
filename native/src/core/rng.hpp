@@ -6,12 +6,12 @@
 namespace waffle::core {
 
 struct RngState {
-    double seed{};
+    std::uint32_t seed{};
     double baseSeed{}; // Starting seed identity, never advanced by a draw.
-    double vassalSeed{};
-    double vassalDevelopmentSeed{};
-    double vassalLifeMapSeed{};
-    double vassalPortraitSeed{};
+    std::uint32_t vassalSeed{};
+    std::uint32_t vassalDevelopmentSeed{};
+    std::uint32_t vassalLifeMapSeed{};
+    std::uint32_t vassalPortraitSeed{};
 };
 
 enum class RngStream { main, vassal, vassalDevelopment, vassalLifeMap, vassalPortrait };
@@ -25,15 +25,10 @@ inline std::uint32_t rng_mix_word(std::uint32_t word) noexcept
     return word ^ (word >> 14);
 }
 
-inline double rng_next_seed_float(double& seed) noexcept
+inline double rng_next_seed_float(std::uint32_t& seed) noexcept
 {
-    // Round the unwrapped seed addition as a browser Number. For the usual
-    // nonnegative seed, truncation to a signed 64-bit integer gives the JS low
-    // word directly. The fallback handles all other Number inputs.
     seed += rng_seed_increment;
-    const auto word = seed >= 0 && seed < 0x1p63
-        ? static_cast<std::uint32_t>(static_cast<std::int64_t>(seed)) : js::to_uint32(seed);
-    return rng_mix_word(word) / 0x1p32;
+    return rng_mix_word(seed) / 0x1p32;
 }
 
 inline double rng_next_float(RngState& state) noexcept { return rng_next_seed_float(state.seed); }
@@ -44,7 +39,7 @@ json::Value serialize_rng(const RngState& state);
 
 // Standalone seedState used by createRng in the browser.
 struct SeedRng {
-    double seed{};
+    std::uint32_t seed{};
 };
 
 SeedRng create_rng(double seed) noexcept;

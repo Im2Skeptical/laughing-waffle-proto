@@ -3,6 +3,6 @@
   "start": { "kind": "territoryExhibit", "seed": 1 },
   "actions": [],
   "horizonSec": 18,
-  "keepSeconds": [0, 6, 9, 17],
-  "windows": [{ "startSec": 5, "count": 2 }, { "startSec": 8, "count": 2 }, { "startSec": 16, "count": 2 }]
+  "keepSeconds": [0, 6, 8, 16],
+  "windows": [{ "startSec": 5, "count": 2 }, { "startSec": 7, "count": 2 }, { "startSec": 15, "count": 2 }]
 }

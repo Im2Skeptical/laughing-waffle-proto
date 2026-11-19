@@ -130,13 +130,13 @@ node native/reference/stage-probe.mjs --all
 node native/reference/stage-probe.mjs --all --check
 ```
 
-The default captures seed 1 second 1. `--all` selects 36 seconds across the
+The default captures seed 1 second 1. `--all` selects seconds across the
 opening, the year-50 end of `seed-1`, the year-100 anchor, the shop journal
 and timed Vassal work, and the Gym metallurgy board. The two Gym samples
 require Smelting and Toolmaking to Discharge under the same event root.
 Each sample writes to `artifacts/native-reference/stages/<scenario>/<second>/`.
-The full suite writes about 180 MiB. `--check` regenerates and compares files
-byte for byte. The default check can run with just the checked-in clock pair.
+`--check` regenerates and compares files byte for byte. The default check can
+run with just the checked-in clock pair.
 
 The probe starts from an official replay state at the end of the previous
 second. It checks that anchor against the preceding pinned trace hash. Every
@@ -149,8 +149,8 @@ outside the stage spans. This distinction matters at shop seconds 7, 12 and
 Tick numbers are relative to the requested second. `advance_clock` spans
 ticks 1–60, including AP and clock work. The first 59 ticks use the official
 tick path. On tick 60 the probe temporarily disables the settlement scheduler
-via its variant flag, runs the same tick, restores the flag, and recovers the
-dispatch-entry latch from the prior latch or the clock's season/year change.
+via its variant flag, runs the same tick, restores the flag, and records the
+tick's returned season-boundary flag.
 All applicable gameplay stages below execute synchronously at tick 60. Omitted
 stages did not fire for that second.
 
@@ -158,7 +158,7 @@ stages did not fire for that second.
 | --- | ---: | --- |
 | `advance_clock` | 1–60 | Aligned advancing second, through AP and the dispatch-entry clock. |
 | `prelude` | 60 | Unrest, Green, and empty Stranger defaults. |
-| `seasonal_practices`, `spring_death_baseline` | 60 | Latched season first, then the Spring baseline if the run survives. |
+| `seasonal_practices`, `spring_death_baseline` | 60 | Season boundary first, then the Spring baseline if the run survives. |
 | `birth` | 60 | Birth boundary, including moon rollover and Birth Practices. |
 | `food`, `after_meals_practices`, `garrison_upkeep` | 60 | Food boundary, in this order. Food includes its pre/post-routing Practices. |
 | `housing`, `faith` | 60 | Each at its named boundary. Housing keeps its construction drain and Faith keeps its Chaos calculation. |
@@ -171,16 +171,16 @@ The version-1 manifest lists the ordered spans as `{name, firstTick, lastTick,
 before, after}`. The last two values are zero-based indices into `boundaries`.
 Each boundary names its file, relative tick, absolute `simStepIndex`, `tSec`,
 canonical GameState hash, and sidecar. Identical boundary envelopes share a
-file, so resolve endpoints through the manifest. The `end` boundary is after
-the dispatcher clears the season latch and before replay applies actions.
+file, so resolve endpoints through the manifest. The `end` boundary follows dispatch, after the season-boundary context ends
+and before replay applies actions.
 `validation` holds both pre-action hashes, the post-action/trace hashes, and
 the action kinds. The hash algorithm is the trace algorithm above.
 
 Boundary files are `{formatVersion: 1, state, sidecar}`. The `state` member is a
 complete `serializeGameState` value. The sidecar carries three fields.
 
-- `_seasonChanged` as the Boolean latch at the boundary. Restore it explicitly
-  because ordinary browser and native import clear it.
+- `seasonChanged` carries the dispatch-local Boolean from the clock stage to
+  its gameplay spans. It is absent from GameState.
 - `_boardDirty` as the browser's legacy flag, with null denoting absence.
   The browser model does not use it in these stages.
 - `chaosBefore` as the pre-phase Chaos value on both endpoints of
@@ -258,8 +258,8 @@ claim fields.
 
 Numbers are JSON numbers from `serializeGameState`. This corpus does not round
 them. Prestige is the integer the engine stored. It is not recomputed with the
-old November 7 node-income rounding. `seasonClockSec` is the engine's sum of
-sixty `1/60` steps, not a hand-rounded decimal.
+old November 7 node-income rounding. `seasonClockSec` is the tick index
+within the season divided by 60.
 
 Regions follow `world.regions`. Joint cohorts keep stored order inside each
 class, and class ids are sorted. Practice slots keep index, including empty
@@ -283,15 +283,14 @@ hash still changes if those excluded serialized fields drift.
 
 The v1.1.74 card pass intentionally refreshes the browser reference to GameState
 52: terrain bonuses are printed card data, starter cards have no implicit biome
-bonus, and keyword scaling can target Output or Capacity. The original baseline
-commit below records the corpus's origin; current config and full-state hashes
-are regenerated explicitly for this intentional rules change. These goldens
-establish the browser-side baseline. See [content rules and coverage](../../docs/card-content-pass.md).
+bonus, and keyword scaling can target Output or Capacity. The v53 refresh
+captures integer-tick seasons, uint32 RNG streams, and separated Research and
+Stock recipes. These goldens establish the browser-side baseline. See [content rules and coverage](../../docs/card-content-pass.md).
 
 ## Provenance
 
-Pinned to baseline `f0b1b1f720c19a1cbeda558da430a1ff636e6507` and the canonical
-gameConfig hash in `corpus/manifest.json`. Package version and current git HEAD
+Pinned to [BASELINE](BASELINE) and the canonical gameConfig hash in
+`corpus/manifest.json`. Package version and current git HEAD
 are not pass/fail gates. Ordinary version bumps do not invalidate the fixtures.
 A config or rules change does, until someone regenerates on purpose.
 

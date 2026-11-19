@@ -47,14 +47,14 @@ struct RouteEdge {
     bool operator==(const RouteEdge&) const = default;
 };
 
-double graph_roll(double& seed) { return core::rng_next_seed_float(seed); }
+double graph_roll(std::uint32_t& seed) { return core::rng_next_seed_float(seed); }
 
-std::size_t graph_pick(double& seed, std::size_t count)
+std::size_t graph_pick(std::uint32_t& seed, std::size_t count)
 {
     return static_cast<std::size_t>(graph_roll(seed) * static_cast<double>(count));
 }
 
-bool draw_routes(LifeMapGraph& graph, double& seed)
+bool draw_routes(LifeMapGraph& graph, std::uint32_t& seed)
 {
     const auto& config = graph.generatorConfig;
     const int lanes = static_cast<int>(config.laneCount);
@@ -214,7 +214,7 @@ StockOutputs stock_outputs(const RuntimeState& state, std::string_view identity)
     for (const auto& [id, def] : cards.practices) {
         const auto pool = practice_pool(state, def);
         if (def.locked.value_or(false) || contains(fullMapSeedCardIds, id) ||
-            (state.hot.rulesetId && !contains(fullMapOfferIds, id)) || (pool != "common" && pool != identity)) continue;
+            (state.hot.rulesetId && !full_map_offer(id, def.fullMapOffer.value_or(false))) || (pool != "common" && pool != identity)) continue;
         collect_outputs(available, def);
         if (quality_index(def.minimumQuality) <= unlocked) {
             collect_outputs(outputs.classed, def);
@@ -280,7 +280,7 @@ const browser::LifeMapNodeRule* rule_for(const Rules& entries, std::string_view 
 }
 
 template<class Range, class Weight>
-auto weighted(const Range& entries, double& seed, Weight weight)
+auto weighted(const Range& entries, std::uint32_t& seed, Weight weight)
 {
     double total = 0;
     for (const auto& entry : entries) total += weight(entry);
@@ -292,7 +292,7 @@ auto weighted(const Range& entries, double& seed, Weight weight)
     return entries.back();
 }
 
-bool roll_legacy_families(LifeMapGraph& graph, double& seed)
+bool roll_legacy_families(LifeMapGraph& graph, std::uint32_t& seed)
 {
     using Weights = browser::NodeFamilyWeights;
     constexpr std::array members{&Weights::patronage, &Weights::development, &Weights::crossroads,
@@ -327,7 +327,7 @@ bool roll_legacy_families(LifeMapGraph& graph, double& seed)
     return true;
 }
 
-void place_legacy_rooms(LifeMapGraph& graph, double& seed, const browser::Candidate& candidate,
+void place_legacy_rooms(LifeMapGraph& graph, std::uint32_t& seed, const browser::Candidate& candidate,
                         const StockOutputs& output, std::string_view identity)
 {
     auto& nodes = graph.nodes;
@@ -406,7 +406,7 @@ void place_legacy_rooms(LifeMapGraph& graph, double& seed, const browser::Candid
     }
 }
 
-bool populate(LifeMapGraph& graph, double& seed, const browser::Candidate& candidate, const StockOutputs& outputs,
+bool populate(LifeMapGraph& graph, std::uint32_t& seed, const browser::Candidate& candidate, const StockOutputs& outputs,
               std::string_view identity)
 {
     const auto& config = graph.generatorConfig;
@@ -721,7 +721,7 @@ void layout(LifeMapGraph& graph)
 }
 
 std::optional<LifeMapGraph> action_graph(const RuntimeState& state, const browser::Candidate& candidate,
-                                        std::string_view id, double& seed)
+                                        std::string_view id, std::uint32_t& seed)
 {
     const auto& config = state.content->config.lifeMapGenerator;
     const auto identity = candidate.founderClassId.value_or(!candidate.classId ? "" :

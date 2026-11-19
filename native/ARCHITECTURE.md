@@ -89,8 +89,7 @@ is recorded as an intentional divergence:
 
 - JS property enumeration order for id-keyed collections. Native may use dense
   arrays in a fixed order instead.
-- Replicating JS float accumulation order. An example is `seasonClockSec`,
-  which sums sixty 1/60 steps.
+- Replicating JS float accumulation order where a rule depends on it.
 - Doubles everywhere JS uses `Number`. Native may use integers or fixed point
   where the rule allows.
 - `Math.round`, `|0` and `>>>` emulation where the native representation makes
@@ -180,8 +179,8 @@ Pixel 6 as the floor. The planning budget is 10–12 µs per sim-second on the
 i9-10900K desktop, which assumes a Pixel 6 big core is 2.5–3× slower (to be
 measured). Adopted mechanisms:
 
-- One dispatch per second at fixed deadlines. The season clock keeps the
-  browser's 60 binary64 additions, because exact compatibility is cheap there.
+- One dispatch per second at fixed deadlines. The v53 calendar derives the
+  clock fields and season boundaries from the 60 Hz tick index.
 - Trigger indexes instead of event-driven global scans. FIFO, Charge-before-
   Discharge and root caps are preserved.
 - One typed summary row per second on the simulation thread (about 2.7 KB at

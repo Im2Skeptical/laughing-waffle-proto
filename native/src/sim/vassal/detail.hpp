@@ -29,6 +29,11 @@ struct CommissionDef {
 struct NodeFamilyLabel { std::string_view id, label; };
 #include "sim/vassal/tables.inc"
 
+inline bool full_map_offer(std::string_view id, bool optedIn)
+{
+    return optedIn || std::ranges::find(fullMapOfferIds, id) != std::end(fullMapOfferIds);
+}
+
 inline constexpr std::array statIds{"cunning"sv, "wisdom"sv, "effectiveness"sv, "intelligence"sv};
 inline constexpr std::array statMembers{&VassalStats::cunning, &VassalStats::wisdom,
     &VassalStats::effectiveness, &VassalStats::intelligence};
@@ -97,7 +102,7 @@ void finish_vassal(RuntimeState& state, Vassal& actor, std::string_view cause = 
 void inherit(RuntimeState& state, Vassal& actor);
 void generate_candidates(RuntimeState& state);
 std::optional<browser::LifeMapGraph> action_graph(const RuntimeState& state, const browser::Candidate& candidate,
-                                                 std::string_view id, double& seed);
+                                                 std::string_view id, std::uint32_t& seed);
 browser::LifeMapNodeStateOptions campaign_options(const RuntimeState& state, const Vassal& actor,
                                                    const browser::LifeMapNodeState& node);
 browser::LifeMapNodeStateInventory shop_inventory(RuntimeState& state, Vassal& actor, browser::LifeMapNodeState& node);

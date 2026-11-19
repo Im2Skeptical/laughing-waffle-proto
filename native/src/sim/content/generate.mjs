@@ -112,6 +112,9 @@ function type(ref, policy = 'compiled') {
     if (!fieldPolicy) throw Error('Unclassified field ' + ref + '.' + key);
     mapping.delete(key);
     const kind = fieldPolicy.split(':')[0];
+    if (ref === 'PracticeDefinition' && key === 'fullMapOffer' &&
+        (fieldPolicy !== 'compiled' || field.type !== 'boolean' || !field.optional || field.nullable))
+      throw Error('PracticeDefinition.fullMapOffer must compile as a captured optional boolean');
     if (fieldPolicy === 'descriptive' || kind === 'unsupported') {
       if (kind === 'unsupported' && !fieldPolicy.slice('unsupported:'.length))
         throw Error('Missing unsupported reason for ' + ref + '.' + key);

@@ -1076,7 +1076,7 @@ struct RunStatus {
 };
 
 struct HotState {
-    browser::Version52 gameStateSchemaVersion{};
+    browser::Version53 gameStateSchemaVersion{};
     browser::Phase phase{};
     double turn{};
     Range<SeasonId> seasons{};

@@ -25,6 +25,13 @@ double read_integer(const Value& value, const std::string& path)
     return number;
 }
 
+std::uint32_t read_uint32(const Value& value, const std::string& path)
+{
+    const auto number = read_integer(value, path);
+    if (number < 0 || number >= 0x1p32) fail(path, "expected uint32");
+    return static_cast<std::uint32_t>(number);
+}
+
 std::string read_string(const Value& value, const std::string& path)
 {
     if (value.kind() != Value::Kind::string) fail(path, "expected string");

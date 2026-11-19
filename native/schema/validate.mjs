@@ -2,12 +2,13 @@
 import { resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 
-const schema = JSON.parse(readFileSync(new URL("./gamestate.v52.json", import.meta.url), "utf8"));
+const schema = JSON.parse(readFileSync(new URL("./gamestate.v53.json", import.meta.url), "utf8"));
 const own = (record, key) => Object.hasOwn(record, key);
 const object = value => value !== null && typeof value === "object" && !Array.isArray(value);
 const scalars = {
   number: Number.isFinite,
   integer: Number.isInteger,
+  uint32: value => typeof value === "number" && value === (value >>> 0),
   string: value => typeof value === "string",
   boolean: value => typeof value === "boolean",
   json: function isJson(value) {

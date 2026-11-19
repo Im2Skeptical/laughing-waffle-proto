@@ -63,7 +63,7 @@ window("active-and-expired-unrest", anchor, 6, [
   const { tSec, civilization } = state;
   for (const until of [32, 34]) if (tSec <= until) income += 1.3 / 32;
   assert.equal(civilization.chaos.pendingUnrestIncome, income);
-  assert.equal(civilization.green.tier, tSec < 33 ? 0 : 1);
+  assert.equal(civilization.green.tier, tSec < 32 ? 0 : 1);
   assert.deepEqual(stranger.faith, { tier: "gold", trend: null, streak: 0 });
   assert.equal(stranger.happiness.status, "neutral");
   assert.equal(stranger.specialists.scholar.adults, 0);

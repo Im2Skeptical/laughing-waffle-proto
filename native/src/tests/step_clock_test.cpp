@@ -23,18 +23,12 @@ void default_clock()
     for (int second = 1; second <= 33; ++second) {
         expect(advance_one_second(state), "running clock did not advance");
         expect(hot.tSec == second && hot.simStepIndex == second * 60, "second or step index drift");
-        expect(!state.seasonChanged, "latch leaked across a dispatched boundary");
-        if (second == 8) {
-            expect(hot.currentSeasonIndex == 0 && hot.seasonClockSec == 7.999999999999977,
-                   "default season crossed before the browser");
-        }
-        if (second == 9) {
-            expect(hot.currentSeasonIndex == 1 && hot.seasonClockSec == 0.9999999999999791,
-                   "default season did not cross at second 9");
-        }
-        if (second == 32) expect(hot.year == 1 && hot.currentSeasonIndex == 3, "year crossed early");
+        const auto ordinal = second / 8;
+        expect(hot.currentSeasonIndex == ordinal % 4 && hot.year == 1 + ordinal / 4,
+               "season or year changed away from its exact boundary");
+        expect(hot.simTime == second && hot.seasonClockSec == second % 8 &&
+               hot.seasonTimeRemaining == 8 - second % 8, "tick-derived clocks drifted");
     }
-    expect(hot.year == 2 && hot.currentSeasonIndex == 0, "year did not wrap at second 33");
 }
 
 void gates_and_ap()
@@ -69,13 +63,16 @@ void fractional_clocks()
     RuntimeState state;
     auto& hot = state.hot;
     hot.seasons = state.tables.table<runtime::SeasonId>().append(4, "$.seasons");
-    hot.simStepIndex = 59;
+    hot.simStepIndex = 479;
+    hot.tSec = 7;
+    hot.year = 1;
     hot.seasonDurationSec = 2.25;
-    hot.seasonClockSec = 1.75;
-    expect(advance_one_second(state) && hot.simStepIndex == 119 && hot.tSec == 1, "mid-second index drift");
-    expect(hot.currentSeasonIndex == 1 && state.seasonChanged, "post-dispatch season change did not latch");
-    expect(advance_one_second(state) && hot.simStepIndex == 179 && hot.tSec == 2, "mid-second continuation drift");
-    expect(hot.currentSeasonIndex == 1 && !state.seasonChanged, "queued season change was not cleared");
+    expect(advance_one_second(state) && hot.simStepIndex == 539 && hot.tSec == 8, "mid-second index drift");
+    expect(hot.currentSeasonIndex == 1 && hot.year == 1, "fractional duration did not use the default boundary");
+    expect(hot.simTime == 539.0 / 60 && hot.seasonClockSec == 59.0 / 60 &&
+           hot.seasonTimeRemaining == 421.0 / 60, "mid-second clocks drifted");
+    expect(advance_one_second(state) && hot.simStepIndex == 599 && hot.tSec == 9, "mid-second continuation drift");
+    expect(hot.currentSeasonIndex == 1 && hot.seasonClockSec == 119.0 / 60, "continuation changed the season");
 
     constexpr double duration = 2.9;
     const auto zero = lunar_schedule_at_second(0, duration);

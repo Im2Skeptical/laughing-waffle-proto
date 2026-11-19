@@ -4019,12 +4019,12 @@ void Mapping<SkillRuntime>::digest(Digest& codec, const SkillRuntime& source)
 core::RngState Mapping<core::RngState>::read(Import& codec, const browser::RngSeeds& source, const std::string& path)
 {
     core::RngState result{};
-    result.seed = codec.read<double>(source.seed, property_path(path, "seed"));
+    result.seed = codec.read<std::uint32_t>(source.seed, property_path(path, "seed"));
     result.baseSeed = codec.read<double>(source.baseSeed, property_path(path, "baseSeed"));
-    result.vassalSeed = codec.read<double>(source.vassalSeed, property_path(path, "vassalSeed"));
-    result.vassalDevelopmentSeed = codec.read<double>(source.vassalDevelopmentSeed, property_path(path, "vassalDevelopmentSeed"));
-    result.vassalLifeMapSeed = codec.read<double>(source.vassalLifeMapSeed, property_path(path, "vassalLifeMapSeed"));
-    result.vassalPortraitSeed = codec.read<double>(source.vassalPortraitSeed, property_path(path, "vassalPortraitSeed"));
+    result.vassalSeed = codec.read<std::uint32_t>(source.vassalSeed, property_path(path, "vassalSeed"));
+    result.vassalDevelopmentSeed = codec.read<std::uint32_t>(source.vassalDevelopmentSeed, property_path(path, "vassalDevelopmentSeed"));
+    result.vassalLifeMapSeed = codec.read<std::uint32_t>(source.vassalLifeMapSeed, property_path(path, "vassalLifeMapSeed"));
+    result.vassalPortraitSeed = codec.read<std::uint32_t>(source.vassalPortraitSeed, property_path(path, "vassalPortraitSeed"));
     return result;
 }
 
@@ -4081,7 +4081,7 @@ void Mapping<RunStatus>::digest(Digest& codec, const RunStatus& source)
 HotState Mapping<HotState>::read(Import& codec, const browser::GameState& source, const std::string& path)
 {
     HotState result{};
-    result.gameStateSchemaVersion = codec.read<browser::Version52>(source.gameStateSchemaVersion, property_path(path, "gameStateSchemaVersion"));
+    result.gameStateSchemaVersion = codec.read<browser::Version53>(source.gameStateSchemaVersion, property_path(path, "gameStateSchemaVersion"));
     result.phase = codec.read<browser::Phase>(source.phase, property_path(path, "phase"));
     result.turn = codec.read<double>(source.turn, property_path(path, "turn"));
     result.seasons = codec.read<Range<SeasonId>>(source.seasons, property_path(path, "seasons"));
