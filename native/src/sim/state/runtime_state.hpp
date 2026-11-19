@@ -1,6 +1,7 @@
 #pragma once
 
 #include "sim/state/rows.generated.hpp"
+#include "sim/settlement/migration_reservation.hpp"
 
 #include <memory>
 
@@ -47,6 +48,12 @@ struct SettlementPreludeCache {
     unsigned nextMoonBuffer{};
 };
 
+struct FaithStageCache {
+    std::array<runtime::SymbolId, 3> happiness;
+    std::array<runtime::SymbolId, 4> faith;
+    std::array<runtime::Range<runtime::MoonRegionResultFaith>, 2> reports;
+};
+
 struct RuntimeIndexes {
     std::vector<runtime::SiteId> sitesByRegion;
     std::vector<runtime::SiteId> detailedSitesByRegion;
@@ -76,6 +83,8 @@ struct RuntimeState {
     std::shared_ptr<const CapturedContent> content;
     runtime::IdTables addedIds;
     SettlementPreludeCache settlementPrelude;
+    FaithStageCache faithStage;
+    settlement::MigrationReservationCache migrationReservations;
     PopulationVocabulary populationVocabulary;
     // The browser omits this latch on export and clears it on import.
     bool seasonChanged{};

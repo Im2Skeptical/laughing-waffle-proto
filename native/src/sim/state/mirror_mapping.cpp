@@ -1,6 +1,7 @@
 #include "sim/state/runtime_state.hpp"
 #include "sim/settlement/population.hpp"
 #include "sim/settlement/prelude.hpp"
+#include "sim/stages/faith.hpp"
 
 #include "core/sha256.hpp"
 #include "sim/browser/detail/json_path.hpp"
@@ -403,6 +404,7 @@ RuntimeState import_runtime(const browser::GameState& state)
     settlement::prepare_population(result);
     rebuild_runtime_indexes(result);
     settlement::prepare_prelude(result);
+    stages::prepare_faith(result);
     return result;
 }
 
