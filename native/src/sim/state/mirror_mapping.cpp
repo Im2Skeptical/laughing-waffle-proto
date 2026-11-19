@@ -1,8 +1,9 @@
-#include "sim/state/runtime_state.hpp"
+#include "sim/state/runtime_admission.hpp"
 #include "sim/vassal/vassal.hpp"
 #include "sim/content/compiled_content.hpp"
 #include "sim/settlement/population.hpp"
 #include "sim/settlement/prelude.hpp"
+#include "sim/world/generate.hpp"
 #include "sim/world/topology.hpp"
 #include "sim/stages/faith.hpp"
 #include "sim/stages/food.hpp"
@@ -611,6 +612,19 @@ RuntimeState import_live_state(const browser::GameState& state, std::shared_ptr<
     return result;
 }
 
+RuntimeState admit_live_state(const browser::GameState& state, const core::json::Value& topology,
+                              std::shared_ptr<CapturedContent> content,
+                              std::shared_ptr<const CompiledContent> compiled)
+{
+    content->configHash = compiled->key.configHash;
+    auto result = import_live_state(state, std::move(content));
+    result.topology = load_world_topology(result, topology);
+    result.compiledContent = std::move(compiled);
+    practice::detail::admit(result);
+    territory::prepare(result);
+    return result;
+}
+
 }
 
 RuntimeState import_runtime(const browser::GameState& state)
@@ -633,20 +647,28 @@ RuntimeState import_runtime(const browser::GameState& state)
 RuntimeState admit_runtime(const browser::GameState& state, const core::json::Value* topology,
                            const core::json::Value* capturedConfig)
 {
-    if (!topology) throw std::invalid_argument("world topology for " + state.world.definitionId + ": missing topology");
+    core::json::Value generated;
+    if (!topology) {
+        const auto seed = generated_regional_seed(state.world.definitionId);
+        if (!seed) throw std::invalid_argument("world topology for " + state.world.definitionId + ": missing topology");
+        generated = generate_regional_world(*seed).topology_json();
+        topology = &generated;
+    }
     auto content = std::make_shared<CapturedContent>();
     auto compiled = compile_content(state.gameConfig, content->ids, capturedConfig);
     if (!compiled->diagnostics.empty()) {
         const auto& diagnostic = compiled->diagnostics.front();
         throw std::invalid_argument(diagnostic.path + " and " + diagnostic.otherPath + ": " + diagnostic.message);
     }
-    content->configHash = compiled->key.configHash;
-    auto result = import_live_state(state, std::move(content));
-    result.topology = load_world_topology(result, *topology);
-    result.compiledContent = std::move(compiled);
-    practice::detail::admit(result);
-    territory::prepare(result);
-    return result;
+    return admit_live_state(state, *topology, std::move(content), std::move(compiled));
+}
+
+RuntimeState detail::admit_with_compiled_config(const browser::GameState& state, const core::json::Value& topology,
+                                               std::shared_ptr<const CompiledContent> compiled)
+{
+    auto content = std::make_shared<CapturedContent>();
+    content->ids = compiled->ids;
+    return admit_live_state(state, topology, std::move(content), std::move(compiled));
 }
 
 browser::GameState export_runtime(const RuntimeState& state)

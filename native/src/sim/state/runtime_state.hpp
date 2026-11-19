@@ -172,9 +172,10 @@ struct RuntimeState {
 // Adapter-only import checks representational bounds and live world links. Schema shape
 // validation belongs to browser::import_game_state.
 RuntimeState import_runtime(const browser::GameState& state);
-// Gameplay admission requires the topology for state.world.definitionId.
+// Gameplay admission generates regional-v2 topology unless supplied by the
+// caller. Other world definitions require an explicit topology.
 // The original gameConfig JSON enables checks on browser record-key identity.
-RuntimeState admit_runtime(const browser::GameState& state, const core::json::Value* topology,
+RuntimeState admit_runtime(const browser::GameState& state, const core::json::Value* topology = nullptr,
                            const core::json::Value* capturedConfig = nullptr);
 browser::GameState export_runtime(const RuntimeState& state);
 

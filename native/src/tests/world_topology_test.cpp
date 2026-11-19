@@ -1,5 +1,6 @@
 #include "sim/content/compiled_content.hpp"
 #include "sim/state/runtime_state.hpp"
+#include "sim/world/generate.hpp"
 #include "sim/world/topology.hpp"
 #include "tools/reference_topology.hpp"
 
@@ -49,6 +50,13 @@ void check_topology(const std::filesystem::path& dir, const json::Value& input)
     require(topology.region_count() == opening.world.regions.size(), "wrong region count");
     require(json::sha256_value(sim::browser::export_game_state(sim::export_runtime(copy))) ==
             json::sha256_value(input), "admitted state failed L0 round-trip");
+    const auto generated = sim::generated_regional_seed(opening.world.definitionId)
+        ? std::optional{sim::admit_runtime(opening, nullptr, input.find("gameConfig"))} : std::nullopt;
+    if (generated) {
+        require(sim::state_digest(*generated) == sim::state_digest(state), "generated topology changed runtime state");
+        require(json::sha256_value(sim::browser::export_game_state(sim::export_runtime(*generated))) ==
+                json::sha256_value(input), "generated topology admission failed L0 round-trip");
+    }
     constexpr std::array<std::string_view, 6> biomes{"plains", "mountains", "forest", "water", "islands", "swamp"};
     const auto& components = data.find("biomeComponents")->as_array();
     for (const auto region : topology.regions()) {
@@ -78,6 +86,18 @@ void check_topology(const std::filesystem::path& dir, const json::Value& input)
         if (topology.biome(region) == Biome::mountains)
             require(std::ranges::equal(mountains, topology.biome_component(region)), "mountain component differs from the browser");
         else require(mountains.empty(), "non-mountain has a mountain component");
+        if (generated) {
+            const auto& other = *generated->topology;
+            require(other.definition_id() == topology.definition_id() &&
+                    other.generator_revision() == topology.generator_revision() &&
+                    other.region_count() == topology.region_count() &&
+                    other.region_name(region) == topology.region_name(region) &&
+                    other.neutral_settlement_name(region) == topology.neutral_settlement_name(region) &&
+                    other.biome(region) == topology.biome(region) &&
+                    std::ranges::equal(other.neighbors(region), topology.neighbors(region)) &&
+                    std::ranges::equal(other.biome_component(region), topology.biome_component(region)),
+                    "generated and loaded topology differ");
+        }
     }
 }
 
@@ -103,8 +123,8 @@ int main(int argc, char** argv)
 
         const auto data = waffle::tools::read_reference_topology(dir, opening.world.definitionId);
         auto unknown = opening;
-        unknown.world.definitionId = "regional-v2:999999";
-        rejects([&] { sim::admit_runtime(unknown, nullptr); }, "regional-v2:999999: missing topology");
+        unknown.world.definitionId = "regional-v3:999999";
+        rejects([&] { sim::admit_runtime(unknown, nullptr); }, "regional-v3:999999: missing topology");
         rejects([&] { sim::admit_runtime(unknown, &data); }, "definitionId does not match");
         auto wrongOrder = opening;
         std::swap(wrongOrder.world.regions[0], wrongOrder.world.regions[1]);
