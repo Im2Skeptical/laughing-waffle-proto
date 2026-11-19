@@ -5,6 +5,7 @@
 #include "sim/step/stages.hpp"
 #include "tools/json_file.hpp"
 #include "tools/parity_masks.hpp"
+#include "tools/reference_topology.hpp"
 
 #include <algorithm>
 #include <charconv>
@@ -158,18 +159,9 @@ std::size_t mirror_dynamic_bytes(const T& value)
 sim::RuntimeState admit_parity_state(const Value& input, const std::filesystem::path& topologyDir)
 {
     const auto state = browser::import_game_state(input);
-    auto file = state.world.definitionId;
-    for (auto& ch : file) {
-        const bool alphanumeric = (ch >= 'A' && ch <= 'Z') || (ch >= 'a' && ch <= 'z') ||
-            (ch >= '0' && ch <= '9');
-        if (!alphanumeric && ch != '-' && ch != '_') ch = '_';
-    }
     const auto dir = topologyDir.empty() ? std::filesystem::path(WAFFLE_REFERENCE_TOPOLOGY_DIR) : topologyDir;
-    const auto path = dir / (file + ".json");
-    if (!std::filesystem::exists(path))
-        throw std::invalid_argument("world topology for " + state.world.definitionId + ": missing topology file " + path.string());
-    const auto topology = json::parse(read_file(path));
-    return sim::admit_runtime(state, &topology);
+    const auto topology = waffle::tools::read_reference_topology(dir, state.world.definitionId);
+    return sim::admit_runtime(state, &topology, input.find("gameConfig"));
 }
 
 struct StepOptions {

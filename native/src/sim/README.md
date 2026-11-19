@@ -29,15 +29,21 @@ value formatting. Export emits record fields in schema declaration order.
 
 ## World topology admission
 
-`admit_runtime(browserState, topologyJson)` admits gameplay runs. The caller
-resolves `world.definitionId` and reads its topology JSON before calling the
-simulation library. Admission rejects a missing topology, a mismatched
-definition or generator revision, and any difference in the count, IDs or
-order of `world.regions`. The adapter-only `import_runtime` remains available
-for round trips and isolated tests.
+`admit_runtime(browserState, &topologyJson, capturedConfig)` admits gameplay
+runs. The caller resolves `world.definitionId` in the export manifest and reads
+its topology JSON before calling the simulation library. Admission checks the
+definition and generator revision, the count, IDs and order of
+`world.regions`, symmetric authored adjacency and ordered biome components.
+It compiles captured content before interning live IDs and retains it in
+`RuntimeState::compiledContent`. Callers with the original `gameConfig` JSON
+pass it as `capturedConfig` so admission can reject differences in modifier
+query identity caused by record key order. Use the adapter-only
+`import_runtime` for round trips and isolated tests.
 
 The [WorldTopology](world/topology.hpp) in `RuntimeState::topology` is immutable
-and shared across state copies. Region IDs use the runtime's authored ordinals.
+and shared across state copies, alongside compiled content. Region IDs use
+the runtime's authored ordinals to index scalar fields and immutable spans
+in constant time without allocating.
 Live roads continue to use `world.connections` and the runtime road index.
 The browser export retains `world.definitionId`; topology is resolved again
 when readmitting a saved state.
@@ -53,10 +59,21 @@ when readmitting a saved state.
 
 Food uses Stock routing. Migration reads live connections directly and can
 use Stock through its practices. The phase bodies require no other static
-map fields. Region geometry and initial roads and markers belong to
-presentation or New Game generation. N03f must reproduce the exported
-topology, including orders and generated names, for native New Game parity
-(L3).
+map fields.
+
+For N03f, `regional-v2:<seed>` selects the unsigned 32-bit map seed and
+revision 2 from [definition.js](../../../src/model/regional-map/definition.js).
+Reproduce the pinned geometry with clustering `0.5`, size variation `0.85`,
+roughness `1` and feature set `0`. Preserve generated region order and the
+underlying terrain biome of occupied regions. Canonicalize each polygon
+vertex with the browser's rounding at `1e9` and pair regions by undirected
+shared edges in ascending definition-index pair order. This produces both
+neighbor order and candidate road order. Compute same-biome components by
+breadth-first traversal from the first unvisited region in that order.
+Generate region and neutral settlement names with the revision 2 naming
+algorithm over the original map geometry and its generator neighbor lists.
+The export fixtures cover these outputs. Initial live roads and markers
+belong to New Game setup and are separate L3 checks.
 
 From the repository root, regenerate or verify the fixture manifest and data:
 

@@ -59,9 +59,9 @@ if(NOT ANDROID)
 	endif()
 
 	set(native_dir "${CMAKE_CURRENT_SOURCE_DIR}/../..")
-	add_test(NAME world_topology_admission COMMAND waffle_world_topology_test
+	add_test(NAME world_topology_test COMMAND waffle_world_topology_test
 		"${native_dir}/reference/topology" "${native_dir}/reference/fixtures/seed-1/state-0.json")
-	set_tests_properties(world_topology_admission PROPERTIES TIMEOUT 60)
+	set_tests_properties(world_topology_test PROPERTIES TIMEOUT 60)
 	add_test(NAME captured_content COMMAND waffle_content_tests fixtures
 		"${native_dir}/src/tests/vectors/seed-1-initial.json"
 		"${native_dir}/reference/fixtures/seed-1/state-0.json")

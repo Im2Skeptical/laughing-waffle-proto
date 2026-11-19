@@ -3,6 +3,11 @@
 #include "sim/content/vocabulary.hpp"
 
 #include <memory>
+#include <optional>
+#include <span>
+#include <string>
+#include <string_view>
+#include <vector>
 
 namespace waffle::sim {
 
@@ -36,6 +41,8 @@ public:
 
 private:
     WorldTopology() = default;
+    WorldTopology(const WorldTopology&) = delete;
+    WorldTopology& operator=(const WorldTopology&) = delete;
     friend std::shared_ptr<const WorldTopology> load_world_topology(
         const RuntimeState&, const core::json::Value&);
 

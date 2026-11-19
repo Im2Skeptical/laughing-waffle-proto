@@ -143,12 +143,4 @@ std::shared_ptr<const WorldTopology> load_world_topology(const RuntimeState& sta
     return result;
 }
 
-RuntimeState admit_runtime(const browser::GameState& state, const Value* topology)
-{
-    if (!topology) fail(state.world.definitionId, "missing topology");
-    auto result = import_runtime(state);
-    result.topology = load_world_topology(result, *topology);
-    return result;
-}
-
 }

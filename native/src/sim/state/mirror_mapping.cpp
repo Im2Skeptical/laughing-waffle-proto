@@ -1,6 +1,8 @@
 #include "sim/state/runtime_state.hpp"
+#include "sim/content/compiled_content.hpp"
 #include "sim/settlement/population.hpp"
 #include "sim/settlement/prelude.hpp"
+#include "sim/world/topology.hpp"
 
 #include "core/sha256.hpp"
 #include "sim/browser/detail/json_path.hpp"
@@ -376,21 +378,9 @@ void Export::structures(browser::DetailedSettlementStructureSlots& result, const
     for (const auto& origin : state.tables.view(board.origins)) write(result.at(origin.origin).emplace(), origin);
 }
 
-}
-
-RuntimeState import_runtime(const browser::GameState& state)
+RuntimeState import_live_state(const browser::GameState& state, std::shared_ptr<CapturedContent> content)
 {
-    auto content = std::make_shared<CapturedContent>();
     content->config = state.gameConfig;
-    const auto configJson = browser::export_game_config(content->config);
-    // Record fields have schema order, while dictionary order contributes to
-    // definition ordinals and the captured content's identity.
-    content->configHash = core::sha256_text(core::json::stringify(configJson));
-    seed_rows<PracticeId>(*content, state.gameConfig.gamepieces.practices, "$.gameConfig.gamepieces.practices",
-                          [](const auto& row) -> const auto& { return row.first; });
-    seed_rows<StructureId>(*content, state.gameConfig.gamepieces.structures, "$.gameConfig.gamepieces.structures",
-                           [](const auto& row) -> const auto& { return row.first; });
-    seed_recipe_vocabulary(*content, *configJson.find("gamepieces"), "$.gameConfig.gamepieces");
     seed_rows<RegionId>(*content, state.world.regions, "$.world.regions",
                          [](const auto& row) -> const auto& { return row.id; });
     seed_rows<SiteId>(*content, state.world.sites, "$.world.sites",
@@ -403,6 +393,40 @@ RuntimeState import_runtime(const browser::GameState& state)
     settlement::prepare_population(result);
     rebuild_runtime_indexes(result);
     settlement::prepare_prelude(result);
+    return result;
+}
+
+}
+
+RuntimeState import_runtime(const browser::GameState& state)
+{
+    auto content = std::make_shared<CapturedContent>();
+    const auto configJson = browser::export_game_config(state.gameConfig);
+    // Record fields have schema order, while dictionary order contributes to
+    // definition ordinals and the captured content's identity.
+    content->configHash = core::sha256_text(core::json::stringify(configJson));
+    seed_rows<PracticeId>(*content, state.gameConfig.gamepieces.practices, "$.gameConfig.gamepieces.practices",
+                          [](const auto& row) -> const auto& { return row.first; });
+    seed_rows<StructureId>(*content, state.gameConfig.gamepieces.structures, "$.gameConfig.gamepieces.structures",
+                           [](const auto& row) -> const auto& { return row.first; });
+    seed_recipe_vocabulary(*content, *configJson.find("gamepieces"), "$.gameConfig.gamepieces");
+    return import_live_state(state, std::move(content));
+}
+
+RuntimeState admit_runtime(const browser::GameState& state, const core::json::Value* topology,
+                           const core::json::Value* capturedConfig)
+{
+    if (!topology) throw std::invalid_argument("world topology for " + state.world.definitionId + ": missing topology");
+    auto content = std::make_shared<CapturedContent>();
+    auto compiled = compile_content(state.gameConfig, content->ids, capturedConfig);
+    if (!compiled->diagnostics.empty()) {
+        const auto& diagnostic = compiled->diagnostics.front();
+        throw std::invalid_argument(diagnostic.path + " and " + diagnostic.otherPath + ": " + diagnostic.message);
+    }
+    content->configHash = compiled->key.configHash;
+    auto result = import_live_state(state, std::move(content));
+    result.topology = load_world_topology(result, *topology);
+    result.compiledContent = std::move(compiled);
     return result;
 }
 
