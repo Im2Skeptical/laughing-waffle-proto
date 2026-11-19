@@ -1051,6 +1051,36 @@ Action application and `rebuildStateAtSecond` (L2), then new game and world
 generation (L3). Windows/Android hash agreement (L4) is required before N04
 completes.
 
+N03f-3 topology checkpoint, 19 Nov 2026. Paused at Cam's request after
+porting the immutable `regional-v2` world generator from browser baseline
+`496d9971`. `generate_regional_world` provides ordered regions, physical
+adjacency and candidate road order, underlying biomes, ordered biome
+components, names, region colours, and ranked opening roads. Its topology
+JSON matches the five checked-in exports (1, 42, 123, 1867, 2026) and fresh
+browser exports for 0, 2, 17, 99, 1000, 424242, 2147483648 and 4294967295.
+Reproduce with `node native/reference/export-topology.mjs --out-dir artifacts/n03f-topology`
+followed by the eight extra `regional-v2:<seed>` IDs, then pass that directory
+to `native/build/optimized/src/sim/waffle_regional_generation_test.exe`.
+The optimized build passed all 32 enabled CTests. The existing
+`pipeline_steady_state_allocations` test remains disabled. The browser trace
+and standard step-window commands in [AGENTS.md](AGENTS.md) passed 19 windows
+and 130 comparisons starting from browser captures. The supplementary
+`artifacts/n03f-opening-probe.cpp` and `artifacts/n03f-opening-oracle.mjs`
+compared road rank and colours for all 13 seeds. Seven runs per seed on the
+Windows i9-10900K optimized build gave a 22.96 ms median across seed medians
+(17.94-25.29 ms), excluding process startup, JSON conversion and export.
+No topology divergences were observed. Android parity remains unverified.
+Browser `npm run verify` passed the checks and build through
+`test:build-preview`, where its temporary preview failed to start.
+Resume with the captured-config native second-zero builder. Select the
+starter road and draw capacities before generating founder candidates, then
+assign Crown, neutral and Monster regions and build cohorts, boards, market
+profiles and live roads in browser order. Attach the generated topology in
+runtime admission. Add the `new-game` CLI and seed-1 fixture CTest, compare
+ordinary second-zero starts for all five scenario seeds, and run step windows
+from native-generated starts. This checkpoint contains no state builder or
+new-game parity result.
+
 ## N04 - Connected playable slice (pending N02 and N03)
 
 This includes the native forecast/timegraph: worker threads, anchors, restore,
