@@ -421,6 +421,9 @@ N03d-4, N03d-5, N03e-3, N03e-6a and N03e-7a, each by merging its WIP commit.
 N03e-4 Birth waits for the N03e-3 engine before resuming from 0405ee81.
 Merge order: N03d-4 and N03d-5 first, then N03e-3 (its topology stub is
 dropped at merge), then the stages.
+N03e-7a merged 19 Nov 2026 from `t3/native-migration-stage` 3efe0ab5. The
+supervisor's merged optimized build passed 26/26 CTests, and all 14 generated
+step windows passed (120 comparisons).
 
 ## N03f - Actions, replay and new game (pending N03e)
 
