@@ -11,6 +11,9 @@ add_library(waffle_sim STATIC
 	state/mirror_mapping.cpp
 	state/runtime_state.cpp
 	world/topology.cpp
+	world/generate.cpp
+	world/generate_biomes.cpp
+	world/generate_names.cpp
 	settlement/population.cpp
 	settlement/migration_reservation.cpp
 	settlement/prelude.cpp
@@ -61,6 +64,8 @@ if(NOT ANDROID)
 	target_link_libraries(waffle_history_test PRIVATE waffle_sim)
 	add_executable(waffle_world_topology_test ../tests/world_topology_test.cpp)
 	target_link_libraries(waffle_world_topology_test PRIVATE waffle_sim)
+	add_executable(waffle_regional_generation_test ../tests/regional_generation_test.cpp)
+	target_link_libraries(waffle_regional_generation_test PRIVATE waffle_sim)
 	add_executable(waffle_faith_stage_test ../tests/faith_stage_test.cpp)
 	target_link_libraries(waffle_faith_stage_test PRIVATE waffle_sim)
 	if(MINGW)
@@ -71,10 +76,13 @@ if(NOT ANDROID)
 		target_link_options(waffle_settlement_ledger_test PRIVATE -static)
 		target_link_options(waffle_history_test PRIVATE -static)
 		target_link_options(waffle_world_topology_test PRIVATE -static)
+		target_link_options(waffle_regional_generation_test PRIVATE -static)
 		target_link_options(waffle_faith_stage_test PRIVATE -static)
 	endif()
 
 	set(native_dir "${CMAKE_CURRENT_SOURCE_DIR}/../..")
+	add_test(NAME regional_generation COMMAND waffle_regional_generation_test "${native_dir}/reference/topology")
+	set_tests_properties(regional_generation PROPERTIES TIMEOUT 60)
 	add_test(NAME world_topology_test COMMAND waffle_world_topology_test
 		"${native_dir}/reference/topology" "${native_dir}/reference/fixtures/seed-1/state-0.json")
 	set_tests_properties(world_topology_test PROPERTIES TIMEOUT 60)
