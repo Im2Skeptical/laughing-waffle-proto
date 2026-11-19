@@ -60,26 +60,39 @@ add_library(waffle_demo_probe STATIC
 target_link_libraries(waffle_demo_probe PUBLIC RmlUi::RmlUi)
 target_include_directories(waffle_demo_probe PUBLIC src/ui)
 
-set(WAFFLE_APP_SOURCES
+set(WAFFLE_DEMO_SOURCES
 	src/app/main.cpp
 	src/app/demo_benchmark.cpp
 	src/app/sdl_rml_renderer.cpp
 )
 
+set(WAFFLE_CONNECTED_SOURCES
+	src/app/connected_art.cpp
+	src/app/connected_main.cpp
+	src/app/connected_save.cpp
+	src/app/connected_session.cpp
+	src/app/connected_shell.cpp
+	src/app/connected_smoke.cpp
+	src/app/connected_view.cpp
+	src/app/sdl_asset_file.cpp
+	src/app/sdl_rml_renderer.cpp
+	src/ui/connected_model.cpp
+)
+
 if(ANDROID)
 	# SDL's Android activity dlsyms SDL_main from libmain.so. The desktop
 	# executables are host programs and are not part of the APK.
-	add_library(main SHARED
-		${WAFFLE_APP_SOURCES}
-		src/app/sdl_asset_file.cpp
-		src/app/sdl_asset_file.hpp
-	)
-	target_link_libraries(main PRIVATE waffle_demo_probe ${WAFFLE_SDL_TARGET} waffle_png_headers)
-	target_include_directories(main PRIVATE src/app)
-	set_target_properties(main PROPERTIES
+	add_library(waffle_native_game SHARED ${WAFFLE_CONNECTED_SOURCES})
+	set_target_properties(waffle_native_game PROPERTIES
+		OUTPUT_NAME main
 		CXX_VISIBILITY_PRESET default
 		VISIBILITY_INLINES_HIDDEN OFF
 	)
+	target_compile_definitions(waffle_native_game PRIVATE
+		"WAFFLE_ART_ROOT=\"\""
+		"WAFFLE_CONNECTED_RML=\"ui/connected.rml\""
+		"WAFFLE_CONNECTED_FONT=\"ui/LatoLatin-Regular.ttf\""
+		"WAFFLE_OPENING_CONFIG=\"game/opening.json\"")
 else()
 	add_executable(waffle_native_headless
 		src/tests/headless_rmlui_test.cpp
@@ -90,7 +103,7 @@ else()
 		"WAFFLE_FONT_PATH=\"${WAFFLE_FONT_PATH}\""
 	)
 
-	add_executable(waffle_native_demo ${WAFFLE_APP_SOURCES})
+	add_executable(waffle_native_demo ${WAFFLE_DEMO_SOURCES})
 	target_link_libraries(waffle_native_demo PRIVATE waffle_demo_probe ${WAFFLE_SDL_TARGET} waffle_png_headers)
 	target_compile_definitions(waffle_native_demo PRIVATE "WAFFLE_ART_ROOT=\"${CMAKE_CURRENT_LIST_DIR}/../\"")
 	target_include_directories(waffle_native_demo PRIVATE src/app)
@@ -128,23 +141,8 @@ else()
 	set_tests_properties(headless_presentation_math PROPERTIES TIMEOUT 60)
 
 	if(WIN32)
-		add_executable(waffle_native_game
-			src/app/connected_art.cpp
-			src/app/connected_main.cpp
-			src/app/connected_save.cpp
-			src/app/connected_session.cpp
-			src/app/connected_shell.cpp
-			src/app/connected_smoke.cpp
-			src/app/connected_view.cpp
-			src/app/demo_metrics_windows.cpp
-			src/app/sdl_asset_file.cpp
-			src/app/sdl_rml_renderer.cpp
-			src/ui/connected_model.cpp
-		)
-		target_compile_features(waffle_native_game PRIVATE cxx_std_20)
-		target_include_directories(waffle_native_game PRIVATE src)
-		target_link_libraries(waffle_native_game PRIVATE waffle_timegraph waffle_demo_probe
-			${WAFFLE_SDL_TARGET} waffle_png_headers psapi)
+		add_executable(waffle_native_game ${WAFFLE_CONNECTED_SOURCES} src/app/demo_metrics_windows.cpp)
+		target_link_libraries(waffle_native_game PRIVATE psapi)
 		target_compile_definitions(waffle_native_game PRIVATE
 			"WAFFLE_ART_ROOT=\"${CMAKE_CURRENT_LIST_DIR}/../\""
 			"WAFFLE_CONNECTED_RML=\"${CMAKE_CURRENT_LIST_DIR}/assets/ui/connected.rml\""
@@ -166,4 +164,11 @@ else()
 		set_tests_properties(connected_slice_smoke connected_slice_import connected_slice_runner_save
 			connected_save_slots PROPERTIES TIMEOUT 60)
 	endif()
+endif()
+
+if(TARGET waffle_native_game)
+	target_compile_features(waffle_native_game PRIVATE cxx_std_20)
+	target_include_directories(waffle_native_game PRIVATE src)
+	target_link_libraries(waffle_native_game PRIVATE waffle_timegraph waffle_demo_probe
+		${WAFFLE_SDL_TARGET} waffle_png_headers)
 endif()

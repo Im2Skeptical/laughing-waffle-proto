@@ -1,4 +1,4 @@
-param([string]$ToolsRoot = "")
+param([string]$ToolsRoot = "", [string]$OutputDirectory = "")
 
 # Project-local Android debug APK build. Does not change user or machine environment.
 # Pins and the SDL 3.4.20 packaging path are recorded in THIRD_PARTY.md.
@@ -9,7 +9,7 @@ $tools = if ($ToolsRoot) { [IO.Path]::GetFullPath($ToolsRoot) } else { Join-Path
 if ([IO.Path]::GetFileName($tools) -ne ".tools" -or -not (Test-Path -LiteralPath (Join-Path (Split-Path -Parent $tools) "AGENTS.md"))) { throw "ToolsRoot must be a native workspace .tools directory" }
 $cache = Join-Path $tools "cache"
 $sdk = Join-Path $tools "android-sdk"
-$logDir = Join-Path $repo "artifacts\grok-nov14-spend\android-bootstrap"
+$logDir = if ($OutputDirectory) { [IO.Path]::GetFullPath($OutputDirectory) } else { Join-Path $repo "artifacts\grok-nov14-spend\android-bootstrap" }
 New-Item -ItemType Directory -Force -Path $logDir, $cache, $sdk | Out-Null
 $log = Join-Path $logDir "bootstrap.log"
 
@@ -151,7 +151,7 @@ $ErrorActionPreference = $previousPreference
 Write-Phase "java $javaVersion"
 
 $platform = Join-Path $sdk "platforms\android-35\android.jar"
-$buildTools = Join-Path $sdk "build-tools\35.0.0\aapt.exe"
+$aapt2 = Join-Path $sdk "build-tools\35.0.0\aapt2.exe"
 if (-not (Test-Path $platform) -or -not (Test-Path (Join-Path $sdk "build-tools\35.0.0"))) {
 	Write-Phase "sdkmanager packages"
 	$licenseLog = Join-Path $logDir "sdkmanager-licenses.log"
@@ -191,12 +191,16 @@ Get-ChildItem -LiteralPath (Join-Path $sdlRoot "android-project\app\src\main\res
 
 $assets = Join-Path $android "app\src\main\assets"
 $assetDir = Join-Path $assets "ui"
-$rmlSource = Join-Path $native "assets\ui\demo.rml"
+$rmlSource = Join-Path $native "assets\ui\connected.rml"
 New-Item -ItemType Directory -Force -Path $assetDir | Out-Null
-Copy-Item -LiteralPath $rmlSource -Destination (Join-Path $assetDir "demo.rml") -Force
-# Package the root-relative PNG sources referenced by the slice's RCSS spritesheets.
-$artPaths = @(Select-String -LiteralPath $rmlSource -Pattern '^\s*src:\s*/(images/[\w./-]+\.png);\s*$' | ForEach-Object { $_.Matches[0].Groups[1].Value })
-if ($artPaths.Count -eq 0) { throw "Slice artwork references are missing" }
+Copy-Item -LiteralPath $rmlSource -Destination (Join-Path $assetDir "connected.rml") -Force
+$gameAssets = Join-Path $assets "game"
+New-Item -ItemType Directory -Force -Path $gameAssets | Out-Null
+Copy-Item -LiteralPath (Join-Path $native "reference\fixtures\seed-1\state-0.json") -Destination (Join-Path $gameAssets "opening.json") -Force
+# The connected app builds its card atlas from these read-only sprite sheets.
+$artPaths = foreach ($sheet in @("full-map-content-prototype", "settlement-pieces-0", "settlement-pieces-1", "settlement-pieces-2")) {
+	foreach ($extension in @("json", "png")) { "images/sprite-sheets/$sheet.$extension" }
+}
 foreach ($art in $artPaths) {
 	$destination = Join-Path $assets $art
 	New-Item -ItemType Directory -Force -Path (Split-Path -Parent $destination) | Out-Null
@@ -210,7 +214,7 @@ if ($LASTEXITCODE -ne 0) { throw "font extract failed" }
 Copy-Item -LiteralPath (Join-Path $fontStage "RmlUi-6.3\Samples\assets\LatoLatin-Regular.ttf") -Destination (Join-Path $assetDir "LatoLatin-Regular.ttf") -Force
 Copy-Item -LiteralPath (Join-Path $fontStage "RmlUi-6.3\Samples\assets\LICENSE.txt") -Destination (Join-Path $assetDir "FONT-LICENSE.txt") -Force
 Remove-LocalTree $fontStage
-foreach ($name in @("demo.rml", "LatoLatin-Regular.ttf", "FONT-LICENSE.txt")) {
+foreach ($name in @("connected.rml", "LatoLatin-Regular.ttf", "FONT-LICENSE.txt")) {
 	$item = Get-Item -LiteralPath (Join-Path $assetDir $name)
 	if ($item.Length -lt 32) { throw "asset too small: $($item.FullName)" }
 }
@@ -291,15 +295,15 @@ $mainSo = Join-Path $inspectDir "lib\arm64-v8a\libmain.so"
 $sdlMain = & $nm -D --defined-only $mainSo | Select-String -Pattern "SDL_main"
 $lines.Add("---- libmain SDL_main ----")
 if ($sdlMain) { $lines.Add(($sdlMain | ForEach-Object { $_.Line.Trim() }) -join "`n") } else { $lines.Add("MISSING SDL_main") }
-$analyzer = Join-Path $sdk "cmdline-tools\latest\bin\apkanalyzer.bat"
-if (Test-Path $analyzer) {
-	$lines.Add("---- manifest ----")
-	$lines.Add((& $analyzer manifest print $apk | Out-String))
-}
+$manifest = & $aapt2 dump xmltree $apk --file AndroidManifest.xml
+if ($LASTEXITCODE -ne 0) { throw "APK manifest inspection failed: $LASTEXITCODE" }
+$lines.Add("---- manifest ----")
+$lines.Add(($manifest -join "`n"))
 $required = @(
 	(Join-Path $inspectDir "lib\arm64-v8a\libmain.so"),
 	(Join-Path $inspectDir "lib\arm64-v8a\libSDL3.so"),
-	(Join-Path $inspectDir "assets\ui\demo.rml"),
+	(Join-Path $inspectDir "assets\ui\connected.rml"),
+	(Join-Path $inspectDir "assets\game\opening.json"),
 	(Join-Path $inspectDir "assets\ui\LatoLatin-Regular.ttf"),
 	(Join-Path $inspectDir "assets\ui\FONT-LICENSE.txt"),
 	(Join-Path $inspectDir "AndroidManifest.xml")
