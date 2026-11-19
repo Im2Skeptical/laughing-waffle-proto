@@ -170,11 +170,32 @@ SummaryHeader summarize(const sim::RuntimeState& state, std::span<SiteSummary> r
 
     const auto& settings = state.compiledContent->settings();
     std::array<double, 4> faithPopulation{};
+    double happinessPopulation = 0;
+    auto& chronicle = row.chronicle;
+    chronicle.controlSignature = 2166136261u;
+    for (const auto& region : state.tables.view(state.hot.world.regions)) {
+        chronicle.controlledRegions += region.controller == state.practiceVocabulary.player;
+        chronicle.controlSignature = (chronicle.controlSignature ^ region.controller.value) * 16777619u;
+        if (region.lostAtSec == row.second && chronicle.raids < 65535) ++chronicle.raids;
+    }
+    if (civ.currentMoonTurn && civ.currentMoonTurn->movements.size()) {
+        const auto moves = state.tables.view(civ.currentMoonTurn->movements);
+        if (moves.front().transferSecond == row.second)
+            chronicle.migrations = static_cast<std::uint16_t>(std::min<std::size_t>(65535, moves.size()));
+    }
+    double deaths = 0;
     for (const auto id : state.indexes.detailedSites) {
         const auto& site = settlement::site_at(state, id);
-        const auto controller = territory::region_at(state, site.regionId).controller;
+        const auto& region = territory::region_at(state, site.regionId);
+        const auto controller = region.controller;
         const auto player = controller == state.practiceVocabulary.player;
         auto& local = regions[site.regionId.value];
+        const auto& detail = site.detailedState;
+        if (detail.history && detail.history->lastDeathSec == row.second)
+            deaths += detail.history->lastDeathCount.value_or(0);
+        if (detail.lastDefense && detail.lastDefense->tSec == row.second && region.lostAtSec != row.second &&
+            chronicle.raids < 65535)
+            ++chronicle.raids;
         read_local_resources(state, site, local);
         const auto assigned = assigned_by_residency(state, site);
         const auto& totals = state.indexes.sites[id.value].byResidency;
@@ -197,6 +218,7 @@ SummaryHeader summarize(const sim::RuntimeState& state, std::span<SiteSummary> r
             if (player) {
                 row.residency[i].population += series.workers.population;
                 row.residency[i].freeWorkers += series.workers.freeWorkers;
+                happinessPopulation += series.happiness * series.workers.population;
             }
         }
         if (state.hot.rulesetId) {
@@ -215,6 +237,13 @@ SummaryHeader summarize(const sim::RuntimeState& state, std::span<SiteSummary> r
             row.currency += local.currency;
             row.housing += local.housing;
         }
+    }
+    chronicle.deaths = static_cast<std::uint16_t>(std::clamp(deaths, 0.0, 65535.0));
+    if (row.population > 0) {
+        const double faith = 25 * faithPopulation[0] + 50 * faithPopulation[1] +
+            75 * faithPopulation[2] + 100 * faithPopulation[3];
+        chronicle.faith = static_cast<float>(faith / row.population);
+        chronicle.happiness = static_cast<float>(happinessPopulation / row.population);
     }
     const auto resistance = 0.0 + faithPopulation[0] / settings.bronzeChaosResistancePopulation +
         faithPopulation[1] / settings.silverChaosResistancePopulation +

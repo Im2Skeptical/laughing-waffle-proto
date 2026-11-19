@@ -99,10 +99,17 @@ void restore_and_replace(const char* path)
            headers[0].second == 63 && headers[1].second == 64 && headers[2].second == 65,
            "summary read across a page boundary failed");
     const auto saved = tools::summary_digest(headers[0], std::span(sites).first(initial.hot.world.regions.size()));
+    const auto metadata = headers[0].chronicle;
+    auto restoredRow = restore(forecast, old, 63);
+    std::vector<graph::SiteSummary> directSites(initial.hot.world.regions.size());
+    expect(metadata == graph::summarize(restoredRow, directSites).chronicle && metadata.controlledRegions == 2,
+        "retained chronicle metadata differs from restored state");
     headers[0].population += 90;
+    headers[0].chronicle.controlledRegions = 0;
     sites[0].food += 90;
     expect(forecast.readSummaries(old, 63, headers, sites) == 3 &&
-           tools::summary_digest(headers[0], std::span(sites).first(initial.hot.world.regions.size())) == saved,
+           tools::summary_digest(headers[0], std::span(sites).first(initial.hot.world.regions.size())) == saved &&
+           headers[0].chronicle == metadata,
            "reader mutated cached summary");
     expect(forecast.readSummaries(old, 217, headers, sites) == 1, "read crossed previous reveal cutoff");
     forecast.releasePrevious();
