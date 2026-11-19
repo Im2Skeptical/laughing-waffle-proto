@@ -240,6 +240,11 @@ void readShop(LifeReading& view, const RuntimeState& state, const Vassal& actor,
             ? "Unlock Practice slot " + decimal(receipt.intervention.capacity.value_or(0)) : title(receipt.intervention.kind));
         ShopItem staged{receipt.offerId, std::move(label)};
         staged.cost = shopCost(receipt.prestigeCost, receipt.currencyCost, receipt.monsterPressureCost, receipt.phaseCost * phase);
+        const auto& change = receipt.intervention;
+        if (change.kind == "connection" && change.regionAId && change.regionBId) {
+            staged.label = change.mode == "add" ? "Build road" : "Remove road";
+            staged.description = regionName(state, *change.regionAId) + " to " + regionName(state, *change.regionBId);
+        }
         if (receipt.placement) {
             staged.description = (receipt.placement->width == 1 ? "Space " : "Spaces ") + decimal(receipt.placement->origin + 1);
             if (receipt.placement->width > 1)
