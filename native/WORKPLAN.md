@@ -46,8 +46,22 @@
     - Pipeline is now **17.4 opening / 20.9 late** µs/sim-s.
     - Remaining action kinds have owners in the N03f section.
 - Active owners (wave started 19 Nov 2026 from 48302da1):
-  - N04a headless forecast core (`waffle_timegraph`): sol 6.2 worker on
-    `t3/native-timegraph-core`.
+  - N04a headless forecast core (`waffle_timegraph`): merged from 6cd2f9d6.
+    - Supervisor audit:
+      - restores copy the anchor and journal under the lock and replay
+        outside it;
+      - generation checks drop stale publishes and restores;
+      - COW page reference counts are atomic (acq_rel/acquire), and the
+        arena is mutex-guarded.
+    - Supervisor re-run: 42/42 CTests on MSVC and clang, 30 windows with
+      zero masks, and 58 replay checkpoints.
+    - `waffle_parity timegraph`, seed 1 ordinary: 4,890 s (Monster Overrun)
+      in 117–122 ms, about 41k sim-s/s.
+    - Seed 1 longevity fixture: 32,000 s in 272–304 ms, 105–118k sim-s/s.
+      This fixture uses 64 s phases and no Monster expansion.
+    - The desktop dream target is met. Pixel 6 is unmeasured.
+  - N04b forecast memory accounting and the Android timegraph harness:
+    sol 6.2 worker on `t3/native-timegraph-memory`.
   - N03f L2b remaining action kinds: sol 6.2 worker on
     `t3/native-actions-remaining`.
   - N03e-3q pass 4: merged from 83cac22d.
