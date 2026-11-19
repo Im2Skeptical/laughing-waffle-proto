@@ -514,6 +514,30 @@ Migration masks. The merged optimized build passed 30/30 CTests. Stage pairs:
 faith 29/29, migration 15/15, advance_clock 67/67, spring_death_baseline 3/3,
 prelude 66/67 (the known R06 expiry at seed-1/1598, owned by N03e-8). All 14
 step windows passed (120 comparisons).
+N03e-3 merged from `t3/native-scheduled-recipe-engine` 5e6f1b30. The seed-1
+topology stub was dropped. Both import paths compile content, and Practice
+admission runs after topology is attached. The engine was adapted to
+arena-backed tables and nullable `chaosPower`. The merged optimized build
+passed 30/30 CTests. Stage pairs: seasonal_practices 12/12,
+after_meals_practices 4/4, migration_practices 13/13, death_practices 5/5,
+final_flush 67/67, with the others unchanged. All 14 step windows passed.
+Merged pipeline cost: 12.6–12.9 µs/sim-s at opening (seed-1/0) and
+13.5–15.3 µs/sim-s late (seed-2026-late/3200). That is already at the
+whole-game desktop budget, so engine performance became its own item.
+
+Wave started 19 Nov 2026, each item in its own worktree:
+- N03e-3p: engine performance, a per-stage timer and a whole-pipeline
+  zero-allocation test. Target: ≤ 4 µs/sim-s for the current pipeline.
+- N03e-4: Birth, resumed from 0405ee81.
+- N03e-5: Food and garrison upkeep.
+- N03e-6b: Housing and construction.
+- N03e-7b: Death and arrivals.
+- N03e-8: control, phase events and Unrest expiry.
+
+Stage cost targets: Birth, Food and Death ≤ 1 µs/sim-s each; Housing
+≤ 0.7; control plus phase events ≤ 1. If Birth or Death sampling would pay
+for itself as a distribution-preserving divergence, the worker proposes it
+and does not adopt it.
 
 **N03e-3 result (19 Nov 2026).** `t3/native-scheduled-recipe-engine` resumes
 `ba7abdc3` with the seed-1 topology stub still isolated at `c40df7fd`.
