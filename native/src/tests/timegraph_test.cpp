@@ -173,11 +173,12 @@ void pressure(const char* path)
     graph::Forecast full;
     const auto longPrevious = full.start(longevity, {}, 32000);
     expect(full.wait(longPrevious)->completion == graph::Completion::horizon, "first longevity generation should fit");
+    expect(full.storage().chargedBytes() <= graph::forecastStorageCap / 2,
+           "one full longevity generation exceeded half the cap");
     const auto replacement = full.start(longevity, {}, 32000, graph::BoundaryActions::pending, 32000);
     const auto end = *full.wait(replacement);
     const auto storage = full.storage();
-    expect(end.completion == graph::Completion::storageLimit && end.publishedThrough &&
-           *end.publishedThrough > 63 && *end.publishedThrough < 32000 &&
+    expect(end.completion == graph::Completion::horizon && end.publishedThrough == 32000 &&
            end.anchors == 1 + *end.publishedThrough / sim::replay_anchor_stride &&
            storage.chargedBytes() <= graph::forecastStorageCap,
            "longevity successor exceeded the cap or lost its restore stride");
