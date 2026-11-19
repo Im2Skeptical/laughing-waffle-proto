@@ -249,21 +249,30 @@ void move_selection(BirthWorkspace& work, std::span<const PopulationBin> selecti
 }
 
 template<class Report>
-void resolve_joint_class(RuntimeState& state, SiteId site, Residency residency, const PopulationClass& population,
-                         const BirthSettings& settings, const BirthShares& shares, BirthWorkspace& work, Report& report)
+std::array<Rolls, 3> roll_joint_class(RuntimeState& state, const PopulationClass& population, Report& report)
 {
-    const auto& vocabulary = state.populationVocabulary;
-    const auto adults = vocabulary.stages[0];
-    const auto children = vocabulary.stages[1];
-    const auto elders = vocabulary.stages[2];
     const auto& scholar = population.specialists.scholar;
     const auto& warrior = population.specialists.warrior;
     const std::array adultCounts{(double(population.adults) - double(scholar.adults)) - double(warrior.adults),
                                  double(scholar.adults), double(warrior.adults)};
     const std::array childCounts{(double(population.children) - double(scholar.children)) - double(warrior.children),
                                  double(scholar.children), double(warrior.children)};
-    for (std::size_t specialty = 0; specialty < adultCounts.size(); ++specialty) {
-        const auto rolls = roll_cohort(state.hot.rng, adultCounts[specialty], childCounts[specialty], report);
+    std::array<Rolls, 3> results;
+    for (std::size_t specialty = 0; specialty < results.size(); ++specialty)
+        results[specialty] = roll_cohort(state.hot.rng, adultCounts[specialty], childCounts[specialty], report);
+    return results;
+}
+
+void apply_joint_rolls(RuntimeState& state, SiteId site, Residency residency, const std::array<Rolls, 3>& results,
+                       const BirthSettings& settings, const BirthShares& shares, BirthWorkspace& work)
+{
+    const auto& vocabulary = state.populationVocabulary;
+    const auto adults = vocabulary.stages[0];
+    const auto children = vocabulary.stages[1];
+    const auto elders = vocabulary.stages[2];
+    for (std::size_t specialty = 0; specialty < results.size(); ++specialty) {
+        const auto rolls = results[specialty];
+        if (!rolls.matured && !rolls.newElders && !rolls.births) continue;
         const auto id = vocabulary.specialties[specialty];
         select_transition(state, work, work.matured, residency, id, children, rolls.matured);
         select_transition(state, work, work.elderly, residency, id, adults, rolls.newElders);
@@ -295,9 +304,9 @@ void resolve_legacy_class(RuntimeState& state, SiteId site, Residency residency,
 }
 
 template<class Report>
-void resolve_class(RuntimeState& state, SiteId site, Residency residency, const PopulationClass& population,
-                   const BirthSettings& settings, const BirthShares& shares, bool joint, BirthWorkspace& work,
-                   Report& report)
+std::array<Rolls, 3> resolve_class(RuntimeState& state, SiteId site, Residency residency,
+                                   const PopulationClass& population, const BirthSettings& settings,
+                                   bool joint, BirthWorkspace& work, Report& report)
 {
     const auto& tiers = state.birthStorage.faithTiers;
     const auto tier = population.faith.tier ? population.faith.tier : tiers[2];
@@ -307,8 +316,9 @@ void resolve_class(RuntimeState& state, SiteId site, Residency residency, const 
     report.childToAdultRate = settings.maturity;
     report.adultToElderRate = settings.elder;
     report.ageAdvance = static_cast<double>(settings.ageAdvance);
-    if (joint) resolve_joint_class(state, site, residency, population, settings, shares, work, report);
-    else resolve_legacy_class(state, site, residency, population, settings, work, report);
+    if (joint) return roll_joint_class(state, population, report);
+    resolve_legacy_class(state, site, residency, population, settings, work, report);
+    return {};
 }
 
 void resolve_birth(RuntimeState& state, SiteId id, const BirthSettings& settings, BirthWorkspace& work,
@@ -316,19 +326,9 @@ void resolve_birth(RuntimeState& state, SiteId id, const BirthSettings& settings
 {
     const auto& populations = site_at(state, id).detailedState.populationByClass;
     const auto joint = populations.villager.joint.has_value() || populations.stranger.joint.has_value();
-    const auto shares = joint ? pre_birth_shares(state, id) : BirthShares{};
-    if (joint) {
-        const auto bins = populations.villager.joint.value_or(Range<JointCohort>{}).size() +
-                          populations.stranger.joint.value_or(Range<JointCohort>{}).size();
-        work.reserve(bins + additional_bins);
-        collect_population(state, populations, work.bins);
-        if (settings.ageAdvance != 0)
-            for (auto& bin : work.bins)
-                if (bin.key.kind == state.populationVocabulary.stages[2])
-                    *bin.key.age += settings.ageAdvance;
-    }
     report = {state.hot.tSec, state.hot.year};
-    resolve_class(state, id, residencies[0], populations.villager, settings, shares, joint, work, report.byClass.villager);
+    const auto villagerRolls = resolve_class(state, id, residencies[0], populations.villager, settings, joint,
+                                             work, report.byClass.villager);
     // With a ledger, the browser's villager writes also refresh the stranger
     // cache before its rolls. A missing stranger ledger is treated as empty.
     auto stranger = populations.stranger;
@@ -337,9 +337,32 @@ void resolve_birth(RuntimeState& state, SiteId id, const BirthSettings& settings
         stranger.adults = 0;
         stranger.specialists = {};
     }
-    resolve_class(state, id, residencies[1], stranger, settings, shares, joint, work, report.byClass.stranger);
-    if (joint) write_population_bins(state, id, work.bins, work.ledger);
-    else refresh_site_population_index(state, id);
+    const auto strangerRolls = resolve_class(state, id, residencies[1], stranger, settings, joint,
+                                             work, report.byClass.stranger);
+    if (!joint) {
+        refresh_site_population_index(state, id);
+        return;
+    }
+    // A first write also normalizes imported joint keys and serialized summaries.
+    // After that, an inert Birth only owes the draws and its report.
+    const auto& index = state.indexes.sites[id.value];
+    const auto changed = [](const auto& result) { return result.births || result.matured || result.newElders; };
+    const bool aging = settings.ageAdvance && (index.byResidency[0].elders || index.byResidency[1].elders);
+    if (index.canonicalJoint && !aging && !changed(report.byClass.villager) && !changed(report.byClass.stranger))
+        return;
+
+    const auto bins = populations.villager.joint.value_or(Range<JointCohort>{}).size() +
+                      populations.stranger.joint.value_or(Range<JointCohort>{}).size();
+    work.reserve(bins + additional_bins);
+    collect_population(state, populations, work.bins);
+    if (settings.ageAdvance != 0)
+        for (auto& bin : work.bins)
+            if (bin.key.kind == state.populationVocabulary.stages[2])
+                *bin.key.age += settings.ageAdvance;
+    const auto shares = pre_birth_shares(state, id);
+    apply_joint_rolls(state, id, residencies[0], villagerRolls, settings, shares, work);
+    apply_joint_rolls(state, id, residencies[1], strangerRolls, settings, shares, work);
+    write_population_bins(state, id, work.bins, work.ledger);
 }
 
 }

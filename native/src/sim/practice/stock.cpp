@@ -251,6 +251,18 @@ Assignments workers(const RuntimeState& state, const Site& site)
     return result;
 }
 
+Assignment worker_for_slot(RuntimeState& state, const Site& site, std::size_t slot)
+{
+    // Joint staffing reads the live ledger, authored board and captured settings.
+    // Population index refreshes and board listener rebuilds invalidate it.
+    const auto& population = site.detailedState.populationByClass;
+    if (state.territory.sitesDirty || (!population.villager.joint && !population.stranger.joint))
+        return workers(state, site)[slot];
+    auto& cached = state.indexes.sites[site.id.value].staffing;
+    if (!cached) cached = workers(state, site);
+    return (*cached)[slot];
+}
+
 ModifierList modifiers(const RuntimeState& state, const Site& site, unsigned kinds)
 {
     ModifierList result;

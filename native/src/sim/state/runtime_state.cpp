@@ -81,6 +81,8 @@ void index_population(RuntimeState& state, const Site& site, SiteIndex& index,
     const auto& populations = site.detailedState.populationByClass;
     const std::array classes{&populations.villager, &populations.stranger};
     auto& allegiance = state.indexes.allegianceTotals;
+    index.staffing.reset();
+    index.canonicalJoint = false;
     index.byResidency = {};
     auto& storage = index.allegianceStorage;
     if (storage.size() == 0) {

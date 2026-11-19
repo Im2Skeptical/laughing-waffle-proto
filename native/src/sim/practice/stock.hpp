@@ -27,22 +27,16 @@ struct Buffer {
     std::span<const T> view() const { return {begin(), count}; }
 };
 
-struct Assignment {
-    std::uint32_t tokens{};
-    double effective{};
-    bool scholar{};
-};
-
 struct Modifier {
     const content::StructureDefinitionModifiersEntry* def;
     double amount;
 };
 
 using ModifierList = Buffer<Modifier, 96>;
-using Assignments = std::array<Assignment, 5>;
 inline constexpr auto staffStockModifiers = content::mask_bit(content::ModifierKind::flexibleProvider) |
     content::mask_bit(content::ModifierKind::consumeReduction);
 Assignments workers(const RuntimeState& state, const Site& site);
+Assignment worker_for_slot(RuntimeState& state, const Site& site, std::size_t slot);
 double specialists(const RuntimeState& state, const Site& site, content::SpecialistClass kind);
 inline bool has_modifiers(const RuntimeState& state, const Site& site, unsigned kinds)
 {

@@ -161,7 +161,7 @@ void handle_charge(RuntimeState& state, std::uint32_t listener, std::optional<Ev
     // With no matching trigger, the only operation is a downward clamp.
     // The indexed lower bound is valid even for staff-dependent thresholds.
     if (!gain && charge <= state.practiceListeners.fixedThresholds[listener].limit) return;
-    const auto worker = workers(state, site)[candidate.slot];
+    const auto worker = worker_for_slot(state, site, candidate.slot);
     const auto limit = threshold(state, site, def, worker.scholar);
     charge = std::min(limit, charge);
     if (!gain) return;
@@ -198,6 +198,7 @@ void rebuild_listeners(RuntimeState& state)
     static_assert(static_cast<std::size_t>(UpkeepActivation::spring) == activation_count);
     static_assert(static_cast<std::size_t>(UpkeepActivation::winter) + 1 == activation_count + season_count);
     auto& index = state.practiceListeners;
+    for (auto& site : state.indexes.sites) site.staffing.reset();
     index.candidates.clear();
     index.local.assign(state.hot.world.regions.size(), {});
     index.dynamicThreshold.clear();
