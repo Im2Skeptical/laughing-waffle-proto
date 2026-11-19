@@ -2,63 +2,46 @@
 
 ## Handoff
 
-- State: **paused 19 Nov 2026 at Cam's request**, at `t3/native-rebuild-planning`
-  97b5b746 (local, not pushed). Every tick stage is ported except the
-  Campaign, Delve, Founding and Commission parts of Vassal.
+- State, 19 Nov 2026: the wave that resumed from e6cef481 is merged into
+  `t3/native-rebuild-planning` (local, not pushed). Every tick stage is
+  ported, including all of Vassal. Native New Game builds second-zero
+  states.
 
-  Verification on the merged optimized build:
-  - 33/33 enabled CTests passed.
-  - 23 step windows passed (138 comparisons) with 14 Vassal masks.
-  - Every stage pair passed except prelude at
-    `death-committed-arrivals/2035`. That was fixed after resume (see below).
+  Supervisor verification of the merged optimized MSVC build:
+  - 36/36 CTests passed. That includes `pipeline_steady_state_allocations`,
+    which is now enabled with zero allocations after warmup, and the
+    2,048 s cross-compiler hash fixture.
+  - All 829 stage pairs across 18 stages passed.
+  - 30 step windows (153 comparisons) passed with **zero masks**.
+  - New Game matched 5 exact second-zero states, plus 10 windows started
+    from native states (92 comparisons).
+  - The N03g merge was also checked on `optimized-clang`: 34/34 CTests,
+    and 23 windows that agreed hash for hash with MSVC.
 
-  Pipeline cost on the idle i9-10900K: 21.5 µs/sim-s at opening and 29.4
-  late. Food is 9.7, Birth 3.8, phase drain 2.9 and seasonal 1.2. The
-  budget is 10–12. `pipeline_steady_state_allocations` stays disabled
-  (263 opening allocations remain, 206 of them in Migration).
+  Pipeline cost, with the N03e-3q-3 method (CPU 15, 5 runs, medians):
+  - Opening: **19.3 µs/sim-s**. Food 8.9, Birth 3.5, phase drain 2.8,
+    seasonal 1.2.
+  - Late: **23.3**. Birth 6.5, Food 5.2, drain 5.1.
+  - Budget: 10–12 on desktop, so about 2× remains.
 
-  Unmerged WIP to resume from:
-
-  | Item | Branch | Commit | Remaining |
-  | --- | --- | --- | --- |
-  | N03e-9 | `t3/native-timed-vassal-resolution` | 58f3feae | Campaign, Delve and Founding probes fail; Commission not started |
-
-  Not started:
-  - N03f-3 new-game state builder. World generation is merged.
-  - N03e-3q third performance pass and allocation fixes.
-  - N03f actions and replay (L2).
+  Open items:
+  - L4: Android arm64 hashes. They need a device (see N03g).
+  - N03f actions and replay (L2): `rebuildStateAtSecond` and actions.
+  - Performance, next pass: exact rules first. The three rule-level
+    proposals in N03e-3q-3 (inverse-binomial Birth, Death sampling,
+    deferred Practice diagnostics) await Cam's call.
   - v53 browser catch-up, after PR #107 merges.
 - Coordination: one supervising session sets design and reviews and integrates
   delegated items on its branch. Each item has one owner at a time.
-- Active owners (resumed 19 Nov 2026 from e6cef481). Each worker branches
-  from e6cef481 and merges its WIP commit first:
-  - N03e-9 Vassal: sol 6.2 worker on `t3/native-timed-vassal-resolution-2`
-    (merges 58f3feae).
-  - N03g desktop part: merged 19 Nov 2026 from ae3ccaa6 (efba073f).
-    - MSVC and llvm-mingw clang, in dev and optimized builds, produced
-      identical per-second hashes.
-    - The new 2,048 s `native_run_cross_compiler` CTest passes under both
-      compilers.
-    - The supervisor re-ran it on the merged branch: 34/34 CTests on
-      `optimized` and `optimized-clang`, and 23 windows / 138 comparisons on
-      clang.
-    - The 32,000 s stability runs used saves altered to stay alive
-      (`phaseDurationSec=64`, no Monster expansion), because the real saves
-      end in Monster Overrun by second 5,676.
-    - Still open for L4: Android arm64 hashes. The binary builds, but no
-      device was attached; the commands are in the N03g section.
-  - N03e-3q performance pass 3 and the allocation gate: Astra specialist on
-    `t3/native-pipeline-performance-3`. The supervisor audits it.
-  - N03f-3 new-game state builder: sol 6.2 worker on
-    `t3/native-new-game-state-builder`.
-  - Fixed by the supervisor on resume: the prelude
-    `death-committed-arrivals/2035` mismatch. The exhibit had used a
-    hand-built prelude that skipped Unrest expiry and the storefront
-    transition, from before N03e-8 was merged. Native ran the full
-    browser rule. The exhibit now calls the browser's `stepUnrest`. Results:
-    prelude 111/111, death 17/17, migration 19/19 and 33/33 CTests.
-    `waffle_parity stage --write-actual <file>` now writes the native result
-    so that differences can be diffed.
+- Active owners: none. Wave merged:
+  - N03e-9 535f641d (merge 56baea63)
+  - N03g ae3ccaa6 (efba073f)
+  - N03f-3 33208558 (9afb8501)
+  - N03e-3q-3 2b51bcb8
+  - Supervisor fix: the prelude `death-committed-arrivals/2035` mismatch.
+    The exhibit had used a hand-built prelude from before N03e-8 was
+    merged. It now calls the browser's `stepUnrest`. Also added
+    `waffle_parity stage --write-actual <file>`.
 - Accepted choices: [README](README.md), [ARCHITECTURE](ARCHITECTURE.md) and
   [THIRD_PARTY.md](THIRD_PARTY.md). C++/SDL3/RmlUi stays the stack. The
   bootstrap renderer is SDL3's default 2D renderer, not RmlUi's SDL_GPU/SDL_GL3 samples.
