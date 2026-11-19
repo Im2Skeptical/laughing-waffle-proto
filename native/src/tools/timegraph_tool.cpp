@@ -1,6 +1,7 @@
 #include "tools/timegraph_tool.hpp"
 
 #include "timegraph/forecast.hpp"
+#include "timegraph/anchor.hpp"
 #include "tools/json_file.hpp"
 #include "tools/reference_topology.hpp"
 #include "tools/replay_checks.hpp"
@@ -28,7 +29,7 @@ using Clock = std::chrono::steady_clock;
 struct Options {
     std::filesystem::path from, actions, topology, report, expected;
     std::size_t seconds = 32000, samples = 256, repeats = 3;
-    bool longevity{};
+    bool longevity{}, memoryProfile{}, retainPrevious{};
 };
 
 std::size_t parse_count(std::string_view text)
@@ -50,6 +51,11 @@ Options parse(int argc, char** argv)
             options.longevity = true;
             continue;
         }
+        if (flag == "--memory-profile" || flag == "--retain-previous") {
+            options.memoryProfile = true;
+            options.retainPrevious |= flag == "--retain-previous";
+            continue;
+        }
         if (++i == argc) throw std::invalid_argument("timegraph: missing value for " + std::string(flag));
         const std::string_view value = argv[i];
         if (flag == "--from") options.from = value;
@@ -65,7 +71,8 @@ Options parse(int argc, char** argv)
     if (options.from.empty() || !options.repeats)
         throw std::invalid_argument("Usage: waffle_parity timegraph --from <state.json> [--seconds <32000>] "
                                     "[--actions <journal.json>] [--topology-dir <dir>] [--longevity] "
-                                    "[--samples <256>] [--repeats <3>] [--report <json>] [--expect <tsv>]");
+                                    "[--samples <256>] [--repeats <3>] [--report <json>] [--expect <tsv>] "
+                                    "[--memory-profile | --retain-previous]");
     return options;
 }
 
@@ -208,6 +215,60 @@ std::size_t verify(graph::Forecast& forecast, const graph::Coverage& coverage, c
     return anchors;
 }
 
+void profile_memory(const Options& options, const sim::RuntimeState& initial, const sim::ActionJournal& actions)
+{
+    graph::Forecast forecast;
+    const auto& arena = initial.practiceRecipeStorage.historyArena;
+    const auto base = process_private_bytes();
+    const auto baseArena = arena->storage();
+    const auto start = static_cast<graph::Second>(initial.hot.tSec);
+    const auto horizon = start + options.seconds;
+    Value::Array runs;
+    const auto profile = [&](std::optional<graph::Second> retain) {
+        const auto coverage = finished(forecast, forecast.start(initial, actions, horizon,
+                                                                graph::BoundaryActions::pending, retain));
+        const auto storage = forecast.storage();
+        const auto process = process_private_bytes();
+        const auto history = arena->storage();
+        runs.emplace_back(Value::Object{
+            {"endSec", number(*coverage.publishedThrough)}, {"completion", Value(completion(coverage.completion))},
+            {"summaryBytes", number(storage.summaries)}, {"anchorBytes", number(storage.anchors)},
+            {"journalBytes", number(storage.journals)}, {"chargedBytes", number(storage.chargedBytes())},
+            {"historyRetainedBytes", number(storage.historyRetained)},
+            {"historyLiveBytes", number(storage.historyLive)},
+            {"historyRecycledBytes", number(storage.historyRecycled)},
+            {"forecastWorkingBytes", number(storage.forecastWorking)},
+            {"restoreWorkingBytes", number(storage.restoreWorking)},
+            {"arenaRetainedBytes", number(history.retained)}, {"arenaLiveBytes", number(history.live)},
+            {"arenaRecycledBytes", number(history.recycled)},
+            {"processPrivateBytes", process},
+        });
+        return coverage;
+    };
+    const auto first = profile({});
+    std::vector coverages{first};
+    if (options.retainPrevious) coverages.push_back(profile(first.publishedThrough));
+    for (std::size_t i = 0; i < coverages.size(); ++i) {
+        const auto& coverage = coverages[i];
+        const auto windows = (*coverage.publishedThrough - start) / sim::replay_anchor_stride;
+        const auto target = windows ? start + windows * sim::replay_anchor_stride - 1 : *coverage.publishedThrough;
+        const auto before = forecast.storage().historyRetained;
+        const auto restored = forecast.stateAtSecond(coverage.generation, target).get();
+        if (restored.status != graph::RestoreStatus::ready) throw std::logic_error("profile restore failed");
+        const auto after = forecast.storage().historyRetained;
+        runs[i].set("restoreTargetSec", number(target));
+        runs[i].set("restoredStateBytes", number(graph::detail::runtime_bytes(*restored.state)));
+        runs[i].set("restoreHistoryGrowthBytes", number(after - std::min(after, before)));
+    }
+    const Value report(Value::Object{
+        {"baselinePrivateBytes", base}, {"baselineArenaBytes", number(baseArena.retained)},
+        {"runs", Value(std::move(runs))},
+    });
+    const auto output = json::stringify(report) + '\n';
+    if (options.report.empty()) std::cout << output;
+    else write_file(options.report, output);
+}
+
 }
 
 int timegraph_tool(int argc, char** argv)
@@ -215,6 +276,10 @@ int timegraph_tool(int argc, char** argv)
     const auto options = parse(argc, argv);
     const auto initial = load(options);
     const auto actions = load_action_journal(options.actions);
+    if (options.memoryProfile) {
+        profile_memory(options, initial, actions);
+        return 0;
+    }
     graph::Forecast forecast;
     const auto base = static_cast<graph::Second>(initial.hot.tSec);
     finished(forecast, forecast.start(initial, actions, base + std::min<std::size_t>(options.seconds, 512)));
@@ -252,7 +317,8 @@ int timegraph_tool(int argc, char** argv)
             {"microsecondsPerPublishedSecond", Value(1000 * wall / (published + 1))},
             {"summaryRowBytes", number(sizeof(graph::SummaryHeader) + coverage.regions * sizeof(graph::SiteSummary))},
             {"summaryBytes", number(storage.summaries)}, {"anchorBytes", number(storage.anchors)},
-            {"journalBytes", number(storage.journals)}, {"workingAllowanceBytes", number(storage.workingAllowance)},
+            {"journalBytes", number(storage.journals)}, {"historyRetainedBytes", number(storage.historyRetained)},
+            {"forecastWorkingBytes", number(storage.forecastWorking)}, {"restoreWorkingBytes", number(storage.restoreWorking)},
             {"chargedBytes", number(storage.chargedBytes())}, {"processPrivateBytes", processPrivate},
             {"restore", percentiles(timings)},
         });

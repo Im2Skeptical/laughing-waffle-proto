@@ -19,6 +19,8 @@ struct Charge {
 
 inline constexpr std::size_t anchorBlockBytes = 4096;
 
+std::size_t runtime_bytes(const sim::RuntimeState& state);
+
 class Anchor {
 public:
     Anchor(std::atomic_size_t& account, sim::RuntimeState& state, const Anchor* previous);

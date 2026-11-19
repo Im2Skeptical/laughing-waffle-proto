@@ -164,6 +164,7 @@ class History<PracticeEventTrace, 100, Field, HistoryPayload> {
 public:
     using Name = Field;
     std::size_t size() const { return cursor_.size(); }
+    std::shared_ptr<HistoryArena> arena() const { return cursor_.arena(); }
     void clear() { cursor_.clear(); writer_ = {}; }
 
     template<class Build>

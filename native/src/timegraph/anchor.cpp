@@ -107,7 +107,7 @@ std::size_t dictionary_capacity(const sim::runtime::Dictionaries<K...>& ids)
 // Life Map values and history pages) share the sim's ownership.
 std::size_t sidecar_bytes(const sim::RuntimeState& state)
 {
-    std::size_t bytes = sizeof(Anchor) + dictionary_capacity(state.addedIds);
+    std::size_t bytes = dictionary_capacity(state.addedIds);
     const auto add = [&](const auto& vector) { bytes += vector.capacity() * sizeof(vector.front()); };
     state.cold.for_each_table(add);
     state.histories.for_each_table(add);
@@ -155,6 +155,13 @@ std::size_t sidecar_bytes(const sim::RuntimeState& state)
     return bytes;
 }
 
+}
+
+std::size_t runtime_bytes(const sim::RuntimeState& state)
+{
+    auto bytes = sizeof(state) + sidecar_bytes(state) + state.jointCounts.capacity() * sizeof(std::uint64_t);
+    state.tables.for_each_table([&](const auto& rows) { bytes += rows.capacity() * sizeof(rows.front()); });
+    return bytes;
 }
 
 Anchor::Block::Block(std::atomic_size_t& account, std::span<const std::byte> source)
@@ -223,7 +230,7 @@ Anchor::Anchor(std::atomic_size_t& account, sim::RuntimeState& state, const Anch
     columns_.reserve(column_count(detached.tables) + 1);
     detached.tables.for_each_table([&](const auto& column) { store(account, column, previous); });
     store(account, detached.jointCounts, previous);
-    std::size_t bytes = sidecar_bytes(sidecar_) + columns_.capacity() * sizeof(Column) +
+    std::size_t bytes = sizeof(Anchor) + sidecar_bytes(sidecar_) + columns_.capacity() * sizeof(Column) +
         privateColumns_.capacity() + 2 * sizeof(void*);
     for (const auto& column : columns_) bytes += column.blocks.capacity() * sizeof(Blocks::value_type);
     charge_.emplace(account, bytes);

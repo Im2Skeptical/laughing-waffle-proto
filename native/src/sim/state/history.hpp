@@ -147,6 +147,7 @@ class History {
 public:
     using Name = Field;
     std::size_t size() const { return directory_ ? size_ : 0; }
+    std::shared_ptr<HistoryArena> arena() const { return directory_ ? directory_->arena : nullptr; }
 
     // Drop the rows while retaining the arena for the next append. A
     // published copy keeps its original directory and pages.
