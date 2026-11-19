@@ -69,7 +69,10 @@ const unknownPath = join(outputDir, "unknown-definition.json");
 const unknown = structuredClone(gated);
 unknown.world.definitionId = "regional-v2:999999";
 write(unknownPath, unknown);
-assert.match(step(unknownPath, 2).stderr, /world topology for regional-v2:999999: missing manifest entry/u);
+assert.match(step(unknownPath, 2, ["--topology-dir", alternateTopology]).stderr,
+  /world topology for regional-v2:999999: missing manifest entry/u);
+write(expectedPath, unknown);
+step(unknownPath, 0);
 gated.runStatus.reason = "tenuresExhausted";
 write(expectedPath, gated);
 assert.match(step(gatedPath, 1).stdout, /First divergent path: \$\.runStatus\.reason/u);

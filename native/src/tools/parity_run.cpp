@@ -179,7 +179,7 @@ void verify_replay(sim::RuntimeState state, std::span<const std::uint64_t> expec
 }
 
 Value verify_restores(const std::vector<sim::RuntimeState>& anchors, const std::vector<std::uint64_t>& hashes,
-                      const Value& topology, const std::filesystem::path& artifacts)
+                      const Value* topology, const std::filesystem::path& artifacts)
 {
     const auto fullWindows = (hashes.size() - 1) / stride;
     const auto samples = std::min<std::size_t>(32, std::max<std::size_t>(1, fullWindows));
@@ -212,7 +212,7 @@ Value verify_restores(const std::vector<sim::RuntimeState>& anchors, const std::
         saveTimes.push_back(elapsed_ms(saveBegin));
         const auto loadBegin = Clock::now();
         const auto parsed = json::parse(saved);
-        auto reloaded = sim::admit_runtime(browser::import_game_state(parsed), &topology, parsed.find("gameConfig"));
+        auto reloaded = sim::admit_runtime(browser::import_game_state(parsed), topology, parsed.find("gameConfig"));
         loadTimes.push_back(elapsed_ms(loadBegin));
         const auto roundTrip = snapshot(reloaded);
         if (roundTrip != saved || digest(reloaded) != expected.front()) {
@@ -238,9 +238,10 @@ int parity_run(int argc, char** argv)
     const auto seconds = *options.seconds;
     const auto input = json::parse(read_file(options.from));
     const auto mirror = browser::import_game_state(input);
-    const auto topologyDir = options.topologyDir.empty() ? WAFFLE_REFERENCE_TOPOLOGY_DIR : options.topologyDir;
-    const auto topology = read_reference_topology(topologyDir, mirror.world.definitionId);
-    auto state = sim::admit_runtime(mirror, &topology, input.find("gameConfig"));
+    const auto topology = reference_topology_override(options.topologyDir, WAFFLE_REFERENCE_TOPOLOGY_DIR,
+                                                       mirror.world.definitionId);
+    const auto* topologyData = topology ? &*topology : nullptr;
+    auto state = sim::admit_runtime(mirror, topologyData, input.find("gameConfig"));
     const auto beginSec = state.hot.tSec;
 
     // Time a full uninterrupted advance pass before collecting hashes or
@@ -317,7 +318,7 @@ int parity_run(int argc, char** argv)
     });
     if (options.anchors) {
         report.set("anchorCopy", percentiles(copyTimes));
-        report.set("restore", verify_restores(anchors, hashes, topology, options.hashes));
+        report.set("restore", verify_restores(anchors, hashes, topologyData, options.hashes));
     }
     if (!options.report.empty()) write_file(options.report, json::stringify(report) + '\n');
     std::cout << "Checked " << seconds << " advances from second " << beginSec
