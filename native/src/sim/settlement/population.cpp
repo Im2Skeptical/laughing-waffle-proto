@@ -27,6 +27,7 @@ bool age_key_less(std::optional<std::uint64_t> left, std::optional<std::uint64_t
     // converting to strings. A shorter matching prefix sorts first.
     auto a = *left;
     auto b = *right;
+    if (a >= 10 && a < 100 && b >= 10 && b < 100) return a < b;
     auto aDigits = 1U;
     auto bDigits = 1U;
     for (auto n = a; n >= 10; n /= 10) ++aDigits;
@@ -64,21 +65,24 @@ std::uint64_t count_from_number(double count)
 void merge_population(const PopulationVocabulary& vocabulary, std::span<const PopulationBin> bins,
                       LedgerScratch& scratch)
 {
-    auto& ranks = scratch.ranks;
+    // Cache the browser's closed-vocabulary sort prefix once per live bin.
+    // The original index breaks ties so binary64 additions retain input order.
+    auto& ranks = scratch.keyOrder;
     ranks.clear();
     for (std::size_t i = 0; i < bins.size(); ++i) {
         const auto& bin = bins[i];
         if (!bin.count) continue;
-        rank(vocabulary.factions, bin.key.allegiance);
-        rank(vocabulary.specialties, bin.key.specialty);
+        const auto faction = rank(vocabulary.factions, bin.key.allegiance);
+        const auto specialty = rank(vocabulary.specialties, bin.key.specialty);
         const auto stage = rank(vocabulary.stages, bin.key.kind);
         if (stage == 2 && !bin.key.age) throw std::invalid_argument("elder bin has no age");
-        ranks.push_back({i, 0});
+        const auto prefix = ((faction * 2 + (bin.residency == Residency::villager)) * 3 + specialty) * 3 + stage;
+        ranks.push_back({i, prefix});
     }
     std::ranges::sort(ranks, [&](const auto& a, const auto& b) {
-        const auto& left = bins[a.index];
-        const auto& right = bins[b.index];
-        return same_key(left, right) ? a.index < b.index : key_less(vocabulary, left, right);
+        if (a.prefix != b.prefix) return a.prefix < b.prefix;
+        const auto left = bins[a.index].key.age, right = bins[b.index].key.age;
+        return left == right ? a.index < b.index : age_key_less(left, right);
     });
     auto& merged = scratch.merged;
     merged.clear();
@@ -176,6 +180,7 @@ void CohortScratch::reserve(std::size_t agesPerClass)
 void LedgerScratch::reserve(std::size_t binsPerSite)
 {
     ranks.reserve(binsPerSite);
+    keyOrder.reserve(binsPerSite);
     merged.reserve(binsPerSite);
     for (auto& byClass : summaries)
         for (auto& cohort : byClass) cohort.elders.reserve(binsPerSite);
