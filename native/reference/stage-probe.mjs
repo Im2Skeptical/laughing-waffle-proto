@@ -35,12 +35,13 @@ const suite = {
   // ongoing collapse, a Resistance crossing and accrued Unrest income.
   "seed-1": [1, 2, 3, 4, 5, 6, 7, 9, 17, 25, 33, 40, 82, 184, 202, 220, 226, 292, 298, 310,
     388, 400, 406, 412, 802, 880, 1595, 1596, 1597, 1598, 1599, 1600],
-  "seed-1-migration": [1715],
+  "seed-1-migration": [1715, 1716],
   "seed-1867": [58, 76, 82],
-  "seed-42-shops": [7, 12, 13, 52, 70, 71, 76, 80, 81, 82, 88, 132],
+  "seed-42-shops": [7, 12, 13, 52, 70, 71, 76, 80, 81, 82, 84, 85, 88, 132],
   "seed-2026-late": [3201, 3202, 3203, 3204, 3205, 3206, 3207, 3209, 3232, 3233, 3262, 3334],
   "seed-42-charge": [17, 41],
   "seed-123-migration": [2033, 2039, 2123, 2129, 2675],
+  "seed-1-territory": [6, 9, 17],
 };
 
 function requireThat(condition, message) {
@@ -218,6 +219,31 @@ function captureSecond(id, baseline, live, sec, actions, hashes) {
     requireThat(cascades.some(({ practices }) => practices.join() === "smelting,toolmaking"),
       label + ": expected the Smelting-to-Toolmaking Discharge cascade");
   }
+  if (id === "seed-1-territory" && sec === 6) {
+    const site = id => state.world.sites.find(s => s.regionId === id);
+    const spawn = state.civilization.chaos.lastMonsterSpawn;
+    const lineage = state.civilization.vassalLineage;
+    const vassal = lineage.vassalsById[lineage.currentVassalId];
+    requireThat(site("R02").town.activated && !site("R02").neutral &&
+      site("R08").simulationMode === "ruin" && spawn.cause === "creep" && spawn.outcome === "expanded" &&
+      vassal.locationRegionId !== "R08" && vassal.lifeEvents.at(-1).kind === "evacuation",
+      label + ": need a peaceful claim, town ruin and Vassal diversion from threshold Spawn");
+  }
+  if (id === "seed-1-territory" && sec === 9) {
+    const { trace } = state.civilization.practiceEvents;
+    const spawn = trace.find(event => event.kind === "monsterSpawn" && event.tSec === sec);
+    requireThat(spawn?.cause === "direct" && spawn.outcome === "intercepted" &&
+      trace.some(event => event.kind === "discharged" && event.rootId === spawn.rootId &&
+        event.targetPracticeId === "smelting"),
+      label + ": need immediate Spawn, incoming garrison defense and a reaction in the original root");
+  }
+  if (id === "seed-1-territory" && sec === 17) {
+    const { history, practiceEvents } = state.civilization;
+    requireThat(history.monsterTrophies === 1 &&
+      practiceEvents.trace.some(event => event.kind === "monsterDestroyed" && event.tSec === sec) &&
+      !state.world.regions.find(region => region.id === "R09").monster,
+      label + ": need successful external Hunt and player Trophy credit");
+  }
 
   // The reference runner executes the same second on the untouched branch.
   // Trace rows include actions, so compare again after applying those actions
@@ -285,7 +311,9 @@ function main(args) {
     const wanted = new Set(seconds);
     requireThat(wanted.size === seconds.length && seconds.every(sec => sec > startSec && sec <= endSec),
       id + ": seconds must be unique and inside (" + startSec + ", " + endSec + "]");
-    const hashes = new Map(readHashes(join(here, "fixtures", id, HASHES_FILE)).map(({ sec, hash }) => [sec, hash]));
+    const fixtureHashes = join(here, "fixtures", id, HASHES_FILE);
+    const hashFile = existsSync(fixtureHashes) ? fixtureHashes : join(artifactDir, "..", "traces", id, HASHES_FILE);
+    const hashes = new Map(readHashes(hashFile).map(({ sec, hash }) => [sec, hash]));
     const live = createStart(scenario, startSec);
     const { actionsBySecond } = groupReplayActions(live, scenario);
     applyActions(live, actionsBySecond.get(startSec), startSec, id);
