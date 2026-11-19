@@ -1176,7 +1176,7 @@ trace contract. The native fast path is a candidate for a browser-specific
 measurement if its drain is revisited. Reuse the phase stage probes to
 check the queue, threshold and Discharge guards and verify trace ID order.
 
-**N03e-3q ? pipeline performance, third pass (19 Nov 2026).**
+**N03e-3q — pipeline performance, third pass (complete, 19 Nov 2026).**
 
 Phase 1 re-enabled the allocation gate. Admission reserves worker scratch for
 Migration, Death and Practice population writes, table headroom for reports,
@@ -1184,17 +1184,156 @@ growing reservation payloads and returning storefronts, and small history
 payload slabs. Full uninterrupted runs after 512 warmup seconds measured
 zero global allocations at opening (3,200 seconds) and late (1,920 seconds,
 3712 to 5632). The late fixture keeps the hash-checked 3200 anchor and ends
-44 seconds before Monster Overrun. Opening previously allocated 263 times.
+44 seconds before Monster Overrun. Opening previously allocated 263 times. The original late gate stopped early, so it supplied no full-horizon baseline count.
 The counter and the assertion that every measured second advances remain
-active. The new reserves are capacity hints; larger worlds can still grow.
+active. The new reserves are capacity hints. Larger worlds can still grow.
 
 Paired optimized MSVC timings on logical CPU 15, five alternating runs per
-binary and anchor, measured 41.441 ? 44.200 ?s/sim-s opening and
-53.664 ? 49.097 late for Phase 1. These host timings differ from the
+binary and anchor, measured 41.441 to 44.200 µs/sim-s opening and
+53.664 to 49.097 late for Phase 1. These host timings differ from the
 supervisor's idle baseline. Raw reports and executable copies are in
 `artifacts/n03e-3q-3/`. From the repository root run
 `python artifacts/n03e-3q-3/time.py base gate` and, from native,
 `ctest --preset optimized -V -R pipeline_steady_state_allocations`.
+
+Phase 2 used an in-process Windows sampling profiler linked against the
+optimized simulation library. The simulation thread ran on CPU 15, and a
+second thread used GetThreadContext and RtlVirtualUnwind on CPU 12. It
+collected 1,600 asynchronous stacks per anchor, sampling only inside
+advance_one_second. Admission, state copies and oracle comparisons were
+excluded. PC stacks, symbol map, sampler source and counts are in the raw
+report directory (`sample.cpp`, `sample-*.txt`, `sample.map`, `profile.py`).
+These were separate diagnostic runs. Practice activation appeared in
+1,073 opening stacks, with Food in 784. Late population-table writes appeared
+in 224 stacks and the phase drain in 430. Inclusive counts overlap.
+
+A late capture has Withheld Spoils at Charge 6 and Stock 2 in the twelfth
+of 19 detailed sites. A preceding phase root that cannot gain, clamp or
+Discharge can publish both trace rows directly. The first possible
+reaction and its suffix keep FIFO order. Earlier pending events, active
+roots, safety caps, large event IDs and possible remote clamps retain
+the full drain. The sort change computes each live bin's closed-vocabulary
+rank once and preserves decimal-age order and the original-index tie.
+Meal routing reuses its source buffer only while payment can enqueue
+events without re-entering Stock planning.
+
+Each row below is a fresh comparison with the preceding build, in
+microseconds per sim-second. Differences across rows include host load.
+The timing harness checked every requested comparison and counted 9,984
+opening or 2,816 late advances per run.
+
+| Kept change | Opening pipeline | Late pipeline | Target stage |
+| --- | ---: | ---: | --- |
+| `638d72e1` encode trace symbols once | 23.724 to 22.078 | 29.939 to 29.019 | Food 11.684 to 10.479 opening, phase drain 7.487 to 6.645 late |
+| `010030df` trace inert phase prefix and skip redundant clamps | 24.269 to 25.395 | 28.333 to 27.114 | Late drain 6.315 to 6.019 (4/5 pairs faster), opening drain 3.310 to 3.342 |
+| `9fa61247` rank population keys before sorting | 21.163 to 21.209 | 27.696 to 25.988 | Late Birth 7.658 to 7.363 (4/5 pairs faster) |
+| `9b10798d` reuse Food source scratch and Edible lookup | 23.609 to 21.522 | 25.491 to 26.290 | Food 10.883 to 10.338 opening (4/5) and 6.140 to 5.444 late (5/5) |
+
+Four experiments were discarded. They tested lazy optional history rows (`gate_pages.txt`),
+bypassing history payload checkpoints for plain trace rows
+(`trace_plain.txt`), narrowing recipe amount modifier scans
+(`food_amount.txt`) and indexing scheduled Food recipes by routing stage
+(`food_routing.txt`). Each regressed a pipeline median or had mixed results
+during host load changes. The intermediate clamp-only measurement is
+in `trace_drain.txt`.
+
+**Final matched measurement.** The initial final comparison varied from
+21.868 to 42.924 at opening on the baseline alone (`base_final.txt`).
+The confirmation used identical CPU-15 affinity and Windows process power
+settings for both binaries (execution-speed throttling explicitly disabled).
+It observed load before every launch, kept all five alternating runs per
+build per anchor and recorded host utilization in `confirmation-load.jsonl`.
+Median system CPU usage during those runs was 20.4% baseline and
+19.8% final. Opening ranges were 21.09-21.55 before and
+19.60-22.49 after. Late ranges were 27.55-28.85 and
+23.24-24.69. The selected binary was faster in 4/5 opening and
+5/5 late pairs. Overall pipeline timing excludes per-stage observer
+overhead. The stage medians come from a separate instrumented pass.
+
+| Microseconds per sim-second | Opening e6cef481 | Opening pass 3 | Late e6cef481 | Late pass 3 |
+| --- | ---: | ---: | ---: | ---: |
+| pipeline | 21.429 | 19.932 | 27.909 | 24.028 |
+| advance_clock | 0.144 | 0.135 | 0.162 | 0.151 |
+| prelude | 0.302 | 0.304 | 0.317 | 0.315 |
+| seasonal_practices | 1.261 | 1.168 | 2.023 | 1.936 |
+| spring_death_baseline | 0.003 | 0.003 | 0.011 | 0.009 |
+| birth | 3.876 | 3.644 | 7.243 | 6.767 |
+| food | 9.914 | 9.186 | 5.798 | 5.255 |
+| after_meals_practices | 0.067 | 0.064 | 0.132 | 0.120 |
+| garrison_upkeep | 0.088 | 0.088 | 0.050 | 0.050 |
+| housing | 0.102 | 0.101 | 0.212 | 0.217 |
+| faith | 0.066 | 0.067 | 0.131 | 0.122 |
+| migration_practices | 0.750 | 0.677 | 0.403 | 0.391 |
+| migration | 0.132 | 0.133 | 0.299 | 0.303 |
+| death | 0.156 | 0.151 | 0.392 | 0.390 |
+| death_practices | 0.923 | 0.875 | 0.985 | 0.921 |
+| control_and_spatial_pressure | 0.370 | 0.351 | 0.426 | 0.411 |
+| phase_events_and_drain | 2.946 | 2.900 | 6.478 | 5.149 |
+| vassal_check | 0.016 | 0.019 | 0.019 | 0.021 |
+| final_flush | 0.021 | 0.021 | 0.021 | 0.023 |
+
+The 10-12 us desktop budget remains open. No Pixel 6 timing or Android
+hash result was obtained in this pass. On separate uninstrumented forecast
+runs, end-of-horizon private process memory increased about 1.1 MiB opening
+and 1.3 MiB late. The logical hot-state and history byte counts matched.
+The gate covers the warmed admitted simulation on its measuring thread.
+An independent process also passed the late horizon with no opening warmup.
+
+**Reproduction and verification.** Run these commands from the repository root in PowerShell.
+
+```powershell
+. native/tools/env.ps1
+Push-Location native
+cmake --preset optimized
+cmake --build --preset optimized
+ctest --preset optimized --output-on-failure
+Pop-Location
+$d = 'artifacts/n03e-3q-3'
+node native/reference/stage-probe.mjs --all
+& "$d/pairs.ps1" base
+& "$d/pairs.ps1" final
+& "$d/continuity.ps1" base
+& "$d/continuity.ps1" final
+python "$d/confirmation.py" base final
+```
+
+All 34 enabled CTests passed. The pair runner invokes
+`node native/reference/step-windows.mjs <exe>` and
+`node native/reference/stage-pairs.mjs <exe> <stage>` for all 18 stages.
+Both binaries passed 23 windows / 138 comparisons (137 advancing, one
+gated) with the same 14 Vassal masks. Both matched 751/752 unmasked stage
+pairs. Prelude was 110/111, with the same 53 differing leaves starting
+at `$.civilization.practiceEvents.nextId` in `death-committed-arrivals/2035`.
+The final corpus was regenerated with this checkout's exhibit generator.
+The supervisor's newer shared capture includes the later Prelude fix.
+Passing pair counts were clock 110, seasonal 19, spring baseline 4, Birth 26,
+Food 11, after-meals 11, garrison 11, Housing 12, Faith 31, Migration
+Practices 16, Migration 19, Death 17, Death Practices 12, control/spatial
+12, phase drain 110, Vassal 110, final flush 110.
+
+The continuity runner invokes `waffle_parity run --from <anchor> --seconds
+<N> --hashes <output>`, adding `--expect <baseline-stream>` on the candidate.
+All 3,713 opening and 2,433 late per-second digest rows (including each
+anchor) matched byte for byte with no masks. Raw CTest, window, pair, hash
+and timing outputs are in `artifacts/n03e-3q-3/`.
+
+Cross-runtime handoff. The browser can measure the inert phase prefix against
+the same late window. Verify that trace IDs through the prefix precede
+descendant IDs and that a remote dynamic clamp still forces the queue.
+Population sort prefixes and MSVC buffer copies are native-specific.
+Both runtimes must preserve age-string ordering, equal-key FP addition
+order and Stock-provider order.
+
+**Proposals for the supervisor**
+
+The gains below are estimates.
+
+| Proposal | Estimated desktop saving at opening / late | Browser difference and version boundary |
+| --- | --- | --- |
+| Inverse-binomial Birth counts | Up to about 0.3 / 0.6 us/sim-s gross, before paying for a sampler. Birth RNG counting occupied 23 / 34 of 1,600 gate-build samples. | The browser tests a draw for each person in the ordered cohorts. A distribution-equivalent count changes individual outcomes and the continuing seed. Pin a new native simulation/RNG rules version in saves, anchors and replay goldens. |
+| Sample Death by cohort | Less than the entire Death stage, roughly 0.2 / 0.4 us/sim-s on the faster runs. The mortality loop was too small to isolate a reliable net gain. | Natural-age and hardship victim counts and later draws can change. Version the mortality and RNG rules together and establish native cross-platform golden streams. |
+| Defer rich Practice diagnostics during forecast | Illustrative 2-4 / 2-4 us/sim-s if about a quarter to half of trace work leaves the forward pass. Trace construction/append occurred in 672 / 473 of 1,600 samples. Restore and materialization costs are unmeasured. | The browser exposes per-site and civilization trace rows at their event second, including blocker reasons. Define and version anchor/diagnostic materialization, export and digest behavior. Retain queue effects and gameplay events. |
+| Change draw counts without changing the high-level rule | No separate additive estimate. Savings overlap the Birth/Death rows. | Seeds are observable in browser saves and replay. Any changed seed progression needs the versioned native RNG contract above, including behavior beyond the binary64 exact-integer range. |
 
 ## N03f - Actions, replay and new game (pending N03e)
 
