@@ -1,11 +1,12 @@
 #include "sim/stages/entries.hpp"
+#include "sim/practice/practice.hpp"
 
 namespace waffle::sim::stages {
 
-bool migration_practices(RuntimeState&, StageContext&)
+bool migration_practices(RuntimeState& state, StageContext&)
 {
-    // TODO: Recipes, Stock, Charge, events. Runs before Migration sets the moon phase.
-    return false;
+    practice::activate(state, content::Activation::migration);
+    return true;
 }
 
 }
