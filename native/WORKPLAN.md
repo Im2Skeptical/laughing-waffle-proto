@@ -3492,6 +3492,150 @@ forecast preview. The after set adds `05-save.png`, `06-title.png` and
 Reform slice. Full Life Map and shops, art and interaction redesign, cloud saves
 and old save migration are outside N04e.
 
+### N04g - Integrated native app (Windows verified, raven blocked at USB)
+
+On `t3/native-app-integration`, merged `658c93c8` (N04f) and then `38a8fa00`
+(N04e) from the supervisor's `9a2f3218` (N03i, browser baseline `9123ed72`).
+The combined app keeps N04f's RML/RCSS, map, camera, graph, keyboard, help and
+Reform flow. It uses N04e's shell/session, validated atomic saves, Android
+assets, safe area, lifecycle and gesture routing. SDL finger events feed the
+shared interaction states, with direct two-finger zoom on the same map camera.
+Minimize and background release the baked terrain and UI textures before
+resume. Both branches' CTest registrations are present.
+
+The title uses the existing Frontier Watch illustration at source sprite
+resolution. Continue names the latest save and its year and second. The slot
+list shows the live frontier, region count, UTC timestamp and versions for
+readable saves, with explicit empty, corrupt and incompatible states.
+Overwrite and leaving an unsaved or staged run use the same dialog as Reform.
+Leaving writes the live frontier to Autosave. A failed write keeps the run
+and shows its error. Manual save success posts a toast. The shell uses
+the shared entry motion and the map reveals once the opening forecast is
+ready. Region names use compass abbreviations where needed. Labels yield
+when they overlap, and inspection shows the full region name.
+
+This changes app input, presentation and save orchestration. Core, simulation,
+timegraph, RNG, serialization formats and the browser tree remain at the
+supervisor baseline. N04g reuses N04f's late presentation handoff for any
+restore ready during layout. The label layer keeps its region elements across
+preview samples, and the Live button text refreshes when the mode changes.
+
+#### Windows verification
+
+From the repository root in PowerShell, with `native/.tools` linked to the
+shared toolchain. Fresh captures match N03i. A reused capture diverged at
+`action-campaign-nest` second 6 and passed after regeneration.
+
+```powershell
+. native/tools/env.ps1
+Push-Location native
+foreach ($preset in 'optimized','optimized-clang') {
+    cmake --preset $preset
+    cmake --build --preset $preset --parallel 6
+    ctest --preset $preset --output-on-failure
+}
+Pop-Location
+node native/reference/trace.mjs
+foreach ($preset in 'optimized','optimized-clang') {
+    $parity = "native/build/$preset/src/sim/waffle_parity.exe"
+    & "native/build/$preset/waffle_native_game.exe" --smoke --seed 42
+    node native/reference/step-windows.mjs $parity
+    node native/reference/replay-windows.mjs $parity
+}
+```
+
+Both presets passed 48/48 CTests. The explicit seed-42 smoke reached live
+second 148 with five actions and restored preview second 227. Interaction
+smoke at both sizes covers actual SDL finger tap, pan, pinch, scrub drag and
+long-press help, plus keyboard focus, reduced motion, Reform cancellation,
+confirmation and rejection. Shell smoke covers seed entry, Save, overwrite
+cancel and confirm, Load, Continue and return-to-title autosave. Save-slot
+smoke also covers live digests, suspend/resume, invalid files and failed writes.
+Each compiler matched 30 step windows with 153 comparisons and zero masks
+(152 advancing and one gated). Replay matched 34 journals across 18 action
+kinds, 252 browser checkpoints in three modes and 55 rejections. The logs and
+fresh corpus are under `artifacts/n04g/`. `npm.cmd run check:docs` passed
+after linking the existing N04f evidence directory at `artifacts/n04f/`
+for its historical WORKPLAN link.
+
+#### Windows frame measurements
+
+Five alternating pairs per preset on the i9-10900K / RTX 3080 host, 1120×640,
+Direct3D 11, vsync off, with the N04f `--bench 2400` seed-1 longevity
+workload. Each sample required full publication through second 32,192, 1,000
+years beyond the replacement frontier. These are medians of the per-run
+percentiles. The N04f control is the original `658c93c8` build. N04g also
+includes N03i. Browser trace capture was active during the pairs.
+
+| Build | First playable, ms | Forecast, ms | Frame p50 / p95 / p99, ms | Loaded scrub p95, ms | Reconstruction + render p95, ms | Working set, MiB |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| MSVC N04f | 719.51 | 296.24 | 0.92 / 1.20 / 1.37 | 1.72 | 1.31 | 190.33 |
+| MSVC N04g | 688.75 | 298.61 | 1.06 / 1.34 / 1.68 | 1.65 | 1.41 | 206.34 |
+| Clang N04f | 549.91 | 220.60 | 0.73 / 0.96 / 1.09 | 1.27 | 1.03 | 188.41 |
+| Clang N04g | 655.03 | 225.67 | 0.77 / 1.01 / 1.22 | 1.34 | 1.08 | 204.88 |
+
+The archived MSVC N04f baseline was 1.04 / 1.71 / 2.20 ms. N04g was within
+0.03 ms at p50 and faster at p95 and p99 against that record. The fresh
+same-session MSVC p95 and p99 were 0.14 and 0.31 ms higher than the N04f
+control. Clang p95 and p99 were 0.05 and 0.14 ms higher. All 2,378 integrated
+scrubs presented within two harness frames. Worst loaded input-to-present
+was 2.60 ms. N04g private memory was 236.12 MiB on MSVC and 242.42 MiB on
+Clang. Estimated live textures were 16.57 MiB on both, up from 14.03 MiB with
+the source-resolution title sprite. Forecast charged bytes matched within
+each pair of builds per compiler. These timings describe the installed
+Windows runtime.
+
+```powershell
+# Point $n04fWorktree at the checkout with both optimized builds of 658c93c8.
+powershell -NoProfile -ExecutionPolicy Bypass -File artifacts/n04g/paired.ps1 -ControlWorktree $n04fWorktree -RunName paired-final
+python artifacts/n04g/paired-summary.py paired-final
+
+$env:SDL_RENDER_DRIVER = 'direct3d11'
+$game = 'native/build/optimized/waffle_native_game.exe'
+# Use fresh directories for the scripted save slots and captures.
+& $game --seed 42 --capture artifacts/n04g/windows/desktop
+& $game --seed 42 --size 640 360 --capture artifacts/n04g/windows/compact
+```
+
+The paired runner invokes each binary with `--bench 2400 <report.json> --load
+artifacts/n04g/seed-1-n04c-long.json`. Raw rows are in
+`artifacts/n04g/paired-final/` and the aggregate in
+`artifacts/n04g/paired-final-summary.json`. The first set, before the marker
+and Live button update changes, is in `artifacts/n04g/paired/`.
+
+Windows before images are in `artifacts/n04g/windows-before/` (N04e).
+Integrated images are in `artifacts/n04g/windows/desktop/` and
+`artifacts/n04g/windows/compact/`. They include the map and forecast,
+`05-reform-confirm.png`, `09-return-confirm.png`, `10-save.png`,
+`11-save-feedback.png`, `12-overwrite-confirm.png`, `13-title.png` and
+`14-load.png`.
+
+#### Pixel 6 Pro (`raven`)
+
+```powershell
+$tools = (Get-Item native/.tools).Target[0]
+powershell -NoProfile -ExecutionPolicy Bypass -File native/tools/bootstrap-android.ps1 -ToolsRoot "$tools" -OutputDirectory artifacts/n04g/android-build
+& native/.tools/android-sdk/platform-tools/adb.exe devices -l
+```
+
+The optimized arm64 debug APK built and passed package inspection, including
+the AArch64 `SDL_main` export, debug signature and the packaged RML, both
+RCSS files, font, atlas sources and opening config.
+`artifacts/n04g/android-build/app-debug.apk` has SHA-256
+`1e340befce2af10ba1094a462ec3390a70be2edd54e360edd126e70a2812d2be`.
+The signature tool verified APK Signature Scheme v2. Its report is in
+`artifacts/n04g/android-build/apk-signature.txt`.
+
+ADB listed no devices before or after packaging. The work item flags HiSuite
+USB contention. Windows reported `HuaweiHiSuiteService64.exe` stopped, so
+the current USB owner could not be confirmed. Device inventories and service
+status are in `artifacts/n04g/adb-devices*.txt` and
+`artifacts/n04g/adb-windows-service.txt`. Cam needs to restore USB ADB access
+to `raven` before the N04e device procedure can run on this APK. Startup,
+forecast frame times, scrub, reconstruction, memory, touch, pause/resume and
+phone screenshots remain unmeasured. This session left the phone untouched
+and its existing install state is unknown.
+
 ## N05 - Iteration and installed profiles (pending N04)
 
 Finish development, performance and full-art installed profiles sharing the same
