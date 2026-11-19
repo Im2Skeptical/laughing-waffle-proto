@@ -103,7 +103,7 @@ Range<StockProvider> store_providers(Arena& arena, std::span<const Provider> pro
     for (const auto& item : providers) {
         auto row = item.record;
         row.traits = store(arena, item.traits);
-        if (!item.substitution.empty()) row.substitution = store(arena, item.substitution);
+        if (row.substitution || !item.substitution.empty()) row.substitution = store(arena, item.substitution);
         rows.push_back(row);
     }
     return {start, checked_index(rows.size(), "Practice providers")};

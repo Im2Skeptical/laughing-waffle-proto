@@ -413,8 +413,10 @@ Verification used `node native/reference/stage-probe.mjs --all`, then
 `node native/reference/stage-pairs.mjs <waffle_parity.exe> <stage>` without
 masks. Seasonal passed 10/10, After Meals 4/4, Migration Practices 7/7,
 Death Practices 5/5, and final flush 36/36. Both captured same-root
-Smelting and Toolmaking cascades matched, as did a second-17 replay with
-cap 3 and two stopped roots. All three non-seed-1 Death pairs require
+Smelting and Toolmaking cascades matched. Targeted probes matched two
+stopped roots at cap 20 and at a lowered cap of 3, and retained empty
+Stock substitution spans on a pending-event restore and drain.
+All three non-seed-1 Death pairs require
 the real adjacency fixture. An ignored compatibility build, reproduced
 with `artifacts/n03e-3-topology-check.ps1`, used the N03d-4 input from
 `44d39ed4` and restored the isolated stub afterwards. In `native/`,
