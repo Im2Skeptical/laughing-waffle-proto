@@ -33,8 +33,23 @@
   - v53 browser catch-up, after PR #107 merges.
 - Coordination: one supervising session sets design and reviews and integrates
   delegated items on its branch. Each item has one owner at a time.
-- Active owners (wave started 19 Nov 2026 from 6baa16dd):
-  - N03f L2 actions and replay: sol 6.2 worker on `t3/native-actions-replay`.
+- Wave started 19 Nov 2026 from 6baa16dd (merged):
+  - N03f L2 actions and replay: merged from 48e60bdf (48302da1).
+    - Supervisor re-verification on MSVC and clang: 38/38 CTests,
+      829/829 pairs, and 30 windows with zero masks.
+    - Replay: 7 journals, 18 action kinds and 58 browser checkpoints matched
+      in all three replay modes on both compilers. New Game checks passed.
+    - Random `rebuildStateAtSecond` latency over 32,000 s: 0.31 ms p50 and
+      0.48 ms p95 on desktop.
+    - The schema change (`origin` nullable on shop draft edits) matches the
+      browser's `moveVassalShopStructure`.
+    - Pipeline is now **17.4 opening / 20.9 late** µs/sim-s.
+    - Remaining action kinds have owners in the N03f section.
+- Active owners (wave started 19 Nov 2026 from 48302da1):
+  - N04a headless forecast core (`waffle_timegraph`): sol 6.2 worker on
+    `t3/native-timegraph-core`.
+  - N03f L2b remaining action kinds: sol 6.2 worker on
+    `t3/native-actions-remaining`.
   - N03e-3q pass 4: merged from 83cac22d.
     - The supervisor audited the staffing-cache invalidation (ledger
       reindex, `rebuild_listeners`, the `sitesDirty` bypass) and Birth's
