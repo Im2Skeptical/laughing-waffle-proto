@@ -131,10 +131,13 @@ else()
 		add_executable(waffle_native_game
 			src/app/connected_art.cpp
 			src/app/connected_main.cpp
+			src/app/connected_save.cpp
 			src/app/connected_session.cpp
+			src/app/connected_shell.cpp
 			src/app/connected_smoke.cpp
 			src/app/connected_view.cpp
 			src/app/demo_metrics_windows.cpp
+			src/app/sdl_asset_file.cpp
 			src/app/sdl_rml_renderer.cpp
 			src/ui/connected_model.cpp
 		)
@@ -158,6 +161,9 @@ else()
 			"-Dstate=${CMAKE_CURRENT_LIST_DIR}/reference/fixtures/seed-1/state-0.json"
 			"-Doutput=${CMAKE_CURRENT_BINARY_DIR}/connected-runner-test.json"
 			-P "${CMAKE_CURRENT_LIST_DIR}/src/tests/check_connected_save.cmake")
-		set_tests_properties(connected_slice_smoke connected_slice_import connected_slice_runner_save PROPERTIES TIMEOUT 60)
+		add_test(NAME connected_save_slots COMMAND waffle_native_game --save-smoke
+			"${CMAKE_CURRENT_BINARY_DIR}/connected-native-test" --seed 42)
+		set_tests_properties(connected_slice_smoke connected_slice_import connected_slice_runner_save
+			connected_save_slots PROPERTIES TIMEOUT 60)
 	endif()
 endif()

@@ -20,6 +20,7 @@ struct Options {
     bool smoke{};
     unsigned frames{};
     std::string capture, report;
+    std::filesystem::path saveSmokeDirectory;
 };
 
 template<class T>
@@ -34,6 +35,7 @@ bool parse(int argc, char** argv, Options& options)
     for (int i = 1; i < argc; ++i) {
         const std::string_view arg = argv[i];
         if (arg == "--smoke") options.smoke = true;
+        else if (arg == "--save-smoke" && i + 1 < argc) options.saveSmokeDirectory = std::filesystem::u8path(argv[++i]);
         else if (arg == "--seed" && i + 1 < argc) {
             if (!parseNumber(argv[++i], options.launch.seed)) return false;
         } else if (arg == "--load" && i + 1 < argc) {
@@ -201,6 +203,10 @@ void benchmark(SDL_Renderer* renderer, SdlRmlRenderer& bridge, View& view, Sessi
 int run(const Options& options)
 {
     const auto start = SDL_GetTicksNS();
+    if (!options.saveSmokeDirectory.empty()) {
+        saveSmoke(options.launch, options.saveSmokeDirectory);
+        return 0;
+    }
     Session session;
     Selection selection;
     session.open(options.launch);

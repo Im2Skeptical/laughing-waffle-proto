@@ -1,7 +1,9 @@
 #include "connected_smoke.hpp"
+#include "sdl_asset_file.hpp"
 
 #include <algorithm>
 #include <cstdio>
+#include <fstream>
 #include <thread>
 
 namespace waffle::connected {
@@ -104,6 +106,80 @@ void smoke(Session& session, Selection& selection, const SmokeFrame& frame)
         static_cast<unsigned long long>(openingSecond), openingActions,
         static_cast<unsigned long long>(session.generation()), session.actionCount(),
         static_cast<unsigned long long>(target), static_cast<unsigned long long>(liveSecond));
+}
+
+void saveSmoke(const Launch& launch, const std::filesystem::path& directory)
+{
+    SaveSlots store(directory);
+    for (auto slot : slots) std::filesystem::remove(store.path(slot));
+    Session session;
+    Selection selection;
+    Shell shell(session, selection, store);
+    shell.open(launch);
+    smoke(session, selection, {});
+    const auto digest = session.displayedDigest();
+    const auto live = session.liveSnapshot()->second;
+    const auto count = session.actionCount();
+    const auto generation = session.generation();
+    require(session.scrub(live + 1), "Could not enter preview before saving");
+    waitFor(session, [&] { return session.previewReady(); }, {});
+    require(session.displayedDigest() != digest, "Save test requires a distinct preview");
+    shell.show(Screen::save);
+    shell.selectSlot(Slot::first);
+    require(shell.screen() == Screen::game, "Manual save failed");
+    shell.show(Screen::save);
+    shell.selectSlot(Slot::first);
+    require(shell.overwrite() == Slot::first && shell.screen() == Screen::save, "Overwrite confirmation missing");
+    shell.selectSlot(Slot::first);
+    require(shell.screen() == Screen::game, "Atomic overwrite failed");
+    const auto manual = store.inspect(Slot::first).metadata;
+    require(manual && manual->regions == 20 && manual->second == live &&
+        manual->year == session.liveSnapshot()->year && !manual->savedAt.empty() && !manual->version.empty(),
+        "Manual metadata does not describe the live state");
+    session.suspend();
+    require(session.suspended() && !session.coverage() && !session.previewing(), "Suspend left forecast or preview active");
+    require(shell.autosave(), "Background autosave failed");
+    session.resume();
+    waitFor(session, [&] { return session.chart().through.has_value(); }, {});
+    require(session.generation() > generation && session.displayedDigest() == digest, "Resume changed the live state");
+
+    const auto verifyReopened = [&] {
+        waitFor(session, [&] { return session.liveSnapshot() && !session.opening(); }, {});
+        require(session.liveSnapshot()->second == live && session.actionCount() == count &&
+            session.displayedDigest() == digest && session.replayDigest(live) == digest, "Loaded state differs from live digest");
+        require(session.chart().through && *session.chart().through > live, "Load did not restart the forecast");
+    };
+    require(shell.returnToTitle(), "Could not return to title");
+    shell.show(Screen::load);
+    shell.selectSlot(Slot::first);
+    verifyReopened();
+    require(shell.returnToTitle(), "Could not return to title after load");
+    shell.continueGame();
+    verifyReopened();
+
+    const auto manualPath = store.path(Slot::first).u8string();
+    auto bytes = readAsset(reinterpret_cast<const char*>(manualPath.c_str()));
+    const auto version = bytes.find("\"saveVersion\":1");
+    require(version != std::string::npos, "Save version stamp is missing");
+    bytes[version + std::string_view("\"saveVersion\":").size()] = '2';
+    std::ofstream(store.path(Slot::second), std::ios::binary) << bytes;
+    bytes[version + std::string_view("\"saveVersion\":").size()] = '1';
+    bytes.back() = '!';
+    std::ofstream(store.path(Slot::third), std::ios::binary) << bytes;
+    for (const auto& [slot, expected] : {std::pair{Slot::second, "Incompatible save version"},
+                                       std::pair{Slot::third, "Corrupt save data"}}) {
+        require(store.inspect(slot).error == expected, "Slot list did not report the expected error");
+        session.close();
+        shell.open(Launch{.save = store.path(slot), .nativeSave = true});
+        const auto deadline = std::chrono::steady_clock::now() + std::chrono::seconds(10);
+        while (session.busy() && std::chrono::steady_clock::now() < deadline) {
+            shell.update();
+            std::this_thread::sleep_for(std::chrono::milliseconds(1));
+        }
+        require(shell.screen() == Screen::title && shell.message().find(expected) != std::string::npos &&
+            !session.liveSnapshot(), "Invalid save was not reported to the title screen");
+    }
+    std::puts("Native save slots passed: live digest, overwrite, load, autosave, continue, suspend/resume and invalid files");
 }
 
 }
