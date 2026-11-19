@@ -141,6 +141,29 @@ void append_trace(RuntimeState& state, PracticeEvent event, const Build& build)
     global.link(build(state.histories.at(reference->row), arena), arena);
 }
 
+// Empty arrays have present, zero-length ranges in the new record. A rich
+// builder still materializes every nonempty range and any page-local text.
+template<class T, class Source>
+bool capture_empty(std::optional<Range<T>>& target, const std::optional<Source>& source)
+{
+    if (!source) return true;
+    if (source->size() != 0) return false;
+    target = Range<T>{};
+    return true;
+}
+
+template<class Providers, class Traits, class Tags, class Regions>
+bool append_scalar_trace(RuntimeState& state, PracticeEvent event, TraceFields& fields,
+                         const Providers& providers, const Traits& traits, const Tags& tags, const Regions& regions)
+{
+    auto& row = fields.row;
+    if (fields.needsLocalSymbols || !capture_empty(row.providers, providers) ||
+        !capture_empty(row.traits, traits) || !capture_empty(row.tags, tags) ||
+        !capture_empty(row.sourceRegionIds, regions)) return false;
+    append_trace(state, event, [&](auto& history, const auto& arena) { return history.append_packed(row, arena); });
+    return true;
+}
+
 }
 
 void admit(RuntimeState& state)
@@ -211,7 +234,9 @@ void admit(RuntimeState& state)
 void trace(RuntimeState& state, PracticeEvent event, const EventData& data,
            bool includeId, std::string_view dynamicReason)
 {
-    const TraceFields fields(event, data.fields, includeId);
+    TraceFields fields(event, data.fields, includeId);
+    if (!data.fields.destinationId && dynamicReason.empty() &&
+        append_scalar_trace(state, event, fields, data.providers, data.traits, data.tags, data.sources)) return;
     auto fill = [&](PracticeEventTrace& row, HistoryPayload& page) {
         fields.write(state, page, row, data.fields, dynamicReason);
         if (data.providers) row.providers = store_providers(page, *data.providers);
@@ -226,7 +251,9 @@ void trace_pending(RuntimeState& state, PracticeEvent event, std::size_t index)
 {
     const auto& p = state.eventPayloads[index];
     const auto& payload = state.pendingPracticePayload;
-    const TraceFields fields(event, p, true);
+    TraceFields fields(event, p, true);
+    if (!p.destinationId && append_scalar_trace(state, event, fields, p.providers, p.traits, p.tags, p.sourceRegionIds))
+        return;
     auto fill = [&](PracticeEventTrace& row, HistoryPayload& page) {
         fields.write(state, page, row, p);
         if (p.providers) {
