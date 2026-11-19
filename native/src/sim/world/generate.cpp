@@ -490,7 +490,7 @@ std::optional<std::uint32_t> generated_regional_seed(std::string_view definition
     return seed;
 }
 
-RegionalWorld generate_regional_world(std::uint32_t seed)
+RegionalWorld generate_regional_world(std::uint32_t seed, RegionalOutlines* outlines)
 {
     // The definition generator has its own streams. Only the shared-edge
     // outlines and centroids feed gameplay; island contours and surroundings
@@ -512,6 +512,12 @@ RegionalWorld generate_regional_world(std::uint32_t seed)
     constexpr std::array biomes{"plains", "forest", "islands", "swamp", "mountains"};
     constexpr std::array colours{"red", "green", "blue", "black", "black", "red"};
     for (int i = 0; i < regional_region_count; ++i) {
+        if (outlines) {
+            auto& outline = (*outlines)[i];
+            outline.clear();
+            outline.reserve(regions[i].outline.size());
+            for (const auto point : regions[i].outline) outline.push_back({point.x, point.y});
+        }
         const Biome assigned = regions[i].biome;
         const auto hasFeature = [&](Feature feature) {
             return std::any_of(regions[i].edges.begin(), regions[i].edges.end(),
