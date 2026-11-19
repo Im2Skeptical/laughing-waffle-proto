@@ -14,12 +14,29 @@ enum class EventKind : std::uint8_t {
     dischargeBlocked, cascadeSafetyCap, count,
 };
 
+struct Candidate {
+    runtime::SiteId site;
+    std::uint32_t slot;
+    runtime::PracticeId definition;
+};
+
+inline constexpr auto trigger_kind_count = static_cast<std::size_t>(EventKind::scheduledActivation);
+
+struct ListenerIndex {
+    std::vector<Candidate> candidates;
+    std::vector<runtime::Range<std::uint32_t>> local;
+    std::array<std::vector<std::uint32_t>, trigger_kind_count> byKind;
+    std::vector<std::uint32_t> dynamicThreshold;
+    std::vector<std::optional<EventKind>> eventKinds;
+};
+
 struct Vocabulary {
     std::array<runtime::EventKindId, static_cast<std::size_t>(EventKind::count)> events;
     std::array<runtime::SymbolId, 10> activations;
     std::array<runtime::SeasonId, 4> seasons;
     std::array<runtime::SymbolId, 3> pools;
     std::array<runtime::SymbolId, 2> specialties;
+    std::array<runtime::ResidencyId, 2> residencies;
     std::array<runtime::SymbolId, 4> martialActions;
     runtime::SymbolId consume, require, sacrifice, alreadyDischarged, capacityFull, noTraining, unmetCondition;
     runtime::FactionId player, frontier, external, neutral, beneficiary;

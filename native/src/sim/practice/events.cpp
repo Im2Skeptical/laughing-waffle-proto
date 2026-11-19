@@ -19,6 +19,7 @@ constexpr std::array<std::string_view, 10> activationNames{
 constexpr std::array<std::string_view, 4> seasonNames{"spring", "summer", "autumn", "winter"};
 constexpr std::array<std::string_view, 3> poolNames{"common", "scholar", "warrior"};
 constexpr std::array<std::string_view, 2> specialtyNames{"scholar", "warrior"};
+constexpr std::array<std::string_view, 2> residencyNames{"villager", "stranger"};
 constexpr std::array<std::string_view, 4> actionNames{"campaign", "defense", "hunt", "conquest"};
 
 template<class Key, std::size_t N>
@@ -106,10 +107,17 @@ void admit(RuntimeState& state)
 {
     auto& v = state.practiceVocabulary;
     initialize(state, v.events, eventNames);
+    auto& kinds = state.practiceListeners.eventKinds;
+    for (std::size_t i = 0; i < trigger_kind_count; ++i) {
+        const auto key = v.events[i].value;
+        if (key >= kinds.size()) kinds.resize(key + 1);
+        kinds[key] = static_cast<EventKind>(i);
+    }
     initialize(state, v.activations, activationNames);
     initialize(state, v.seasons, seasonNames);
     initialize(state, v.pools, poolNames);
     initialize(state, v.specialties, specialtyNames);
+    initialize(state, v.residencies, residencyNames);
     initialize(state, v.martialActions, actionNames);
     auto sym = [&](std::string_view name) { return state.intern<SymbolId>(name, "Practice vocabulary"); };
     v.consume = sym("consume");
@@ -143,6 +151,7 @@ void admit(RuntimeState& state)
     reserve(state.pendingPracticePayload.rows<RegionId>(), events);
     auto& siteTraces = state.histories.rows<History<PracticeEventTrace, 100, DetailedSettlement_practiceActivationTrace>>();
     reserve(siteTraces, state.hot.world.sites.size());
+    rebuild_listeners(state);
 }
 
 void trace(RuntimeState& state, PracticeEvent event, const EventData& data,

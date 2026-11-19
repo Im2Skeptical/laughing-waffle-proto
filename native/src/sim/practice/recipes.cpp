@@ -1,4 +1,5 @@
 #include "sim/practice/recipes.hpp"
+#include "core/js_number.hpp"
 
 namespace waffle::sim::practice::detail {
 namespace {
@@ -336,7 +337,7 @@ double transform(RuntimeState& state, SiteId target, std::span<const PopulationB
     const auto count = number_of_people(scratch.removed);
     for (auto bin : scratch.removed) {
         if (allegiance) bin.key.allegiance = allegiance;
-        if (specialty) bin.key.specialty = state.populationVocabulary.specialtyKeys[static_cast<std::size_t>(*specialty)];
+        if (specialty) bin.key.specialty = state.populationVocabulary.specialties[1 + static_cast<std::size_t>(*specialty)];
         scratch.bins.push_back(bin);
     }
     settlement::write_population_bins(state, target, scratch.bins, scratch.ledger);
@@ -663,7 +664,7 @@ double charge_gain(const RuntimeState& state, const Site& site, const PracticeDe
 }
 
 bool attempt(RuntimeState& state, Candidate candidate, Activation activation, bool localOnly,
-             std::optional<PracticeEvent> parent, bool* blocked, bool* already)
+             std::optional<PracticeEvent> parent, bool* blocked, bool already)
 {
     auto& site = settlement::site_at(state, candidate.site);
     if (!eligible(state, site, parent.has_value())) return false;
@@ -675,7 +676,7 @@ bool attempt(RuntimeState& state, Candidate candidate, Activation activation, bo
     const auto worker = workers(state, site)[slot.slot];
     if (parent) {
         if (def.mode != Mode::charge || state.practiceCharge[index.value] < threshold(state, site, def, worker.scholar)) return false;
-        if (already && *already) {
+        if (already) {
             EventData record{};
             record.fields.targetPracticeId = def.id;
             record.fields.reason = state.practiceVocabulary.alreadyDischarged;
@@ -778,7 +779,7 @@ void activate(RuntimeState& state, content::Activation activation, std::optional
                 (stage && def.activation.stage != stage)) continue;
             if (def.activation.seasonKeys && activation == Activation::season &&
                 (!currentSeason || !(def.seasonMask & mask_bit(*currentSeason)))) continue;
-            if (def.cadenceMoons && std::fmod(std::floor(state.hot.tSec /
+            if (def.cadenceMoons && core::js::remainder(std::floor(state.hot.tSec /
                 (state.compiledContent->settings().phaseDurationSec * 6)), *def.cadenceMoons) != 0) continue;
             const Candidate candidate{key, slot.slot, slot.practiceId};
             if (!attempt(state, candidate, activation, true)) retries.push_back(candidate);

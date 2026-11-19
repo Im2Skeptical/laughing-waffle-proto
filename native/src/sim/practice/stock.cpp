@@ -445,7 +445,7 @@ void apply_stock(RuntimeState& state, const Site& site, const StockPlan& plan)
             auto reports = state.tables.view(civ.currentMoonTurn->regions);
             auto report = std::ranges::find(reports, provider.regionId, &Entry<RegionId, MoonRegionResult>::key);
             if (report != reports.end())
-                report->value.currencySpent = report->value.currencySpent.value_or(0) + provider.amount;
+                report->value.currencySpent += provider.amount;
         }
     }
     for (const auto& [target, amount] : purchases) {

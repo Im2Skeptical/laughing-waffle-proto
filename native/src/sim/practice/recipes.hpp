@@ -4,16 +4,10 @@
 
 namespace waffle::sim::practice::detail {
 
-struct Candidate {
-    SiteId site;
-    std::uint32_t slot;
-    PracticeId definition;
-};
-
 bool eligible(const RuntimeState& state, const Site& site, bool discharge);
 bool attempt(RuntimeState& state, Candidate candidate, content::Activation activation,
              bool localOnly, std::optional<PracticeEvent> parent = {},
-             bool* blocked = nullptr, bool* already = nullptr);
+             bool* blocked = nullptr, bool already = false);
 double threshold(const RuntimeState& state, const Site& site, const content::PracticeDefinition& def, bool scholar);
 double charge_gain(const RuntimeState& state, const Site& site, const content::PracticeDefinition& def,
                    Assignment assignment);
