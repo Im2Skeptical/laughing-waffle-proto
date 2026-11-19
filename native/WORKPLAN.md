@@ -89,11 +89,22 @@
       pairs, 30 windows with zero masks, 34 journals and 252 replay
       checkpoints, and the New Game checks.
     - Pipeline 16.0 / 18.2. Longevity forecast 32,000 s in 250 ms.
-  - N04e (38a8fa00) and N04f (658c93c8) are complete. They overlap in 8 app
-    files, so N04g integrates them: sol 6.2 worker on
-    `t3/native-app-integration`. It merges both, restyles the shell screens
-    with the N04f components, shows region names on the map, and runs the
-    Pixel validation (blocked during N04e by HiSuite holding ADB).
+  - N04g app integration (N04e shell and N04f interaction): merged from
+    d92ba425.
+    - The title uses the Frontier Watch art. Continue shows the autosave
+      it will open. Save and Load show slot metadata and empty, corrupt or
+      incompatible states. Overwrite and abandon need confirmation. Saves
+      post a toast. The map shows region names.
+    - Supervisor re-run: 48/48 CTests and the connected smoke on MSVC and
+      clang, 30 windows with zero masks, and 252 replay checkpoints.
+    - Worker Windows numbers: first playable 689 / 655 ms (MSVC / clang),
+      1000-year forecast 299 / 226 ms, scrub p95 1.65 / 1.34 ms, every scrub
+      within 2 frames.
+    - Pixel app validation is **pending by Cam's choice**: the phone is in
+      daily use. The APK and `benchmark-android-timegraph.ps1` are ready for
+      a later session.
+  - N04h Life Map and Shop flows on the N04f components (plus map-label
+    decluttering): sol 6.2 worker on `t3/native-life-map-shop`.
   - Disk: C: fell to 2.2 GB free. The supervisor deleted `native/build`
     in 39 merged worker worktrees (49.2 GB), keeping worktrees, branches
     and artifacts. C: then had 59.5 GB free.
