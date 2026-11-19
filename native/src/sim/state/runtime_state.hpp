@@ -1,10 +1,14 @@
 #pragma once
 
 #include "sim/state/rows.generated.hpp"
+#include "sim/practice/runtime.hpp"
 
 #include <memory>
 
 namespace waffle::sim {
+
+class WorldTopology;
+struct CompiledContent;
 
 struct CapturedContent {
     browser::GameConfig config;
@@ -70,13 +74,17 @@ struct RuntimeState {
     std::vector<double> practiceCharge;
     std::vector<std::uint64_t> jointCounts;
     std::vector<runtime::PracticeEventPayload> eventPayloads;
+    runtime::HistoryPayload pendingPracticePayload;
     runtime::ColdTables cold;
     runtime::HistoryTables histories;
     RuntimeIndexes indexes;
     std::shared_ptr<const CapturedContent> content;
+    std::shared_ptr<const CompiledContent> compiledContent;
+    std::shared_ptr<const WorldTopology> topology;
     runtime::IdTables addedIds;
     SettlementPreludeCache settlementPrelude;
     PopulationVocabulary populationVocabulary;
+    practice::Vocabulary practiceVocabulary;
     // The browser omits this latch on export and clears it on import.
     bool seasonChanged{};
     // Derived from tSec and immutable settings. Zero triggers calculation.

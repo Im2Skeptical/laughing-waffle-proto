@@ -2,6 +2,10 @@ add_library(waffle_sim STATIC
 	browser/detail/codec.cpp
 	browser/generated/game_state.cpp
 	content/compiled_content.cpp
+	practice/events.cpp
+	practice/stock.cpp
+	practice/recipes.cpp
+	practice/drain.cpp
 	state/mirror_mapping.cpp
 	state/runtime_state.cpp
 	settlement/population.cpp

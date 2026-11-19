@@ -339,6 +339,7 @@ stock stock
 charge charge
 InstanceId instanceId
 FactionId allegiance
+RegionId targetRegionId
 
 [Region]
 hot detailedSettlementEnabled monster lostAtSec
@@ -389,7 +390,7 @@ hot slotIndex amount unitPrice
 SymbolId kind paymentFor label
 RegionId regionId
 PracticeId practiceId
-TraitId traits
+TraitId traits substitution
 MarketStockId marketStockId
 
 [StockTransfersTransfersEntry]
