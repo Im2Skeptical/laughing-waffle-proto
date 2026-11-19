@@ -44,7 +44,7 @@ restore requires at most 63 replay steps. Shutdown wakes and joins the worker
 and resolves queued requests.
 
 Publication is atomic at second boundaries. Readers can query generation
-status and copy ready typed rows into caller storage. They get no pointers
+status and copy up to 64 ready typed rows per call into caller storage. They get no pointers
 into the store, so reads cannot retain retired pages or mutate cached anchors.
 Restores copy the nearest preceding private anchor into independent mutable
 storage, then replay only to the target. The controller can use the reported
@@ -62,22 +62,33 @@ record holds population, Food, Currency, Housing, holder support, Unrest,
 Holding Force, Required Force, and villager/stranger population, free
 workers, Faith and Happiness. Civilization-wide series also serve the local
 graph. Rich tooltips and inspection come from restore. At 20 regions the
-typed payload is approximately 2.7 KB per second.
+typed payload is 2,728 B per second on Windows x64.
 
 Anchor the starting second, each 64-second boundary relative to the start,
 and the final second if off-stride and storage permits. Hold value snapshots
 of the RuntimeState. Store large flat value columns in immutable blocks and
-reuse identical blocks from the preceding anchor. Materialize fresh vectors
+reuse identical blocks from the preceding anchor where rows have a stable
+object representation or an explicit field comparison. Materialize fresh vectors
 on restore. Captured content and the sim's existing immutable history
 records keep their normal sharing rules. This is an in-memory representation;
 compare canonical state hashes, never hashes of process pointers or padding.
 
 Budget forecast storage at 256 MiB across the current and one previous
-generation, including room for working data. Charge allocated summary pages
-and anchor copies, counting retained shared blocks once. Admit storage at
-complete boundaries. Under pressure, finish at the last admitted second and
-keep the retained prefix, dense summaries and 64-second restore bound.
-Publication and reads stay bounded without growing a consumer-managed cache.
+generation. Charge allocated summary pages, journals, indexes and anchor
+copies, counting retained shared blocks once. Reserve up to 24 MiB within
+that budget for working state, scratch, captured content and the sim's
+shared history and cold allocations. The forecast ledger measures its own
+buffers and budgets those opaque sim allocations with the allowance.
+Admit storage at complete boundaries. Under pressure, finish at the last
+admitted second and keep the retained prefix, dense summaries and 64-second
+restore bound. Publication and reads stay bounded without growing a
+consumer-managed cache.
+
+Timegraph allocates a summary page (header and site buffers) every 64
+seconds. An anchor adds its independent value buffers, column manifest, and
+blocks that changed or require private copies. A restore request allocates
+its result channel and an independent runtime copy. Ordinary summary writes
+use a fixed per-session scratch row and existing page space.
 
 ## Evidence
 
