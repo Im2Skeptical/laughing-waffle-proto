@@ -12,7 +12,6 @@ namespace {
 
 using namespace runtime;
 using settlement::Residency;
-using MoonRegion = Entry<RegionId, MoonRegionResult>;
 using RegionalFood = Entry<RegionId, double>;
 namespace js = core::js;
 
@@ -185,9 +184,8 @@ bool food(RuntimeState& state, StageContext& context)
         work[id.value] = {saved, stock, overhead, practice::consume_meal_stock(state, site, stock, true)};
     }
 
-    const auto reports = state.tables.view(turn.regions);
     const auto regions = state.tables.view(state.hot.world.regions);
-    auto nextReport = reports.begin();
+    std::size_t nextReport = 0;
     for (const auto id : settlement::active_sites(state)) {
         auto& site = settlement::site_at(state, id);
         const auto [saved, demand, overhead, local] = work[id.value];
@@ -213,12 +211,8 @@ bool food(RuntimeState& state, StageContext& context)
             meal.byClass.stranger.ratio = 1;
         }
 
-        auto report = nextReport;
-        while (report != reports.end() && report->key != site.regionId) ++report;
-        if (report == reports.end()) report = std::ranges::find(reports, site.regionId, &MoonRegion::key);
-        if (report == reports.end()) throw std::logic_error("missing Food moon region");
-        publish_meal(state, site, report->value, meal);
-        nextReport = report + 1;
+        auto& result = settlement::ensure_moon_region_result(state, turn, site.regionId, &nextReport);
+        publish_meal(state, site, result, meal);
     }
     return true;
 }

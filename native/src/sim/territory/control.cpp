@@ -2,6 +2,7 @@
 #include "sim/territory/detail.hpp"
 
 #include "sim/practice/stock.hpp"
+#include "sim/settlement/prelude.hpp"
 
 #include <algorithm>
 #include <charconv>
@@ -328,6 +329,8 @@ void occupy_campaign_site(RuntimeState& state, Site& site)
     if (site.simulationMode != state.territory.detailed) state.territory.sitesDirty = true;
     site.simulationMode = state.territory.detailed;
     region_at(state, site.regionId).detailedSettlementEnabled = true;
+    if (auto& turn = state.hot.civilization.currentMoonTurn)
+        settlement::ensure_moon_region_result(state, *turn, site.regionId);
     change_controller(state, site, state.practiceVocabulary.player, true);
     synchronize_sites(state);
     ++state.hot.civilization.history.conquests;

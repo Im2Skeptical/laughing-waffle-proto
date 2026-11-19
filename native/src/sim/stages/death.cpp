@@ -18,7 +18,6 @@ using namespace runtime;
 using namespace settlement;
 namespace js = core::js;
 using MoonRegion = Entry<RegionId, MoonRegionResult>;
-constexpr auto deathPath = "Death";
 constexpr std::array residencies{Residency::villager, Residency::stranger};
 constexpr double arrivalMealCost = 1.0 / 30;
 constexpr auto noMovement = std::numeric_limits<std::size_t>::max();
@@ -382,24 +381,6 @@ Index<MoonRegionResultDeath> death_report_slot(const RuntimeState& state, const 
     return {row};
 }
 
-MoonRegionResult& moon_result(RuntimeState& state, MoonTurn& turn, RegionId region, std::size_t& next)
-{
-    auto rows = state.tables.view(turn.regions);
-    auto found = next < rows.size() ? rows.begin() + next : rows.end();
-    if (found == rows.end() || found->key != region)
-        found = std::ranges::find(rows, region, &MoonRegion::key);
-    if (found == rows.end()) {
-        const auto old = turn.regions;
-        turn.regions = state.tables.table<MoonRegion>().append(old.size() + 1, deathPath);
-        rows = state.tables.view(turn.regions);
-        std::ranges::copy(state.tables.view(old), rows.begin());
-        rows.back() = {region, MoonRegionResult{region}};
-        found = rows.end() - 1;
-    }
-    next = found - rows.begin() + 1;
-    return found->value;
-}
-
 thread_local Workspace scratchForDeath;
 
 } // namespace
@@ -450,7 +431,7 @@ bool death(RuntimeState& state, StageContext& context)
     std::size_t nextRegion = 0;
     for (const auto id : active_sites(state)) {
         auto& site = site_at(state, id);
-        auto& result = moon_result(state, turn, site.regionId, nextRegion);
+        auto& result = settlement::ensure_moon_region_result(state, turn, site.regionId, &nextRegion);
         const auto natural = resolve_mortality(state, site, scratch, rng);
         const auto arrivals = finish_migration_report(state, id, turn, result);
         const auto hardship = hasHardship ? scratch.hardship[site.regionId.value] : 0;

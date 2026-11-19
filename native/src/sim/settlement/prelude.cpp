@@ -157,4 +157,28 @@ MoonTurn& set_moon_turn_phase(RuntimeState& state, LunarSchedule phase)
     return *current;
 }
 
+MoonRegionResult& ensure_moon_region_result(RuntimeState& state, MoonTurn& turn, RegionId region, std::size_t* next)
+{
+    const auto old = turn.regions;
+    auto rows = state.tables.view(old);
+    const auto hint = next ? *next : 0;
+    auto found = hint < rows.size() ? rows.begin() + hint : rows.end();
+    if (found == rows.end() || found->key != region)
+        found = std::ranges::find(rows, region, &MoonRegion::key);
+    if (found == rows.end()) {
+        // A restored site joins the end of this Moon's dictionary, regardless
+        // of its position in world order. The other bank may still be published.
+        auto bank = state.settlementPrelude.moonRegions[state.settlementPrelude.nextMoonBuffer ^ 1];
+        if (old.size() >= bank.size())
+            bank = state.tables.table<MoonRegion>().append(old.size() + 1, "Moon regions");
+        turn.regions = {bank.begin, bank.begin + old.size() + 1};
+        rows = state.tables.view(turn.regions);
+        if (old.begin != bank.begin) std::ranges::copy(state.tables.view(old), rows.begin());
+        rows.back() = {region, empty_result(region)};
+        found = rows.end() - 1;
+    }
+    if (next) *next = found - rows.begin() + 1;
+    return found->value;
+}
+
 }
