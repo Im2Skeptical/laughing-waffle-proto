@@ -1707,9 +1707,6 @@ legacy capacity.
 
 | Open action branches | Owner |
 | --- | --- |
-| `settlementSelectVassal` and `settlementRerollVassals` with the legacy unpooled Life Map generator and signature roll | N03f native Vassal action follow-up |
-| `vassalEnterLifeNode`, `vassalSelectLifeOption`, `vassalConfirmLifeNode` for remaining option families and outcomes, including Crossroads, Relic acquisition, live Crisis/Discovery/Challenge, Legacy+ and Campaign encounter commits | N03f native Vassal action follow-up |
-| `vassalPurchaseShopOffer` and `vassalConfirmLifeNode` for purchasable slot unlocks, Currency payment and legacy connection offers | N03f native Shop action follow-up |
 | `debugSetSettlementSlotOverrides` with a legacy hub, and capacity-aware regional Practice actions for pre-v52 maps | Native save integration owner, if those legacy formats enter scope |
 | Windows/Android arm64 runtime hash agreement | N03g |
 
@@ -1798,6 +1795,79 @@ boundary carry over directly. Runtime value copies and 64-second strides are
 native choices. The seven browser replay manifests are suitable for the next
 N03f behavior passes and for N03g compiler/device comparisons. The raw command
 logs and timing report are under `artifacts/n03f-l2/`.
+
+### N03f L2b remaining native actions (done)
+
+Implemented on `t3/native-actions-remaining` from `e1abfab6`, using the
+unchanged browser model and definitions at `496d9971`.
+
+| Family | Coverage |
+| --- | --- |
+| Node entry, selection and confirmation | Crossroads travel, routes and both Tour rewards. Ordinary and Special Relics, immediate death and Mandate protection. Crisis relief, paid relief, diversion and rescue. Discovery, Challenge and Legacy+. Campaign duels, quests, Creep clearing, nest destruction, conquest with transferred garrison and defeat. |
+| Shop staging and confirmation | Ordered slot unlocks and undo, hosted Currency payment, legacy connection additions and removals. |
+| Candidate selection and reroll | Unpooled family draws, first-life and successor graphs, mid-map and Legacy+ signatures, stock supply placement and Scholar candidate development. |
+
+Scenario rejections run on isolated browser and native copies at the recorded
+boundary. The runner checks the rejection reason and unchanged state digest.
+Accepted journals exercise continuous replay, rebuild from the initial state,
+and rebuild from a post-action anchor.
+
+The native v52 mirror preserves receipt field presence and connection endpoints.
+The browser creates a shorter unlock receipt in [shop.js lines 309–317](../src/model/vassal-life-map/shop.js#L309-L317),
+assigns `hourglassApplied` only for positive time in [shop.js lines 405–408](../src/model/vassal-life-map/shop.js#L405-L408),
+and adds removal receipts only for repriced cards in [shop.js lines 633–643](../src/model/vassal-life-map/shop.js#L633-L643).
+The life event copies the original intervention in [node-confirm.js lines 614–621](../src/model/vassal-life-map/lifecycle/node-confirm.js#L614-L621),
+including the endpoint-only connection shape in [world-choices.js lines 44–49](../src/model/vassal-life-map/world-choices.js#L44-L49).
+Both schema generators ran. Runtime export and digest coverage use the same
+generated history fields.
+
+The nest capture commits at second 6. At second 2, the browser restores the
+ruin before the current Moon turn has a report row for it, and the next Housing
+phase throws while writing that row. A browser follow-up should initialize the
+report when restoring the site, then add a replay case between phases.
+See [housing.js line 65](../src/model/detailed-settlements/phases/housing.js#L65).
+
+Verification ran on Windows with `optimized` (MSVC) and `optimized-clang`.
+From the repository root in PowerShell:
+
+```powershell
+. native/tools/env.ps1
+$presets = @('optimized', 'optimized-clang')
+foreach ($preset in $presets) {
+  Push-Location native
+  $jobs = if ($preset -eq 'optimized') { 8 } else { 6 }
+  cmake --preset $preset
+  cmake --build --preset $preset --parallel $jobs
+  ctest --preset $preset --output-on-failure
+  Pop-Location
+}
+node native/reference/trace.mjs
+node native/reference/trace.mjs action-campaign-alliance
+node native/reference/stage-probe.mjs --all
+node native/reference/export-new-game.mjs --windows
+$stages = @('advance_clock', 'prelude', 'seasonal_practices', 'spring_death_baseline',
+  'birth', 'food', 'after_meals_practices', 'garrison_upkeep', 'housing', 'faith',
+  'migration_practices', 'migration', 'death', 'death_practices',
+  'control_and_spatial_pressure', 'phase_events_and_drain', 'vassal_check', 'final_flush')
+foreach ($preset in $presets) {
+  $parity = "native/build/$preset/src/sim/waffle_parity.exe"
+  node native/reference/replay-windows.mjs $parity
+  node native/reference/step-windows.mjs $parity
+  foreach ($stage in $stages) { node native/reference/stage-pairs.mjs $parity $stage }
+  node native/reference/new-game-windows.mjs $parity
+}
+node native/schema/codegen.mjs --check
+node native/schema/runtime-codegen.mjs --check
+node native/reference/export-vassal-tables.mjs --check
+```
+
+The browser trace run regenerated all 54 scenarios with matching JSON
+continuations and rebuilds. Both presets passed 38/38 CTests, 30 step windows
+(153 comparisons, zero masks), 828/828 stage pairs across all 18 stages, and
+five exact New Game states plus 10 native-start windows (92 comparisons).
+Replay matched 33 journals across 18 action kinds, 242 browser checkpoints in
+each replay mode, and 55 rejection probes. The two compilers produced identical
+per-second digest streams for all 33 journals. Logs are in `artifacts/n03f-l2b/`.
 
 N03f-3 topology checkpoint, 19 Nov 2026. Paused at Cam's request after
 porting the immutable `regional-v2` world generator from browser baseline
