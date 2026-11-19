@@ -2397,6 +2397,170 @@ Leave browser stride and reveal tuning to its measured workloads.
 passed docs and architecture, then stopped at source reachability because
 this worktree lacks the `esbuild` dependency.
 
+### N04b - Forecast memory accounting and Android benchmark harness
+
+Windows verified on `optimized` and `optimized-clang`. Android arm64
+build verified. Device execution is unrun.
+
+The forecast ledger now charges an arena once across the current and
+retained generations. Arena counters include live blocks, recycled blocks,
+untouched slab capacity, slab headers and direct upstream allocations.
+Anchors charge the runtime tables and history cursors they own. Shared
+history pages are charged through the arenas. The worker and one restore
+reserve runtime-table high-water capacity measured at submission and
+anchor capture. The worker reserve includes its summary row. Journal
+accounting includes the journal and generation bookkeeping.
+
+Publication checks the remaining budget before each speculative step and
+before publishing its row. A slab reservation that does not fit ends the
+forecast at the last complete second. The previously revealed prefix,
+dense rows, 64-second stride and stale-result rejection are preserved.
+Restores can grow the arena to complete an independent scrub state. The
+ledger continues to charge those slabs and reuse their recycled blocks.
+
+**Memory breakdown.** Windows x64, i9-10900K, fresh process per fixture.
+Sample private bytes after fixture admission and again at each completed
+forecast boundary. The pressure probe retains all 32,001 rows of the
+first seed-1 longevity generation before submitting its successor.
+Measurements are MiB except the journal column. Arena live and recycled
+bytes are subsets of arena retained. The residual estimates allocator
+overhead and unmetered work by subtracting summary, anchor, incremental
+arena and journal bytes from private growth. It also includes changes in
+heap slack after parsing the input state. The restored state's owned
+buffers were measured separately after the forecast snapshots.
+
+| MSVC sample | End sec | Summary | Anchor tables | Arena live | Recycled | Arena retained | Journal KiB | Worker / restore reserve | Measured restore | Heap and scratch residual |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | --- | ---: | ---: |
+| N04a ledger, seed-1 longevity | 32,000 | 83.28 | 57.14 | 80.71 | 0.06 | 81.24 | 0.18 | 24.00 combined | 0.37 | 3.61 |
+| N04a ledger, both generations | 20,863 | 137.58 | 94.36 | 133.32 | 0.06 | 137.90 | 0.36 | 24.00 combined | 0.41 | 5.88 |
+| Seed 1 ordinary | 4,890 | 12.83 | 15.07 | 57.75 | 0.06 | 62.23 | 0.23 | 0.59 / 0.59 | 0.45 | 2.11 |
+| Seed 2026 late ordinary | 5,676 | 6.50 | 8.84 | 38.02 | 0.11 | 40.10 | 0.23 | 0.67 / 0.66 | 0.53 | 0.77 |
+| Seed 1 longevity | 32,000 | 83.28 | 57.14 | 80.72 | 0.06 | 81.24 | 0.23 | 0.52 / 0.51 | 0.41 | 3.46 |
+| Seed 2026 late longevity | 35,200 | 83.28 | 72.17 | 81.21 | 0.07 | 84.68 | 0.23 | 0.64 / 0.64 | 0.49 | 3.89 |
+| Pressure, both generations | 4,415 | 94.77 | 65.08 | 91.94 | 0.06 | 95.01 | 0.47 | 0.52 / 0.51 | 0.40 | 4.89 |
+
+The instrumented N04a baseline charged 164.42 MiB against 224.75 MiB of
+private growth for one longevity generation. The successor pushed that
+to 255.94 MiB charged against 375.20 MiB of private growth, or 380.70 MiB
+of total process private memory. The new ledger's signed error is
+`100 * (charged / (private after - private before) - 1)`. All five
+samples on each compiler are within ±10%. Charged and private growth
+figures below are MiB.
+
+| Fixture | MSVC charged / growth | Error | Clang charged / growth | Error |
+| --- | ---: | ---: | ---: | ---: |
+| Seed 1 ordinary | 91.30 / 91.71 | −0.45% | 91.36 / 90.67 | +0.76% |
+| Seed 2026 late ordinary | 56.77 / 53.21 | +6.69% | 57.04 / 53.41 | +6.80% |
+| Seed 1 longevity | 222.69 / 224.60 | −0.85% | 222.88 / 224.42 | −0.69% |
+| Seed 2026 late longevity | 241.41 / 241.01 | +0.17% | 241.72 / 239.86 | +0.78% |
+| Pressure, both generations | 255.89 / 259.24 | −1.29% | 255.81 / 257.89 | −0.81% |
+
+The Clang successor stopped at second 4,351. Different reserved capacities
+can change the final admitted boundary. Both compilers restored the same
+canonical states for the shared coverage. The standalone seed-1 longevity
+scrub to second 31,999 opened 4.50 MiB of additional arena capacity on
+both builds. The measured pressure-tail scrubs reused existing capacity.
+The 256 MiB cap governs forecast admission. Process heap overhead and
+later scrub allocation can take committed memory above the admission cap.
+
+**Verification and reproduction.** From the repository root in PowerShell.
+Logs and raw reports are in `artifacts/n04b/`.
+
+```powershell
+New-Item -ItemType Directory -Force artifacts/n04b | Out-Null
+. native/tools/env.ps1
+Push-Location native
+foreach ($preset in 'optimized','optimized-clang') {
+    cmake --preset $preset
+    cmake --build --preset $preset --parallel 5
+    ctest --preset $preset --output-on-failure
+}
+Pop-Location
+node native/reference/trace.mjs
+$opening = 'native/reference/fixtures/seed-1/state-0.json'
+$late = 'artifacts/native-reference/traces/seed-2026-late/state-3200.json'
+foreach ($preset in 'optimized','optimized-clang') {
+    $exe = "native/build/$preset/src/sim/waffle_parity.exe"
+    node native/reference/step-windows.mjs $exe
+    node native/reference/replay-windows.mjs $exe
+    & $exe timegraph --from $opening --memory-profile --report "artifacts/n04b/memory-$preset-seed-1.json"
+    & $exe timegraph --from $late --memory-profile --report "artifacts/n04b/memory-$preset-seed-2026-late.json"
+    & $exe timegraph --from $opening --longevity --memory-profile --report "artifacts/n04b/memory-$preset-seed-1-long.json"
+    & $exe timegraph --from $late --longevity --memory-profile --report "artifacts/n04b/memory-$preset-seed-2026-late-long.json"
+    & $exe timegraph --from $opening --longevity --retain-previous --report "artifacts/n04b/memory-$preset-pressure.json"
+}
+```
+
+Both presets passed 42/42 CTests, including the allocation gate, small and
+256 MiB pressure cases, cancellation, anchor digest comparison and
+independent restores. Both passed 30 step windows and 153 comparisons with
+zero masks. Both replay checks matched 58 browser checkpoints in three
+modes across seven journals and 18 action kinds. Both workers also matched
+32,001 summary hashes and 501 anchor hashes from the MSVC serial longevity
+run using the N04a long-hash command with output under `artifacts/n04b/`.
+The supplemental browser `npm run verify` passed documentation and
+architecture checks, then stopped at source reachability because this
+worktree lacks `esbuild`.
+
+**Throughput.** The matched Windows comparison used the N04a benchmark
+arguments above and five alternating baseline/candidate pairs per fixture
+on logical CPU 15. Each invocation ran three timed forecasts and separate
+loaded restore passes. MSVC used the unmodified `4ff792a0` executable.
+Clang used the N04a `6cd2f9d6` executable, which has the same native source.
+Median rates below are sim-seconds per wall second, with 15 forecasts per
+cell. The largest median decrease was 0.96%. Per-run reports are under
+`artifacts/n04b/timing-final-*.json`. The captured comparison script runs
+from the repository root using
+`& artifacts/n04b/run-desktop.ps1 -Stem '-final'`.
+
+| Fixture | MSVC baseline → new | Change | Clang baseline → new | Change |
+| --- | ---: | ---: | ---: | ---: |
+| Seed 1 ordinary | 40,013 → 39,806 | −0.52% | 50,597 → 50,440 | −0.31% |
+| Seed 2026 late ordinary | 33,990 → 34,289 | +0.88% | 42,371 → 42,287 | −0.20% |
+| Seed 1 longevity | 102,993 → 104,454 | +1.42% | 137,998 → 136,667 | −0.96% |
+| Seed 2026 late longevity | 101,434 → 100,765 | −0.66% | 131,543 → 130,401 | −0.87% |
+
+Loaded restore p95 medians were 0.255–1.305 ms across the candidate
+fixtures. MSVC late longevity p99 moved from 0.381 to 0.436 ms. Both
+pressure tests preserved the 63-step restore bound.
+
+**Android arm64.** The NDK r30 API 31 build includes `waffle_parity
+timegraph`. The harness pushes the two input states and topology, runs
+the 2,048-second checked-in cross-compiler hash oracle, then benchmarks
+the four N04a variants with 3 repeats and 256 restore samples. It selects
+the highest-capacity allowed CPU using `taskset`, falls back to maximum
+frequency when capacity is unavailable, and records the actual choice.
+The output folder includes the pulled hash stream, cross-compiler JSON,
+four benchmark JSON reports and `device.json`. An empty adb device list
+leaves the session unrun.
+
+```powershell
+. native/tools/env.ps1
+Push-Location native
+cmake --preset android
+cmake --build --preset android --target waffle_parity --parallel 5
+Pop-Location
+$ndkBin = 'native/.tools/android-sdk/ndk/30.0.16248370/toolchains/llvm/prebuilt/windows-x86_64/bin'
+& "$ndkBin/llvm-readelf.exe" -h -l -d native/build/android/src/sim/waffle_parity
+powershell -NoProfile -ExecutionPolicy Bypass -File native/tools/benchmark-android-timegraph.ps1
+```
+
+The executable is an AArch64 ELF64 PIE with `/system/bin/linker64`,
+dynamically linked to `libm.so`, `libdl.so` and `libc.so`. The script
+accepts `-Adb <path-to-adb.exe>` and `-Serial <online-device-id>`. It
+generates the late fixture if needed. With the downloaded platform-tools,
+the extra check was
+`& native/tools/benchmark-android-timegraph.ps1 -Adb artifacts/n04b/platform-tools/adb.exe`.
+`adb devices -l` showed no devices. L4 agreement on Android, phone timings
+and input-to-visible scrub latency remain unmeasured.
+
+**Cross-runtime handoff.** Native retained-byte accounting treats storage
+shared between a forecast, its anchors and a prior generation as one
+allocation. The browser's independent restore and dense-row behavior
+remain the shared contract. Browser heap accounting needs its own
+generation-retention measurement because the slab ownership and Windows
+private-byte results are native-specific.
+
 ## N05 - Iteration and installed profiles (pending N04)
 
 Finish development, performance and full-art installed profiles sharing the same

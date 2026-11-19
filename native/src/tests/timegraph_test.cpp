@@ -146,7 +146,7 @@ void restore_and_replace(const char* path)
 void pressure(const char* path)
 {
     const auto initial = load(path, true);
-    constexpr std::size_t cap = 4 * 1024 * 1024;
+    constexpr std::size_t cap = 8 * 1024 * 1024;
     graph::Forecast forecast(cap);
     const auto previous = forecast.start(initial, {}, 320);
     const auto complete = forecast.wait(previous);
@@ -155,8 +155,7 @@ void pressure(const char* path)
     const auto limited = forecast.wait(successor);
     expect(limited && limited->completion == graph::Completion::storageLimit && limited->publishedThrough &&
            *limited->publishedThrough > 128 && *limited->publishedThrough < 32000 &&
-           (*limited->publishedThrough + 1) % sim::replay_anchor_stride == 0 &&
-           limited->anchors == (*limited->publishedThrough + 1) / sim::replay_anchor_stride,
+           limited->anchors == 1 + *limited->publishedThrough / sim::replay_anchor_stride,
            "storage pressure changed row/anchor spacing or failed to shorten the horizon");
     expect(forecast.storage().chargedBytes() <= cap, "combined generations exceeded cap");
     expect(forecast.coverage(previous)->publishedThrough == 129, "pressure trimmed revealed previous coverage");
@@ -168,6 +167,52 @@ void pressure(const char* path)
                "restore diverged under pressure");
     }
     std::cout << "Budget capped the new generation at " << last << " and preserved both scrub ranges\n";
+
+    const auto longevity = load(path, true);
+    const auto& arena = longevity.practiceRecipeStorage.historyArena;
+    graph::Forecast full;
+    const auto longPrevious = full.start(longevity, {}, 32000);
+    expect(full.wait(longPrevious)->completion == graph::Completion::horizon, "first longevity generation should fit");
+    const auto replacement = full.start(longevity, {}, 32000, graph::BoundaryActions::pending, 32000);
+    const auto end = *full.wait(replacement);
+    const auto storage = full.storage();
+    expect(end.completion == graph::Completion::storageLimit && end.publishedThrough &&
+           *end.publishedThrough > 63 && *end.publishedThrough < 32000 &&
+           end.anchors == 1 + *end.publishedThrough / sim::replay_anchor_stride &&
+           storage.chargedBytes() <= graph::forecastStorageCap,
+           "longevity successor exceeded the cap or lost its restore stride");
+    expect(storage.historyRetained == arena->retained_bytes() && storage.historyRecycled > 0 &&
+           storage.historyLive + storage.historyRecycled <= storage.historyRetained,
+           "retained arena slabs were omitted, double charged or counted inconsistently");
+    expect(full.coverage(longPrevious)->publishedThrough == 32000, "previous longevity generation lost coverage");
+    const auto finalHash = sim::state_digest(restore(full, replacement, *end.publishedThrough));
+    expect(sim::state_digest(restore(full, longPrevious, *end.publishedThrough)) == finalHash,
+           "the successor and retained generation disagreed at their common boundary");
+    expect(full.stateAtSecond(replacement, *end.publishedThrough + 1).get().status == graph::RestoreStatus::unavailable,
+           "restore crossed the budget boundary");
+    full.releasePrevious();
+    expect(!full.coverage(longPrevious) && full.storage().historyRetained == arena->retained_bytes(),
+           "releasing a generation hid slabs still retained by its shared arena");
+
+    using Arena = sim::runtime::HistoryArena;
+    Arena empty;
+    try {
+        const Arena::GrowthLimit denied(0);
+        auto* block = empty.allocate(1024);
+        empty.deallocate(block, 1024);
+        throw std::logic_error("arena allowed growth beyond the forecast budget");
+    } catch (const Arena::GrowthLimitReached&) {
+        expect(empty.retained_bytes() == 0, "rejected arena growth retained a slab");
+    }
+
+    const auto other = load(path, true);
+    graph::Forecast separate;
+    const auto one = separate.start(longevity, {}, 0);
+    covered(separate, one, 0);
+    const auto two = separate.start(other, {}, 0, graph::BoundaryActions::pending, 0);
+    covered(separate, two, 0);
+    expect(separate.storage().historyRetained == arena->retained_bytes() +
+           other.practiceRecipeStorage.historyArena->retained_bytes(), "distinct arenas were charged as shared");
 }
 
 void terminal(const char* path)

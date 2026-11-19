@@ -13,7 +13,6 @@ namespace {
 
 constexpr Second stride = sim::replay_anchor_stride;
 constexpr Second maxSecond = (Second{1} << 53) - 1;
-constexpr std::size_t maxWorkingAllowance = 24 * 1024 * 1024;
 
 std::size_t payload_bytes(const core::json::Value& value)
 {
@@ -71,6 +70,20 @@ struct Generation {
     std::size_t summaryBytes{};
     std::vector<std::unique_ptr<Page>> pages;
     std::vector<std::shared_ptr<const detail::Anchor>> anchors;
+    std::vector<std::shared_ptr<sim::runtime::HistoryArena>> arenas;
+    std::size_t runtimeBytes{}, rowBytes{};
+
+    void measure(const sim::RuntimeState& state)
+    {
+        const auto add = [&](const auto& arena) {
+            if (arena && std::ranges::find(arenas, arena) == arenas.end()) arenas.push_back(arena);
+        };
+        add(state.practiceRecipeStorage.historyArena);
+        state.histories.for_each_table([&](const auto& rows) {
+            for (const auto& row : rows) add(row.arena());
+        });
+        runtimeBytes = std::max(runtimeBytes, detail::runtime_bytes(state));
+    }
 
     void discard()
     {
@@ -105,6 +118,8 @@ struct Job {
     sim::RuntimeState state;
     sim::ReplayCursor replay;
     std::vector<SiteSummary> row;
+    std::optional<std::size_t> historyHeadroom;
+    GenerationId previousId{};
     bool first = true;
 };
 
@@ -124,7 +139,7 @@ struct Request {
 
 struct Forecast::Impl {
     explicit Impl(std::size_t limit)
-        : limit(limit), allowance(std::min(limit / 8, maxWorkingAllowance)), worker([this] { run(); }) {}
+        : limit(limit), worker([this] { run(); }) {}
 
     ~Impl()
     {
@@ -150,24 +165,44 @@ struct Forecast::Impl {
         return nullptr;
     }
 
-    Storage storage() const
+    Storage storage(bool historyBreakdown = false) const
     {
         Storage result;
-        result.anchors = anchorBytes.load();
-        if (current || previous) result.workingAllowance = allowance;
+        result.anchors = anchorBytes.load(std::memory_order_relaxed);
+        if (current) result.forecastWorking = current->runtimeBytes + current->rowBytes;
         for (const auto* entry : {current.get(), previous.get()}) {
             if (!entry) continue;
             result.summaries += entry->summaryBytes + entry->pages.capacity() * sizeof(entry->pages.front());
             result.anchors += entry->anchors.capacity() * sizeof(entry->anchors.front());
             result.journals += sizeof(Generation) + entry->actionBytes;
+            result.journals += entry->arenas.capacity() * sizeof(entry->arenas.front());
+            result.restoreWorking = std::max(result.restoreWorking, entry->runtimeBytes);
+            for (const auto& arena : entry->arenas) {
+                if (entry == previous.get() && current &&
+                    std::ranges::find(current->arenas, arena) != current->arenas.end()) continue;
+                if (historyBreakdown) {
+                    const auto bytes = arena->storage();
+                    result.historyRetained += bytes.retained;
+                    result.historyLive += bytes.live;
+                    result.historyRecycled += bytes.recycled;
+                } else {
+                    result.historyRetained += arena->retained_bytes();
+                }
+            }
         }
         return result;
     }
 
-    bool hasRoom(std::size_t bytes) const
+    void finishAtLimit(Generation& generation)
     {
-        const auto used = storage().chargedBytes();
-        return used <= limit && bytes <= limit - used;
+        if (!generation.info.publishedThrough) {
+            generation.actions = {};
+            generation.actionBytes = 0;
+            generation.arenas = {};
+            generation.runtimeBytes = generation.rowBytes = 0;
+        }
+        generation.info.completion = Completion::storageLimit;
+        progress.notify_all();
     }
 
     void run()
@@ -184,13 +219,24 @@ struct Forecast::Impl {
             if (request) {
                 auto next = std::move(*request);
                 request.reset();
+                if (job) job->historyHeadroom.reset();
                 restore(std::move(next), std::move(lock));
                 continue;
             }
             if (pending) job = std::move(pending);
             if (job) {
+                const auto previousId = previous ? previous->info.generation : 0;
+                if (!job->historyHeadroom || job->previousId != previousId) {
+                    const auto used = storage().chargedBytes();
+                    if (used > limit) {
+                        finishAtLimit(*job->generation);
+                        continue;
+                    }
+                    job->historyHeadroom = limit - used;
+                    job->previousId = previousId;
+                }
                 lock.unlock();
-                step(*job);
+                step(*job, *job->historyHeadroom);
                 continue;
             }
             progress.wait(lock);
@@ -234,9 +280,10 @@ struct Forecast::Impl {
             next.finish(status, std::move(state), std::move(error));
     }
 
-    void step(Job& job)
+    void step(Job& job, std::size_t historyGrowth)
     {
         try {
+            const sim::runtime::HistoryArena::GrowthLimit growth(historyGrowth);
             if (job.first) sim::initialize_replay_clock(job.state);
             const auto replay = job.first ? job.replay.apply_boundary(job.state) : job.replay.advance(job.state);
             job.first = false;
@@ -248,6 +295,9 @@ struct Forecast::Impl {
             const std::lock_guard lock(mutex);
             if (stopping || current != job.generation) return;
             publish(job, header);
+        } catch (const sim::runtime::HistoryArena::GrowthLimitReached&) {
+            const std::lock_guard lock(mutex);
+            if (!stopping && current == job.generation) finishAtLimit(*job.generation);
         } catch (const std::exception& error) {
             fail(job, error.what());
         }
@@ -271,6 +321,8 @@ struct Forecast::Impl {
         const auto slot = static_cast<std::size_t>(offset % stride);
         const auto rows = static_cast<std::size_t>(std::min(stride, info.target - second + 1));
         const bool end = header.terminal.has_value() || second == info.target;
+        const auto previousRuntimeBytes = generation.runtimeBytes;
+        if (slot == 0 || end) generation.measure(job.state);
         const auto newPage = slot == 0 ? Page::bytes(rows, info.regions) : 0;
         const auto indexGrowth = [](const auto& index, bool append) {
             return append && index.size() == index.capacity() ? std::max<std::size_t>(1, index.size()) : 0;
@@ -281,10 +333,16 @@ struct Forecast::Impl {
         const auto anchorIndexCharge = anchorIndexGrowth * sizeof(generation.anchors.front());
 
         const auto finishAtLimit = [&] {
-            info.completion = Completion::storageLimit;
-            progress.notify_all();
+            generation.runtimeBytes = previousRuntimeBytes;
+            this->finishAtLimit(generation);
         };
-        if (!hasRoom(pageCharge)) {
+        // Carry the new headroom into the next step. A restore or releasing
+        // the previous generation invalidates it before that step starts.
+        const auto fits = [&](std::size_t used, std::size_t extra) {
+            return used <= limit && extra <= limit - used;
+        };
+        auto used = storage().chargedBytes();
+        if (!fits(used, pageCharge)) {
             finishAtLimit();
             return;
         }
@@ -292,7 +350,10 @@ struct Forecast::Impl {
         if (slot == 0 || end) {
             const auto* old = generation.anchors.empty() ? nullptr : generation.anchors.back().get();
             anchor = std::make_shared<const detail::Anchor>(anchorBytes, job.state, old);
-            if (!hasRoom(pageCharge + anchorIndexCharge)) {
+            const auto withAnchor = storage().chargedBytes();
+            if (fits(withAnchor, pageCharge + anchorIndexCharge)) {
+                used = withAnchor + anchorIndexCharge;
+            } else {
                 anchor.reset();
                 if (slot == 0) {
                     finishAtLimit();
@@ -300,6 +361,7 @@ struct Forecast::Impl {
                 }
             }
         }
+        job.historyHeadroom = limit - used - pageCharge;
         if (slot == 0) {
             if (pageIndexGrowth) generation.pages.reserve(generation.pages.size() + pageIndexGrowth);
             generation.pages.push_back(std::make_unique<Page>(rows, info.regions));
@@ -320,7 +382,7 @@ struct Forecast::Impl {
         if (slot == 0 || end) progress.notify_all();
     }
 
-    const std::size_t limit, allowance;
+    const std::size_t limit;
     mutable std::mutex mutex;
     mutable std::condition_variable progress;
     std::atomic_size_t anchorBytes{};
@@ -360,6 +422,8 @@ GenerationId Forecast::start(sim::RuntimeState initial, sim::ActionJournal actio
     next->actionBytes = journal_bytes(actions);
     next->actions = std::move(actions);
     auto job = std::make_unique<Job>(next, std::move(initial), boundary);
+    next->rowBytes = sizeof(Job) - sizeof(sim::RuntimeState) + job->row.capacity() * sizeof(SiteSummary);
+    next->measure(job->state);
     const std::lock_guard lock(impl_->mutex);
     next->info.generation = ++impl_->revision;
     impl_->supersedeRequest();
@@ -373,13 +437,7 @@ GenerationId Forecast::start(sim::RuntimeState initial, sim::ActionJournal actio
     }
     if (impl_->current) impl_->current->discard();
     impl_->current = next;
-    if (impl_->hasRoom(0)) {
-        impl_->pending = std::move(job);
-    } else {
-        next->actions = {};
-        next->actionBytes = 0;
-        next->info.completion = Completion::storageLimit;
-    }
+    impl_->pending = std::move(job);
     impl_->progress.notify_all();
     return next->info.generation;
 }
@@ -428,7 +486,7 @@ std::optional<Coverage> Forecast::wait(GenerationId generation, std::optional<Se
 Storage Forecast::storage() const
 {
     const std::lock_guard lock(impl_->mutex);
-    return impl_->storage();
+    return impl_->storage(true);
 }
 
 std::size_t Forecast::readSummaries(GenerationId generation, Second first, std::span<SummaryHeader> headers,

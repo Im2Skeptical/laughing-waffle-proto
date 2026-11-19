@@ -33,8 +33,13 @@ struct Restore {
 };
 
 struct Storage {
-    std::size_t summaries{}, anchors{}, journals{}, workingAllowance{};
-    std::size_t chargedBytes() const { return summaries + anchors + journals + workingAllowance; }
+    std::size_t summaries{}, anchors{}, journals{};
+    std::size_t historyRetained{}, historyLive{}, historyRecycled{};
+    std::size_t forecastWorking{}, restoreWorking{};
+    std::size_t chargedBytes() const
+    {
+        return summaries + anchors + journals + historyRetained + forecastWorking + restoreWorking;
+    }
 };
 
 class Forecast {

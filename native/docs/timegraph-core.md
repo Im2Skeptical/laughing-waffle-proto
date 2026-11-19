@@ -75,14 +75,22 @@ compare canonical state hashes, never hashes of process pointers or padding.
 
 Budget forecast storage at 256 MiB across the current and one previous
 generation. Charge allocated summary pages, journals, indexes and anchor
-copies, counting retained shared blocks once. Reserve up to 24 MiB within
-that budget for working state, scratch, captured content and the sim's
-shared history and cold allocations. The forecast ledger measures its own
-buffers and budgets those opaque sim allocations with the allowance.
-Admit storage at complete boundaries. Under pressure, finish at the last
-admitted second and keep the retained prefix, dense summaries and 64-second
-restore bound. Publication and reads stay bounded without growing a
-consumer-managed cache.
+copies, counting retained shared blocks once. Charge each history arena's
+retained slabs once across generations, including live blocks, recycled
+blocks, unused capacity and slab headers. Reserve the observed high-water
+capacity of runtime tables for the forecast worker and one independent
+restore, including the worker's summary scratch row. Admitted immutable
+content is shared with the caller. Heap fragmentation and scratch outside
+the measured runtime buffers are estimated by comparison with process
+private bytes in the N04b benchmarks.
+
+Admit storage at complete boundaries. The worker checks headroom before
+each speculative step and can stop a new history slab reservation before
+allocating it. Under pressure, finish at the last admitted second and keep
+the retained prefix, dense summaries and 64-second restore bound. Restores
+can allocate to complete a scrub even when forecast admission has stopped.
+The ledger includes any resulting arena growth while the arena stays
+attached. The caller owns any independent states returned by restore.
 
 Timegraph allocates a summary page (header and site buffers) every 64
 seconds. An anchor adds its independent value buffers, column manifest, and
