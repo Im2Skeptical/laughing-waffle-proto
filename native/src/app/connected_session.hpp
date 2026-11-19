@@ -1,5 +1,6 @@
 #pragma once
 
+#include "connected_save.hpp"
 #include "timegraph/forecast.hpp"
 #include "ui/connected_model.hpp"
 
@@ -12,6 +13,8 @@ struct Launch {
     std::uint32_t seed = 42;
     std::filesystem::path save;
     Second horizon = 32000;
+    bool nativeSave{};
+    bool longBenchmark{};
 };
 
 struct Band {
@@ -32,6 +35,10 @@ struct Chart {
 class Session {
 public:
     void open(const Launch& launch);
+    void close();
+    void suspend();
+    void resume();
+    bool save(const SaveSlots& slots, Slot slot) const;
     void update();
     bool choose(const Choice& choice);
     bool reorder(std::string_view region, std::size_t from, std::size_t to);
@@ -58,6 +65,7 @@ public:
     std::uint64_t displayedDigest() const;
     std::uint64_t replayDigest(Second second) const;
     std::size_t actionCount() const { return run_->journal.entries().size(); }
+    bool suspended() const { return suspended_; }
 
 private:
     struct Run {
@@ -71,6 +79,7 @@ private:
 
     void transact(std::vector<sim::Action> actions, bool resolve = false);
     void readChart(const timegraph::Coverage& coverage);
+    void resetChart(Second end = 0);
 
     timegraph::Forecast forecast_;
     std::future<std::shared_ptr<const Run>> job_;
@@ -87,6 +96,7 @@ private:
     std::uint64_t viewRevision_{};
     double summaryMs_{};
     bool opening_{true};
+    bool suspended_{};
 };
 
 }

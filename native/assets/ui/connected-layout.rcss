@@ -1,0 +1,122 @@
+body { width: 100%; height: 100%; margin: 0; }
+#safe-content, #play, #shell { position: absolute; left: 0; right: 0; top: 0; bottom: 0; }
+#shell { display: none; }
+#shell.over-game { background-color: #0d100ddb; }
+#shell-panel {
+  position: absolute; top: 7%; bottom: 7%; left: 15%; right: 15%; overflow: auto;
+}
+#shell-panel.front-door { background-color: #24271f; border-color: #947b52; }
+#shell-panel.slot-book { top: 12%; bottom: auto; max-height: 80%; }
+.title-menu { width: 54%; box-sizing: border-box; padding: 8% 24dp 20dp; }
+.title-menu h1 { font-size: 40dp; line-height: 1.08; margin-top: 14dp; }
+.title-motto { color: #ded0ad; margin-top: 7dp; }
+.title-rule { width: 86dp; height: 2dp; background-color: #bb985c; margin: 17dp 0; }
+.title-mural {
+  position: absolute; top: 0; right: 0; bottom: 0; width: 46%;
+  background-color: #523f2d; border-left: 1dp #947b52; pointer-events: none;
+}
+.mural-border {
+  position: absolute; top: 9dp; right: 9dp; bottom: 9dp; left: 9dp;
+  border: 1dp #d1b183c9; pointer-events: none;
+}
+.menu-choice, .slot-action { min-height: 28dp; line-height: 28dp; }
+.menu-choice { min-width: 78dp; text-align: center; }
+.continue-note { margin: 4dp 0 12dp; }
+.seed-row { display: flex; align-items: center; gap: 10dp; margin: 3dp 0 8dp; }
+#seed {
+  display: block; width: 108dp; padding: 6dp 8dp;
+  font-family: Lato; font-size: 15dp; color: #f5e6c6;
+  background-color: #191b16; border: 1dp #8f7955;
+}
+#seed:focus { border-color: #fff0b9; }
+.shell-actions { display: flex; gap: 7dp; }
+#shell-status { margin-top: 8dp; }
+.slot-page { padding: 10dp 14dp; }
+.slot-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 5dp; }
+.slot-list { border-top: 1dp #66563d; }
+.slot {
+  display: flex; align-items: center; justify-content: space-between; gap: 9dp;
+  padding: 3dp 7dp; border-bottom: 1dp #66563d; background-color: #29281f;
+}
+.slot.latest-slot { background-color: #333022; border-left: 2dp #cfad71; }
+.slot-info { min-width: 0; }
+.slot-name { color: #f8e4ba; }
+.slot-action { min-width: 61dp; text-align: center; }
+#header { position: absolute; left: 2%; right: 2%; top: 2%; bottom: 89%; border-bottom: 1dp #655439; }
+#header h1 { line-height: 37dp; }
+#header-controls { position: absolute; top: 0; right: 0; display: flex; gap: 6dp; }
+#clock { color: #dfc798; padding: 8dp; white-space: nowrap; }
+
+#map { position: absolute; left: 2%; width: 56%; top: 13%; bottom: 25%; border: 1dp #877050;
+  overflow: hidden; clip: always; tab-index: auto; }
+#map:focus-visible { border-color: #fff0b9; }
+#markers { position: absolute; width: 100%; height: 100%; pointer-events: none; }
+.marker { position: absolute; font-size: 12dp; color: #f5e6c7;
+  background-color: #212420ed; border: 1dp #868578; padding: 1dp 4dp; white-space: nowrap; }
+.player { background-color: #253427; border-color: #aab773; }
+.crown { background-color: #3e2c20; border-color: #cda074; }
+.monster { background-color: #3e2624; border-color: #ce8b7b; }
+.marker.selected { border-color: #ffda88; color: #fff2c8; }
+.marker.occluded { visibility: hidden; }
+#legend { position: absolute; bottom: 7dp; left: 7dp; background-color: #20221cf0;
+  padding: 4dp 7dp; border: 1dp #716147; pointer-events: none; white-space: nowrap; }
+.player-key { color: #c3d391; }
+.crown-key { color: #e4b28b; }
+.creep-key { color: #e6a194; }
+#map-tools { position: absolute; top: 6dp; right: 6dp; display: flex; gap: 4dp; }
+#map-tools button { min-width: 16dp; text-align: center; }
+
+#panel { position: absolute; left: 59.3%; right: 2%; top: 13%; bottom: 25%;
+  padding: 11dp; overflow-y: auto; overflow-x: hidden; }
+#board { display: flex; gap: 5dp; margin: 10dp 0 9dp; }
+#board .card { flex: 1; min-width: 0; height: 102dp; }
+#inspector { border-top: 1dp #706045; padding: 8dp 0 3dp; }
+#inspector h2 { font-size: 19dp; }
+.decision { margin: 4dp 4dp 1dp 0; }
+.reform-controls { margin-bottom: 7dp; }
+.stats { margin-top: 5dp; padding: 4dp 0; border-bottom: 1dp #4d442f; }
+#modal-dimmer { position: absolute; left: 0; top: 0; right: 0; bottom: 22.5%; background-color: #090c0b91; display: none; }
+#reform-dialog { position: absolute; left: 26%; right: 26%; top: 29%; display: none; }
+#dialog-copy { margin: 8dp 0; }
+#dialog-cost { margin-bottom: 8dp; }
+#reform-dialog .decision { margin-top: 8dp; }
+
+#timegraph { position: absolute; left: 2%; right: 2%; top: 77.5%; bottom: 2%;
+  transition: border-color 0.14s quadratic-out, background-color 0.14s quadratic-out; }
+#timegraph.preview { background-color: #202b32; border-color: #7ca3b4; }
+.reduce-motion #timegraph { transition: none; }
+#graph-caption { position: absolute; top: 7dp; left: 9dp; color: #f0d69f; }
+#graph-status { position: absolute; top: 8dp; right: 9dp; }
+#timegraph.preview #graph-status, #timegraph.preview #graph-caption { color: #c6e9f5; }
+#plot { position: absolute; left: 118dp; right: 10dp; top: 31dp; bottom: 25dp; cursor: move; tab-index: auto; }
+#plot:focus-visible { border: 1dp #fff0b9; }
+#plot.unavailable { cursor: default; tab-index: none; }
+#axis-start { position: absolute; bottom: 5dp; left: 118dp; }
+#axis-end { position: absolute; bottom: 5dp; right: 10dp; }
+#live { position: absolute; left: 8dp; top: 34dp; width: 80dp; text-align: center; white-space: nowrap; }
+#readout { position: absolute; display: none; bottom: 100%; white-space: nowrap; }
+#opening { position: absolute; left: 26%; right: 26%; top: 34%; text-align: center; }
+#opening p, #opening .progress { margin-top: 9dp; }
+#notice { position: absolute; display: none; right: 2%; bottom: 24%; width: 275dp; }
+#help { position: absolute; display: none; width: 218dp; }
+
+.touch-screen button:not(.card) { min-height: 32dp; }
+.touch-screen #map-tools button { min-width: 22dp; }
+.touch-screen #map, .touch-screen #panel { top: 15%; }
+.touch-screen #graph-caption, .touch-screen #graph-status { top: 4dp; }
+.touch-screen #plot { top: 24dp; bottom: 16dp; }
+.touch-screen #axis-start, .touch-screen #axis-end { bottom: 0; }
+.touch-screen #live { top: 24dp; }
+
+@media (max-width: 820px) {
+  #shell-panel { left: 8%; right: 8%; top: 4%; bottom: 4%; }
+  #shell-panel.slot-book { top: 7%; max-height: 89%; }
+  .title-menu { padding: 11dp 18dp; }
+  .title-menu h1 { font-size: 32dp; }
+  #map { width: 51%; }
+  #panel { left: 54.5%; padding: 8dp; }
+  #board { gap: 3dp; margin: 6dp 0; }
+  #board .card { height: 86dp; }
+  #reform-dialog, #opening { left: 20%; right: 20%; }
+  #legend { font-size: 12dp; }
+}

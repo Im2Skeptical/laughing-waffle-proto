@@ -1,12 +1,18 @@
+#if !defined(__ANDROID__)
 #define SDL_MAIN_HANDLED
+#endif
+#include <SDL3/SDL_main.h>
+
 #include "connected_smoke.hpp"
 #include "connected_view.hpp"
 #include "demo_benchmark.hpp"
 #include "frame_stats.hpp"
+#include "sdl_asset_file.hpp"
 #include "sdl_rml_renderer.hpp"
 
 #include <charconv>
 #include <cstdio>
+#include <fstream>
 #include <memory>
 #include <stdexcept>
 
@@ -17,9 +23,11 @@ using waffle::core::json::Value;
 
 struct Options {
     Launch launch;
-    bool smoke{};
+    bool smoke{}, interactionSmoke{}, direct{};
     unsigned frames{};
+    int width = 1120, height = 640;
     std::string capture, report;
+    std::filesystem::path saveSmokeDirectory;
 };
 
 template<class T>
@@ -34,10 +42,18 @@ bool parse(int argc, char** argv, Options& options)
     for (int i = 1; i < argc; ++i) {
         const std::string_view arg = argv[i];
         if (arg == "--smoke") options.smoke = true;
+        else if (arg == "--interaction-smoke") options.interactionSmoke = true;
+        else if (arg == "--size" && i + 2 < argc) {
+            if (!parseNumber(argv[++i], options.width) || !parseNumber(argv[++i], options.height) ||
+                options.width < 640 || options.height < 360) return false;
+        } else if (arg == "--save-smoke" && i + 1 < argc) options.saveSmokeDirectory = std::filesystem::u8path(argv[++i]);
+        else if (arg == "--long-benchmark") options.launch.longBenchmark = true;
         else if (arg == "--seed" && i + 1 < argc) {
             if (!parseNumber(argv[++i], options.launch.seed)) return false;
+            options.direct = true;
         } else if (arg == "--load" && i + 1 < argc) {
             options.launch.save = std::filesystem::u8path(argv[++i]);
+            options.direct = true;
         } else if (arg == "--capture" && i + 1 < argc) {
             options.capture = argv[++i];
         } else if (arg == "--bench" && i + 1 < argc) {
@@ -45,7 +61,8 @@ bool parse(int argc, char** argv, Options& options)
             if (i + 1 < argc && !std::string_view(argv[i + 1]).starts_with("--")) options.report = argv[++i];
         } else return false;
     }
-    return !(options.frames && (options.smoke || !options.capture.empty()));
+    return !(options.frames && (options.smoke || options.interactionSmoke || !options.capture.empty())) &&
+        (!options.launch.longBenchmark || (options.frames && options.launch.save.empty()));
 }
 
 struct Graphics {
@@ -63,6 +80,40 @@ struct Graphics {
     }
 };
 
+struct TemporarySaves {
+    std::filesystem::path directory;
+    ~TemporarySaves()
+    {
+        if (directory.empty()) return;
+        const SaveSlots store(directory);
+        std::error_code ignored;
+        for (const auto slot : slots) std::filesystem::remove(store.path(slot), ignored);
+        std::filesystem::remove(directory, ignored);
+    }
+};
+
+struct System final : Rml::SystemInterface {
+    SDL_Window* window{};
+    waffle::DemoClock clock;
+    double GetElapsedTime() override { return clock.GetElapsedTime(); }
+    bool LogMessage(Rml::Log::Type type, const Rml::String& message) override
+    {
+        return clock.LogMessage(type, message);
+    }
+    void ActivateKeyboard(Rml::Vector2f, float) override
+    {
+        if (!window || SDL_TextInputActive(window)) return;
+        const auto props = SDL_CreateProperties();
+        SDL_SetNumberProperty(props, SDL_PROP_TEXTINPUT_TYPE_NUMBER, SDL_TEXTINPUT_TYPE_NUMBER);
+        SDL_StartTextInputWithProperties(window, props);
+        SDL_DestroyProperties(props);
+    }
+    void DeactivateKeyboard() override
+    {
+        if (window) SDL_StopTextInput(window);
+    }
+};
+
 void check(bool ok, std::string error)
 {
     if (!ok) throw std::runtime_error(error);
@@ -73,6 +124,79 @@ double elapsed(Uint64 start, Uint64 end = SDL_GetTicksNS())
     return static_cast<double>(end - start) / 1e6;
 }
 
+class Lifecycle {
+public:
+    Lifecycle(Session& session, Shell& shell, View& view, SdlRmlRenderer& renderer)
+        : session_(session), shell_(shell), view_(view), renderer_(renderer)
+    {
+        check(SDL_AddEventWatch(watch, this), SDL_GetError());
+    }
+    ~Lifecycle() { SDL_RemoveEventWatch(watch, this); }
+
+    void suspend()
+    {
+        if (session_.suspended()) return;
+        const auto start = SDL_GetTicksNS();
+        session_.suspend();
+        view_.cancelInput();
+        view_.releaseTerrain();
+        Rml::ReleaseTextures(&renderer_);
+        const bool written = shell_.autosave();
+        if (const auto* live = session_.liveSnapshot()) {
+            SDL_Log("N04E pause second=%llu autosave=%d textures=%llu work_ms=%.3f",
+                static_cast<unsigned long long>(live->second), written,
+                static_cast<unsigned long long>(renderer_.texture_bytes()), elapsed(start));
+        }
+        resumeStart_ = 0;
+        background_ = true;
+    }
+
+    void foreground()
+    {
+        if (!background_) return;
+        resumeStart_ = SDL_GetTicksNS();
+        background_ = false;
+    }
+
+    void update()
+    {
+        if (!background_ && session_.suspended()) {
+            view_.syncWindow();
+            session_.resume();
+        }
+    }
+
+    void presented()
+    {
+        if (resumeStart_ && !session_.opening() && session_.liveSnapshot()) {
+            SDL_Log("N04E resume second=%llu generation=%llu first_present_ms=%.3f",
+                static_cast<unsigned long long>(session_.liveSnapshot()->second),
+                static_cast<unsigned long long>(session_.generation()), elapsed(resumeStart_));
+            resumeStart_ = 0;
+        }
+    }
+
+    bool background() const { return background_; }
+
+private:
+    static bool SDLCALL watch(void* user, SDL_Event* event)
+    {
+        // SDL's Android lifecycle watcher runs on the SDL event-pump thread,
+        // before SDL backs up the EGL context. These events are not queued.
+        auto& self = *static_cast<Lifecycle*>(user);
+        if (event->type == SDL_EVENT_WILL_ENTER_BACKGROUND) self.suspend();
+        else if (event->type == SDL_EVENT_DID_ENTER_FOREGROUND) self.foreground();
+        return true;
+    }
+
+    Session& session_;
+    Shell& shell_;
+    View& view_;
+    SdlRmlRenderer& renderer_;
+    Uint64 resumeStart_{};
+    bool background_{};
+};
+
 Value stats(const std::vector<double>& samples)
 {
     if (samples.empty()) return {};
@@ -81,12 +205,33 @@ Value stats(const std::vector<double>& samples)
         {"p99", Value(data.p99)}, {"max", Value(data.max)}});
 }
 
+double paint(View& view, Session& session, waffle::DemoClock& clock, Uint64 start)
+{
+    clock.seconds = elapsed(start) / 1000;
+    view.prepareFrame();
+    double summaryMs = 0;
+    if (session.previewing() && !session.previewReady()) {
+        // A restore can finish while RmlUi lays out the frame. Pick it up
+        // before drawing, without waiting on the worker or skipping a present.
+        const auto revision = session.viewRevision();
+        session.update();
+        summaryMs = session.summaryMs();
+        if (session.viewRevision() != revision) view.prepareFrame();
+    }
+    view.drawFrame();
+    return summaryMs;
+}
+
 void benchmark(SDL_Renderer* renderer, SdlRmlRenderer& bridge, View& view, Session& session, Selection& selection,
-    const Options& options, double startup, Uint64 start)
+    waffle::DemoClock& clock, const Options& options, double startup, Uint64 start)
 {
     const auto present = [&] {
-        view.frame();
+#if defined(__ANDROID__)
+        SDL_PumpEvents();
+#endif
+        const auto lateSummaryMs = paint(view, session, clock, start);
         check(SDL_RenderPresent(renderer), SDL_GetError());
+        return lateSummaryMs;
     };
     waitFor(session, [&] { return !session.opening(); }, [&](const char*) { present(); });
     const double ready = elapsed(start);
@@ -143,13 +288,14 @@ void benchmark(SDL_Renderer* renderer, SdlRmlRenderer& bridge, View& view, Sessi
         }
         const auto summaryBefore = session.chart().through;
         session.update();
+        const auto summaryMs = session.summaryMs();
         const auto renderStart = SDL_GetTicksNS();
-        present();
+        const auto lateSummaryMs = present();
         const auto end = SDL_GetTicksNS();
         if (forecasting) {
             frames.push_back(elapsed(frameStart, end));
             renders.push_back(elapsed(renderStart, end));
-            if (session.chart().through != summaryBefore) summaries.push_back(session.summaryMs());
+            if (session.chart().through != summaryBefore) summaries.push_back(summaryMs + lateSummaryMs);
         }
         if (input && session.previewReady()) {
             targets.push_back(session.displayed()->second);
@@ -167,7 +313,14 @@ void benchmark(SDL_Renderer* renderer, SdlRmlRenderer& bridge, View& view, Sessi
     }
     const auto final = session.coverage();
     check(final && final->publishedThrough && !frames.empty() && !visible.empty(), "Benchmark did not sample replacement and scrubs");
-    const auto process = waffle::ReadDemoMetrics(renderer);
+    auto process = waffle::ReadDemoMetrics(renderer);
+#if defined(__ANDROID__)
+    std::ifstream status("/proc/self/status");
+    for (std::string line; std::getline(status, line);) {
+        unsigned long long kib{};
+        if (std::sscanf(line.c_str(), "VmRSS: %llu kB", &kib) == 1) process.working_set = kib * 1024;
+    }
+#endif
     const auto reconstructed = session.benchmarkReconstruction(targets);
     for (std::size_t i = 0; i < restoreRender.size(); ++i) restoreRender[i] += reconstructed[i];
     const auto backend = SDL_GetRendererName(renderer);
@@ -194,34 +347,68 @@ void benchmark(SDL_Renderer* renderer, SdlRmlRenderer& bridge, View& view, Sessi
         {"texture_bytes", Value(static_cast<double>(bridge.texture_bytes()))},
         {"backend", Value(backend ? backend : "")}, {"gpu", Value(process.gpu)}});
     const auto json = waffle::core::json::stringify(result) + "\n";
-    if (options.report.empty()) std::fputs(json.c_str(), stdout);
+    if (options.report.empty()) {
+#if defined(__ANDROID__)
+        SDL_Log("N04E benchmark %s", json.c_str());
+#else
+        std::fputs(json.c_str(), stdout);
+#endif
+    }
     else check(SDL_SaveFile(options.report.c_str(), json.data(), json.size()), SDL_GetError());
 }
 
 int run(const Options& options)
 {
     const auto start = SDL_GetTicksNS();
+    if (!options.saveSmokeDirectory.empty()) {
+        saveSmoke(options.launch, options.saveSmokeDirectory);
+        return 0;
+    }
     Session session;
     Selection selection;
-    session.open(options.launch);
-    if (options.smoke && options.capture.empty()) {
+    if (options.smoke && !options.interactionSmoke && options.capture.empty()) {
+        session.open(options.launch);
         smoke(session, selection, {});
         return 0;
     }
-    auto preparingArt = std::async(std::launch::async, prepareArtwork);
-    const bool automated = !options.capture.empty() || options.frames;
-    waffle::Utf8Files files;
-    waffle::DemoClock clock;
+    const bool automated = !options.capture.empty() || options.interactionSmoke || options.frames;
+    waffle::SdlAssetFile files;
+    System system;
     Graphics graphics;
-    SDL_SetHint(SDL_HINT_TOUCH_MOUSE_EVENTS, "1");
+    SDL_SetHint(SDL_HINT_TOUCH_MOUSE_EVENTS, "0");
+    SDL_SetHint(SDL_HINT_MOUSE_TOUCH_EVENTS, "0");
     SDL_SetHint(SDL_HINT_MOUSE_FOCUS_CLICKTHROUGH, "1");
+#if defined(__ANDROID__)
+    SDL_SetHint(SDL_HINT_ORIENTATIONS, "LandscapeLeft LandscapeRight");
+#endif
     check(SDL_Init(SDL_INIT_VIDEO), SDL_GetError());
-    check(SDL_CreateWindowAndRenderer("Laughing Waffle", 1120, 640, SDL_WINDOW_RESIZABLE | SDL_WINDOW_HIGH_PIXEL_DENSITY,
+    const auto flags = SDL_WINDOW_RESIZABLE | SDL_WINDOW_HIGH_PIXEL_DENSITY
+#if defined(__ANDROID__)
+        | SDL_WINDOW_FULLSCREEN
+#endif
+        ;
+    check(SDL_CreateWindowAndRenderer("Laughing Waffle", options.width, options.height, flags,
         &graphics.window, &graphics.renderer), SDL_GetError());
-    SDL_SetWindowMinimumSize(graphics.window, 820, 450);
+#if !defined(__ANDROID__)
+    SDL_SetWindowMinimumSize(graphics.window, 640, 360);
+#endif
+    system.window = graphics.window;
+    auto preparingArt = std::async(std::launch::async, prepareArtwork);
+    TemporarySaves temporary;
+    if (options.interactionSmoke && options.capture.empty()) {
+        const auto path = std::filesystem::temp_directory_path() /
+            ("waffle-interaction-" + std::to_string(SDL_GetPerformanceCounter()));
+        check(std::filesystem::create_directory(path), "Could not create temporary save directory");
+        temporary.directory = path;
+    }
+    const auto store = !options.capture.empty() ?
+        SaveSlots(std::filesystem::u8path(options.capture) / "saves") : options.interactionSmoke ?
+        SaveSlots(temporary.directory) : SaveSlots::forUser();
+    Shell shell(session, selection, store);
+    if (automated || options.direct) shell.open(options.launch);
     const bool paced = SDL_SetRenderVSync(graphics.renderer, automated ? 0 : 1);
     graphics.bridge = std::make_unique<SdlRmlRenderer>(graphics.renderer, WAFFLE_ART_ROOT);
-    Rml::SetSystemInterface(&clock);
+    Rml::SetSystemInterface(&system);
     Rml::SetFileInterface(&files);
     Rml::SetRenderInterface(graphics.bridge.get());
     check(Rml::Initialise(), "Could not initialize RmlUi");
@@ -232,39 +419,78 @@ int run(const Options& options)
     check(context != nullptr, "Could not create RmlUi context");
     auto art = preparingArt.get();
     graphics.bridge->SetPreparedAtlas({art.width, art.height}, std::move(art.rgba));
-    View view(*context, graphics.renderer, session, selection, options.launch, std::move(art));
+    View view(*context, graphics.renderer, session, selection, shell, std::move(art));
     const auto present = [&] {
-        clock.seconds = elapsed(start) / 1000;
-        view.frame();
-        check(graphics.bridge->error().empty() && clock.last_error.empty(), graphics.bridge->error() + clock.last_error);
+        paint(view, session, system.clock, start);
+        check(graphics.bridge->error().empty() && system.clock.last_error.empty(),
+            graphics.bridge->error() + system.clock.last_error);
         check(SDL_RenderPresent(graphics.renderer), SDL_GetError());
     };
     present();
     const auto first = elapsed(start);
-    if (!options.capture.empty()) {
-        std::filesystem::create_directories(std::filesystem::u8path(options.capture));
-        smoke(session, selection, [&](const char* capture) {
-            view.frame();
-            if (capture) {
+    if (options.interactionSmoke || !options.capture.empty()) {
+        if (!options.capture.empty()) std::filesystem::create_directories(std::filesystem::u8path(options.capture));
+        const auto frame = [&](const char* capture) {
+            if (capture && !options.capture.empty() && std::string_view(capture) != "06-forecast-running") {
+                // Settle decorative motion before capturing the named state.
+                for (int frame = 0; frame < 18; ++frame) {
+                    session.update();
+                    present();
+                    SDL_Delay(17);
+                }
+            }
+            paint(view, session, system.clock, start);
+            if (capture && !options.capture.empty()) {
                 const std::unique_ptr<SDL_Surface, decltype(&SDL_DestroySurface)> surface(
                     SDL_RenderReadPixels(graphics.renderer, nullptr), SDL_DestroySurface);
                 const auto path = options.capture + "/" + capture + ".png";
                 check(surface && SDL_SavePNG(surface.get(), path.c_str()), SDL_GetError());
             }
-            check(graphics.bridge->error().empty() && clock.last_error.empty(), graphics.bridge->error() + clock.last_error);
+            check(graphics.bridge->error().empty() && system.clock.last_error.empty(),
+                graphics.bridge->error() + system.clock.last_error);
             check(SDL_RenderPresent(graphics.renderer), SDL_GetError());
-        });
+        };
+        smoke(session, selection, frame, &view);
+        shellSmoke(session, view, frame, store);
         return 0;
     }
     if (options.frames) {
-        benchmark(graphics.renderer, *graphics.bridge, view, session, selection, options, first, start);
+        benchmark(graphics.renderer, *graphics.bridge, view, session, selection, system.clock, options, first, start);
         return 0;
     }
+    Lifecycle lifecycle(session, shell, view, *graphics.bridge);
+    SDL_Log("N04E first_present_ms=%.3f", first);
+    std::optional<Uint64> openingStart;
     for (;;) {
         SDL_Event event;
-        while (SDL_PollEvent(&event)) if (!view.input(event)) return 0;
-        session.update();
+        while (SDL_PollEvent(&event)) {
+#if !defined(__ANDROID__)
+            if (event.type == SDL_EVENT_WINDOW_MINIMIZED) lifecycle.suspend();
+            if (event.type == SDL_EVENT_WINDOW_RESTORED) lifecycle.foreground();
+#endif
+            if (event.type == SDL_EVENT_RENDER_DEVICE_RESET) Rml::ReleaseTextures(graphics.bridge.get());
+            if ((!lifecycle.background() || event.type == SDL_EVENT_QUIT ||
+                    event.type == SDL_EVENT_WINDOW_CLOSE_REQUESTED) && !view.input(event)) {
+                if (!lifecycle.background()) lifecycle.suspend();
+                return 0;
+            }
+        }
+        if (lifecycle.background()) {
+            SDL_Delay(25);
+            continue;
+        }
+        lifecycle.update();
+        const bool opening = shell.screen() == Screen::game && session.opening();
+        if (opening && !openingStart) openingStart = SDL_GetTicksNS();
+        shell.update();
         present();
+        lifecycle.presented();
+        if (openingStart && shell.screen() == Screen::game && !session.opening()) {
+            SDL_Log("N04E first_playable_ms=%.3f second=%llu", elapsed(*openingStart),
+                static_cast<unsigned long long>(session.liveSnapshot()->second));
+            openingStart.reset();
+        }
+        if (shell.screen() == Screen::title) openingStart.reset();
         if (!paced) SDL_Delay(16);
     }
 }
@@ -275,13 +501,18 @@ int main(int argc, char** argv)
 {
     Options options;
     if (!parse(argc, argv, options)) {
-        std::fputs("Usage: waffle_native_game [--seed N | --load browser.json] [--smoke [--capture DIR] | --bench FRAMES [JSON]]\n", stderr);
+        std::fputs("Usage: waffle_native_game [--seed N | --load browser.json] [--size WIDTH HEIGHT] "
+                   "[--smoke | --interaction-smoke | --save-smoke DIR | --capture DIR | --bench FRAMES [JSON] [--long-benchmark]]\n", stderr);
         return 2;
     }
     try {
         return run(options);
     } catch (const std::exception& failure) {
+#if defined(__ANDROID__)
+        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "%s", failure.what());
+#else
         std::fprintf(stderr, "%s\n", failure.what());
+#endif
         return 1;
     }
 }

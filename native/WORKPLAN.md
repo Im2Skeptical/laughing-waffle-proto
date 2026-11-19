@@ -3263,6 +3263,388 @@ that bounded dense summary reads and direct, generation-checked priority
 restores fit the Windows input budget under this forecast workload. Browser
 worker transport and physical device timing still need their own measurements.
 
+### N04f - Native interaction and presentation
+
+Windows implementation on `t3/native-interaction`, based on `f781c456`.
+The [interaction design](docs/interaction-system.md) was committed first in
+`97322d8e`. Shared RCSS provides the control and feedback vocabulary. The
+connected view binds the status, clock and progress to the app read model and
+keeps both the atlas and population strip in view during decisions. The
+settlement board shows the staged order and its time cost next to its cards.
+Review opens a separate confirmation. Cancel preserves a staged order, and
+Undo returns the board to committed order. Errors report the reason.
+
+The map bakes biome ink and topology into an SDL texture. The live view draws
+faction borders, roads, settlement marks and selection over it. The camera
+eases to zoom and selection targets and follows direct panning. The strip
+shows published coverage, separate Live and Preview playheads and the
+population at the restored second. Hover reads the published population band.
+Keyboard controls, Escape, touch drag, long-press help and a session Motion
+toggle share the desktop and 640×360 landscape presentation paths.
+
+The interaction smokes drive SDL input on both window sizes. They cover
+selection, inspection, non-activating touch help, a rejected locked drop,
+keyboard staging and undo, touch staging, review and cancel, confirmation,
+preview and Live, reduced motion and New Game. Simulation, schemas, RNG,
+replay and the timegraph worker are unchanged.
+
+#### 1,000-year forecast
+
+Windows 11 build 26200, i9-10900K, RTX 3080, SDL Direct3D 11, 1120×640, VSync
+off. Five interleaved baseline and current runs per preset, alternating their
+order. The baseline uses the `f781c456` app and RML with the same unchanged
+native libraries as the current build. The workload is the N04d seed-1 long
+fixture. All 20 replacement forecasts reached second 32,192 from Live 192.
+The table reports medians of per-run percentiles and forecast times.
+
+| Build | Frame p50 / p95 / p99, ms | Loaded scrub p95, ms | Forecast wall time, ms |
+| --- | ---: | ---: | ---: |
+| MSVC baseline | 1.205 / 1.821 / 2.539 | 3.316 | 275.92 |
+| MSVC N04f | 1.036 / 1.706 / 2.201 | 2.372 | 296.83 |
+| Clang baseline | 1.036 / 1.904 / 2.313 | 3.203 | 204.87 |
+| Clang N04f | 0.810 / 1.845 / 2.279 | 2.531 | 227.44 |
+
+All 2,013 N04f loaded scrubs presented within two harness frames. Maximum
+elapsed input-to-present was 3.381 ms. The paired p99 improved by 13% on MSVC
+and 1% on Clang. The earlier archived N04d p99 was 1.602 ms on MSVC and
+2.599 ms on Clang. Use the paired rows for the same-session comparison.
+The current harness exercised roughly twice as many scrubs per forecast as
+the baseline. Raw paired rows are in `artifacts/n04f/paired/`. A separate
+unpaired run during concurrent compiler activity is retained under
+`artifacts/n04f/after/bench-*.json`.
+
+```powershell
+node -e "const fs=require('node:fs'),s=JSON.parse(fs.readFileSync('native/reference/fixtures/seed-1/state-0.json')); Object.assign(s.gameConfig.settings.values,{phaseDurationSec:64,monsterExpansionThreshold:1e9}); fs.writeFileSync('artifacts/n04f/seed-1-n04c-long.json',JSON.stringify(s))"
+$env:SDL_RENDER_DRIVER = 'direct3d11'
+& native/build/optimized/waffle_native_game.exe --bench 2400 artifacts/n04f/sample.json --load artifacts/n04f/seed-1-n04c-long.json
+```
+
+Repeat with `optimized-clang` and with the baseline presentation build at
+`f781c456`. The local baseline rebuild recipe is in
+`artifacts/n04f/build-baseline.py`.
+
+**Cross-runtime handoff.** Caching the procedural terrain kept its detail
+away from the scrub render path. The app also collects a restore that becomes
+ready during layout, without waiting on the worker. The paired workload
+covers the full forecast and authoritative replay checks. A browser
+equivalent would need its own message-delivery and input-to-present
+measurement before adopting the late handoff.
+
+#### Verification and reproduction
+
+Both optimized presets passed 47/47 CTests, including the original connected
+smoke and two new interaction tests. The standalone seed-42 smokes committed
+at second 148 and restored second 227. Each compiler passed 30 step windows
+and 153 comparisons with zero masks. Replay passed 33 journals, 242 browser
+checkpoints in three replay modes and 55 rejected actions.
+
+```powershell
+. native/tools/env.ps1
+Push-Location native
+foreach ($preset in 'optimized','optimized-clang') {
+    cmake --preset $preset
+    cmake --build --preset $preset
+    ctest --preset $preset --output-on-failure
+}
+Pop-Location
+node native/reference/trace.mjs
+foreach ($preset in 'optimized','optimized-clang') {
+    $parity = "native/build/$preset/src/sim/waffle_parity.exe"
+    node native/reference/step-windows.mjs $parity
+    node native/reference/replay-windows.mjs $parity
+    & "native/build/$preset/waffle_native_game.exe" --smoke --seed 42
+}
+$env:SDL_RENDER_DRIVER = 'direct3d11'
+$game = 'native/build/optimized/waffle_native_game.exe'
+& $game --seed 42 --capture artifacts/n04f/after
+& $game --seed 42 --size 640 360 --capture artifacts/n04f/compact
+```
+
+Captures and raw benchmark rows are under [artifacts/n04f](../artifacts/n04f/).
+The `before/` captures use the N04d view with extra capture checkpoints. The
+baseline staged screen contains its one-step confirmation. The `after/` and
+`compact/` sets each include the atlas, settlement, Practice inspection,
+staged move, confirmation, published forecast progress, held scrub and Live.
+`interaction.mp4` records the desktop interaction run.
+
+**Integration.** Save slots, title flow, lifecycle, Android packaging and
+physical-phone validation are separate work. Packaging the connected
+document requires both `interaction.rcss` and `connected-layout.rcss` alongside
+`connected.rml`. The Motion setting lasts for the current application run.
+
+### N04e - Native app shell, save slots and Android package
+
+Implemented on `t3/native-app-shell` from `f781c456`. Launch without arguments
+to reach the title. Enter a uint32 seed or leave it blank for a random seed.
+Continue opens the newest readable slot, and Load displays the autosave and
+three manual slots. In a run, Save opens the manual slots and asks for
+confirmation before overwriting. Title saves the live run before leaving it.
+The load list shows year, live second, region count, UTC wall-clock save time
+and save/GameState versions.
+
+The native v1 save records the browser v53 replay base, the action journal and
+the live second. Loading replays that boundary and checks its digest before
+starting a fresh forecast. Taking a save while scrubbing records the committed
+frontier. The app validates the envelope and payload checksum, and replaces
+each slot atomically from a temporary file in the same directory. Windows
+uses `%APPDATA%\Laughing Waffle\Native Game\saves`. Android uses the app's
+internal files directory. Files and clocks stay in `native/src/app`. Simulation rules,
+RNG, schema and replay ordering follow the existing native port.
+
+Windows minimize and Android backgrounding cancel the forecast, clear the
+preview, release RmlUi textures and autosave the committed run. Returning
+rebuilds the forecast from the same live frontier and reloads textures with
+SDL's restored renderer. A process restart can recover via Continue.
+
+#### Android run and measurement
+
+The existing SDL3 activity loads the connected game from `libmain.so`. The
+debug-signed APK uses optimized arm64 native code and packages the RML,
+font, sprite sheets and opening config for offline use. It allows both
+landscape orientations, so the cable or cutout can sit on either side. The
+layout follows SDL's safe rectangle and Android display scale. Buttons and
+the graph scrub area are at least about 48 dp. Tap selects, drag on the plot
+scrubs, and one or two fingers pan or pinch the map.
+
+From the worktree root:
+
+```powershell
+$tools = (Get-Item native/.tools).Target[0]
+powershell -NoProfile -ExecutionPolicy Bypass -File native/tools/bootstrap-android.ps1 -ToolsRoot $tools -OutputDirectory artifacts/n04e/android-build
+$adb = 'native/.tools/android-sdk/platform-tools/adb.exe'
+$activity = 'org.waffle.nativedemo/.WaffleActivity'
+& $adb devices -l
+& $adb install -r native/android/app/build/outputs/apk/debug/app-debug.apk
+& $adb shell am start -W -n $activity
+# Play, save to a slot, press Home, and relaunch the same activity to check resume.
+& $adb shell input keyevent KEYCODE_HOME
+& $adb shell am start -W -n $activity
+cmd /d /c 'native\.tools\android-sdk\platform-tools\adb.exe exec-out screencap -p > artifacts\n04e\pixel-resumed.png'
+& $adb shell dumpsys meminfo org.waffle.nativedemo > artifacts/n04e/pixel-meminfo.txt
+& $adb shell am force-stop org.waffle.nativedemo
+& $adb shell am start -W -n $activity --ei waffle_bench 2400
+& $adb logcat -d -s SDL:I > artifacts/n04e/pixel-logcat.txt
+& $adb shell am force-stop org.waffle.nativedemo
+```
+
+The debug benchmark uses the N04c seed-1 longevity fixture and restarts its
+forecast after a real Practice reorder. It logs startup to playable, frame
+p50/p95/p99 while forecasting, scrub input to present, reconstruction plus
+render, RSS, forecast storage and texture bytes. The ordinary app logs the
+pause autosave, released texture bytes and the first playable resume present.
+
+The Windows host built the optimized arm64 package with NDK r30
+(`30.0.16248370`) and the project-local debug key. The verified APK is
+`artifacts/n04e/android-build/app-debug.apk` (42,199,423 bytes, SHA-256
+`c57c4915886362dd5690c434716b671f77ad3b37dac70964292fb1cdce873354`).
+APK Signature Scheme v2, the AArch64 `SDL_main` export and the packaged
+offline assets passed inspection.
+The successful bootstrap used `-ToolsRoot` with the resolved shared toolchain
+path. On this host the generated native and Gradle build directories were
+junctions to the toolchain drive after the worktree drive ran out of space.
+
+**Pixel 6 Pro (`raven`)** appeared in the initial ADB inventory. Later ADB
+queries returned `no devices/emulators found`, consistent with the HiSuite
+conflict flagged for this work item. The device list was still empty after
+packaging. Physical runtime, touch, save/relaunch, lifecycle timings, benchmarks
+and device captures await a working ADB connection. No app was launched on
+the phone during this attempt.
+
+#### Verification
+
+```powershell
+. native/tools/env.ps1
+Push-Location native
+foreach ($preset in 'optimized','optimized-clang') {
+    cmake --preset $preset
+    cmake --build --preset $preset
+    ctest --preset $preset --output-on-failure
+}
+Pop-Location
+# Reuse same-baseline captures or generate them with node native/reference/trace.mjs.
+foreach ($preset in 'optimized','optimized-clang') {
+    $parity = "native/build/$preset/src/sim/waffle_parity.exe"
+    node native/reference/step-windows.mjs $parity
+    node native/reference/replay-windows.mjs $parity
+    & "native/build/$preset/waffle_native_game.exe" --smoke --seed 42
+}
+& native/build/optimized/waffle_native_game.exe --seed 42 --capture artifacts/n04e/windows-after
+npm.cmd run verify
+```
+
+Both Windows presets passed 46/46 CTests, including the save/load digest at
+second 148 after a five-action journal, saving from a read-only preview,
+overwriting a manual slot, Continue, suspend/resume and rejection of corrupt
+and incompatible files. On each preset, step parity passed 30 windows and 153
+comparisons with zero masks. Replay parity passed 33 journals, 242 browser
+checkpoints in three modes and 55 rejections. The browser verification suite
+also passed. An actual Windows minimize/restore
+round trip wrote the per-user autosave, logged zero RmlUi texture bytes during
+pause and presented the same live second with a new forecast generation after
+about 10 ms. Evidence is in `artifacts/n04e/windows-lifecycle-stderr.log`.
+
+One optimized Windows Direct3D 11 run of the same harness reached second
+32,192, the full 1,000 years from the live frontier at 192. Startup to playable
+was 841 ms. The replacement forecast took 313 ms. Across 200 forecast frames,
+frame p50/p95/p99 were 1.52/2.17/2.87 ms. Loaded scrub input-to-present p95 was
+4.55 ms (99 scrubs), reconstruction plus render p95 was 2.43 ms, and the
+working set was 203.7 MiB. This is a desktop sample.
+
+```powershell
+& native/build/optimized/waffle_native_game.exe --bench 2400 artifacts/n04e/windows-bench.json --long-benchmark
+```
+
+Windows captures are in `artifacts/n04e/windows-before` and
+`artifacts/n04e/windows-after`. Both contain the regional map, inspector and
+forecast preview. The after set adds `05-save.png`, `06-title.png` and
+`07-load.png`. The existing connected gameplay scope stays at the Practice
+Reform slice. Full Life Map and shops, art and interaction redesign, cloud saves
+and old save migration are outside N04e.
+
+### N04g - Integrated native app (Windows verified, raven blocked at USB)
+
+On `t3/native-app-integration`, merged `658c93c8` (N04f) and then `38a8fa00`
+(N04e) from the supervisor's `9a2f3218` (N03i, browser baseline `9123ed72`).
+The combined app keeps N04f's RML/RCSS, map, camera, graph, keyboard, help and
+Reform flow. It uses N04e's shell/session, validated atomic saves, Android
+assets, safe area, lifecycle and gesture routing. SDL finger events feed the
+shared interaction states, with direct two-finger zoom on the same map camera.
+Minimize and background release the baked terrain and UI textures before
+resume. Both branches' CTest registrations are present.
+
+The title uses the existing Frontier Watch illustration at source sprite
+resolution. Continue names the latest save and its year and second. The slot
+list shows the live frontier, region count, UTC timestamp and versions for
+readable saves, with explicit empty, corrupt and incompatible states.
+Overwrite and leaving an unsaved or staged run use the same dialog as Reform.
+Leaving writes the live frontier to Autosave. A failed write keeps the run
+and shows its error. Manual save success posts a toast. The shell uses
+the shared entry motion and the map reveals once the opening forecast is
+ready. Region names use compass abbreviations where needed. Labels yield
+when they overlap, and inspection shows the full region name.
+
+This changes app input, presentation and save orchestration. Core, simulation,
+timegraph, RNG, serialization formats and the browser tree remain at the
+supervisor baseline. N04g reuses N04f's late presentation handoff for any
+restore ready during layout. The label layer keeps its region elements across
+preview samples, and the Live button text refreshes when the mode changes.
+
+#### Windows verification
+
+From the repository root in PowerShell, with `native/.tools` linked to the
+shared toolchain. Fresh captures match N03i. A reused capture diverged at
+`action-campaign-nest` second 6 and passed after regeneration.
+
+```powershell
+. native/tools/env.ps1
+Push-Location native
+foreach ($preset in 'optimized','optimized-clang') {
+    cmake --preset $preset
+    cmake --build --preset $preset --parallel 6
+    ctest --preset $preset --output-on-failure
+}
+Pop-Location
+node native/reference/trace.mjs
+foreach ($preset in 'optimized','optimized-clang') {
+    $parity = "native/build/$preset/src/sim/waffle_parity.exe"
+    & "native/build/$preset/waffle_native_game.exe" --smoke --seed 42
+    node native/reference/step-windows.mjs $parity
+    node native/reference/replay-windows.mjs $parity
+}
+```
+
+Both presets passed 48/48 CTests. The explicit seed-42 smoke reached live
+second 148 with five actions and restored preview second 227. Interaction
+smoke at both sizes covers actual SDL finger tap, pan, pinch, scrub drag and
+long-press help, plus keyboard focus, reduced motion, Reform cancellation,
+confirmation and rejection. Shell smoke covers seed entry, Save, overwrite
+cancel and confirm, Load, Continue and return-to-title autosave. Save-slot
+smoke also covers live digests, suspend/resume, invalid files and failed writes.
+Each compiler matched 30 step windows with 153 comparisons and zero masks
+(152 advancing and one gated). Replay matched 34 journals across 18 action
+kinds, 252 browser checkpoints in three modes and 55 rejections. The logs and
+fresh corpus are under `artifacts/n04g/`. `npm.cmd run check:docs` passed
+after linking the existing N04f evidence directory at `artifacts/n04f/`
+for its historical WORKPLAN link.
+
+#### Windows frame measurements
+
+Five alternating pairs per preset on the i9-10900K / RTX 3080 host, 1120×640,
+Direct3D 11, vsync off, with the N04f `--bench 2400` seed-1 longevity
+workload. Each sample required full publication through second 32,192, 1,000
+years beyond the replacement frontier. These are medians of the per-run
+percentiles. The N04f control is the original `658c93c8` build. N04g also
+includes N03i. Browser trace capture was active during the pairs.
+
+| Build | First playable, ms | Forecast, ms | Frame p50 / p95 / p99, ms | Loaded scrub p95, ms | Reconstruction + render p95, ms | Working set, MiB |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| MSVC N04f | 719.51 | 296.24 | 0.92 / 1.20 / 1.37 | 1.72 | 1.31 | 190.33 |
+| MSVC N04g | 688.75 | 298.61 | 1.06 / 1.34 / 1.68 | 1.65 | 1.41 | 206.34 |
+| Clang N04f | 549.91 | 220.60 | 0.73 / 0.96 / 1.09 | 1.27 | 1.03 | 188.41 |
+| Clang N04g | 655.03 | 225.67 | 0.77 / 1.01 / 1.22 | 1.34 | 1.08 | 204.88 |
+
+The archived MSVC N04f baseline was 1.04 / 1.71 / 2.20 ms. N04g was within
+0.03 ms at p50 and faster at p95 and p99 against that record. The fresh
+same-session MSVC p95 and p99 were 0.14 and 0.31 ms higher than the N04f
+control. Clang p95 and p99 were 0.05 and 0.14 ms higher. All 2,378 integrated
+scrubs presented within two harness frames. Worst loaded input-to-present
+was 2.60 ms. N04g private memory was 236.12 MiB on MSVC and 242.42 MiB on
+Clang. Estimated live textures were 16.57 MiB on both, up from 14.03 MiB with
+the source-resolution title sprite. Forecast charged bytes matched within
+each pair of builds per compiler. These timings describe the installed
+Windows runtime.
+
+```powershell
+# Point $n04fWorktree at the checkout with both optimized builds of 658c93c8.
+powershell -NoProfile -ExecutionPolicy Bypass -File artifacts/n04g/paired.ps1 -ControlWorktree $n04fWorktree -RunName paired-final
+python artifacts/n04g/paired-summary.py paired-final
+
+$env:SDL_RENDER_DRIVER = 'direct3d11'
+$game = 'native/build/optimized/waffle_native_game.exe'
+# Use fresh directories for the scripted save slots and captures.
+& $game --seed 42 --capture artifacts/n04g/windows/desktop
+& $game --seed 42 --size 640 360 --capture artifacts/n04g/windows/compact
+```
+
+The paired runner invokes each binary with `--bench 2400 <report.json> --load
+artifacts/n04g/seed-1-n04c-long.json`. Raw rows are in
+`artifacts/n04g/paired-final/` and the aggregate in
+`artifacts/n04g/paired-final-summary.json`. The first set, before the marker
+and Live button update changes, is in `artifacts/n04g/paired/`.
+
+Windows before images are in `artifacts/n04g/windows-before/` (N04e).
+Integrated images are in `artifacts/n04g/windows/desktop/` and
+`artifacts/n04g/windows/compact/`. They include the map and forecast,
+`05-reform-confirm.png`, `09-return-confirm.png`, `10-save.png`,
+`11-save-feedback.png`, `12-overwrite-confirm.png`, `13-title.png` and
+`14-load.png`.
+
+#### Pixel 6 Pro (`raven`)
+
+```powershell
+$tools = (Get-Item native/.tools).Target[0]
+powershell -NoProfile -ExecutionPolicy Bypass -File native/tools/bootstrap-android.ps1 -ToolsRoot "$tools" -OutputDirectory artifacts/n04g/android-build
+& native/.tools/android-sdk/platform-tools/adb.exe devices -l
+```
+
+The optimized arm64 debug APK built and passed package inspection, including
+the AArch64 `SDL_main` export, debug signature and the packaged RML, both
+RCSS files, font, atlas sources and opening config.
+`artifacts/n04g/android-build/app-debug.apk` has SHA-256
+`1e340befce2af10ba1094a462ec3390a70be2edd54e360edd126e70a2812d2be`.
+The signature tool verified APK Signature Scheme v2. Its report is in
+`artifacts/n04g/android-build/apk-signature.txt`.
+
+ADB listed no devices before or after packaging. The work item flags HiSuite
+USB contention. Windows reported `HuaweiHiSuiteService64.exe` stopped, so
+the current USB owner could not be confirmed. Device inventories and service
+status are in `artifacts/n04g/adb-devices*.txt` and
+`artifacts/n04g/adb-windows-service.txt`. Cam needs to restore USB ADB access
+to `raven` before the N04e device procedure can run on this APK. Startup,
+forecast frame times, scrub, reconstruction, memory, touch, pause/resume and
+phone screenshots remain unmeasured. This session left the phone untouched
+and its existing install state is unknown.
+
 ## N05 - Iteration and installed profiles (pending N04)
 
 Finish development, performance and full-art installed profiles sharing the same

@@ -1,0 +1,87 @@
+/* Shared native surface and control vocabulary. */
+body { color: #f0e3c8; font-family: Lato; font-size: 15dp; }
+div, h1, h2, p { display: block; margin: 0; }
+h1 { font-size: 26dp; color: #fae9c3; }
+h2 { font-size: 21dp; color: #fae9c3; }
+.quiet { color: #c7bda7; font-size: 13dp; }
+.rule { margin-top: 5dp; }
+.gold { color: #f4ce84; }
+
+button, .button, .toggle, .tab, .card {
+  display: inline-block; font-family: Lato; font-size: 14dp; color: #f5e6c6;
+  background-color: #2b2b24; border: 1dp #8f7955; border-bottom-color: #55452e;
+  padding: 7dp 11dp; cursor: pointer; tab-index: auto;
+}
+button:hover, .button:hover, .toggle:hover, .tab:hover, .card:hover {
+  background-color: #403a2c; border-color: #d4b276;
+}
+.chosen, .toggle.on, .tab.on { border-color: #ebc578; background-color: #3c372a; }
+button:focus-visible, .button:focus-visible, .toggle:focus-visible, .tab:focus-visible, .card:focus-visible {
+  border-color: #fff0b9; background-color: #50432e;
+}
+button:active, .button:active, .toggle:active, .tab:active, .card:active,
+button.key-down, .button.key-down, .toggle.key-down, .tab.key-down, .card.key-down {
+  border-color: #ffe195; background-color: #655031; color: #fff7df;
+}
+button:disabled, .button.disabled, .toggle.disabled, .tab.disabled, .card:disabled {
+  border-color: #635a49; background-color: #25251f; color: #b6ac96; cursor: default; tab-index: none;
+}
+button.busy, .button.busy { color: #f4ce84; border-color: #b58d54; }
+.primary { background-color: #4a3a26; border-color: #bf975b; }
+
+.panel, .dialog, .tooltip, .toast {
+  background-color: #24231d; border: 1dp #806b4b; border-top-color: #a88c60;
+}
+.dialog { background-color: #2b271e; padding: 16dp; }
+.tooltip, .toast {
+  padding: 6dp 9dp; font-size: 13dp; color: #f0e3c8; pointer-events: none;
+  background-color: #211f19;
+}
+.error { color: #ffd0bf; border-color: #c48775; }
+.success { color: #e0ebbd; border-color: #a2b47a; }
+.pending { color: #f4ce84; }
+.progress { background-color: #171812; border: 1dp #6f6046; height: 4dp; }
+.progress-fill { background-color: #c6a46a; height: 100%; width: 0; }
+scrollbarvertical { width: 8dp; margin-left: 4dp; }
+scrollbarvertical slidertrack { background-color: #1c1c16; }
+scrollbarvertical sliderbar { background-color: #8f7955; }
+scrollbarvertical sliderbar:hover, scrollbarvertical sliderbar:active { background-color: #e5c78f; }
+.card {
+  display: block; text-align: center; position: relative;
+  padding: 0; transition: transform 0.09s quadratic-out, border-color 0.09s quadratic-out;
+  transform: translateY(0dp);
+}
+.card:hover, .card:focus-visible { transform: translateY(-2dp); }
+.card:active, .card.key-down, .card:disabled { transform: translateY(0dp); transition: none; }
+.card.staged, .card.drop { border-color: #ffc87a; }
+.card.dragging { opacity: .58; }
+.card-art { position: absolute; top: 0; bottom: 0; right: 0; left: 0; pointer-events: none; }
+.card-name {
+  position: absolute; bottom: 0; left: 0; right: 0; min-height: 27dp;
+  background-color: #171a16ef; padding: 3dp 1dp; font-size: 12dp; pointer-events: none;
+}
+.card:active .card-name, .card.key-down .card-name { background-color: #54412bf3; }
+.card-slot, .staged-mark {
+  position: absolute; top: 3dp; left: 3dp; padding: 1dp 3dp; font-size: 11dp;
+  color: #f8e7c3; background-color: #211e17ef; pointer-events: none;
+}
+.staged-mark { left: auto; right: 3dp; color: #21180e; background-color: #e9b975; }
+
+@keyframes enter-surface {
+  from { opacity: .65; transform: translateY(3dp); }
+  to { opacity: 1; transform: translateY(0dp); }
+}
+@keyframes leave-surface {
+  from { opacity: 1; transform: translateY(0dp); }
+  to { opacity: 0; transform: translateY(3dp); }
+}
+@keyframes changed-value {
+  from { color: #fff2b2; background-color: #6b4b2d; }
+  to { color: #f0e3c8; background-color: transparent; }
+}
+.enter { animation: 0.14s quadratic-out enter-surface; }
+.leave { animation: 0.09s quadratic-in leave-surface; pointer-events: none; }
+.value-change { animation: 0.48s quadratic-out changed-value; }
+.reduce-motion .card, .reduce-motion .enter, .reduce-motion .leave, .reduce-motion .value-change {
+  transition: none; animation: none; transform: none;
+}

@@ -4,6 +4,8 @@
 
 #include <cstdint>
 #include <cstdio>
+#include <memory>
+#include <stdexcept>
 
 namespace waffle {
 namespace {
@@ -13,6 +15,13 @@ SDL_IOStream* Stream(Rml::FileHandle file) {
 }
 
 } // namespace
+
+std::string readAsset(const char* path) {
+	std::size_t size = 0;
+	const std::unique_ptr<void, decltype(&SDL_free)> data(SDL_LoadFile(path, &size), SDL_free);
+	if (!data) throw std::runtime_error("Could not read " + std::string(path) + ": " + SDL_GetError());
+	return {static_cast<const char*>(data.get()), size};
+}
 
 Rml::FileHandle SdlAssetFile::Open(const Rml::String& path) {
 	SDL_IOStream* stream = SDL_IOFromFile(path.c_str(), "rb");

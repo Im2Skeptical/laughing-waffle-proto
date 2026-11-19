@@ -4,9 +4,9 @@
 
 namespace waffle {
 
-// Reads APK assets through SDL_IOFromFile. Android compresses unknown extensions
-// and fopen cannot see the asset pack; SDL falls back from a file descriptor to
-// the asset stream. Installed before Rml::Initialise on Android only.
+std::string readAsset(const char* path);
+
+// SDL reads UTF-8 file paths on Windows and relative package assets on Android.
 class SdlAssetFile final : public Rml::FileInterface {
 public:
 	Rml::FileHandle Open(const Rml::String& path) override;
