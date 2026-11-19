@@ -172,14 +172,14 @@ assert.deepEqual(loggingReading.reading.effects,[
 assert.equal(loggingReading.reading.type,'Cycle');
 assert.equal(loggingReading.reading.trigger,null,'Season timing belongs in the Activation block');
 const anatomicalReading=getGamepieceFace(faceClock,'practice','anatomicalStudy');
-assert.deepEqual(anatomicalReading.reading.effects,[{timing:'',text:'Produce 2 Stock'},{timing:'',text:'Gain 2 Research'}]);
+assert.deepEqual(anatomicalReading.reading.effects,[{timing:'',text:'Gain 4 Research'}]);
 assert.equal(anatomicalReading.reading.trigger,'Charge on Population death in this settlement or Stock production in this settlement (Stock with Bone).');
 assert.ok(anatomicalReading.reading.requirements.includes('Requires a Scholar worker.'),'The hard staffing gate remains readable');
 assert.ok(getPracticeSymbols(anatomicalReading).some(entry=>entry.name==='Charge'));
 assert.ok(!getPracticeSymbols(loggingReading).some(entry=>entry.name==='Charge'),'Glossary includes only symbols on the selected face');
 assert.ok(!getPracticeSymbols(anatomicalReading).some(entry=>/Cycle/.test(entry.name)));
 assert.ok(getPracticeSymbols(anatomicalReading).some(entry=>entry.name==='Bone'),'Trigger traits are included, even when not hosted here');
-assert.deepEqual(getPracticeSymbols(anatomicalReading).slice(0,3).map(entry=>entry.name),['Medicine','Record','Bone'],'Stock tags lead the symbol key');
+assert.equal(getPracticeSymbols(anatomicalReading)[0].name,'Bone','Only trigger traits remain on the Research card');
 const recipeReading=getGamepieceFace(faceClock,'practice','cropRotation').reading;
 assert.ok(recipeReading.requirements.includes('Require 1 Record Stock (kept).'),'Requires is distinct from Consume');
 const mixedReading=getGamepieceFace(faceClock,'practice','selectiveBreeding').reading;
@@ -251,17 +251,17 @@ for(const [second,expected] of [[16,null],[17,0],[18,1],[17,0]]) {
   assert.equal(getGamepieceFace(clock,'practice','barter','silver').activationAge,null);
   assert.equal(JSON.stringify({clock,slot,reactionTrace}),before);
 }
-assert.equal(getGamepieceFace({...faceClock,tSec:9},'practice','dryFarming','bronze',{slot:{practiceId:'dryFarming'},activationTrace:[{kind:'activated',targetPracticeId:'dryFarming',tSec:9}]}).activationAge,0);
-assert.equal(getGamepieceFace({...faceClock,tSec:8},'practice','dryFarming','bronze',{slot:{practiceId:'dryFarming'}}).activationAge,null);
-for(const [second,season,nextSec,fill] of [[0,'summer',9,0],[8,'summer',9,8/9],[9,'autumn',17,0],[16,'autumn',17,7/8],[17,'spring',33,0],[25,'spring',33,.5],[32,'spring',33,15/16],[33,'summer',41,0],[65,'summer',73,0],[25,'spring',33,.5],[9,'autumn',17,0],[0,'summer',9,0]]) {
+assert.equal(getGamepieceFace({...faceClock,tSec:8},'practice','dryFarming','bronze',{slot:{practiceId:'dryFarming'},activationTrace:[{kind:'activated',targetPracticeId:'dryFarming',tSec:8}]}).activationAge,0);
+assert.equal(getGamepieceFace({...faceClock,tSec:7},'practice','dryFarming','bronze',{slot:{practiceId:'dryFarming'}}).activationAge,null);
+for(const [second,season,nextSec,fill] of [[0,'summer',8,0],[7,'summer',8,7/8],[8,'autumn',16,0],[15,'autumn',16,7/8],[16,'spring',32,0],[24,'spring',32,.5],[31,'spring',32,15/16],[32,'summer',40,0],[64,'summer',72,0],[24,'spring',32,.5],[8,'autumn',16,0],[0,'summer',8,0]]) {
   const clock={...faceClock,tSec:second},before=JSON.stringify(clock);
   const face=getGamepieceFace(clock,'practice','logging');
   assert.deepEqual(face.nextTrigger,{season,tSec:nextSec},`Logging points at its next relevant trigger at ${second}`);
   assert.ok(Math.abs(face.fill-fill)<1e-10,'Readiness resets per trigger and spans skipped seasons');
   assert.equal(JSON.stringify(clock),before,'Upcoming symbols never advance the simulation');
 }
-assert.deepEqual(getGamepieceFace({...faceClock,tSec:17},'practice','dryFarming').nextTrigger,{season:'summer',tSec:41},'Skip both winter and spring when neither triggers');
-assert.deepEqual(getGamepieceFace({...faceClock,tSec:9},'practice','saltGathering').nextTrigger,{season:'summer',tSec:41},'Single-season triggers wrap to next year');
+assert.deepEqual(getGamepieceFace({...faceClock,tSec:16},'practice','dryFarming').nextTrigger,{season:'summer',tSec:40},'Skip both winter and spring when neither triggers');
+assert.deepEqual(getGamepieceFace({...faceClock,tSec:8},'practice','saltGathering').nextTrigger,{season:'summer',tSec:40},'Single-season triggers wrap to next year');
 assert.deepEqual(getGamepieceFace({seasonDurationSec:10,tSec:21},'practice','logging').nextTrigger,{season:'spring',tSec:40},'Respect configured season duration');
 assert.equal(getSettlementYearDurationSec({}), SEASON_DURATION_SEC * 4, 'a missing season length is one 8-second season, four times');
 assert.equal(getSettlementYearDurationSec({ seasonDurationSec: 10, seasons: [0, 1] }), 20);

@@ -4,13 +4,13 @@
 #include "sim/state/runtime_state.hpp"
 
 #include <algorithm>
+#include <cmath>
 
 namespace waffle::sim::stages {
 namespace {
 
 namespace js = core::js;
 
-constexpr double tickDuration = 1.0 / ticksPerSecond;
 constexpr double defaultSeasonDurationSec = 8;
 constexpr double apCycleSec = 6;
 constexpr double apPhaseOffsetSec = 0;
@@ -40,27 +40,20 @@ void update_action_points(runtime::HotState& hot, double second) noexcept
     hot.actionPoints = std::min(hot.actionPoints + income, hot.actionPointCap);
 }
 
-void advance_clock_ticks(RuntimeState& state, StageContext& context, int ticks) noexcept
+double update_clocks(runtime::HotState& hot, double seasonTicks) noexcept
 {
-    auto& hot = state.hot;
-    const double duration = hot.seasonDurationSec > 0 ? hot.seasonDurationSec : defaultSeasonDurationSec;
-    const double seasonCount = hot.seasons.size();
-    double elapsed = hot.simTime;
-    double seasonClock = hot.seasonClockSec;
-    for (int tick = 0; tick < ticks; ++tick) {
-        elapsed += tickDuration;
-        seasonClock += tickDuration;
-        while (seasonClock >= duration) {
-            seasonClock -= duration;
-            if (seasonCount == 0) break;
-            hot.currentSeasonIndex = js::remainder(hot.currentSeasonIndex + 1, seasonCount);
-            if (hot.currentSeasonIndex == 0) hot.year = std::max(1.0, hot.year + 1);
-            context.seasonChanged = true;
-        }
-    }
-    hot.simTime = elapsed;
-    hot.seasonClockSec = seasonClock;
-    hot.seasonTimeRemaining = std::max(0.0, duration - seasonClock);
+    const double tickInSeason = js::remainder(hot.simStepIndex, seasonTicks);
+    hot.simTime = hot.simStepIndex / ticksPerSecond;
+    hot.seasonClockSec = tickInSeason / ticksPerSecond;
+    hot.seasonTimeRemaining = (seasonTicks - tickInSeason) / ticksPerSecond;
+    return tickInSeason;
+}
+
+double season_ticks(const runtime::HotState& hot) noexcept
+{
+    const double duration = hot.seasonDurationSec;
+    return (std::isfinite(duration) && duration > 0 && duration == js::floor(duration) ? duration : defaultSeasonDurationSec)
+        * ticksPerSecond;
 }
 
 }
@@ -68,6 +61,7 @@ void advance_clock_ticks(RuntimeState& state, StageContext& context, int ticks) 
 bool advance_clock(RuntimeState& state, StageContext& context)
 {
     context.clockBoundary.reset();
+    context.seasonChanged = false;
     auto& hot = state.hot;
     const double firstIndex = hot.simStepIndex;
     double lastIndex = firstIndex + ticksPerSecond;
@@ -77,30 +71,37 @@ bool advance_clock(RuntimeState& state, StageContext& context)
         for (int tick = 0; tick < ticksPerSecond; ++tick) lastIndex += 1;
     }
     const double second = js::floor(lastIndex / ticksPerSecond);
+    const double seasonTicks = season_ticks(hot);
     if (second <= hot.tSec) {
         hot.simStepIndex = lastIndex;
-        advance_clock_ticks(state, context, ticksPerSecond);
+        update_clocks(hot, seasonTicks);
         return true;
     }
 
-    // For a mid-second anchor, leave the ticks after dispatch to the driver.
-    // AP on the boundary tick still sees the clock before that tick.
+    // Mid-second anchors still dispatch at the whole-second tick. If the
+    // dispatch permits more ticks, the driver derives the final clock afterward.
     const double boundary = std::max(firstIndex + 1, (hot.tSec + 1) * ticksPerSecond);
     const int ticksToBoundary = static_cast<int>(std::clamp(boundary - firstIndex, 1.0, double(ticksPerSecond)));
-    advance_clock_ticks(state, context, ticksToBoundary - 1);
     hot.simStepIndex = firstIndex + ticksToBoundary;
     hot.tSec = js::floor(hot.simStepIndex / ticksPerSecond);
     update_action_points(hot, hot.tSec);
-    advance_clock_ticks(state, context, 1);
+    const double tickInSeason = update_clocks(hot, seasonTicks);
+    const double seasonCount = hot.seasons.size();
+    if (tickInSeason == 0 && seasonCount > 0) {
+        const double elapsedSeasons = hot.simStepIndex / seasonTicks;
+        hot.currentSeasonIndex = js::remainder(elapsedSeasons, seasonCount);
+        hot.year = 1 + js::floor(elapsedSeasons / seasonCount);
+        context.seasonChanged = true;
+    }
     context.clockBoundary = StageContext::ClockBoundary{lastIndex, ticksPerSecond - ticksToBoundary};
     return true;
 }
 
-void finish_clock_tail(RuntimeState& state, StageContext& context)
+void finish_clock_tail(RuntimeState& state, const StageContext& context)
 {
-    const auto boundary = *context.clockBoundary;
-    state.hot.simStepIndex = boundary.lastStepIndex;
-    advance_clock_ticks(state, context, boundary.remainingTicks);
+    auto& hot = state.hot;
+    hot.simStepIndex = context.clockBoundary->lastStepIndex;
+    update_clocks(hot, season_ticks(hot));
 }
 
 }

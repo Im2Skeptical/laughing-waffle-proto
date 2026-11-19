@@ -28,7 +28,6 @@ export { getElderMortalityRate, resolveProbability } from "./phases/shared.js";
 export { getPrimordialChaosPressure } from "./phases/chaos.js";
 
 export function initializeDetailedSettlementCivilization(state) {
-  state.gameStateSchemaVersion = 52;
   state.civilization.practiceEvents={nextId:1,pending:[],trace:[]};
   state.civilization.candidateDevelopment={scholar:0,warrior:0};
   for (const legacyCounter of [
@@ -70,14 +69,14 @@ export function initializeDetailedSettlementCivilization(state) {
   state.civilization.lastPopulationAgingYear = 1;
 }
 
-export function stepDetailedSettlementsSecond(state, tSec) {
+export function stepDetailedSettlementsSecond(state, tSec, { seasonChanged = false } = {}) {
   if (state?.runStatus?.complete === true) return;
   stepUnrest(state);
   refreshGreenAscendancy(state);
   for (const site of getDetailedSettlementSites(state)) {
     resetEmptyStrangerCohort(site.detailedState);
   }
-  if (state._seasonChanged === true) {
+  if (seasonChanged) {
     runPracticeActivation(state, "season");
     if (state.runStatus?.complete) {
       flushPracticeEvents(state);

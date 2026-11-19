@@ -3,14 +3,14 @@
   "crossLanguageParity": false,
   "n03": "preparatory capture only. This corpus does not implement or complete N03.",
   "issue": "https://github.com/Im2Skeptical/laughing-waffle-proto/issues/96",
-  "baselineCommit": "f0b1b1f720c19a1cbeda558da430a1ff636e6507",
+  "baselineCommit": "2334c1068cf43f0de82fb271dc6c6a188108d5b9",
   "gates": {
     "packageVersion": false,
     "gitHead": false,
     "silentRewrite": false
   },
   "schemasCaptured": {
-    "gameState": 52,
+    "gameState": 53,
     "gameConfig": 31,
     "runnerSaveSourceConstant": 33,
     "runnerSaveIsEqualityGate": false
@@ -34,7 +34,7 @@
       "tSec": 7
     }
   ],
-  "gameConfigSha256": "23c2c0aeeb42c3099b62cf1c2efe722cb34b714151d39eb53700cc354c51cc83",
+  "gameConfigSha256": "a267e14e7c18710b7eedf04331884fdc42b263c00d6df370ee3285b29e83d8c9",
   "numericTreatment": "JSON numbers copied from serializeGameState. No corpus rounding. Object-key order is not significant in the semantic files. Array order is significant. The full-state pin sorts object keys only so its hash is stable; it removes no fields.",
   "ordering": "Regions follow world.regions. Joint cohorts keep the stored joint-array order inside classId sorted A to Z. Practice slots keep slot index, including empty slots. Pending candidates keep pool order. Birth-credit keys and allegiance ids are sorted in the semantic projection only.",
   "covered": [

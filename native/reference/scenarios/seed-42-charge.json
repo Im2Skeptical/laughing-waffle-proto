@@ -3,5 +3,5 @@
   "start": { "kind": "chargeExhibit", "seed": 42 },
   "actions": [],
   "horizonSec": 48,
-  "keepSeconds": [0, 17, 41]
+  "keepSeconds": [0, 16, 40]
 }

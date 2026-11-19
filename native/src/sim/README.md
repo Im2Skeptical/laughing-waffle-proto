@@ -425,17 +425,16 @@ are outside the L0 claim. The adapter performs no RNG draws or time advances.
 
 [`advance_one_second`](step/advance_second.hpp) in `waffle_sim` gates on pause
 and terminal state, advances the clock, and dispatches gameplay at most once.
-AP cap and income use the new second, before the clock addition on the
-dispatch tick. The typed import establishes numeric AP fields. The separate
+AP cap and income use the new second, before deriving the clock fields for
+the dispatch tick. The typed import establishes numeric AP fields. The separate
 AP cycle and named settlement lunar phases follow their respective browser
 schedules. A derived lunar deadline skips phase selection between boundaries.
 
-The gameplay dispatch sees the season latch after the same ordered binary64
-additions as the browser. The default first season change dispatches at second
-9, and the first year wraps at second 33. The latch survives native value
-copies if a step ends between boundaries. Browser export omits it and browser
-import begins with a cleared latch, matching the browser's serialization
-behavior. The lunar deadline is derived again on import.
+The v53 browser and native clocks derive time and the season remainder from
+the tick index. The first season change dispatches at second 8, and the first
+year wraps at second 32. The boundary flag lives in the current dispatch.
+A restored mid-second anchor reaches the same boundary from its tick index.
+The lunar deadline is derived again on import.
 
 The dispatcher invokes [registered stages](step/stages.hpp) in browser probe
 order. Clock, prelude, Spring death baseline, and lunar report headers run
@@ -502,12 +501,12 @@ $fixture = "native/reference/fixtures/stages/seed-1/1"
 
 For a gameplay pair, resolve the named stage's `before` and `after` indices
 through the capture manifest. The CLI imports the state and fills
-`StageContext` with the season latch, legacy board flag (false or absent),
+`StageContext` with the season-boundary flag, legacy board flag (false or absent),
 and pre-phase Chaos when present. Lunar stages use the schedule derived
 from `tSec` and captured settings. The CLI and the second dispatcher share
-`run_stage`. The clock stage ends at dispatch entry with the season latch
-still set when due. The second driver clears it after dispatch and then
-completes any clock ticks left over from a mid-second anchor.
+`run_stage`. The clock stage reports a season change if the dispatch tick is an exact
+season boundary. After dispatch the driver derives any remaining clock
+readings for the tail of a mid-second advance.
 
 The CLI compares canonical GameState hashes and sidecars. It exits 0 when a
 ported stage matches, 1 on a difference with the first path, and 2 on

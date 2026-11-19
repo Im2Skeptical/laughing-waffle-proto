@@ -74,11 +74,12 @@ assert.ok(home(noBone).detailedState.practiceSlots[3].stock>0,'same-batch real H
 const shortage=create('scholar',{synthesisSupply:'blocked'});
 initializeReplayClock(shortage);
 assert.equal(evaluateDetailedPracticeSlot(shortage,home(shortage).regionId,2).supplied,false);
-advance(shortage,12);
+advance(shortage,7);
+assert.equal(evaluateDetailedPracticeSlot(shortage,home(shortage).regionId,2).supplied,false);
+assert.equal(home(shortage).detailedState.practiceSlots[2].stock,0,'the earlier Food phase could not produce');
+advance(shortage,8);
 assert.equal(evaluateDetailedPracticeSlot(shortage,home(shortage).regionId,2).supplied,true);
-assert.equal(home(shortage).detailedState.practiceSlots[2].stock,0,'restored supply waits for the Food trigger');
-advance(shortage,14);
-assert.ok(home(shortage).detailedState.practiceSlots[2].stock>0,'next real Food phase produces and feeds');
+assert.ok(home(shortage).detailedState.practiceSlots[2].stock>0,'the seasonal supply arrives before the coincident Food phase');
 
 // Prove the kill enabler need not be Silver: real Campaign, all-Bronze boards.
 const campaign=create('warrior'),site=home(campaign);

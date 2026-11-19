@@ -182,10 +182,10 @@ std::vector<Candidate> candidates_for(const RuntimeState& state, const Vassal& a
     const bool practiceOnly = stock || (requiredTag.empty() && node.family == "practiceReform");
     const bool structureOnly = requiredTag.empty() && node.family == "publicWorks";
     const auto classId = class_name(actor);
-    const auto legal = [&](const auto& def, std::string_view pool) {
+    const auto legal = [&](const auto& def, std::string_view pool, bool optedIn = false) {
         return (pool == "common" || pool == classId) && !def.locked.value_or(false)
             && std::ranges::find(fullMapSeedCardIds, def.id) == std::end(fullMapSeedCardIds)
-            && (!state.hot.rulesetId || std::ranges::find(fullMapOfferIds, def.id) != std::end(fullMapOfferIds))
+            && (!state.hot.rulesetId || full_map_offer(def.id, optedIn))
             && quality_index(def.minimumQuality) <= maxQuality;
     };
     const auto matches_tag = [&](const auto& def) {
@@ -194,7 +194,7 @@ std::vector<Candidate> candidates_for(const RuntimeState& state, const Vassal& a
     std::vector<Candidate> candidates;
     if (!structureOnly) for (const auto& [id, def] : cards.practices) {
         const auto pool = practice_pool(state, def);
-        if (!legal(def, pool) || (!matches_tag(def) && practice_prototype_tag(state, id) != requiredTag)) continue;
+        if (!legal(def, pool, def.fullMapOffer.value_or(false)) || (!matches_tag(def) && practice_prototype_tag(state, id) != requiredTag)) continue;
         if (stock && node.stockOutput && !produces_stock(def, *node.stockOutput)) continue;
         if (!stock && requiredTag.empty() && node.family == "practiceReform" && !specialty.empty()) {
             const bool matches = specialty == "Food" ? std::ranges::find(def.tags, "Food") != def.tags.end()

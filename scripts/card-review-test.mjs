@@ -385,6 +385,9 @@ assert.equal(JSON.stringify(gameConfig),original,'construction editing leaves au
   const outStored=new Map();
   const outStorage={getItem:key=>outStored.get(key)??null,setItem:(key,value)=>outStored.set(key,value)};
   const outLive=structuredClone(gameConfig.gamepieces);
+  // A synthetic mixed card keeps add/remove-output coverage after the live
+  // Charnel Alchemy redesign removed its incidental Research.
+  outLive.practices.charnelAlchemy.effects.splice(1,0,{op:'research',amount:2});
   const out=createCardReviewController({storage:outStorage,resolveLive:(kind,id)=>outLive[kind==='practice'?'practices':'structures'][id]});
   const draftOf=id=>out.preview(out.get('practice',id)).definition;
   for(const id of ['caravanGuarding','charnelAlchemy','heroicCompany'])out.flag('practice',id,outLive.practices[id]);
@@ -434,10 +437,10 @@ assert.equal(JSON.stringify(gameConfig),original,'construction editing leaves au
   // Zoo: filter by what a card produces, live and with drafts applied.
   const researchers=state=>filterLabCatalogue(getLabCatalogue(state),{category:'practice',produces:'Research'}).map(entry=>entry.id);
   const liveResearch=researchers(createNewGameState(77));
-  assert.equal(liveResearch.length,13);assert.ok(liveResearch.includes('observation')&&liveResearch.includes('surveying')&&liveResearch.includes('charnelAlchemy')&&!liveResearch.includes('caravanGuarding'));
+  assert.equal(liveResearch.length,10);assert.ok(liveResearch.includes('observation')&&liveResearch.includes('anatomicalStudy')&&!liveResearch.includes('surveying')&&!liveResearch.includes('charnelAlchemy')&&!liveResearch.includes('caravanGuarding'));
   const editedResearch=researchers(outGame);
   assert.ok(editedResearch.includes('caravanGuarding')&&!editedResearch.includes('charnelAlchemy'),'Produces follows edited outputs');
-  assert.equal(filterLabCatalogue(getLabCatalogue(outGame),{category:'practice',produces:'Stock'}).length,115);
+  assert.equal(filterLabCatalogue(getLabCatalogue(outGame),{category:'practice',produces:'Stock'}).length,112);
   assert.deepEqual(filterLabCatalogue(getLabCatalogue(outGame),{category:'structure',produces:'Housing'}).length,10);
   // Revert restores the live list and removes the edit.
   out.edit('practice','caravanGuarding',['effects'],outLive.practices.caravanGuarding.effects);

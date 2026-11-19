@@ -21,7 +21,7 @@ function checkStage(label, stage, state, run) {
   const capture = file => writeFileSync(file, JSON.stringify({
     formatVersion: 1,
     state: serializeGameState(state),
-    sidecar: { _seasonChanged: false, _boardDirty: null, chaosBefore: null },
+    sidecar: { seasonChanged: false, _boardDirty: null, chaosBefore: null },
   }));
   capture(before);
   run();

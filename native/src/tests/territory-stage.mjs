@@ -19,7 +19,7 @@ function checkTerminal(reason, arrange) {
   const save = path => writeFileSync(path, JSON.stringify({
     formatVersion: 1,
     state: serializeGameState(state),
-    sidecar: { _seasonChanged: false, _boardDirty: null, chaosBefore: null },
+    sidecar: { seasonChanged: false, _boardDirty: null, chaosBefore: null },
   }));
   save(before);
   resolveControl(state);

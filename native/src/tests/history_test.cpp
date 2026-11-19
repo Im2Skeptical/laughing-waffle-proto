@@ -370,9 +370,12 @@ struct PipelineAllocations {
 bool pipeline_allocations(const char* fixture, const char* topologies, double start, int seconds)
 {
     const auto input = json::parse(waffle::tools::read_file(fixture));
-    const auto mirror = browser::import_game_state(input);
+    auto mirror = browser::import_game_state(input);
     const auto topology = waffle::tools::read_reference_topology(topologies, mirror.world.definitionId);
-    auto state = sim::admit_runtime(mirror, &topology, input.find("gameConfig"));
+    // Keep the late allocation window running for the full measurement.
+    // The browser anchor remains pinned before this test-only setting override.
+    if (start > 0) mirror.gameConfig.settings.values.monsterExpansionThreshold = 1'000'000'000;
+    auto state = sim::admit_runtime(mirror, &topology, start > 0 ? nullptr : input.find("gameConfig"));
     expect(state.hot.tSec == start, "unexpected allocation fixture second");
 
     constexpr int warmup = 512;
@@ -408,7 +411,6 @@ int main(int argc, char** argv)
             benchmark();
         } else if (argc == 5 && std::string_view(argv[1]) == "--pipeline-allocations") {
             const bool opening = pipeline_allocations(argv[2], argv[4], 0, 3200);
-            // End at 5632, before the deterministic Monster Overrun at 5676.
             const bool late = pipeline_allocations(argv[3], argv[4], 3200, 1920);
             return opening && late ? 0 : 1;
         } else {

@@ -1,6 +1,6 @@
 # Current Project Context
 
-Game build version: `1.1.74`.
+Game build version: `1.1.78`.
 The accepted [regional population UX](../docs/regional-population-ux-integration.md)
 uses floating 70% map readouts, visual demographics, Warrior baseline Force and
 carried proportional newborn allegiance. It preserves the degraded starter
@@ -20,7 +20,8 @@ unheld status. Conquest is separate; losing all player holdings remains terminal
 Repelled Monsters gain
 +1 Strength and retain their latest Spawn result for replayable feedback.
 Each player-held region earns one Prestige per full 20 residents per completed
-node, rounded down separately before combining node income. GameState v52 supersedes v51; start fresh for card-authored terrain and multiplier rules.
+node, rounded down separately before combining node income. GameState v53
+supersedes v52. Start fresh for the corrected calendar and uint32 RNG streams.
 This checked marker matches `package.json`; app versions are independent of save
 schemas and isolated art prototype versions. Every PR includes a version bump;
 unintegrated builds show a compact Preview label. Source fingerprints and branch
@@ -54,10 +55,14 @@ Routing skills live in `.grok/skills/`.
   `state.rng.vassalDevelopmentSeed` substream. Generated Life Map topology and
   room families use `state.rng.vassalLifeMapSeed`. Procedural portrait traits
   use `state.rng.vassalPortraitSeed`. Do not let one stream perturb another.
+  The five advancing seeds store unsigned 32-bit integers. `baseSeed` stores
+  the run identity.
 - `GameState` is JSON-only. Runtime RNG helpers are removed for serialization
   and restored on deserialize.
 - `rebuildStateAtSecond(tSec)` is the authoritative deterministic replay path.
 - `tSec` is authoritative time and advances only through simulation ticks.
+  Calendar boundaries use integer ticks. Seasonal Practices dispatch on the
+  boundary second, before that second's moon phase.
 - Definitions are data, model modules own rules, controllers orchestrate, and
   views render or emit input.
 - Every player settlement has exactly five Practice slots. Ordinary starting
@@ -99,7 +104,7 @@ identifiers remain stable; see [the mapping and authoring contract](../docs/cree
 
 Authoritative numbers:
 
-- Game state v52; runner saves v33. Older saves are rejected.
+- Game state v53; runner saves v33. Older GameState snapshots are rejected.
 - Isolated agent test links use transport/view envelopes v1 and a separate v1
   Dev action journal; none change GameState or runner-save schemas. See the
   [local prototype](../docs/agent-test-links-prototype.md).
@@ -164,6 +169,8 @@ Authoritative numbers:
   Optional boolean card-definition `locked` flags default to unlocked and are
   captured through the same review/profile path. They exclude shop offers and
   Stock Supply generation candidates while preserving installed-card behavior.
+  Newly admitted legacy Practices can capture optional fullMapOffer flags so
+  expanding the authored shop pool does not change existing runs.
 - Fresh runs do not migrate obsolete saves or presets.
 
 ## Current prototype setup

@@ -10,7 +10,14 @@ refers to the phone. Keep the computer awake. If the firewall blocks the phone,
 allow Node on the private network.
 
 Ports start at 5184; occupied ports and previews belonging to other checkouts
-are left alone. The server serves code and HTML without caching, so reload after
+are left alone. If the twelve preferred ports are occupied, the launcher asks
+the OS for a free port. `artifacts/local-preview.json` records the checkout's
+selected port for rediscovery; the launcher rechecks its workspace and protocol
+over HTTP before reuse, so a stale record cannot claim another server. Startup
+failures remain nonzero exits; only a child started by that invocation is cleaned
+up when readiness fails. Preview tooling uses bounded, explicitly closed HTTP
+requests to avoid the Node 24 Windows fetch/exit assertion.
+The server serves code and HTML without caching, so reload after
 edits. Runtime artwork uses immutable content URLs; unchanged images are reused
 from this origin's browser cache. It does not automatically reload a running game. The preview identity is
 available at `/__preview__/status`; process output goes to

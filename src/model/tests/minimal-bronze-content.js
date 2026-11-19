@@ -57,7 +57,7 @@ runPracticeActivation(survey.state,'birth');
 assert.equal(survey.local.practiceSlots[0].stock,0);
 runPracticeActivation(survey.state,'migration');
 assert.equal(survey.local.practiceSlots[0].stock,1,'Surveying needs no Tool or Stock provider');
-assert.equal(survey.state.civilization.research.total,research+1,'Migration grants Surveying Research');
+assert.equal(survey.state.civilization.research.total,research,'Surveying produces Record Stock without Research');
 
 const housing=fixture(practiceSlot('logging',2));
 housing.local.structureSlots[0]={structureId:'timberHouse',origin:0,width:1,placementId:'bronze-house',construction:{completedCycles:0}};

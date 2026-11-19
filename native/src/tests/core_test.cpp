@@ -227,7 +227,7 @@ void check_json_and_hashes(const json::Value& vectors)
 struct Stream {
     std::string_view name;
     RngStream stream;
-    double RngState::* field;
+    std::uint32_t RngState::* field;
 };
 
 constexpr std::array streams{
@@ -262,7 +262,7 @@ void check_rng(const json::Value& vectors)
             check_bits(seed_state.seed, values.at(3), label + " initial seed");
         } else {
             expect(stream != streams.end(), "unknown RNG stream " + name);
-            state.*(stream->field) = seed;
+            state.*(stream->field) = js::to_uint32(seed);
         }
         std::size_t draw = 0;
         for (const auto& batch : values.at(4).as_array()) {
@@ -287,12 +287,10 @@ void check_rng(const json::Value& vectors)
 
 void check_rng_counts()
 {
-    constexpr auto increment = double(rng_seed_increment);
-    constexpr std::array seeds{
-        -0x1p63, -1.25, 0.25, 1.0, 0x1p32 - increment, 0x1p53 - increment * 512,
-        0x1p53 - increment * 512 + 1, 0x1p53 - increment * 10, 0x1p53, 0x1p63 - 2048, 0x1p64};
+    constexpr std::array<std::uint32_t, 5> seeds{
+        0, 1, 0u - rng_seed_increment, 1u - rng_seed_increment, UINT32_MAX};
     constexpr std::array probabilities{0.0, 0x1p-33, 0.02, 0.5, 1.0 - 0x1p-40, 1.0};
-    for (const double seed : seeds) {
+    for (const auto seed : seeds) {
         for (const double probability : probabilities) {
             for (const std::uint64_t draws : {0, 1, 512, 513}) {
                 RngState scalar{seed, 1, 2, 3, 4, 5};

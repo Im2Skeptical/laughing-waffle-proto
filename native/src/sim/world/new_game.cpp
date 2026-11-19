@@ -61,19 +61,18 @@ bool has_local_food(const GameState& state, std::string_view id)
 GameState empty_game(std::uint32_t seed, const GameConfig& config, const RegionalWorld& map)
 {
     GameState state;
-    state.gameStateSchemaVersion = 52;
+    state.gameStateSchemaVersion = 53;
     state.seasons = {"spring", "summer", "autumn", "winter"};
     state.year = 1;
     state.seasonDurationSec = config.settings.values.seasonDurationSec;
+    state.seasonTimeRemaining = state.seasonDurationSec;
     state.variantFlags.settlementPrototypeEnabled = true;
     state.gameConfig = config;
     state.world.definitionId = map.definitionId;
     state.nextGameEventFeedId = 1;
     state.skillRuntime.modifiers.global.populationFoodMult = 1;
-    using core::js::to_int32;
-    state.rng = {double(seed), double(seed), double(to_int32(seed ^ 0x56a55a19u)),
-        double(to_int32(seed ^ 0x3d7e10afu)), double(to_int32(seed ^ 0x19a7c4e3u)),
-        double(to_int32(seed ^ 0x2f6e2b1du))};
+    state.rng = {seed, double(seed), seed ^ 0x56a55a19u, seed ^ 0x3d7e10afu,
+        seed ^ 0x19a7c4e3u, seed ^ 0x2f6e2b1du};
 
     auto& civ = state.civilization;
     civ.practiceEvents.nextId = 1;

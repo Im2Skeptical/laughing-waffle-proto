@@ -7,6 +7,7 @@
 #include "sim/settlement/prelude.hpp"
 
 #include <algorithm>
+#include <limits>
 
 namespace waffle::sim::stages {
 namespace {
@@ -37,11 +38,18 @@ double primordial_pressure(const RuntimeState& state)
 {
     const auto& settings = state.content->config.settings.values;
     const auto base = std::max(0.0, settings.primordialBasePressure);
+    if (base == 0) return 0;
     const auto growth = std::max(1.0, settings.primordialGrowthFactor);
     const auto cadence = std::max(1.0, js::floor(settings.primordialGrowthCadenceYears));
     const auto elapsed = std::max(0.0, js::floor(state.hot.year) - 1);
     const auto steps = js::floor(elapsed / cadence);
-    return round_chaos(base * js::pow(growth, steps));
+    auto pressure = base * js::pow(growth, steps);
+    if (pressure == std::numeric_limits<double>::infinity() && base < 1) {
+        const auto halfSteps = js::floor(steps / 2);
+        pressure = (base * js::pow(growth, halfSteps)) * js::pow(growth, steps - halfSteps);
+    }
+    constexpr double maxPrimordialPressure = 1'000'000'000;
+    return round_chaos(std::min(maxPrimordialPressure, pressure));
 }
 
 void account_chaos(RuntimeState& state, const std::array<double, 4>& population)
@@ -66,8 +74,6 @@ void account_chaos(RuntimeState& state, const std::array<double, 4>& population)
         + population[3] / settings.diamondChaosResistancePopulation;
     const auto populationResistance = faithResistance * settings.populationChaosResistanceMultiplier;
     const auto resistance = round_chaos(populationResistance + civilization.phaseModifiers.faithResistance);
-    // An overflow remains Infinity in live play. After a browser save and
-    // restore its null balance instead contributes zero to the next addition.
     chaos.chaosPower = round_chaos(chaos.chaosPower.value_or(0) + income);
     const auto roundedIncome = round_chaos(income);
     chaos.lastMoonIncome = ChaosLastMoonIncome{

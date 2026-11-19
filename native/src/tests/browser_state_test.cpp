@@ -82,6 +82,17 @@ void controls(const fs::path& path, bool throughRuntime)
     changed.set("paused", Value());
     rejected(changed, "$.paused", "not nullable");
 
+    changed = original;
+    changed.set("gameStateSchemaVersion", Value(52.0));
+    rejected(changed, "$.gameStateSchemaVersion", "Version53");
+    changed = original;
+    for (const double seed : {-1.0, 4294967296.0}) {
+        auto rng = *original.find("rng");
+        rng.set("vassalDevelopmentSeed", Value(seed));
+        changed.set("rng", std::move(rng));
+        rejected(changed, "$.rng.vassalDevelopmentSeed", "expected uint32");
+    }
+
     auto fields = original.as_object();
     // Required even though the field's value is nullable.
     std::erase_if(fields, [](const auto& prop) { return prop.key == "apCapOverride"; });

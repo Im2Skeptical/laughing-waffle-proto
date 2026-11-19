@@ -178,9 +178,10 @@ Scenario load(const Value& source, Id scale)
     world.phase_duration = std::max(Id{1}, units(settings, "phaseDurationSec", 1));
     world.people_per_worker = std::max(Id{1}, units(settings, "populationPerToken"));
     const auto& rng = field(source, "rng");
-    state.clock = {{field(rng, "seed").as_number(), field(rng, "baseSeed").as_number(),
-        field(rng, "vassalSeed").as_number(), field(rng, "vassalDevelopmentSeed").as_number(),
-        field(rng, "vassalLifeMapSeed").as_number(), field(rng, "vassalPortraitSeed").as_number()},
+    const auto seed_word = [&](const char* key) { return core::js::to_uint32(field(rng, key).as_number()); };
+    state.clock = {{seed_word("seed"), field(rng, "baseSeed").as_number(),
+        seed_word("vassalSeed"), seed_word("vassalDevelopmentSeed"),
+        seed_word("vassalLifeMapSeed"), seed_word("vassalPortraitSeed")},
         field(source, "seasonClockSec").as_number(), field(source, "simTime").as_number(), units(source, "tSec"),
         units(source, "currentSeasonIndex"), units(source, "year")};
 

@@ -681,7 +681,6 @@ std::uint64_t state_digest(const RuntimeState& state)
 {
     std::uint64_t hash = UINT64_C(0x6a09e667f3bcc909);
     Digest digest{{state}, hash};
-    digest.add(state.seasonChanged);
     digest.add(state.hot);
     return hash ^ (hash >> 32);
 }

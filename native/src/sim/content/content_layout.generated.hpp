@@ -849,6 +849,7 @@ template<> struct Record<PracticeDefinition> {
         field("locked", &PracticeDefinition::locked);
         field("externalAction", &PracticeDefinition::externalAction);
         field("cadenceMoons", &PracticeDefinition::cadenceMoons);
+        field("fullMapOffer", &PracticeDefinition::fullMapOffer);
         field("scholarRequired", &PracticeDefinition::scholarRequired);
         field("specialistRequired", &PracticeDefinition::specialistRequired);
         field("supportMultiplier", &PracticeDefinition::supportMultiplier);

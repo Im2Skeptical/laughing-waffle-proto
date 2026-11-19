@@ -124,7 +124,7 @@ for (const seed of [0, 42, -100.875, 4294967295, 2 ** 53 - 10, 2 ** 65, NaN, Inf
       if (stream === "standalone") {
         generator = createRng(seed);
       } else {
-        state.rng[stream] = seed;
+        state.rng[stream] = seed >>> 0;
         attachRngHelpers(state);
         generator = state;
       }
@@ -137,7 +137,7 @@ for (const seed of [0, 42, -100.875, 4294967295, 2 ** 53 - 10, 2 ** 65, NaN, Inf
         }
         batches.push([sha256Text(output), stream === "standalone" ? null : JSON.stringify(state.rng)]);
       }
-      rng.push([stream, helper, floatHex(seed), floatHex(Number.isFinite(seed) ? Math.floor(seed) : 0), batches]);
+      rng.push([stream, helper, floatHex(seed), floatHex(Math.floor(seed) >>> 0), batches]);
     }
   }
 }

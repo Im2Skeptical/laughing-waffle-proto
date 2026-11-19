@@ -2412,6 +2412,185 @@ foreach ($seed in $starts.Keys) {
 }
 ```
 
+## N03h - v53 catch-up
+
+Windows verification is complete on `t3/native-v53-catch-up`, started at
+`5f24e617`. The browser oracle moves from `496d9971` to `2334c106`
+(v1.1.78). GameState advances to v53. GameConfig v31 and runner saves v33
+retain their versions. The target predates the restored-ruin Housing fix.
+
+### Browser change inventory
+
+| Path under `src/` | Classification and native disposition |
+| --- | --- |
+| `defs/gamepieces/detailed-settlement-defs.js` | Content. Anatomical Study and Heresiography gain 4 and 5 Research per Discharge. Doomsday Chronicle uses 1 Paper for 3 Research per Birth plus up to 4 from lost settlements, with no workers. All three drop Stock. Surveying, Charnel Alchemy and Monster Hunting lose incidental Research and keep their Stock recipes. Capture the definitions and run them through the existing DSL. |
+| `defs/gamepieces/full-map-defs.js` | Rule. Ordinary offers can opt in through the captured Practice flag. Apply this in both ordinary shops and Life Map Stock Supply eligibility, with map-seeded cards excluded first. |
+| `model/commands/simulation-commands.js` | Rule. Use tick-derived clocks, dispatch the season at its exact boundary, and pass the change to the scheduler synchronously. |
+| `model/detailed-settlements/phases.js` | Rule and schema. Use dispatcher-local season change and the state constructor's schema. Preserve prelude, season, Spring baseline, then lunar ordering. |
+| `model/detailed-settlements/phases/chaos.js` | Rule. Zero base short-circuits, split the power for tiny positive bases when needed, and cap primordial income at one billion before rounding. |
+| `model/game-config.js` | Schema and content. Validate and compile optional Boolean `fullMapOffer` within v31. Absence from a captured definition confers no additional eligibility. |
+| `model/game-model.js` | Rule plumbing. The caller's frame delta no longer enters the simulation clock. |
+| `model/gamepiece-presentation.js` | View only. Readiness shows the new exact seasonal schedule. |
+| `model/init.js` | Rule. Full season countdown at second zero. |
+| `model/live-second-stage-scheduler.js` | Rule plumbing. Forward the season-boundary flag to settlement stages. |
+| `model/mechanic-readings.js` | View only. Readout describes the existing lost-settlement bonus cap. |
+| `model/rng.js` | Rule. Wrap each advancing stream and standalone seed modulo 2^32. Preserve mix operations and draw order. |
+| `model/state.js` | Schema and rules. Require v53, validate unsigned advancing seeds, preserve finite run identity, initialize the countdown, and remove season scratch from save/restore. |
+| `model/tests/charge-content.js` | Test only. Updated fixed tick calls. |
+| `model/tests/civilization-content.js` | Test only. Chronicle now checks loss-scaled Research and zero Stock. |
+| `model/tests/detailed-settlements/queries.js` | Test only. Corrected the Primordial tuning assertion's description. |
+| `model/tests/detailed-settlements/vassals.js` | Test only. Explicitly passes the season-boundary flag to direct phase calls. |
+| `model/tests/minimal-bronze-content.js` | Test only. Updated schema expectation. |
+| `model/tests/monster-pressure.js` | Test only. Added extreme Primordial cases. |
+| `model/tests/neutral-markets.js` | Test only. Removed the old forced schema. |
+| `model/tests/simulation-clock-rng.js` | Test only. Added unsigned stream, long-run clock and boundary restore controls. |
+| `model/tests/timegraph-performance.js` | Test only. Removed transient latch cleanup. |
+| `model/tests/vassal-life-map/lifecycle.js` | Test only. Updated fixture schema. |
+| `model/tests/world-state.js` | Test only. Updated fixture schema. |
+| `model/timegraph/state-restorer.js` | Rule plumbing. The browser restore cache no longer clears a season latch. Native restore computes the boundary from the tick index. |
+
+#104 only changes the browser Vassal HUD. #100 preview tooling does not
+participate in native simulation. The topology generator source is identical.
+
+### Arithmetic, ordering and replay
+
+- At a tick index `i`, use binary64 `i / 60`, `(i % (60 * duration)) / 60`
+  and `(60 * duration - i % (60 * duration)) / 60` in that order of operations
+  for the three clock readings. A positive integer duration is required,
+  otherwise the tick uses 8 seconds. At a full-second dispatch, AP updates
+  first. With a nonempty season list and zero tick remainder, the ordinal is
+  `i / (60 * duration)`, the index is ordinal modulo season count, and the
+  year is one plus the floored quotient. The first summer begins at second 8.
+  The season recipe sees the new season before Food resolves on that second.
+- Mulberry32 adds `0x6d2b79f5` in uint32 and performs its mix in uint32 before
+  dividing by 2^32. Initialize cursors from the low word of the floored input,
+  or that word XORed with the stream-specific salt. Preserve every draw and the
+  site, cohort, Practice, candidate and offer enumeration order. Probability
+  batches still count the same word comparisons and consume the same draws.
+- Primordial multiplication and split powers use the existing fdlibm path.
+  Apply each multiplication in browser order and cap before five-decimal
+  rounding. The accumulated Chaos balance can exceed one billion.
+- Keep the adapter JSON-only and drop v52. Mid-second restore derives the next
+  boundary from `simStepIndex`. Runtime display and platform layers consume
+  the same read interfaces. Test stages, step, replay, New Game, both compilers,
+  the serial timegraph oracle and the connected smoke.
+
+### Captures and verification
+
+The active v53 schema uses a `uint32` scalar in the generated browser mirror
+and native stepping state. The v52 JSON schema remains an inventory referenced
+by earlier WORKPLAN items. The active codec rejects v52 and out-of-range seeds.
+Captured GameConfig now compiles the optional offer flag. The built-in offer
+table retains the browser's inherent eligible IDs while the run's flag supplies
+opt-ins. Both shop and Life Map output filtering use the captured recipes.
+
+All 54 browser traces were captured in two batches. Then Charge and territory
+were recaptured at their v53 dispatch seconds. The staged exhibits preserve
+same-root Charge and incoming garrison checks at the season seam. A prepared
+32-person migration covers partial and total arrival loss, capped legacy
+mitigation and expiry after commitment, since the ordinary v53 replay at
+that anchor has no large arrival. The late allocation test starts from the
+same hash-checked second 3,200 and raises the expansion threshold only for
+the allocation measurement, to keep all 1,920 advances after the 512-second
+warmup. Native timegraph terminal assertions were re-pinned by the browser
+replay runner to Monster Overrun at second 5,700 and territorial loss at 7,368.
+
+From the repository root, with the tool junction in place:
+
+```powershell
+node native/schema/codegen.mjs
+node native/schema/runtime-codegen.mjs
+node native/src/sim/content/generate.mjs
+node native/reference/export-vassal-tables.mjs
+node native/reference/generate.mjs --write
+node native/src/tests/vectors/generate-core-vectors.mjs
+node native/reference/trace.mjs seed-1 seed-2026-late
+$ids = Get-ChildItem native/reference/scenarios/*.json | ForEach-Object BaseName | Where-Object { $_ -notin 'seed-1','seed-2026-late' }
+node native/reference/trace.mjs @ids
+node native/reference/trace.mjs seed-42-charge seed-1-territory
+node native/reference/stage-probe.mjs
+& artifacts/n03h/refresh-fixtures.ps1
+node native/reference/stage-probe.mjs --all
+node native/reference/export-topology.mjs --check
+node native/reference/export-new-game.mjs --windows
+. native/tools/env.ps1
+$d = 'artifacts/n03h'
+foreach ($preset in 'optimized','optimized-clang') {
+    Push-Location native
+    cmake --preset $preset
+    cmake --build --preset $preset
+    ctest --preset $preset --output-on-failure
+    Pop-Location
+    $exe = "native/build/$preset/src/sim/waffle_parity.exe"
+    node native/reference/step-windows.mjs $exe
+    & "$d/stage-pairs.ps1" $preset
+    node native/reference/replay-windows.mjs $exe
+    node native/reference/new-game-windows.mjs $exe
+    foreach ($shape in 'opening','late') {
+        & $exe timegraph --from "$d/$shape-longevity.json" --seconds 32000 --repeats 1 --samples 0 --expect "$d/$shape-serial.tsv"
+    }
+    & "native/build/$preset/waffle_native_game.exe" --smoke --seed 42
+}
+```
+
+`refresh-fixtures.ps1` copies the files named by `git ls-files
+native/reference/fixtures` from their corresponding trace, window or stage
+directory under `artifacts/native-reference`. The recorded journals and
+rejection inputs remain byte-identical. The state JSON, hash rows and replay
+checkpoints come directly from the browser. The native digest fixtures were
+written by `waffle_parity run --from native/reference/fixtures/seed-1/state-0.json
+--seconds 256|2048 --hashes <output.tsv>`, then checked in both presets.
+The 256-second vector also matched all 257 browser checkpoints in three
+replay modes. The 2,049 digest rows match between compilers and the first
+1,601 browser checkpoints match in three replay modes. Topology checked
+byte-identical across all five fixture seeds.
+
+For the longevity inputs, `node artifacts/n03h/prepare-longevity.mjs` takes
+the seed-1 opening and seed-2026 second-3,200 anchors and sets
+`phaseDurationSec=64` and `monsterExpansionThreshold=1000000000`. For each
+shape the optimized MSVC serial oracle was captured with
+`waffle_parity run --from <shape>-longevity.json --seconds 32000 --hashes
+<shape>-long-states.tsv --timegraph-hashes <shape>-serial.tsv`.
+Both presets matched 32,001 summaries and 501 anchors on each shape.
+
+Each preset passed 45/45 CTests, 30 unmasked step windows with 153 comparisons,
+all 823 pairs across 18 stages, 242 checkpoints from 33 replay journals in
+three replay modes, 55 rejections, 5 exact New Game starts and 92 comparisons
+in 10 native-start windows. The seed-42 connected smoke completed five actions
+and exercised scrubbing and live return in each preset. Eleven additional
+browser stage pairs matched on each compiler for saturated and split-power
+Primordial, and Chronicle's zero-Stock Research, Paper cost and loss cap.
+`npm run verify` passed.
+
+### Pipeline timing
+
+The pass-three runner measured optimized MSVC on the i9-10900K, logical CPU
+15, with execution-speed throttling disabled. `python artifacts/n03h/time.py`
+ran five alternating before/after pairs per window. Each invocation of
+`waffle_parity step --time --report` checked the matching browser window
+with zero masks, then timed 256 resets, making 9,984 opening advances or
+2,816 late advances. Pipeline medians use the unobserved pass.
+
+| Window | v52 µs/sim-s | v53 µs/sim-s | Change |
+| --- | ---: | ---: | ---: |
+| Seed 1 opening, seconds 1–39 | 15.762 | 15.724 | −0.24% |
+| Seed 2026 late anchor, seconds 3,201–3,211 | 20.707 | 18.072 | −12.73% |
+
+The separate observed pass put clock cost at 0.131 → 0.096 µs/sim-s
+opening and 0.151 → 0.106 late. Late seasonal work fell from 1.580
+to 0.380 because the corrected calendar had already dispatched Spring
+at the anchor and only Summer was inside this window. Food fell from
+4.564 to 3.561. Late Death, phase drain, Migration Practices and Faith
+rose by 0.340, 0.520, 0.118 and 0.019 µs/sim-s respectively. The two
+browser baselines generate different late populations and event queues,
+so those deltas measure the behavior change and its resulting workload
+together. They do not isolate the cost of individual rule operations.
+Raw observations and medians are in `artifacts/n03h/`.
+
+No new browser defects were reproduced. The existing restored-ruin
+Housing issue is outside this baseline. No intentional divergence was
+introduced or proposed. The implementation is ready for supervisor review.
+
 ## N04 - Connected playable slice (pending N02 and N03)
 
 This includes the native forecast/timegraph: worker threads, anchors, restore,

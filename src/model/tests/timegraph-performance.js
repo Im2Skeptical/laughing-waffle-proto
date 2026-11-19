@@ -177,7 +177,6 @@ for (let t = 0; t <= 128; t++) {
     assert.equal(JSON.stringify(serializeGameState(hit)), JSON.stringify(serializeGameState(fresh)), `replay cache hit at ${t} is bit-identical`);
     assert.deepEqual(Object.keys(hit), Object.keys(fresh), `replay cache hit at ${t} keeps runtime fields and order`);
     assert.equal(hit._boardDirty, fresh._boardDirty);
-    assert.equal(hit._seasonChanged, fresh._seasonChanged);
     assert.equal(hit.rngNextFloat(), fresh.rngNextFloat(), "cached RNG helpers bind to the returned state");
     hit.rng.seed = 1;
     hit.world.sites[0].detailedState.practiceSlots[0].stock = -100;

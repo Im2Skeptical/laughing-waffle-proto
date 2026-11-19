@@ -9,7 +9,7 @@
 namespace waffle::core {
 namespace {
 
-double& stream_seed(RngState& state, RngStream stream)
+std::uint32_t& stream_seed(RngState& state, RngStream stream)
 {
     switch (stream) {
     case RngStream::main: return state.seed;
@@ -21,7 +21,7 @@ double& stream_seed(RngState& state, RngStream stream)
     throw std::invalid_argument("invalid RNG stream");
 }
 
-double next_int(double& seed, double min, double max) noexcept
+double next_int(std::uint32_t& seed, double min, double max) noexcept
 {
     const double a = js::ceil(min);
     const double b = js::floor(max);
@@ -42,27 +42,19 @@ double rng_next_int(RngState& state, double min, double max, RngStream stream)
 
 std::uint64_t rng_count_below(RngState& state, std::uint64_t draws, double probability) noexcept
 {
-    if (draws == 0) return 0;
-    const double seed = state.seed;
-    const auto advanced = seed + static_cast<double>(draws) * rng_seed_increment;
+    const auto start = state.seed;
+    state.seed += static_cast<std::uint32_t>(draws) * rng_seed_increment;
+    const double bounded = probability > 0 ? std::min(probability, 1.0) : 0;
+    const auto threshold = static_cast<std::uint64_t>(std::ceil(bounded * 0x1p32));
+    if (threshold == 0) return 0;
+    if (threshold == 0x100000000ULL) return draws;
+
+    auto word = start;
     std::uint64_t successes = 0;
-    if (seed >= 0 && advanced < 0x1p53 && seed == std::trunc(seed)) {
-        // Every Number addition in this interval is exact. Keep the low word
-        // in a register while mixing each draw in browser order.
-        const double bounded = probability > 0 ? std::min(probability, 1.0) : 0;
-        const auto threshold = static_cast<std::uint64_t>(std::ceil(bounded * 0x1p32));
-        state.seed = advanced;
-        if (threshold == 0) return 0;
-        if (threshold == 0x100000000ULL) return draws;
-        auto word = static_cast<std::uint32_t>(static_cast<std::int64_t>(seed));
-        for (std::uint64_t i = 0; i < draws; ++i) {
-            word += rng_seed_increment;
-            successes += rng_mix_word(word) < static_cast<std::uint32_t>(threshold);
-        }
-        return successes;
+    for (std::uint64_t i = 0; i < draws; ++i) {
+        word += rng_seed_increment;
+        successes += rng_mix_word(word) < static_cast<std::uint32_t>(threshold);
     }
-    for (std::uint64_t i = 0; i < draws; ++i)
-        successes += rng_next_float(state) < probability;
     return successes;
 }
 
@@ -70,18 +62,18 @@ json::Value serialize_rng(const RngState& state)
 {
     using json::Value;
     return Value(Value::Object{
-        {"seed", Value(state.seed)},
+        {"seed", Value(double(state.seed))},
         {"baseSeed", Value(state.baseSeed)},
-        {"vassalSeed", Value(state.vassalSeed)},
-        {"vassalDevelopmentSeed", Value(state.vassalDevelopmentSeed)},
-        {"vassalLifeMapSeed", Value(state.vassalLifeMapSeed)},
-        {"vassalPortraitSeed", Value(state.vassalPortraitSeed)},
+        {"vassalSeed", Value(double(state.vassalSeed))},
+        {"vassalDevelopmentSeed", Value(double(state.vassalDevelopmentSeed))},
+        {"vassalLifeMapSeed", Value(double(state.vassalLifeMapSeed))},
+        {"vassalPortraitSeed", Value(double(state.vassalPortraitSeed))},
     });
 }
 
 SeedRng create_rng(double seed) noexcept
 {
-    return {std::isfinite(seed) ? js::floor(seed) : 0.0};
+    return {js::to_uint32(js::floor(seed))};
 }
 
 double rng_next_float(SeedRng& state) noexcept

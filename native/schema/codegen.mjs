@@ -8,7 +8,7 @@ const output = new URL("../src/sim/browser/generated/", import.meta.url);
 const schemaDir = new URL("./", import.meta.url);
 const scalarTypes = new Map([
   ["boolean", "bool"], ["number", "double"], ["integer", "double"],
-  ["string", "std::string"], ["json", "core::json::Value"],
+  ["uint32", "std::uint32_t"], ["string", "std::string"], ["json", "core::json::Value"],
 ]);
 function requireUnique(names, context) {
   if (new Set(names).size !== names.length) throw Error(context + ": colliding C++ identifiers");
@@ -259,7 +259,7 @@ function generate(schema, banner) {
     banner, "#pragma once", "",
     '#include "core/json.hpp"',
     '#include "sim/browser/types.hpp"', "",
-    "#include <array>", "#include <tuple>", "#include <variant>", "",
+    "#include <array>", "#include <cstdint>", "#include <tuple>", "#include <variant>", "",
     "namespace waffle::sim::browser {", "",
     ...types.map(([ref, shape]) => declaration(ref, shape) + "\n"),
     "// Throws std::invalid_argument with a JSON path if the value fails the schema.",

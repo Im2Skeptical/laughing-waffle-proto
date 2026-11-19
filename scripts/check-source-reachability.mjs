@@ -14,6 +14,7 @@ const SUPPORTED_ENTRY_POINTS = Object.freeze([
   { path: "src/model/tests/map-lab-draft.js", platform: "node" },
   { path: "src/model/tests/detailed-replay.js", platform: "node" },
   { path: "src/model/tests/engine-invariants.js", platform: "node" },
+  { path: "src/model/tests/simulation-clock-rng.js", platform: "node" },
 ]);
 
 async function listJavaScriptFiles(directory) {

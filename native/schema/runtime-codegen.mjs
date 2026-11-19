@@ -36,7 +36,7 @@ const hotPools = new Set(["Index<StructureCell>"]);
 const coldPools = new Map();
 const historyPools = new Map();
 const historyPayloadPools = new Set();
-const scalars = { boolean: "bool", number: "double", integer: "double", string: "std::string", json: "core::json::Value" };
+const scalars = { boolean: "bool", number: "double", integer: "double", uint32: "std::uint32_t", string: "std::string", json: "core::json::Value" };
 const splitColumns = new Map([
   ["stock", { type: "std::optional<double>", column: "practiceStock" }],
   ["charge", { type: "double", column: "practiceCharge" }],

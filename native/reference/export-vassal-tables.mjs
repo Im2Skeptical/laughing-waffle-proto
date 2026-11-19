@@ -23,7 +23,7 @@ const signatures = array('SignatureDef', 'signatureDefs', Object.values(VASSAL_S
 ]));
 const fullMapOffers = array('std::string_view', 'fullMapOfferIds',
   [...Object.values(detailedSettlementPracticeDefs), ...Object.values(settlementStructureDefs)]
-    .filter(isFullMapOfferDefinition).map(def => [def.id]));
+    .filter(def => isFullMapOfferDefinition({ ...def, fullMapOffer: false })).map(def => [def.id]));
 const seedCards = array('std::string_view', 'fullMapSeedCardIds', FULL_MAP_SEED_CARD_IDS.map(id => [id]));
 const commissions = array('CommissionDef', 'commissionDefs', VASSAL_COMMISSION_DEFS.map(def => [
   def.id, def.difficulty, def.label, def.description, def.event, def.parameter ?? '', def.minimumQuality ?? '',

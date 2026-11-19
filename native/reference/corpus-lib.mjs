@@ -26,7 +26,7 @@ import {
 } from "../../src/model/timeline/index.js";
 import { getVassalCandidatePool } from "../../src/model/vassal-life-map.js";
 
-export const BASELINE_COMMIT = "f0b1b1f720c19a1cbeda558da430a1ff636e6507";
+export const BASELINE_COMMIT = JSON.parse(readFileSync(new URL("./BASELINE", import.meta.url), "utf8")).browserCommit;
 export const SEEDS = Object.freeze([1, 42, 1867]);
 export const CHECKPOINTS = Object.freeze([
   Object.freeze({ id: "initial", tSec: 0 }),

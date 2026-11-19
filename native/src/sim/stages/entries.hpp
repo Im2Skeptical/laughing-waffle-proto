@@ -24,6 +24,6 @@ bool phase_events_and_drain(RuntimeState&, StageContext&);
 bool vassal_check(RuntimeState&, StageContext&);
 bool final_flush(RuntimeState&, StageContext&);
 
-void finish_clock_tail(RuntimeState& state, StageContext& context);
+void finish_clock_tail(RuntimeState& state, const StageContext& context);
 
 }

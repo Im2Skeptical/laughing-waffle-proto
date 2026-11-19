@@ -236,7 +236,8 @@ void terminal(const char* path)
                forecast.stateAtSecond(id, terminalSecond + 1).get().status == graph::RestoreStatus::unavailable,
                "restore crossed terminal second");
     };
-    verify(state, 4890, browser::RunEndReason::monsterOverrun);
+    // Browser v53 replay of the checked seed-1 fixture.
+    verify(state, 5700, browser::RunEndReason::monsterOverrun);
 
     auto input = waffle::core::json::parse(tools::read_file(path));
     auto config = *input.find("gameConfig");
@@ -247,7 +248,7 @@ void terminal(const char* path)
     config.set("settings", std::move(settings));
     input.set("gameConfig", std::move(config));
     verify(sim::admit_runtime(browser::import_game_state(input), nullptr, input.find("gameConfig")),
-           6516, browser::RunEndReason::territorialLoss);
+           7368, browser::RunEndReason::territorialLoss);
     std::cout << "Verified Monster Overrun and territorial loss horizons\n";
 }
 

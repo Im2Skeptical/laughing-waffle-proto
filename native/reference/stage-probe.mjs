@@ -1,6 +1,7 @@
 import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
+import { cmdTickSimulation } from "../../src/model/commands/simulation-commands.js";
 import { updateGame } from "../../src/model/game-model.js";
 import { getMoonPhaseAtSecond } from "../../src/model/moon-phases.js";
 import { DEFAULT_REPLAY_DT_STEP, TICKS_PER_REPLAY_SECOND } from "../../src/model/replay-second-runner.js";
@@ -34,7 +35,7 @@ const clockFixture = ["before-advance_clock.json", "after-advance_clock.json"];
 const tickCount = TICKS_PER_REPLAY_SECOND;
 const dt = DEFAULT_REPLAY_DT_STEP;
 
-const chargeCascadeSeconds = [17, 41];
+const chargeCascadeSeconds = [16, 40];
 const suite = {
   // Faith samples cover all six tier shifts, entry/re-entry into collapse,
   // ongoing collapse, a Resistance crossing and accrued Unrest income.
@@ -42,7 +43,7 @@ const suite = {
     82, 97, 184, 202, 220, 226, 292, 298, 310, 388, 400, 406, 412, 802, 880, 1595, 1596, 1597,
     1598, 1599, 1600],
   "seed-1-migration": [1715, 1716],
-  "seed-1-food-contention": [2, 17],
+  "seed-1-food-contention": [2, 16],
   "seed-1-housing": [3, 4, 5, 7, 9, 10],
   "seed-1867": [58, 61, 76, 79, 82, 85],
   "seed-42-shops": [7, 12, 13, 52, 70, 71, 76, 80, 81, 82, 84, 85, 88, 132],
@@ -51,7 +52,7 @@ const suite = {
   // Both Charge Birth boundaries have no newborns. At Migration 2041 a child matures.
   "seed-42-charge": [1, 19, ...chargeCascadeSeconds].sort((a, b) => a - b),
   "seed-123-migration": [2033, 2034, 2039, 2041, 2123, 2124, 2129, 2130, 2675, 2676],
-  "seed-1-territory": [6, 9, 17],
+  "seed-1-territory": [6, 8, 16],
   ...Object.fromEntries(vassalResolutionKinds.map(kind => ["seed-1-vassal-" + kind,
     kind.startsWith("commission-") || kind === "scholar-founding" ? [1, 2] : [kind === "delve" ? 2 : 1]])),
 };
@@ -60,12 +61,12 @@ function requireThat(condition, message) {
   if (!condition) throw new Error(message);
 }
 
-function snapshot(state, chaosBefore, label) {
+function snapshot(state, chaosBefore, label, seasonChanged = false) {
   const journal = state.civilization.practiceEvents;
   requireThat(!Object.hasOwn(journal, "activeRoot") && !Object.hasOwn(journal, "activeEvent"),
     label + ": boundary intersects an active Practice root");
-  const { _seasonChanged, _boardDirty, ...body } = state;
-  const sidecar = { _seasonChanged: _seasonChanged === true, _boardDirty: _boardDirty ?? null, chaosBefore };
+  const { _boardDirty, ...body } = state;
+  const sidecar = { seasonChanged, _boardDirty: _boardDirty ?? null, chaosBefore };
   const serialized = serializeGameState(state);
   // Phase is derived from pause and RNG functions disappear in JSON. Reject
   // any other state lost or rewritten by the save codec at a probe boundary.
@@ -85,28 +86,22 @@ function advanceClock(state) {
   // before observing the boundary or running a settlement function.
   const flags = state.variantFlags;
   const enabled = flags.settlementPrototypeEnabled;
-  // The boundary tick clears the latch after dispatch even when disabled.
-  // At entry to dispatch the latch is the previous latch OR a new rollover.
-  const hadSeasonChange = state._seasonChanged === true;
-  const seasonIndex = state.currentSeasonIndex;
-  const year = state.year;
   try {
     flags.settlementPrototypeEnabled = false;
-    updateGame(dt, state);
+    return cmdTickSimulation(state).advancedSeason === true;
   } finally {
     flags.settlementPrototypeEnabled = enabled;
   }
-  state._seasonChanged = hadSeasonChange || state.currentSeasonIndex !== seasonIndex || state.year !== year;
 }
 
-function dispatchSettlements(state, run) {
+function dispatchSettlements(state, run, seasonChanged) {
   if (state.variantFlags.settlementPrototypeEnabled !== true || state.runStatus?.complete === true) return;
   run("prelude", () => {
     stepUnrest(state);
     refreshGreenAscendancy(state);
     for (const site of getDetailedSettlementSites(state)) resetEmptyStrangerCohort(site.detailedState);
   });
-  if (state._seasonChanged === true) {
+  if (seasonChanged) {
     run("seasonal_practices", () => runPracticeActivation(state, "season"));
     if (state.runStatus?.complete) {
       run("final_flush", () => flushPracticeEvents(state));
@@ -191,7 +186,6 @@ function captureSecond(id, baseline, live, sec, actions, hashes) {
   const start = snapshot(live, null, label + " start");
   const state = start.state;
   attachRngHelpers(state);
-  state._seasonChanged = start.sidecar._seasonChanged;
   if (start.sidecar._boardDirty !== null) state._boardDirty = start.sidecar._boardDirty;
 
   const files = new Map();
@@ -199,8 +193,9 @@ function captureSecond(id, baseline, live, sec, actions, hashes) {
   const boundaries = [];
   const stages = [];
   let tick = 0;
+  let seasonChanged = false;
   function boundary(name, chaosBefore = null) {
-    const data = snapshot(state, chaosBefore, label + " " + name);
+    const data = snapshot(state, chaosBefore, label + " " + name, seasonChanged);
     const serialized = JSON.stringify(data);
     if (seen.has(serialized)) return seen.get(serialized);
     const file = name + ".json";
@@ -219,18 +214,27 @@ function captureSecond(id, baseline, live, sec, actions, hashes) {
       checkVassalExhibit(state, id.slice("seed-1-vassal-".length));
     if (id === "seed-1-housing" && name === "housing") checkHousingExhibit(state);
     if (id === "seed-1-housing" && sec === 4 && name === "faith") checkHousingFaithExhibit(state);
+    // Food on the same second can evict the seasonal events from the bounded journal.
+    if (id === "seed-1-territory" && sec === 8 && name === "seasonal_practices") {
+      const { trace } = state.civilization.practiceEvents;
+      const spawn = trace.find(event => event.kind === "monsterSpawn" && event.tSec === sec);
+      requireThat(spawn?.cause === "direct" && spawn.outcome === "intercepted" &&
+        trace.some(event => event.kind === "discharged" && event.rootId === spawn.rootId &&
+          event.targetPracticeId === "smelting"),
+        label + ": need immediate Spawn, incoming garrison defense and a reaction in the original root");
+    }
     tick = tickCount;
     const after = boundary("after-" + name, chaosBefore);
     stages.push({ name, firstTick, lastTick: tick, before, after });
   }
 
-  run("advance_clock", () => advanceClock(state));
+  run("advance_clock", () => { seasonChanged = advanceClock(state); });
   requireThat(state.tSec === sec && state.simStepIndex === sec * tickCount,
     label + ": expected the 60th tick to dispatch the second");
-  dispatchSettlements(state, run);
+  dispatchSettlements(state, run, seasonChanged);
   if (id === "seed-1-food-contention" && sec === 2) checkFoodContention(state);
-  if (id === "seed-1-food-contention" && sec === 17) checkSeasonalFoodBoost(state);
-  state._seasonChanged = false;
+  if (id === "seed-1-food-contention" && sec === 16) checkSeasonalFoodBoost(state);
+  seasonChanged = false;
   const end = boundary("second-end");
   const cascades = dischargeCascades(state);
   if (id === "seed-42-charge" && chargeCascadeSeconds.includes(sec)) {
@@ -247,15 +251,7 @@ function captureSecond(id, baseline, live, sec, actions, hashes) {
       vassal.locationRegionId !== "R08" && vassal.lifeEvents.at(-1).kind === "evacuation",
       label + ": need a peaceful claim, town ruin and Vassal diversion from threshold Spawn");
   }
-  if (id === "seed-1-territory" && sec === 9) {
-    const { trace } = state.civilization.practiceEvents;
-    const spawn = trace.find(event => event.kind === "monsterSpawn" && event.tSec === sec);
-    requireThat(spawn?.cause === "direct" && spawn.outcome === "intercepted" &&
-      trace.some(event => event.kind === "discharged" && event.rootId === spawn.rootId &&
-        event.targetPracticeId === "smelting"),
-      label + ": need immediate Spawn, incoming garrison defense and a reaction in the original root");
-  }
-  if (id === "seed-1-territory" && sec === 17) {
+  if (id === "seed-1-territory" && sec === 16) {
     const { history, practiceEvents } = state.civilization;
     requireThat(history.monsterTrophies === 1 &&
       practiceEvents.trace.some(event => event.kind === "monsterDestroyed" && event.tSec === sec) &&
@@ -271,8 +267,8 @@ function captureSecond(id, baseline, live, sec, actions, hashes) {
   const officialHash = sha256Value(expected);
   const orchestratedHash = boundaries[end].stateHash;
   assertHash(id, "stage probe vs. official tick", sec, expected, serializeGameState(state), officialHash);
-  requireThat(live._seasonChanged === state._seasonChanged && live._boardDirty === state._boardDirty,
-    label + ": final runtime latches differ from the official tick");
+  requireThat(live._boardDirty === state._boardDirty,
+    label + ": final board flag differs from the official tick");
   applyActions(live, actions, sec, label + " official");
   applyActions(state, actions, sec, label + " staged");
   const expectedWithActions = serializeGameState(live);

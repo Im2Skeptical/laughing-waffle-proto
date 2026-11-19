@@ -1,0 +1,3840 @@
+{
+  "schemaVersion": 53,
+  "root": "GameState",
+  "types": {
+    "GameState": {
+      "kind": "record",
+      "fields": {
+        "gameStateSchemaVersion": { "type": "Version53", "optional": false, "nullable": false },
+        "phase": { "type": "Phase", "optional": false, "nullable": false },
+        "turn": { "type": "integer", "optional": false, "nullable": false },
+        "seasons": { "type": "StringArray", "optional": false, "nullable": false },
+        "currentSeasonIndex": { "type": "integer", "optional": false, "nullable": false },
+        "year": { "type": "integer", "optional": false, "nullable": false },
+        "simStepIndex": { "type": "integer", "optional": false, "nullable": false },
+        "tSec": { "type": "integer", "optional": false, "nullable": false },
+        "seasonTimeRemaining": { "type": "number", "optional": false, "nullable": false },
+        "seasonDurationSec": { "type": "number", "optional": false, "nullable": false },
+        "simTime": { "type": "number", "optional": false, "nullable": false },
+        "seasonClockSec": { "type": "number", "optional": false, "nullable": false },
+        "paused": { "type": "boolean", "optional": false, "nullable": false },
+        "actionPoints": { "type": "integer", "optional": false, "nullable": false },
+        "actionPointCap": { "type": "integer", "optional": false, "nullable": false },
+        "apCapOverride": { "type": "ApCapOverride", "optional": false, "nullable": true },
+        "variantFlags": { "type": "VariantFlags", "optional": false, "nullable": false },
+        "gameConfig": { "type": "GameConfig", "optional": false, "nullable": false },
+        "world": { "type": "World", "optional": false, "nullable": false },
+        "civilization": { "type": "Civilization", "optional": false, "nullable": false },
+        "gameEventFeed": {
+          "type": "LegacyFeed",
+          "optional": false,
+          "nullable": false,
+          "note": "Always empty in covered live paths. Hypothetical legacy entries beyond the ID are unconfirmed."
+        },
+        "nextGameEventFeedId": { "type": "integer", "optional": false, "nullable": false },
+        "skillProgressionDefs": {
+          "type": "json",
+          "optional": false,
+          "nullable": true,
+          "note": "Opaque legacy scenario payload: init.js:17–21 copies any provided object verbatim; authored starts contain null, legacy editor has no fixed schema here."
+        },
+        "skillRuntime": { "type": "SkillRuntime", "optional": false, "nullable": false },
+        "persistentKnowledge": { "type": "PersistentKnowledge", "optional": false, "nullable": false },
+        "rng": { "type": "RngSeeds", "optional": false, "nullable": false },
+        "rulesetId": {
+          "type": "FullMapRuleset",
+          "optional": true,
+          "nullable": false,
+          "note": "Appended only by the full-map launch path."
+        },
+        "runStatus": { "type": "RunStatus", "optional": true, "nullable": false }
+      },
+      "note": "Serializable output of state.js:408–449 from initialized stock or configured detailed-settlement runs. See README for constructor scope and order."
+    },
+    "ActivationAmounts": {
+      "kind": "record",
+      "fields": {
+        "season": { "type": "number", "optional": true, "nullable": false },
+        "birth": { "type": "number", "optional": true, "nullable": false },
+        "food": { "type": "number", "optional": true, "nullable": false },
+        "housing": { "type": "number", "optional": true, "nullable": false },
+        "faith": { "type": "number", "optional": true, "nullable": false },
+        "migration": { "type": "number", "optional": true, "nullable": false },
+        "death": { "type": "number", "optional": true, "nullable": false },
+        "charge": { "type": "number", "optional": true, "nullable": false },
+        "passive": { "type": "number", "optional": true, "nullable": false },
+        "crisis": { "type": "number", "optional": true, "nullable": false }
+      },
+      "note": "Author-selectable activation fields. Read with the current activation key."
+    },
+    "ActivationConditions": {
+      "kind": "record",
+      "fields": {
+        "death": { "type": "string", "optional": false, "nullable": false }
+      }
+    },
+    "ActiveCommission": {
+      "kind": "record",
+      "fields": {
+        "id": { "type": "string", "optional": false, "nullable": false },
+        "difficulty": { "type": "string", "optional": false, "nullable": false },
+        "label": { "type": "string", "optional": false, "nullable": false },
+        "description": { "type": "string", "optional": false, "nullable": false },
+        "event": { "type": "string", "optional": false, "nullable": false },
+        "prestige": { "type": "number", "optional": false, "nullable": false },
+        "offerId": { "type": "string", "optional": false, "nullable": false },
+        "parameter": { "type": "string", "optional": true, "nullable": false },
+        "tag": { "type": "string", "optional": true, "nullable": false },
+        "statId": { "type": "string", "optional": true, "nullable": false },
+        "statLabel": { "type": "string", "optional": true, "nullable": false },
+        "regionId": { "type": "string", "optional": true, "nullable": false },
+        "locationLabel": { "type": "string", "optional": true, "nullable": false },
+        "minimumQuality": { "type": "string", "optional": true, "nullable": false },
+        "nodeFamily": { "type": "string", "optional": true, "nullable": false },
+        "nodeLabel": { "type": "string", "optional": true, "nullable": false },
+        "amount": { "type": "integer", "optional": true, "nullable": false },
+        "acceptedSec": { "type": "integer", "optional": false, "nullable": false },
+        "progress": { "type": "number", "optional": false, "nullable": false },
+        "startingStat": { "type": "number", "optional": true, "nullable": false }
+      }
+    },
+    "AgeCounts": {
+      "kind": "record",
+      "fields": {
+        "children": { "type": "integer", "optional": false, "nullable": false },
+        "adults": { "type": "integer", "optional": false, "nullable": false },
+        "eldersByAge": { "type": "AgeCountsEldersByAge", "optional": false, "nullable": false }
+      }
+    },
+    "AgeCountsEldersByAge": {
+      "kind": "array",
+      "items": "ElderCohort"
+    },
+    "ApCapOverride": {
+      "kind": "record",
+      "fields": {
+        "enabled": { "type": "boolean", "optional": false, "nullable": false },
+        "cap": { "type": "integer", "optional": false, "nullable": false },
+        "points": { "type": "integer", "optional": false, "nullable": false }
+      }
+    },
+    "BalancePreset": {
+      "kind": "enum",
+      "values": [
+        "free",
+        "cheap",
+        "fair",
+        "expensive",
+        "calculated"
+      ]
+    },
+    "BalanceValue": {
+      "kind": "oneOf",
+      "variants": [
+        "number",
+        "BalancePreset"
+      ]
+    },
+    "BirthByClass": {
+      "kind": "record",
+      "fields": {
+        "villager": { "type": "MoonRegionResultBirthByClassVillager", "optional": false, "nullable": false },
+        "stranger": { "type": "MoonRegionResultBirthByClassStranger", "optional": false, "nullable": false }
+      }
+    },
+    "BookendsFounding": {
+      "kind": "record",
+      "fields": {
+        "enabled": { "type": "boolean", "optional": false, "nullable": false },
+        "depth": { "type": "integer", "optional": false, "nullable": false },
+        "priority": { "type": "integer", "optional": false, "nullable": false }
+      }
+    },
+    "BookendsLegacy": {
+      "kind": "record",
+      "fields": {
+        "enabled": { "type": "boolean", "optional": false, "nullable": false },
+        "depth": { "type": "LegacyDepth", "optional": false, "nullable": false }
+      }
+    },
+    "ByClassStranger": {
+      "kind": "record",
+      "fields": {
+        "demand": { "type": "integer", "optional": false, "nullable": false },
+        "consumed": { "type": "integer", "optional": false, "nullable": false },
+        "ratio": { "type": "number", "optional": false, "nullable": false },
+        "migrants": { "type": "integer", "optional": false, "nullable": false },
+        "previousHappiness": { "type": "string", "optional": true, "nullable": false },
+        "targetHappiness": { "type": "string", "optional": true, "nullable": false }
+      }
+    },
+    "ByClassVillager": {
+      "kind": "record",
+      "fields": {
+        "demand": { "type": "integer", "optional": false, "nullable": false },
+        "consumed": { "type": "integer", "optional": false, "nullable": false },
+        "ratio": { "type": "number", "optional": false, "nullable": false },
+        "migrants": { "type": "integer", "optional": false, "nullable": false },
+        "previousHappiness": { "type": "string", "optional": false, "nullable": false },
+        "targetHappiness": { "type": "string", "optional": false, "nullable": false }
+      }
+    },
+    "CampaignLastResult": {
+      "kind": "record",
+      "fields": {
+        "stage": { "type": "string", "optional": false, "nullable": false },
+        "regionId": { "type": "string", "optional": false, "nullable": false },
+        "roll": { "type": "integer", "optional": false, "nullable": false },
+        "risk": { "type": "integer", "optional": false, "nullable": false },
+        "success": { "type": "boolean", "optional": false, "nullable": false },
+        "text": { "type": "string", "optional": false, "nullable": false }
+      }
+    },
+    "Candidate": {
+      "kind": "record",
+      "fields": {
+        "classId": { "type": "SpecialistClass", "optional": false, "nullable": true },
+        "founderClassId": { "type": "string", "optional": false, "nullable": true },
+        "archetype": { "type": "string", "optional": false, "nullable": false },
+        "candidateId": { "type": "string", "optional": false, "nullable": false },
+        "age": { "type": "integer", "optional": false, "nullable": false },
+        "locationRegionId": { "type": "string", "optional": false, "nullable": false },
+        "originRegionId": { "type": "string", "optional": false, "nullable": false },
+        "prestige": { "type": "number", "optional": false, "nullable": false },
+        "stats": { "type": "VassalStats", "optional": false, "nullable": false },
+        "portrait": { "type": "Portrait", "optional": false, "nullable": false },
+        "signatureNode": { "type": "SignatureNode", "optional": false, "nullable": true }
+      }
+    },
+    "CandidateDevelopment": {
+      "kind": "record",
+      "fields": {
+        "scholar": { "type": "number", "optional": false, "nullable": false },
+        "warrior": { "type": "number", "optional": false, "nullable": false }
+      }
+    },
+    "CardPrice": {
+      "kind": "record",
+      "fields": {
+        "prestige": { "type": "number", "optional": false, "nullable": false },
+        "time": { "type": "number", "optional": false, "nullable": false },
+        "currency": { "type": "integer", "optional": false, "nullable": false }
+      }
+    },
+    "ChaosLastMonsterSpawn": {
+      "kind": "record",
+      "fields": {
+        "tSec": { "type": "integer", "optional": false, "nullable": false },
+        "cause": { "type": "SpawnCause", "optional": false, "nullable": false },
+        "outcome": { "type": "SpawnOutcome", "optional": false, "nullable": false },
+        "sourceRegionId": { "type": "string", "optional": false, "nullable": true },
+        "targetRegionId": { "type": "string", "optional": false, "nullable": true },
+        "strengthBefore": { "type": "number", "optional": false, "nullable": true },
+        "strengthAfter": { "type": "number", "optional": false, "nullable": true }
+      }
+    },
+    "ChaosLastMoonIncome": {
+      "kind": "record",
+      "fields": {
+        "prematureDeaths": { "type": "integer", "optional": false, "nullable": false },
+        "oldAgeDeaths": { "type": "integer", "optional": false, "nullable": false },
+        "externalEmigrants": { "type": "integer", "optional": false, "nullable": false },
+        "primordialPressure": { "type": "number", "optional": false, "nullable": true },
+        "unrestPressure": { "type": "number", "optional": false, "nullable": false },
+        "prematureDeathPressure": { "type": "number", "optional": false, "nullable": false },
+        "prematureDeathMitigation": { "type": "number", "optional": false, "nullable": false },
+        "externalEmigrationPressure": { "type": "number", "optional": false, "nullable": false },
+        "oldAgeDeathPressure": { "type": "number", "optional": false, "nullable": false },
+        "internalMigrationPressure": { "type": "number", "optional": false, "nullable": false },
+        "rawPressure": { "type": "number", "optional": false, "nullable": true },
+        "faithPopulation": { "type": "LastMoonIncomeFaithPopulation", "optional": false, "nullable": false },
+        "resistance": { "type": "number", "optional": false, "nullable": false },
+        "populationResistance": { "type": "number", "optional": false, "nullable": false },
+        "incomingChaos": { "type": "number", "optional": false, "nullable": true },
+        "totalIncome": { "type": "number", "optional": false, "nullable": true },
+        "accumulatedChaos": { "type": "number", "optional": false, "nullable": true },
+        "spawned": { "type": "integer", "optional": false, "nullable": false }
+      }
+    },
+    "ChaosPendingLosses": {
+      "kind": "record",
+      "fields": {
+        "prematureDeaths": { "type": "integer", "optional": false, "nullable": false },
+        "oldAgeDeaths": { "type": "integer", "optional": false, "nullable": false },
+        "externalEmigrants": { "type": "integer", "optional": false, "nullable": false },
+        "internalMigrants": { "type": "integer", "optional": false, "nullable": false },
+        "prematureDeathMitigation": { "type": "number", "optional": true, "nullable": false }
+      }
+    },
+    "ChargeTrigger": {
+      "kind": "record",
+      "fields": {
+        "any": { "type": "TriggerAny", "optional": false, "nullable": false },
+        "anotherPractice": { "type": "boolean", "optional": true, "nullable": false }
+      }
+    },
+    "Civilization": {
+      "kind": "record",
+      "fields": {
+        "capitalRegionId": { "type": "string", "optional": false, "nullable": false },
+        "capitalSiteId": { "type": "string", "optional": false, "nullable": false },
+        "practiceEvents": { "type": "PracticeEventJournal", "optional": false, "nullable": false },
+        "candidateDevelopment": { "type": "CivilizationCandidateDevelopment", "optional": false, "nullable": false },
+        "chaos": { "type": "CivilizationChaos", "optional": false, "nullable": false },
+        "history": { "type": "CivilizationHistory", "optional": false, "nullable": false },
+        "research": { "type": "CivilizationResearch", "optional": false, "nullable": false },
+        "retiredVassals": { "type": "CivilizationRetiredVassals", "optional": false, "nullable": false },
+        "phaseModifiers": { "type": "PhaseModifiers", "optional": false, "nullable": false },
+        "green": { "type": "CivilizationGreen", "optional": false, "nullable": false },
+        "vassalLegacy": { "type": "CivilizationVassalLegacy", "optional": false, "nullable": false },
+        "heirloomVault": { "type": "VaultSlots", "optional": false, "nullable": false },
+        "vassalLineage": { "type": "Lineage", "optional": false, "nullable": false },
+        "currentMoonTurn": { "type": "MoonTurn", "optional": false, "nullable": true },
+        "lastMoonTurn": { "type": "MoonTurn", "optional": false, "nullable": true },
+        "lastPopulationAgingYear": { "type": "integer", "optional": false, "nullable": false },
+        "prestige": { "type": "integer", "optional": true, "nullable": false },
+        "treasury": { "type": "CivilizationTreasury", "optional": true, "nullable": false },
+        "nextPracticeInstanceId": { "type": "integer", "optional": true, "nullable": false },
+        "remnant": { "type": "CivilizationRemnant", "optional": true, "nullable": false }
+      },
+      "note": "phases.js initializes live subsystems. full-map-world.js appends full-map accounts; history and phase reports grow lazily."
+    },
+    "CivilizationCandidateDevelopment": {
+      "kind": "record",
+      "fields": {
+        "scholar": { "type": "integer", "optional": false, "nullable": false },
+        "warrior": { "type": "integer", "optional": false, "nullable": false }
+      }
+    },
+    "CivilizationChaos": {
+      "kind": "record",
+      "fields": {
+        "chaosPower": { "type": "number", "optional": false, "nullable": true },
+        "monsterCount": { "type": "integer", "optional": false, "nullable": false },
+        "spatialSpawns": { "type": "integer", "optional": false, "nullable": false },
+        "monsterPressure": { "type": "number", "optional": false, "nullable": false },
+        "expansionEvents": { "type": "integer", "optional": false, "nullable": false },
+        "lastPressureRegionId": { "type": "string", "optional": false, "nullable": true },
+        "lastMonsterSpawn": { "type": "ChaosLastMonsterSpawn", "optional": false, "nullable": true },
+        "lastMoonIncome": { "type": "ChaosLastMoonIncome", "optional": false, "nullable": true },
+        "pendingLosses": { "type": "ChaosPendingLosses", "optional": false, "nullable": false },
+        "pendingUnrestIncome": { "type": "number", "optional": true, "nullable": false }
+      }
+    },
+    "CivilizationGreen": {
+      "kind": "record",
+      "fields": {
+        "tier": { "type": "integer", "optional": false, "nullable": false }
+      }
+    },
+    "CivilizationHistory": {
+      "kind": "record",
+      "fields": {
+        "lostSettlements": { "type": "integer", "optional": false, "nullable": false },
+        "victories": { "type": "integer", "optional": false, "nullable": false },
+        "raids": { "type": "integer", "optional": false, "nullable": false },
+        "conquests": { "type": "integer", "optional": false, "nullable": false },
+        "monsterTrophies": { "type": "integer", "optional": false, "nullable": false },
+        "trades": { "type": "integer", "optional": true, "nullable": false }
+      }
+    },
+    "CivilizationRemnant": {
+      "kind": "record",
+      "fields": {
+        "capitalRegionId": { "type": "string", "optional": false, "nullable": false },
+        "classId": { "type": "string", "optional": false, "nullable": false },
+        "faction": { "type": "string", "optional": false, "nullable": false }
+      }
+    },
+    "CivilizationResearch": {
+      "kind": "record",
+      "fields": {
+        "total": { "type": "integer", "optional": false, "nullable": false }
+      }
+    },
+    "CivilizationRetiredVassals": {
+      "kind": "array",
+      "items": "CivilizationRetiredVassalsEntry"
+    },
+    "CivilizationRetiredVassalsEntry": {
+      "kind": "record",
+      "fields": {
+        "vassalId": { "type": "string", "optional": false, "nullable": false },
+        "retirementRegionId": { "type": "string", "optional": false, "nullable": false },
+        "classId": { "type": "string", "optional": false, "nullable": true },
+        "completedCommissions": { "type": "integer", "optional": false, "nullable": false },
+        "finalCunning": { "type": "integer", "optional": false, "nullable": false },
+        "finalWisdom": { "type": "integer", "optional": false, "nullable": false },
+        "finalEffectiveness": { "type": "integer", "optional": false, "nullable": false },
+        "finalIntelligence": { "type": "integer", "optional": false, "nullable": false }
+      }
+    },
+    "CivilizationTreasury": {
+      "kind": "record",
+      "fields": {
+        "grossIncome": { "type": "integer", "optional": false, "nullable": false }
+      }
+    },
+    "CivilizationVassalLegacy": {
+      "kind": "record",
+      "fields": {
+        "futureStartingPrestigeBonus": { "type": "integer", "optional": false, "nullable": false },
+        "futureStartingStatBonuses": { "type": "VassalLegacyFutureStartingStatBonuses", "optional": false, "nullable": false }
+      }
+    },
+    "ClassComposition": {
+      "kind": "record",
+      "fields": {
+        "specialists": { "type": "Specialists", "optional": false, "nullable": false },
+        "children": { "type": "integer", "optional": false, "nullable": false },
+        "adults": { "type": "integer", "optional": false, "nullable": false },
+        "eldersByAge": { "type": "AgeCountsEldersByAge", "optional": false, "nullable": false },
+        "joint": { "type": "ClassCompositionJoint", "optional": true, "nullable": false }
+      },
+      "note": "Order differs between base, housing, ledger and clone paths. Preserve original order even for the same set of keys. Observed multiple insertion orders with the same field set."
+    },
+    "ClassCompositionJoint": {
+      "kind": "array",
+      "items": "JointCohort"
+    },
+    "CommissionOffer": {
+      "kind": "record",
+      "fields": {
+        "id": { "type": "string", "optional": false, "nullable": false },
+        "difficulty": { "type": "string", "optional": false, "nullable": false },
+        "label": { "type": "string", "optional": false, "nullable": false },
+        "description": { "type": "string", "optional": false, "nullable": false },
+        "event": { "type": "string", "optional": false, "nullable": false },
+        "prestige": { "type": "number", "optional": false, "nullable": false },
+        "offerId": { "type": "string", "optional": false, "nullable": false },
+        "parameter": { "type": "string", "optional": true, "nullable": false },
+        "tag": { "type": "string", "optional": true, "nullable": false },
+        "statId": { "type": "string", "optional": true, "nullable": false },
+        "statLabel": { "type": "string", "optional": true, "nullable": false },
+        "regionId": { "type": "string", "optional": true, "nullable": false },
+        "locationLabel": { "type": "string", "optional": true, "nullable": false },
+        "minimumQuality": { "type": "string", "optional": true, "nullable": false },
+        "nodeFamily": { "type": "string", "optional": true, "nullable": false },
+        "nodeLabel": { "type": "string", "optional": true, "nullable": false },
+        "amount": { "type": "integer", "optional": true, "nullable": false }
+      }
+    },
+    "Connection": {
+      "kind": "record",
+      "fields": {
+        "regionAId": { "type": "string", "optional": false, "nullable": false },
+        "regionBId": { "type": "string", "optional": false, "nullable": false }
+      }
+    },
+    "ConstructionActivation": {
+      "kind": "record",
+      "fields": {
+        "type": { "type": "string", "optional": false, "nullable": false }
+      }
+    },
+    "ConstructionConsume": {
+      "kind": "array",
+      "items": "StockInput"
+    },
+    "ControlUnrest": {
+      "kind": "record",
+      "fields": {
+        "startedSec": { "type": "integer", "optional": false, "nullable": false },
+        "untilSec": { "type": "number", "optional": false, "nullable": false },
+        "previousController": { "type": "string", "optional": false, "nullable": false }
+      }
+    },
+    "ConversionSupportConsume": {
+      "kind": "array",
+      "items": "ConversionSupportConsumeEntry"
+    },
+    "ConversionSupportConsumeEntry": {
+      "kind": "record",
+      "fields": {
+        "traits": { "type": "StringArray", "optional": false, "nullable": false },
+        "amount": { "type": "number", "optional": false, "nullable": false }
+      }
+    },
+    "ConversionSupportFilter": {
+      "kind": "record",
+      "fields": {
+        "specialty": { "type": "string", "optional": true, "nullable": false },
+        "kind": { "type": "string", "optional": true, "nullable": false }
+      }
+    },
+    "ConversionSupportPopulationRequire": {
+      "kind": "record",
+      "fields": {
+        "amount": { "type": "integer", "optional": false, "nullable": false },
+        "filter": { "type": "PopulationRequireFilter", "optional": false, "nullable": false }
+      }
+    },
+    "ConversionSupportQuery": {
+      "kind": "record",
+      "fields": {
+        "pool": { "type": "string", "optional": false, "nullable": false }
+      }
+    },
+    "ConversionSupportRequire": {
+      "kind": "array",
+      "items": "ConversionSupportRequireEntry"
+    },
+    "ConversionSupportRequireEntry": {
+      "kind": "record",
+      "fields": {
+        "traits": { "type": "StringArray", "optional": false, "nullable": false },
+        "amount": { "type": "number", "optional": false, "nullable": false }
+      }
+    },
+    "CostBandsMonsterPressure": {
+      "kind": "record",
+      "fields": {
+        "cheap": { "type": "number", "optional": false, "nullable": false },
+        "fair": { "type": "number", "optional": false, "nullable": false },
+        "expensive": { "type": "number", "optional": false, "nullable": false }
+      }
+    },
+    "CostBandsPrestige": {
+      "kind": "record",
+      "fields": {
+        "cheap": { "type": "number", "optional": false, "nullable": false },
+        "fair": { "type": "number", "optional": false, "nullable": false },
+        "expensive": { "type": "number", "optional": false, "nullable": false }
+      }
+    },
+    "CostBandsRisk": {
+      "kind": "record",
+      "fields": {
+        "cheap": { "type": "number", "optional": false, "nullable": false },
+        "fair": { "type": "number", "optional": false, "nullable": false },
+        "expensive": { "type": "number", "optional": false, "nullable": false }
+      }
+    },
+    "CostBandsTime": {
+      "kind": "record",
+      "fields": {
+        "cheap": { "type": "number", "optional": false, "nullable": false },
+        "fair": { "type": "number", "optional": false, "nullable": false },
+        "expensive": { "type": "number", "optional": false, "nullable": false }
+      }
+    },
+    "DeathByClass": {
+      "kind": "record",
+      "fields": {
+        "villager": { "type": "MoonRegionResultDeathByClassVillager", "optional": false, "nullable": false },
+        "stranger": { "type": "MoonRegionResultDeathByClassStranger", "optional": false, "nullable": false }
+      }
+    },
+    "DetailedSettlement": {
+      "kind": "record",
+      "fields": {
+        "birthAllegianceCredits": { "type": "DetailedSettlementBirthAllegianceCredits", "optional": false, "nullable": false },
+        "populationByClass": { "type": "PopulationByClass", "optional": false, "nullable": false },
+        "unlockedPracticeSlots": { "type": "integer", "optional": false, "nullable": false },
+        "practiceSlots": { "type": "DetailedSettlementPracticeSlots", "optional": false, "nullable": false },
+        "structureSlots": { "type": "DetailedSettlementStructureSlots", "optional": false, "nullable": false },
+        "elderOrder": { "type": "DetailedSettlementElderOrder", "optional": false, "nullable": false },
+        "lastMeal": { "type": "MealResult", "optional": false, "nullable": true },
+        "lastMoonResult": { "type": "MoonRegionResult", "optional": false, "nullable": true },
+        "practiceActivationTrace": { "type": "DetailedSettlementPracticeActivationTrace", "optional": true, "nullable": false },
+        "mealRelief": { "type": "DetailedSettlementMealRelief", "optional": true, "nullable": false },
+        "history": { "type": "DetailedSettlementHistory", "optional": true, "nullable": false },
+        "control": { "type": "DetailedSettlementControl", "optional": true, "nullable": false },
+        "garrison": { "type": "DetailedSettlementGarrison", "optional": true, "nullable": false },
+        "lastDefense": { "type": "DetailedSettlementLastDefense", "optional": true, "nullable": false },
+        "politicalForce": { "type": "PoliticalForce", "optional": true, "nullable": false },
+        "supportBank": { "type": "SupportBank", "optional": true, "nullable": false },
+        "seasonalFoodBoost": { "type": "SeasonalFoodBoost", "optional": true, "nullable": false },
+        "candidateDevelopment": { "type": "CandidateDevelopment", "optional": true, "nullable": false },
+        "regionalChaos": { "type": "number", "optional": true, "nullable": false },
+        "research": { "type": "number", "optional": true, "nullable": false },
+        "previewBonus": { "type": "number", "optional": true, "nullable": false },
+        "shopQualityBonus": { "type": "number", "optional": true, "nullable": false },
+        "happinessFloor": { "type": "HappinessFloor", "optional": true, "nullable": false }
+      },
+      "note": "world-state.js and full-map-world.js seed different field orders. Tick effects and actions append lazily; transitionTown can reuse an old board. Observed multiple insertion orders with the same field set."
+    },
+    "DetailedSettlementBirthAllegianceCredits": {
+      "kind": "dict",
+      "key": "string",
+      "value": "BirthAllegianceLedger",
+      "note": "Composite class:specialty keys, established at first birth accounting."
+    },
+    "DetailedSettlementControl": {
+      "kind": "record",
+      "fields": {
+        "unrest": { "type": "ControlUnrest", "optional": false, "nullable": true },
+        "claimant": { "type": "string", "optional": false, "nullable": true },
+        "claimChecks": { "type": "integer", "optional": false, "nullable": false }
+      }
+    },
+    "DetailedSettlementElderOrder": {
+      "kind": "record",
+      "fields": {
+        "definitionId": { "type": "string", "optional": false, "nullable": false },
+        "workerPolicyId": { "type": "string", "optional": false, "nullable": false }
+      }
+    },
+    "DetailedSettlementGarrison": {
+      "kind": "record",
+      "fields": {
+        "supplied": { "type": "boolean", "optional": true, "nullable": false },
+        "paid": { "type": "number", "optional": true, "nullable": false },
+        "required": { "type": "number", "optional": true, "nullable": false },
+        "tSec": { "type": "integer", "optional": true, "nullable": false },
+        "supportTargetRegionId": { "type": "string", "optional": true, "nullable": true }
+      }
+    },
+    "DetailedSettlementHistory": {
+      "kind": "record",
+      "fields": {
+        "deaths": { "type": "integer", "optional": true, "nullable": false },
+        "victories": { "type": "integer", "optional": true, "nullable": false },
+        "springDeaths": { "type": "integer", "optional": true, "nullable": false },
+        "lastDeathSec": { "type": "integer", "optional": true, "nullable": false },
+        "lastDeathCount": { "type": "integer", "optional": true, "nullable": false }
+      },
+      "note": "Observed multiple insertion orders with the same field set."
+    },
+    "DetailedSettlementLastDefense": {
+      "kind": "record",
+      "fields": {
+        "tSec": { "type": "integer", "optional": false, "nullable": false },
+        "result": { "type": "string", "optional": false, "nullable": false },
+        "sourceRegionId": { "type": "string", "optional": false, "nullable": false }
+      }
+    },
+    "DetailedSettlementMealRelief": {
+      "kind": "record",
+      "fields": {
+        "tSec": { "type": "integer", "optional": false, "nullable": false },
+        "faction": { "type": "string", "optional": false, "nullable": false },
+        "amount": { "type": "integer", "optional": false, "nullable": false },
+        "shortage": { "type": "integer", "optional": false, "nullable": false },
+        "fullyFed": { "type": "boolean", "optional": false, "nullable": false }
+      }
+    },
+    "DetailedSettlementPracticeActivationTrace": {
+      "kind": "array",
+      "items": "PracticeEventTrace"
+    },
+    "DetailedSettlementPracticeSlots": {
+      "kind": "tuple",
+      "items": [
+        "PracticeSlotOrNull",
+        "PracticeSlotOrNull",
+        "PracticeSlotOrNull",
+        "PracticeSlotOrNull",
+        "PracticeSlotOrNull"
+      ],
+      "note": "Five slots even if only three or four are unlocked. Null is an empty cell."
+    },
+    "DetailedSettlementStructureSlots": {
+      "kind": "array",
+      "items": "StructureCellOrNull"
+    },
+    "ElderCohort": {
+      "kind": "record",
+      "fields": {
+        "age": { "type": "integer", "optional": false, "nullable": false },
+        "count": { "type": "integer", "optional": false, "nullable": false }
+      }
+    },
+    "EndDepth": {
+      "kind": "enum",
+      "values": [
+        "end"
+      ]
+    },
+    "FaithByClass": {
+      "kind": "record",
+      "fields": {
+        "villager": { "type": "MoonRegionResultFaithByClassVillager", "optional": false, "nullable": false },
+        "stranger": { "type": "MoonRegionResultFaithByClassStranger", "optional": true, "nullable": false }
+      }
+    },
+    "FullMapRuleset": {
+      "kind": "enum",
+      "values": [
+        "full-map-redesign-v1"
+      ]
+    },
+    "GameConfig": {
+      "kind": "record",
+      "fields": {
+        "schemaVersion": { "type": "Version31", "optional": false, "nullable": false },
+        "settings": { "type": "GameSettings", "optional": false, "nullable": false },
+        "gamepieces": { "type": "Gamepieces", "optional": false, "nullable": false },
+        "lifeMapGenerator": { "type": "LifeMapGeneratorConfig", "optional": false, "nullable": false },
+        "keywordPrototype": {
+          "type": "KeywordPrototype",
+          "optional": true,
+          "nullable": false,
+          "note": "canonicalizeGameConfig inserts this first if enabled."
+        }
+      },
+      "note": "game-config.js:512 canonicalizes settings, definitions and Life Map generator. Optional keyword prototype is inserted ahead of schemaVersion."
+    },
+    "Gamepieces": {
+      "kind": "record",
+      "fields": {
+        "schemaVersion": { "type": "Version31", "optional": false, "nullable": false },
+        "structures": { "type": "GamepiecesStructures", "optional": false, "nullable": false },
+        "practices": { "type": "GamepiecesPractices", "optional": false, "nullable": false }
+      }
+    },
+    "GamepiecesPractices": {
+      "kind": "dict",
+      "key": "string",
+      "value": "PracticeDefinition",
+      "note": "Captured authored registry, indexed by Practice ID."
+    },
+    "GamepiecesStructures": {
+      "kind": "dict",
+      "key": "string",
+      "value": "StructureDefinition",
+      "note": "Captured authored registry, indexed by Structure ID."
+    },
+    "GameSettings": {
+      "kind": "record",
+      "fields": {
+        "schemaVersion": { "type": "Version31", "optional": false, "nullable": false },
+        "values": { "type": "SettingValues", "optional": false, "nullable": false }
+      }
+    },
+    "HappinessFloor": {
+      "kind": "record",
+      "fields": {
+        "status": { "type": "string", "optional": false, "nullable": false },
+        "remainingResolutions": { "type": "integer", "optional": false, "nullable": false }
+      }
+    },
+    "HappinessPartialFeedRatios": {
+      "kind": "array",
+      "items": "number"
+    },
+    "Heirloom": {
+      "kind": "record",
+      "fields": {
+        "instanceId": { "type": "string", "optional": false, "nullable": false },
+        "definitionId": { "type": "string", "optional": false, "nullable": false },
+        "inheritanceState": { "type": "InheritanceState", "optional": false, "nullable": false },
+        "protectionSpent": { "type": "boolean", "optional": false, "nullable": false }
+      }
+    },
+    "HeirloomArray": {
+      "kind": "array",
+      "items": "Heirloom"
+    },
+    "HeirloomOrNull": {
+      "kind": "nullable",
+      "value": "Heirloom"
+    },
+    "InheritanceState": {
+      "kind": "enum",
+      "values": [
+        "sanctified",
+        "unmarked",
+        "fragile"
+      ]
+    },
+    "Intervention": {
+      "kind": "record",
+      "fields": {
+        "kind": { "type": "string", "optional": false, "nullable": false },
+        "targetRegionId": { "type": "string", "optional": true, "nullable": false },
+        "practiceId": { "type": "string", "optional": true, "nullable": false },
+        "mode": { "type": "string", "optional": false, "nullable": false },
+        "tier": { "type": "string", "optional": true, "nullable": false },
+        "resultingTier": { "type": "string", "optional": true, "nullable": false },
+        "instanceId": { "type": "string", "optional": true, "nullable": false },
+        "structureId": { "type": "string", "optional": true, "nullable": false },
+        "regionAId": { "type": "string", "optional": true, "nullable": false },
+        "regionBId": { "type": "string", "optional": true, "nullable": false },
+        "qualityBonus": {
+          "type": "integer",
+          "optional": true,
+          "nullable": false,
+          "note": "Quality increments of a staged Structure or Vassal intervention."
+        },
+        "capacity": {
+          "type": "integer",
+          "optional": true,
+          "nullable": false,
+          "note": "Staged Practice slot unlock, shop.js:315."
+        }
+      }
+    },
+    "JointCohort": {
+      "kind": "record",
+      "fields": {
+        "allegiance": { "type": "string", "optional": false, "nullable": false },
+        "specialty": { "type": "string", "optional": false, "nullable": false },
+        "kind": { "type": "string", "optional": false, "nullable": false },
+        "age": { "type": "integer", "optional": false, "nullable": true },
+        "count": { "type": "integer", "optional": false, "nullable": false }
+      }
+    },
+    "KeywordPrototype": {
+      "kind": "record",
+      "fields": {
+        "mode": { "type": "string", "optional": false, "nullable": false },
+        "classId": { "type": "string", "optional": false, "nullable": false },
+        "taught": { "type": "StringArray", "optional": false, "nullable": false }
+      }
+    },
+    "KeywordScale": {
+      "kind": "record",
+      "fields": {
+        "keyword": { "type": "string", "optional": false, "nullable": false },
+        "per": { "type": "number", "optional": false, "nullable": false },
+        "amount": { "type": "number", "optional": false, "nullable": false },
+        "cap": {
+          "type": "number",
+          "optional": true,
+          "nullable": false,
+          "note": "Optional cap in canonicalizeGamepiecesDraft."
+        }
+      }
+    },
+    "LastInheritanceReportEntries": {
+      "kind": "array",
+      "items": "LastInheritanceReportEntriesEntry"
+    },
+    "LastInheritanceReportEntriesEntry": {
+      "kind": "record",
+      "fields": {
+        "instanceId": { "type": "string", "optional": false, "nullable": false },
+        "definitionId": { "type": "string", "optional": false, "nullable": false },
+        "label": { "type": "string", "optional": false, "nullable": false },
+        "quality": { "type": "string", "optional": false, "nullable": false },
+        "fromState": { "type": "string", "optional": false, "nullable": false },
+        "outcome": { "type": "string", "optional": false, "nullable": false },
+        "toState": { "type": "string", "optional": false, "nullable": true }
+      }
+    },
+    "LastMoonIncomeFaithPopulation": {
+      "kind": "record",
+      "fields": {
+        "bronze": { "type": "integer", "optional": false, "nullable": false },
+        "silver": { "type": "integer", "optional": false, "nullable": false },
+        "gold": { "type": "integer", "optional": false, "nullable": false },
+        "diamond": { "type": "integer", "optional": false, "nullable": false }
+      }
+    },
+    "LegacyDepth": {
+      "kind": "oneOf",
+      "variants": [
+        "integer",
+        "EndDepth"
+      ]
+    },
+    "LegacyFeed": {
+      "kind": "array",
+      "items": "LegacyFeedEntry"
+    },
+    "LegacyFeedEntry": {
+      "kind": "record",
+      "fields": {
+        "id": { "type": "integer", "optional": false, "nullable": false }
+      },
+      "note": "UNCONFIRMED beyond the ID read in state.js:609. Supported starts use an empty feed and the live tick/action closure has no emitter."
+    },
+    "LifeEventsIntervention": {
+      "kind": "record",
+      "fields": {
+        "kind": { "type": "string", "optional": false, "nullable": false },
+        "targetRegionId": { "type": "string", "optional": true, "nullable": false },
+        "practiceId": { "type": "string", "optional": true, "nullable": false },
+        "mode": { "type": "string", "optional": false, "nullable": false },
+        "tier": { "type": "string", "optional": true, "nullable": false },
+        "resultingTier": { "type": "string", "optional": true, "nullable": false },
+        "instanceId": { "type": "string", "optional": true, "nullable": false },
+        "structureId": { "type": "string", "optional": true, "nullable": false },
+        "regionAId": { "type": "string", "optional": true, "nullable": false },
+        "regionBId": { "type": "string", "optional": true, "nullable": false },
+        "qualityBonus": {
+          "type": "integer",
+          "optional": true,
+          "nullable": false,
+          "note": "Quality increments of a staged Structure or Vassal intervention."
+        },
+        "capacity": {
+          "type": "integer",
+          "optional": true,
+          "nullable": false,
+          "note": "Staged Practice slot unlock, shop.js:315."
+        }
+      }
+    },
+    "LifeMap": {
+      "kind": "record",
+      "fields": {
+        "graph": { "type": "LifeMapGraph", "optional": false, "nullable": false },
+        "currentNodeId": { "type": "string", "optional": false, "nullable": true },
+        "completedNodeIds": { "type": "StringArray", "optional": false, "nullable": false },
+        "availableNodeIds": { "type": "StringArray", "optional": false, "nullable": false },
+        "nodeStates": { "type": "LifeMapNodeStates", "optional": false, "nullable": false },
+        "pendingResolution": { "type": "LifeMapPendingResolution", "optional": false, "nullable": true }
+      }
+    },
+    "LifeMapDesign": {
+      "kind": "record",
+      "fields": {
+        "enabled": { "type": "boolean", "optional": false, "nullable": false },
+        "pools": { "type": "LifeMapDesignPools", "optional": false, "nullable": false },
+        "nodes": { "type": "LifeMapDesignNodes", "optional": false, "nullable": false },
+        "occurrence": { "type": "LifeMapDesignOccurrence", "optional": false, "nullable": false },
+        "costBands": { "type": "LifeMapDesignCostBands", "optional": false, "nullable": false },
+        "optionCosts": { "type": "LifeMapDesignOptionCosts", "optional": false, "nullable": false },
+        "shopPricing": { "type": "LifeMapDesignShopPricing", "optional": false, "nullable": false },
+        "stockSupply": { "type": "LifeMapDesignStockSupply", "optional": false, "nullable": false },
+        "guarantees": { "type": "LifeMapDesignGuarantees", "optional": false, "nullable": false },
+        "shopServices": { "type": "LifeMapDesignShopServices", "optional": false, "nullable": false },
+        "relicPools": { "type": "RelicPools", "optional": false, "nullable": false },
+        "columns": { "type": "LifeMapDesignColumns", "optional": false, "nullable": false },
+        "bookends": { "type": "LifeMapDesignBookends", "optional": false, "nullable": false }
+      },
+      "note": "life-map-design.js:18 spreads imported settings over authored defaults. Nested objects preserve the imported order."
+    },
+    "LifeMapDesignBookends": {
+      "kind": "record",
+      "fields": {
+        "founding": { "type": "BookendsFounding", "optional": false, "nullable": false },
+        "legacy": { "type": "BookendsLegacy", "optional": false, "nullable": false }
+      }
+    },
+    "LifeMapDesignColumns": {
+      "kind": "array",
+      "items": "LifeMapDesignColumnsEntry"
+    },
+    "LifeMapDesignColumnsEntry": {
+      "kind": "record",
+      "fields": {
+        "id": { "type": "string", "optional": false, "nullable": false },
+        "label": { "type": "string", "optional": false, "nullable": false },
+        "enabled": { "type": "boolean", "optional": false, "nullable": false },
+        "depth": { "type": "integer", "optional": false, "nullable": false },
+        "targetType": { "type": "string", "optional": false, "nullable": false },
+        "targetId": { "type": "string", "optional": false, "nullable": false },
+        "scope": { "type": "string", "optional": false, "nullable": false },
+        "lifeStage": { "type": "string", "optional": false, "nullable": false }
+      }
+    },
+    "LifeMapDesignCostBands": {
+      "kind": "record",
+      "fields": {
+        "time": { "type": "CostBandsTime", "optional": false, "nullable": false },
+        "prestige": { "type": "CostBandsPrestige", "optional": false, "nullable": false },
+        "risk": { "type": "CostBandsRisk", "optional": false, "nullable": false },
+        "monsterPressure": { "type": "CostBandsMonsterPressure", "optional": false, "nullable": false }
+      }
+    },
+    "LifeMapDesignGuarantees": {
+      "kind": "array",
+      "items": "LifeMapDesignGuaranteesEntry"
+    },
+    "LifeMapDesignGuaranteesEntry": {
+      "kind": "record",
+      "fields": {
+        "id": { "type": "string", "optional": false, "nullable": false },
+        "lifeStage": { "type": "string", "optional": true, "nullable": false },
+        "targetType": { "type": "string", "optional": false, "nullable": false },
+        "targetId": { "type": "string", "optional": false, "nullable": false },
+        "scope": { "type": "string", "optional": false, "nullable": false },
+        "count": { "type": "integer", "optional": false, "nullable": false },
+        "minDepth": { "type": "integer", "optional": false, "nullable": false },
+        "maxDepth": { "type": "integer", "optional": false, "nullable": false },
+        "coverage": { "type": "string", "optional": false, "nullable": false }
+      }
+    },
+    "LifeMapDesignNodes": {
+      "kind": "record",
+      "fields": {
+        "patronage": { "type": "LifeMapNodeRule", "optional": false, "nullable": false },
+        "development": { "type": "LifeMapNodeRule", "optional": false, "nullable": false },
+        "crossroads": { "type": "LifeMapNodeRule", "optional": false, "nullable": false },
+        "practiceReform": { "type": "LifeMapNodeRule", "optional": false, "nullable": false },
+        "publicWorks": { "type": "LifeMapNodeRule", "optional": false, "nullable": false },
+        "crisis": { "type": "LifeMapNodeRule", "optional": false, "nullable": false },
+        "relic": { "type": "LifeMapNodeRule", "optional": false, "nullable": false },
+        "training": { "type": "LifeMapNodeRule", "optional": false, "nullable": false },
+        "discovery": { "type": "LifeMapNodeRule", "optional": false, "nullable": false },
+        "campaign": { "type": "LifeMapNodeRule", "optional": false, "nullable": false },
+        "challenge": { "type": "LifeMapNodeRule", "optional": false, "nullable": false },
+        "neutralMarket": { "type": "LifeMapNodeRule", "optional": false, "nullable": false },
+        "classMarket": { "type": "LifeMapNodeRule", "optional": false, "nullable": false },
+        "foodShop": { "type": "LifeMapNodeRule", "optional": false, "nullable": false },
+        "housingShop": { "type": "LifeMapNodeRule", "optional": false, "nullable": false },
+        "stockShop": { "type": "LifeMapNodeRule", "optional": false, "nullable": false },
+        "legacy": { "type": "LifeMapNodeRule", "optional": false, "nullable": false },
+        "signature:legacyPlus": { "type": "LifeMapNodeRule", "optional": false, "nullable": false },
+        "signature:monsterHunt": { "type": "LifeMapNodeRule", "optional": false, "nullable": false },
+        "signature:removePractice": { "type": "LifeMapNodeRule", "optional": false, "nullable": false },
+        "signature:foodShop": { "type": "LifeMapNodeRule", "optional": false, "nullable": false },
+        "signature:knowledgeShop": { "type": "LifeMapNodeRule", "optional": false, "nullable": false },
+        "signature:housingShop": { "type": "LifeMapNodeRule", "optional": false, "nullable": false },
+        "specialRelic": { "type": "LifeMapNodeRule", "optional": false, "nullable": false }
+      }
+    },
+    "LifeMapDesignOccurrence": {
+      "kind": "record",
+      "fields": {
+        "common": { "type": "number", "optional": false, "nullable": false },
+        "uncommon": { "type": "number", "optional": false, "nullable": false },
+        "rare": { "type": "number", "optional": false, "nullable": false }
+      }
+    },
+    "LifeMapDesignOptionCosts": {
+      "kind": "record",
+      "fields": {
+        "patronage": { "type": "OptionCostsPatronage", "optional": false, "nullable": false },
+        "development": { "type": "OptionCostsDevelopment", "optional": false, "nullable": false },
+        "crossroads": { "type": "OptionCostsCrossroads", "optional": false, "nullable": false },
+        "training": { "type": "OptionCostsTraining", "optional": false, "nullable": false },
+        "discovery": { "type": "OptionCostsDiscovery", "optional": false, "nullable": false },
+        "challenge": { "type": "OptionCostsChallenge", "optional": false, "nullable": false },
+        "campaign": { "type": "OptionCostsCampaign", "optional": false, "nullable": false },
+        "crisis": { "type": "OptionCostsCrisis", "optional": false, "nullable": false },
+        "legacy": { "type": "OptionCostsLegacy", "optional": false, "nullable": false },
+        "relic": { "type": "OptionCostsRelic", "optional": false, "nullable": false },
+        "signature:legacyPlus": { "type": "OptionCostsSignatureLegacyPlus", "optional": false, "nullable": false },
+        "signature:monsterHunt": { "type": "OptionCostsSignatureMonsterHunt", "optional": false, "nullable": false },
+        "signature:removePractice": { "type": "OptionCostsSignatureRemovePractice", "optional": false, "nullable": false },
+        "practiceReform": { "type": "OptionCostsPracticeReform", "optional": false, "nullable": false },
+        "publicWorks": { "type": "OptionCostsPublicWorks", "optional": false, "nullable": false },
+        "neutralMarket": { "type": "OptionCostsNeutralMarket", "optional": false, "nullable": false },
+        "classMarket": { "type": "OptionCostsClassMarket", "optional": false, "nullable": false },
+        "foodShop": { "type": "OptionCostsFoodShop", "optional": false, "nullable": false },
+        "housingShop": { "type": "OptionCostsHousingShop", "optional": false, "nullable": false },
+        "stockShop": { "type": "OptionCostsStockShop", "optional": false, "nullable": false },
+        "signature:foodShop": { "type": "OptionCostsSignatureFoodShop", "optional": false, "nullable": false },
+        "signature:housingShop": { "type": "OptionCostsSignatureHousingShop", "optional": false, "nullable": false },
+        "signature:knowledgeShop": { "type": "OptionCostsSignatureKnowledgeShop", "optional": false, "nullable": false },
+        "specialRelic": { "type": "OptionCostsSpecialRelic", "optional": false, "nullable": false }
+      }
+    },
+    "LifeMapDesignPools": {
+      "kind": "array",
+      "items": "LifeMapDesignPoolsEntry"
+    },
+    "LifeMapDesignPoolsEntry": {
+      "kind": "record",
+      "fields": {
+        "id": { "type": "string", "optional": false, "nullable": false },
+        "label": { "type": "string", "optional": false, "nullable": false },
+        "occurrence": { "type": "string", "optional": false, "nullable": false },
+        "maxConsecutive": { "type": "integer", "optional": false, "nullable": false }
+      }
+    },
+    "LifeMapDesignShopPricing": {
+      "kind": "record",
+      "fields": {
+        "enabled": { "type": "boolean", "optional": false, "nullable": false },
+        "prices": { "type": "ShopPricingPrices", "optional": false, "nullable": false }
+      }
+    },
+    "LifeMapDesignShopServices": {
+      "kind": "record",
+      "fields": {
+        "delve": { "type": "ShopServicesDelve", "optional": false, "nullable": false },
+        "emptyConfirm": { "type": "ShopServicesEmptyConfirm", "optional": false, "nullable": false }
+      }
+    },
+    "LifeMapDesignStockSupply": {
+      "kind": "record",
+      "fields": {
+        "enabled": { "type": "boolean", "optional": false, "nullable": false },
+        "randomCount": { "type": "integer", "optional": false, "nullable": false },
+        "unmetCount": { "type": "integer", "optional": false, "nullable": false },
+        "minDepth": { "type": "integer", "optional": false, "nullable": false },
+        "maxDepth": { "type": "integer", "optional": false, "nullable": false }
+      }
+    },
+    "LifeMapEdge": {
+      "kind": "record",
+      "fields": {
+        "fromNodeId": { "type": "string", "optional": false, "nullable": false },
+        "toNodeId": { "type": "string", "optional": false, "nullable": false }
+      }
+    },
+    "LifeMapGeneratorConfig": {
+      "kind": "record",
+      "fields": {
+        "schemaVersion": { "type": "Version16", "optional": false, "nullable": false },
+        "laneCount": { "type": "integer", "optional": false, "nullable": false },
+        "normalDepthCount": { "type": "integer", "optional": false, "nullable": false },
+        "routeCount": { "type": "integer", "optional": false, "nullable": false },
+        "earlyDepthCount": { "type": "integer", "optional": false, "nullable": false },
+        "midDepthCount": { "type": "integer", "optional": false, "nullable": false },
+        "layoutSmoothing": { "type": "number", "optional": false, "nullable": false },
+        "minimumNodeGap": { "type": "number", "optional": false, "nullable": false },
+        "nonRepeatFamilyIds": { "type": "StringArray", "optional": false, "nullable": false },
+        "design": { "type": "LifeMapDesign", "optional": false, "nullable": false },
+        "weights": { "type": "LifeMapGeneratorConfigWeights", "optional": false, "nullable": false }
+      }
+    },
+    "LifeMapGeneratorConfigWeights": {
+      "kind": "record",
+      "fields": {
+        "early": { "type": "NodeFamilyWeights", "optional": false, "nullable": false },
+        "mid": { "type": "NodeFamilyWeights", "optional": false, "nullable": false },
+        "late": { "type": "NodeFamilyWeights", "optional": false, "nullable": false }
+      }
+    },
+    "LifeMapGraph": {
+      "kind": "record",
+      "fields": {
+        "schemaVersion": { "type": "Version9", "optional": false, "nullable": false },
+        "graphId": { "type": "string", "optional": false, "nullable": false },
+        "generationSeed": { "type": "integer", "optional": false, "nullable": false },
+        "generatorConfig": { "type": "LifeMapGeneratorConfig", "optional": false, "nullable": false },
+        "generationContext": { "type": "LifeMapGraphGenerationContext", "optional": false, "nullable": false },
+        "nodes": { "type": "LifeMapGraphNodes", "optional": false, "nullable": false },
+        "edges": { "type": "LifeMapGraphEdges", "optional": false, "nullable": false },
+        "entryNodeIds": { "type": "StringArray", "optional": false, "nullable": false },
+        "bossNodeId": { "type": "string", "optional": false, "nullable": false },
+        "foundingNodeId": { "type": "string", "optional": true, "nullable": false }
+      }
+    },
+    "LifeMapGraphEdges": {
+      "kind": "array",
+      "items": "LifeMapEdge"
+    },
+    "LifeMapGraphGenerationContext": {
+      "kind": "record",
+      "fields": {
+        "classId": { "type": "string", "optional": false, "nullable": true },
+        "founderClassId": { "type": "string", "optional": false, "nullable": true }
+      }
+    },
+    "LifeMapGraphNode": {
+      "kind": "record",
+      "fields": {
+        "id": { "type": "string", "optional": false, "nullable": false },
+        "depth": { "type": "integer", "optional": false, "nullable": false },
+        "lane": { "type": "integer", "optional": false, "nullable": false },
+        "band": { "type": "string", "optional": false, "nullable": false },
+        "family": { "type": "string", "optional": false, "nullable": false },
+        "milestoneId": { "type": "string", "optional": true, "nullable": false },
+        "generationRuleId": { "type": "string", "optional": true, "nullable": false },
+        "position": { "type": "LifeMapGraphNodePosition", "optional": false, "nullable": false },
+        "specialRelic": { "type": "boolean", "optional": true, "nullable": false },
+        "stockOutput": { "type": "string", "optional": true, "nullable": false },
+        "bookend": { "type": "string", "optional": true, "nullable": false },
+        "signatureNode": { "type": "SignatureNode", "optional": true, "nullable": false }
+      },
+      "note": "vassal-life-map-generator.js builds topology first; family, signature, layout and rule passes assign later fields."
+    },
+    "LifeMapGraphNodePosition": {
+      "kind": "record",
+      "fields": {
+        "x": { "type": "number", "optional": false, "nullable": false },
+        "y": { "type": "number", "optional": false, "nullable": false }
+      }
+    },
+    "LifeMapGraphNodes": {
+      "kind": "array",
+      "items": "LifeMapGraphNode"
+    },
+    "LifeMapNodeRule": {
+      "kind": "record",
+      "fields": {
+        "enabled": { "type": "boolean", "optional": false, "nullable": false },
+        "poolId": { "type": "string", "optional": false, "nullable": false },
+        "scope": { "type": "string", "optional": false, "nullable": false },
+        "occurrence": { "type": "string", "optional": false, "nullable": false },
+        "timings": { "type": "StringArray", "optional": false, "nullable": false },
+        "milestonesOnly": { "type": "boolean", "optional": false, "nullable": false }
+      }
+    },
+    "LifeMapNodeState": {
+      "kind": "record",
+      "fields": {
+        "nodeId": { "type": "string", "optional": false, "nullable": false },
+        "family": { "type": "string", "optional": false, "nullable": false },
+        "signatureNode": { "type": "SignatureNode", "optional": false, "nullable": true },
+        "contentMode": { "type": "string", "optional": false, "nullable": false },
+        "entered": { "type": "boolean", "optional": false, "nullable": false },
+        "enteredSec": { "type": "integer", "optional": false, "nullable": false },
+        "resolved": { "type": "boolean", "optional": false, "nullable": false },
+        "resolving": { "type": "boolean", "optional": false, "nullable": false },
+        "options": { "type": "LifeMapNodeStateOptions", "optional": false, "nullable": false },
+        "inventory": { "type": "LifeMapNodeStateInventory", "optional": false, "nullable": false },
+        "purchasedOffers": { "type": "LifeMapNodeStatePurchasedOffers", "optional": false, "nullable": false },
+        "purchasedOfferIds": { "type": "StringArray", "optional": false, "nullable": false },
+        "nextCommissionId": { "type": "integer", "optional": false, "nullable": false },
+        "inventoryRoll": { "type": "integer", "optional": false, "nullable": false },
+        "selectedOptionId": { "type": "string", "optional": false, "nullable": true },
+        "accumulatedPhaseCost": { "type": "integer", "optional": false, "nullable": false },
+        "resolutionResult": { "type": "string", "optional": false, "nullable": true },
+        "shopSelection": { "type": "LifeMapNodeStateShopSelection", "optional": true, "nullable": true },
+        "practiceDraftOrder": { "type": "PracticeDraftOrder", "optional": true, "nullable": false },
+        "heirloomTimeActionUsed": { "type": "boolean", "optional": true, "nullable": false },
+        "removalReceipts": { "type": "RemovalReceiptArray", "optional": true, "nullable": false },
+        "confirmedSec": { "type": "integer", "optional": true, "nullable": false },
+        "mortality": { "type": "LifeMapNodeStateMortality", "optional": true, "nullable": false },
+        "resolvedSec": { "type": "integer", "optional": true, "nullable": false },
+        "specialRelic": { "type": "boolean", "optional": true, "nullable": false },
+        "campaign": { "type": "LifeMapNodeStateCampaign", "optional": true, "nullable": false },
+        "stockOutput": { "type": "string", "optional": true, "nullable": false },
+        "rewardAcquisition": { "type": "LifeMapOption", "optional": true, "nullable": false },
+        "structureDraftEdits": { "type": "StructureDraftEditArray", "optional": true, "nullable": false },
+        "discoveryAccess": { "type": "boolean", "optional": true, "nullable": false },
+        "mandatePreventedDeath": { "type": "boolean", "optional": true, "nullable": false },
+        "transactionId": { "type": "string", "optional": true, "nullable": false }
+      },
+      "note": "node-confirm.js:123 constructs the common record, then family and action branches append fields. Preserve actual key order. Observed multiple insertion orders with the same field set."
+    },
+    "LifeMapNodeStateCampaign": {
+      "kind": "record",
+      "fields": {
+        "mode": { "type": "string", "optional": false, "nullable": false },
+        "duelDone": { "type": "boolean", "optional": false, "nullable": false },
+        "failed": { "type": "boolean", "optional": false, "nullable": false },
+        "questRegionIds": { "type": "StringArray", "optional": false, "nullable": false },
+        "lastResult": { "type": "CampaignLastResult", "optional": false, "nullable": true }
+      }
+    },
+    "LifeMapNodeStateInventory": {
+      "kind": "array",
+      "items": "ShopOffer"
+    },
+    "LifeMapNodeStateMortality": {
+      "kind": "record",
+      "fields": {
+        "age": { "type": "integer", "optional": false, "nullable": false },
+        "chance": { "type": "number", "optional": false, "nullable": false },
+        "roll": { "type": "number", "optional": false, "nullable": false }
+      }
+    },
+    "LifeMapNodeStateOptions": {
+      "kind": "array",
+      "items": "LifeMapOption"
+    },
+    "LifeMapNodeStatePurchasedOffers": {
+      "kind": "array",
+      "items": "PurchaseReceipt"
+    },
+    "LifeMapNodeStates": {
+      "kind": "dict",
+      "key": "string",
+      "value": "LifeMapNodeState",
+      "note": "Node IDs, inserted in visit order."
+    },
+    "LifeMapNodeStateShopSelection": {
+      "kind": "record",
+      "fields": {
+        "kind": { "type": "string", "optional": false, "nullable": false },
+        "selectedTag": { "type": "string", "optional": false, "nullable": true },
+        "choices": { "type": "ShopSelectionChoices", "optional": false, "nullable": false }
+      }
+    },
+    "LifeMapOption": {
+      "kind": "record",
+      "fields": {
+        "id": { "type": "string", "optional": false, "nullable": false },
+        "label": { "type": "string", "optional": false, "nullable": false },
+        "statDelta": { "type": "integer", "optional": true, "nullable": false },
+        "statId": { "type": "string", "optional": true, "nullable": false },
+        "statLabel": { "type": "string", "optional": true, "nullable": false },
+        "phaseCost": { "type": "number", "optional": false, "nullable": false },
+        "balanceKey": { "type": "string", "optional": true, "nullable": false },
+        "prestigeCost": { "type": "number", "optional": false, "nullable": false },
+        "immediateDeathChance": { "type": "number", "optional": true, "nullable": false },
+        "lossStatDelta": { "type": "integer", "optional": true, "nullable": false },
+        "lossStatId": { "type": "string", "optional": true, "nullable": false },
+        "lossStatLabel": { "type": "string", "optional": true, "nullable": false },
+        "effects": { "type": "PracticeDefinitionEffects", "optional": true, "nullable": false },
+        "graphDistance": { "type": "integer", "optional": true, "nullable": true },
+        "expedition": { "type": "boolean", "optional": true, "nullable": false },
+        "locationRegionId": { "type": "string", "optional": true, "nullable": false },
+        "prestigeDelta": { "type": "number", "optional": true, "nullable": false },
+        "intervention": { "type": "Intervention", "optional": true, "nullable": false },
+        "randomReward": { "type": "LifeMapOptionRandomReward", "optional": true, "nullable": true },
+        "description": { "type": "string", "optional": true, "nullable": false },
+        "classAction": { "type": "LifeMapOptionClassAction", "optional": true, "nullable": false },
+        "definitionId": { "type": "string", "optional": true, "nullable": false },
+        "quality": { "type": "string", "optional": true, "nullable": false },
+        "inheritanceState": { "type": "string", "optional": true, "nullable": false },
+        "timeCostTier": { "type": "string", "optional": true, "nullable": false },
+        "legacyReward": { "type": "LifeMapOptionLegacyReward", "optional": true, "nullable": false },
+        "regionId": { "type": "string", "optional": true, "nullable": false },
+        "mode": { "type": "string", "optional": true, "nullable": false },
+        "stage": { "type": "string", "optional": true, "nullable": false },
+        "defense": { "type": "integer", "optional": true, "nullable": false },
+        "force": { "type": "integer", "optional": true, "nullable": false },
+        "risk": { "type": "number", "optional": true, "nullable": false },
+        "baseRisk": { "type": "number", "optional": true, "nullable": false },
+        "distance": { "type": "integer", "optional": true, "nullable": false },
+        "foodCost": { "type": "integer", "optional": true, "nullable": false },
+        "warriorBonus": { "type": "integer", "optional": true, "nullable": false },
+        "legacyStartingPrestigeBonus": { "type": "number", "optional": true, "nullable": false },
+        "emptyRelic": { "type": "boolean", "optional": true, "nullable": false },
+        "baseDanger": { "type": "number", "optional": true, "nullable": false }
+      },
+      "note": "Observed multiple insertion orders with the same field set."
+    },
+    "LifeMapOptionClassAction": {
+      "kind": "record",
+      "fields": {
+        "kind": { "type": "string", "optional": false, "nullable": false },
+        "classId": { "type": "string", "optional": true, "nullable": false },
+        "count": { "type": "integer", "optional": true, "nullable": false },
+        "structureId": { "type": "string", "optional": true, "nullable": false },
+        "establishClass": { "type": "boolean", "optional": true, "nullable": false },
+        "onCompletion": { "type": "boolean", "optional": true, "nullable": false },
+        "targetId": { "type": "string", "optional": true, "nullable": false },
+        "difficulty": { "type": "integer", "optional": true, "nullable": false },
+        "currency": { "type": "integer", "optional": true, "nullable": false },
+        "frontier": { "type": "boolean", "optional": true, "nullable": false },
+        "destinationId": { "type": "string", "optional": true, "nullable": false },
+        "research": {
+          "type": "number",
+          "optional": true,
+          "nullable": false,
+          "note": "Unobserved Discovery variant, class-actions.js:21."
+        },
+        "maximum": {
+          "type": "integer",
+          "optional": true,
+          "nullable": false,
+          "note": "Unobserved evacuation option, class-actions.js:57."
+        }
+      }
+    },
+    "LifeMapOptionLegacyReward": {
+      "kind": "record",
+      "fields": {
+        "kind": { "type": "string", "optional": false, "nullable": false },
+        "statId": { "type": "string", "optional": true, "nullable": false },
+        "amount": { "type": "integer", "optional": false, "nullable": false }
+      }
+    },
+    "LifeMapOptionRandomReward": {
+      "kind": "record",
+      "fields": {
+        "relicChance": { "type": "number", "optional": false, "nullable": false },
+        "statDelta": { "type": "integer", "optional": false, "nullable": false }
+      }
+    },
+    "LifeMapPendingResolution": {
+      "kind": "record",
+      "fields": {
+        "kind": { "type": "PendingLifeMapKind", "optional": false, "nullable": false },
+        "nodeId": { "type": "string", "optional": false, "nullable": false },
+        "startSec": { "type": "integer", "optional": false, "nullable": false },
+        "resolveSec": { "type": "integer", "optional": false, "nullable": false },
+        "phaseCost": { "type": "integer", "optional": false, "nullable": false }
+      },
+      "note": "Observed multiple insertion orders with the same field set."
+    },
+    "Lineage": {
+      "kind": "record",
+      "fields": {
+        "tenuresRemaining": { "type": "integer", "optional": false, "nullable": false },
+        "nextVassalId": { "type": "integer", "optional": false, "nullable": false },
+        "founderClassId": { "type": "SpecialistClass", "optional": false, "nullable": true },
+        "establishedClassId": { "type": "SpecialistClass", "optional": false, "nullable": true },
+        "currentVassalId": { "type": "string", "optional": false, "nullable": true },
+        "selectedVassalIds": { "type": "StringArray", "optional": false, "nullable": false },
+        "vassalsById": { "type": "LineageVassalsById", "optional": false, "nullable": false },
+        "pendingCandidates": { "type": "LineagePendingCandidates", "optional": false, "nullable": false },
+        "candidateRerollCount": { "type": "integer", "optional": false, "nullable": false },
+        "nextHeirloomInstanceId": { "type": "integer", "optional": false, "nullable": false },
+        "pendingHeirloomLoadout": { "type": "boolean", "optional": false, "nullable": false },
+        "pendingVaultOverflow": { "type": "HeirloomArray", "optional": false, "nullable": true },
+        "lastInheritanceReport": { "type": "LineageLastInheritanceReport", "optional": false, "nullable": true }
+      }
+    },
+    "LineageLastInheritanceReport": {
+      "kind": "record",
+      "fields": {
+        "vassalId": { "type": "string", "optional": false, "nullable": true },
+        "endedReason": { "type": "string", "optional": false, "nullable": true },
+        "entries": { "type": "LastInheritanceReportEntries", "optional": false, "nullable": false },
+        "overflowRequired": { "type": "boolean", "optional": false, "nullable": false }
+      }
+    },
+    "LineagePendingCandidates": {
+      "kind": "array",
+      "items": "Candidate"
+    },
+    "LineageVassalsById": {
+      "kind": "dict",
+      "key": "string",
+      "value": "Vassal",
+      "note": "Vassal IDs, cross-referenced by current and selected ID fields."
+    },
+    "MealResult": {
+      "kind": "record",
+      "fields": {
+        "tSec": { "type": "integer", "optional": false, "nullable": false },
+        "demand": { "type": "integer", "optional": false, "nullable": false },
+        "savedStock": { "type": "integer", "optional": false, "nullable": false },
+        "consumed": { "type": "integer", "optional": false, "nullable": false },
+        "ratio": { "type": "number", "optional": false, "nullable": false },
+        "byClass": { "type": "MealResultByClass", "optional": false, "nullable": false },
+        "migration": { "type": "MigrationReport", "optional": false, "nullable": false }
+      }
+    },
+    "MealResultByClass": {
+      "kind": "record",
+      "fields": {
+        "villager": { "type": "ByClassVillager", "optional": false, "nullable": false },
+        "stranger": { "type": "ByClassStranger", "optional": false, "nullable": false }
+      }
+    },
+    "MigrationIntent": {
+      "kind": "record",
+      "fields": {
+        "reason": { "type": "string", "optional": false, "nullable": false },
+        "sourceId": { "type": "string", "optional": false, "nullable": false },
+        "sourceClassId": { "type": "string", "optional": false, "nullable": true },
+        "composition": { "type": "PopulationComposition", "optional": false, "nullable": false },
+        "requested": { "type": "integer", "optional": false, "nullable": false }
+      }
+    },
+    "MigrationIntentSummary": {
+      "kind": "record",
+      "fields": {
+        "reason": { "type": "string", "optional": false, "nullable": false },
+        "sourceRegionId": { "type": "string", "optional": false, "nullable": false },
+        "sourceClassId": { "type": "string", "optional": false, "nullable": true },
+        "requested": { "type": "integer", "optional": false, "nullable": false },
+        "eligible": { "type": "integer", "optional": false, "nullable": false },
+        "admitted": { "type": "integer", "optional": false, "nullable": false },
+        "external": { "type": "integer", "optional": false, "nullable": false },
+        "unresolved": { "type": "integer", "optional": false, "nullable": false },
+        "unresolvedOutcome": { "type": "string", "optional": false, "nullable": false }
+      }
+    },
+    "MigrationMovement": {
+      "kind": "record",
+      "fields": {
+        "transferId": { "type": "string", "optional": false, "nullable": false },
+        "reason": { "type": "string", "optional": false, "nullable": false },
+        "sourceRegionId": { "type": "string", "optional": false, "nullable": false },
+        "destinationRegionId": { "type": "string", "optional": false, "nullable": false },
+        "sourceClassId": { "type": "string", "optional": false, "nullable": true },
+        "amount": { "type": "integer", "optional": false, "nullable": false },
+        "survivors": { "type": "integer", "optional": false, "nullable": false },
+        "arrivalDeaths": { "type": "integer", "optional": false, "nullable": false },
+        "external": { "type": "boolean", "optional": true, "nullable": false },
+        "composition": { "type": "PopulationComposition", "optional": false, "nullable": false },
+        "survivorComposition": { "type": "PopulationComposition", "optional": false, "nullable": true },
+        "originalIndex": { "type": "integer", "optional": true, "nullable": false }
+      }
+    },
+    "MigrationReport": {
+      "kind": "record",
+      "fields": {
+        "intents": { "type": "MigrationReportIntents", "optional": false, "nullable": false },
+        "outbound": { "type": "MigrationReportInbound", "optional": false, "nullable": false },
+        "inbound": { "type": "MigrationReportInbound", "optional": false, "nullable": false },
+        "sourceLosses": { "type": "MigrationSourceLossArray", "optional": false, "nullable": false },
+        "tSec": { "type": "integer", "optional": true, "nullable": false }
+      }
+    },
+    "MigrationReportInbound": {
+      "kind": "array",
+      "items": "MigrationMovement"
+    },
+    "MigrationReportIntents": {
+      "kind": "array",
+      "items": "MigrationIntentSummary"
+    },
+    "MigrationSourceLoss": {
+      "kind": "record",
+      "fields": {
+        "reason": { "type": "string", "optional": false, "nullable": false },
+        "sourceRegionId": { "type": "string", "optional": false, "nullable": false },
+        "sourceClassId": { "type": "string", "optional": false, "nullable": true },
+        "count": { "type": "integer", "optional": false, "nullable": false },
+        "composition": { "type": "PopulationComposition", "optional": false, "nullable": false }
+      }
+    },
+    "MigrationSourceLossArray": {
+      "kind": "array",
+      "items": "MigrationSourceLoss"
+    },
+    "ModifiersQuery": {
+      "kind": "record",
+      "fields": {
+        "traitsAny": { "type": "StringArray", "optional": true, "nullable": false },
+        "stockedTraitsAny": { "type": "StringArray", "optional": true, "nullable": false },
+        "tagsAny": { "type": "StringArray", "optional": true, "nullable": false },
+        "consumesAny": { "type": "StringArray", "optional": true, "nullable": false },
+        "triggerKindsAny": { "type": "StringArray", "optional": true, "nullable": false },
+        "triggerTraitsAny": { "type": "StringArray", "optional": true, "nullable": false },
+        "unique": { "type": "boolean", "optional": true, "nullable": false },
+        "minimumSpecialists": { "type": "number", "optional": true, "nullable": false },
+        "specialistClass": { "type": "string", "optional": true, "nullable": false },
+        "requiresOrConsumesAny": { "type": "StringArray", "optional": true, "nullable": false },
+        "minimumRequirements": { "type": "number", "optional": true, "nullable": false },
+        "requiresAny": { "type": "StringArray", "optional": true, "nullable": false },
+        "threatened": { "type": "boolean", "optional": true, "nullable": false },
+        "scholarStaffed": { "type": "boolean", "optional": true, "nullable": false },
+        "historicalBurdens": { "type": "number", "optional": true, "nullable": false },
+        "effectOpsAny": { "type": "StringArray", "optional": true, "nullable": false },
+        "classId": { "type": "string", "optional": true, "nullable": false }
+      },
+      "note": "Observed multiple insertion orders with the same field set."
+    },
+    "MoonRegionResult": {
+      "kind": "record",
+      "fields": {
+        "regionId": { "type": "string", "optional": false, "nullable": false },
+        "birth": { "type": "MoonRegionResultBirth", "optional": false, "nullable": true },
+        "food": { "type": "MealResult", "optional": false, "nullable": true },
+        "housing": { "type": "MoonRegionResultHousing", "optional": false, "nullable": true },
+        "faith": { "type": "MoonRegionResultFaith", "optional": false, "nullable": true },
+        "migration": { "type": "MigrationReport", "optional": false, "nullable": true },
+        "death": { "type": "MoonRegionResultDeath", "optional": false, "nullable": true },
+        "currencySpent": { "type": "integer", "optional": false, "nullable": false }
+      }
+    },
+    "MoonRegionResultBirth": {
+      "kind": "record",
+      "fields": {
+        "tSec": { "type": "integer", "optional": false, "nullable": false },
+        "year": { "type": "integer", "optional": false, "nullable": false },
+        "byClass": { "type": "BirthByClass", "optional": false, "nullable": false }
+      }
+    },
+    "MoonRegionResultBirthByClassStranger": {
+      "kind": "record",
+      "fields": {
+        "births": { "type": "integer", "optional": false, "nullable": false },
+        "matured": { "type": "integer", "optional": false, "nullable": false },
+        "newElders": { "type": "integer", "optional": false, "nullable": false },
+        "ageAdvance": { "type": "integer", "optional": false, "nullable": false },
+        "birthRate": { "type": "number", "optional": false, "nullable": false },
+        "childToAdultRate": { "type": "number", "optional": false, "nullable": false },
+        "adultToElderRate": { "type": "number", "optional": false, "nullable": false }
+      }
+    },
+    "MoonRegionResultBirthByClassVillager": {
+      "kind": "record",
+      "fields": {
+        "births": { "type": "integer", "optional": false, "nullable": false },
+        "matured": { "type": "integer", "optional": false, "nullable": false },
+        "newElders": { "type": "integer", "optional": false, "nullable": false },
+        "ageAdvance": { "type": "integer", "optional": false, "nullable": false },
+        "birthRate": { "type": "number", "optional": false, "nullable": false },
+        "childToAdultRate": { "type": "number", "optional": false, "nullable": false },
+        "adultToElderRate": { "type": "number", "optional": false, "nullable": false }
+      }
+    },
+    "MoonRegionResultDeath": {
+      "kind": "record",
+      "fields": {
+        "tSec": { "type": "integer", "optional": false, "nullable": false },
+        "byClass": { "type": "DeathByClass", "optional": false, "nullable": false },
+        "hardshipDeaths": { "type": "integer", "optional": false, "nullable": false },
+        "arrivalDeaths": { "type": "integer", "optional": false, "nullable": false },
+        "storedFoodRot": { "type": "integer", "optional": false, "nullable": false },
+        "looseFoodRot": { "type": "integer", "optional": false, "nullable": false }
+      }
+    },
+    "MoonRegionResultDeathByClassStranger": {
+      "kind": "record",
+      "fields": {
+        "naturalDeaths": { "type": "integer", "optional": false, "nullable": false }
+      }
+    },
+    "MoonRegionResultDeathByClassVillager": {
+      "kind": "record",
+      "fields": {
+        "naturalDeaths": { "type": "integer", "optional": false, "nullable": false }
+      }
+    },
+    "MoonRegionResultFaith": {
+      "kind": "record",
+      "fields": {
+        "tSec": { "type": "integer", "optional": false, "nullable": false },
+        "byClass": { "type": "FaithByClass", "optional": false, "nullable": false }
+      }
+    },
+    "MoonRegionResultFaithByClassStranger": {
+      "kind": "record",
+      "fields": {
+        "previousHappiness": { "type": "string", "optional": false, "nullable": false },
+        "happiness": { "type": "string", "optional": false, "nullable": false },
+        "previousFaith": { "type": "string", "optional": false, "nullable": false },
+        "faith": { "type": "string", "optional": false, "nullable": false },
+        "faithShifted": { "type": "boolean", "optional": false, "nullable": false },
+        "faithTrend": { "type": "string", "optional": false, "nullable": true },
+        "faithStreak": { "type": "integer", "optional": false, "nullable": false },
+        "collapseEntered": { "type": "boolean", "optional": false, "nullable": false },
+        "displaced": { "type": "integer", "optional": false, "nullable": false }
+      }
+    },
+    "MoonRegionResultFaithByClassVillager": {
+      "kind": "record",
+      "fields": {
+        "previousHappiness": { "type": "string", "optional": false, "nullable": false },
+        "happiness": { "type": "string", "optional": false, "nullable": false },
+        "previousFaith": { "type": "string", "optional": false, "nullable": false },
+        "faith": { "type": "string", "optional": false, "nullable": false },
+        "faithShifted": { "type": "boolean", "optional": false, "nullable": false },
+        "faithTrend": { "type": "string", "optional": false, "nullable": true },
+        "faithStreak": { "type": "integer", "optional": false, "nullable": false },
+        "collapseEntered": { "type": "boolean", "optional": false, "nullable": false },
+        "displaced": { "type": "integer", "optional": false, "nullable": false }
+      }
+    },
+    "MoonRegionResultHousing": {
+      "kind": "record",
+      "fields": {
+        "tSec": { "type": "integer", "optional": false, "nullable": false },
+        "population": { "type": "integer", "optional": false, "nullable": false },
+        "capacity": { "type": "integer", "optional": false, "nullable": false },
+        "overflow": { "type": "integer", "optional": false, "nullable": false },
+        "migrants": { "type": "integer", "optional": false, "nullable": false },
+        "happinessCap": { "type": "string", "optional": false, "nullable": false }
+      }
+    },
+    "MoonTurn": {
+      "kind": "record",
+      "fields": {
+        "moonIndex": { "type": "integer", "optional": false, "nullable": false },
+        "startedSec": { "type": "integer", "optional": false, "nullable": false },
+        "phaseId": { "type": "string", "optional": false, "nullable": false },
+        "phaseIndex": { "type": "integer", "optional": false, "nullable": false },
+        "regions": { "type": "MoonTurnRegions", "optional": false, "nullable": false },
+        "migrationIntents": { "type": "MoonTurnMigrationIntents", "optional": false, "nullable": false },
+        "movements": { "type": "MigrationReportInbound", "optional": false, "nullable": false },
+        "unresolved": { "type": "MigrationSourceLossArray", "optional": false, "nullable": false },
+        "migrationIntentSummaries": { "type": "MigrationReportIntents", "optional": true, "nullable": false }
+      }
+    },
+    "MoonTurnMigrationIntents": {
+      "kind": "array",
+      "items": "MigrationIntent"
+    },
+    "MoonTurnRegions": {
+      "kind": "dict",
+      "key": "string",
+      "value": "MoonRegionResult",
+      "note": "Region IDs, created in site order, later additions append."
+    },
+    "NeutralMarket": {
+      "kind": "record",
+      "fields": {
+        "template": { "type": "string", "optional": false, "nullable": false },
+        "defense": { "type": "integer", "optional": false, "nullable": false },
+        "housing": { "type": "integer", "optional": false, "nullable": false },
+        "currencyStock": { "type": "integer", "optional": false, "nullable": false },
+        "practices": { "type": "StringArray", "optional": true, "nullable": false },
+        "stocks": { "type": "NeutralMarketStocks", "optional": false, "nullable": false }
+      }
+    },
+    "NeutralMarketStocks": {
+      "kind": "array",
+      "items": "NeutralStock"
+    },
+    "NeutralStock": {
+      "kind": "record",
+      "fields": {
+        "id": { "type": "string", "optional": false, "nullable": false },
+        "label": { "type": "string", "optional": false, "nullable": false },
+        "traits": { "type": "StringArray", "optional": false, "nullable": false },
+        "price": { "type": "integer", "optional": false, "nullable": false },
+        "capacity": { "type": "integer", "optional": false, "nullable": false },
+        "replenishment": { "type": "integer", "optional": false, "nullable": false },
+        "stock": { "type": "integer", "optional": false, "nullable": false }
+      }
+    },
+    "NodeFamilyWeights": {
+      "kind": "record",
+      "fields": {
+        "patronage": { "type": "number", "optional": false, "nullable": false },
+        "development": { "type": "number", "optional": false, "nullable": false },
+        "crossroads": { "type": "number", "optional": false, "nullable": false },
+        "practiceReform": { "type": "number", "optional": false, "nullable": false },
+        "publicWorks": { "type": "number", "optional": false, "nullable": false },
+        "crisis": { "type": "number", "optional": false, "nullable": false },
+        "relic": { "type": "number", "optional": false, "nullable": false },
+        "specialRelic": { "type": "number", "optional": false, "nullable": false },
+        "training": { "type": "number", "optional": false, "nullable": false },
+        "discovery": { "type": "number", "optional": false, "nullable": false },
+        "campaign": { "type": "number", "optional": false, "nullable": false },
+        "challenge": { "type": "number", "optional": false, "nullable": false },
+        "neutralMarket": { "type": "number", "optional": false, "nullable": false },
+        "classMarket": { "type": "number", "optional": false, "nullable": false },
+        "foodShop": { "type": "number", "optional": false, "nullable": false },
+        "housingShop": { "type": "number", "optional": false, "nullable": false }
+      }
+    },
+    "OptionCost": {
+      "kind": "record",
+      "fields": {
+        "time": { "type": "BalanceValue", "optional": false, "nullable": false },
+        "prestige": { "type": "BalanceValue", "optional": false, "nullable": false },
+        "risk": { "type": "BalanceValue", "optional": false, "nullable": false },
+        "monsterPressure": { "type": "BalanceValue", "optional": false, "nullable": false }
+      }
+    },
+    "OptionCostsCampaign": {
+      "kind": "record",
+      "fields": {
+        "attack": { "type": "OptionCost", "optional": false, "nullable": false },
+        "duel": { "type": "OptionCost", "optional": false, "nullable": false },
+        "quest": { "type": "OptionCost", "optional": false, "nullable": false },
+        "leave": { "type": "OptionCost", "optional": false, "nullable": false }
+      }
+    },
+    "OptionCostsChallenge": {
+      "kind": "record",
+      "fields": {
+        "challenge-3": { "type": "OptionCost", "optional": false, "nullable": false },
+        "challenge-6": { "type": "OptionCost", "optional": false, "nullable": false },
+        "challenge-9": { "type": "OptionCost", "optional": false, "nullable": false }
+      }
+    },
+    "OptionCostsClassMarket": {
+      "kind": "record",
+      "fields": {}
+    },
+    "OptionCostsCrisis": {
+      "kind": "record",
+      "fields": {
+        "relief": { "type": "OptionCost", "optional": false, "nullable": false },
+        "buy-relief": { "type": "OptionCost", "optional": false, "nullable": false },
+        "delay": { "type": "OptionCost", "optional": false, "nullable": false },
+        "rescue": { "type": "OptionCost", "optional": false, "nullable": false },
+        "observe-crisis": { "type": "OptionCost", "optional": false, "nullable": false }
+      }
+    },
+    "OptionCostsCrossroads": {
+      "kind": "record",
+      "fields": {
+        "travel": { "type": "OptionCost", "optional": false, "nullable": false },
+        "route": { "type": "OptionCost", "optional": false, "nullable": false },
+        "tour": { "type": "OptionCost", "optional": false, "nullable": false }
+      }
+    },
+    "OptionCostsDevelopment": {
+      "kind": "record",
+      "fields": {
+        "deepStudy": { "type": "OptionCost", "optional": false, "nullable": false },
+        "hardLesson": { "type": "OptionCost", "optional": false, "nullable": false },
+        "steadyPractice": { "type": "OptionCost", "optional": false, "nullable": false }
+      }
+    },
+    "OptionCostsDiscovery": {
+      "kind": "record",
+      "fields": {
+        "discovery-research": { "type": "OptionCost", "optional": false, "nullable": false },
+        "discovery-frontier": { "type": "OptionCost", "optional": false, "nullable": false }
+      }
+    },
+    "OptionCostsFoodShop": {
+      "kind": "record",
+      "fields": {}
+    },
+    "OptionCostsHousingShop": {
+      "kind": "record",
+      "fields": {}
+    },
+    "OptionCostsLegacy": {
+      "kind": "record",
+      "fields": {
+        "highest-stat": { "type": "OptionCost", "optional": false, "nullable": false },
+        "accumulated-prestige": { "type": "OptionCost", "optional": false, "nullable": false }
+      }
+    },
+    "OptionCostsNeutralMarket": {
+      "kind": "record",
+      "fields": {}
+    },
+    "OptionCostsPatronage": {
+      "kind": "record",
+      "fields": {
+        "immediateFavor": { "type": "OptionCost", "optional": false, "nullable": false },
+        "longAppointment": { "type": "OptionCost", "optional": false, "nullable": false },
+        "cultivateConnections": { "type": "OptionCost", "optional": false, "nullable": false }
+      }
+    },
+    "OptionCostsPracticeReform": {
+      "kind": "record",
+      "fields": {}
+    },
+    "OptionCostsPublicWorks": {
+      "kind": "record",
+      "fields": {}
+    },
+    "OptionCostsRelic": {
+      "kind": "record",
+      "fields": {
+        "search": { "type": "OptionCost", "optional": false, "nullable": false }
+      }
+    },
+    "OptionCostsSignatureFoodShop": {
+      "kind": "record",
+      "fields": {}
+    },
+    "OptionCostsSignatureHousingShop": {
+      "kind": "record",
+      "fields": {}
+    },
+    "OptionCostsSignatureKnowledgeShop": {
+      "kind": "record",
+      "fields": {}
+    },
+    "OptionCostsSignatureLegacyPlus": {
+      "kind": "record",
+      "fields": {
+        "foundDynasty": { "type": "OptionCost", "optional": false, "nullable": false },
+        "enduringOffice": { "type": "OptionCost", "optional": false, "nullable": false },
+        "humbleRemembrance": { "type": "OptionCost", "optional": false, "nullable": false }
+      }
+    },
+    "OptionCostsSignatureMonsterHunt": {
+      "kind": "record",
+      "fields": {
+        "attack": { "type": "OptionCost", "optional": false, "nullable": false },
+        "duel": { "type": "OptionCost", "optional": false, "nullable": false },
+        "quest": { "type": "OptionCost", "optional": false, "nullable": false },
+        "leave": { "type": "OptionCost", "optional": false, "nullable": false }
+      }
+    },
+    "OptionCostsSignatureRemovePractice": {
+      "kind": "record",
+      "fields": {
+        "remove": { "type": "OptionCost", "optional": false, "nullable": false },
+        "removalFallback": { "type": "OptionCost", "optional": false, "nullable": false }
+      }
+    },
+    "OptionCostsSpecialRelic": {
+      "kind": "record",
+      "fields": {
+        "search": { "type": "OptionCost", "optional": false, "nullable": false }
+      }
+    },
+    "OptionCostsStockShop": {
+      "kind": "record",
+      "fields": {}
+    },
+    "OptionCostsTraining": {
+      "kind": "record",
+      "fields": {
+        "train-estate": { "type": "OptionCost", "optional": false, "nullable": false }
+      }
+    },
+    "PawnSkillModifiers": {
+      "kind": "record",
+      "fields": {
+        "forageTierBonus": { "type": "number", "optional": false, "nullable": false },
+        "forageStaminaCostDelta": { "type": "number", "optional": false, "nullable": false },
+        "farmingStaminaCostDelta": { "type": "number", "optional": false, "nullable": false },
+        "restStaminaBonusFlat": { "type": "number", "optional": false, "nullable": false },
+        "restStaminaBonusMult": { "type": "number", "optional": false, "nullable": false }
+      },
+      "note": "Legacy runtime normalization in skills.js:9–13."
+    },
+    "PendingLifeMapKind": {
+      "kind": "enum",
+      "values": [
+        "nodeResolution",
+        "shopDelve",
+        "campaignEncounter"
+      ]
+    },
+    "PersistentKnowledge": {
+      "kind": "record",
+      "fields": {
+        "droppedItemKindsByPoolId": { "type": "PersistentKnowledgeDroppedItemKindsByPoolId", "optional": false, "nullable": false },
+        "maxObservedCivilizationSurvivalYear": { "type": "integer", "optional": false, "nullable": true }
+      }
+    },
+    "PersistentKnowledgeDroppedItemKindsByPoolId": {
+      "kind": "dict",
+      "key": "string",
+      "value": "StringArray",
+      "note": "Loot-pool ID, legacy."
+    },
+    "Phase": {
+      "kind": "enum",
+      "values": [
+        "simulation",
+        "planning"
+      ]
+    },
+    "PhaseModifiers": {
+      "kind": "record",
+      "fields": {
+        "housingByRegion": { "type": "PhaseModifiersHousingByRegion", "optional": false, "nullable": false },
+        "foodByRegion": { "type": "PhaseModifiersFoodByRegion", "optional": false, "nullable": false },
+        "faithResistance": { "type": "number", "optional": false, "nullable": false }
+      }
+    },
+    "PhaseModifiersFoodByRegion": {
+      "kind": "dict",
+      "key": "string",
+      "value": "number",
+      "note": "Region IDs."
+    },
+    "PhaseModifiersHousingByRegion": {
+      "kind": "dict",
+      "key": "string",
+      "value": "number",
+      "note": "Region IDs."
+    },
+    "PlacementConstruction": {
+      "kind": "record",
+      "fields": {
+        "completedCycles": { "type": "integer", "optional": false, "nullable": false }
+      }
+    },
+    "PoliticalForce": {
+      "kind": "dict",
+      "key": "string",
+      "value": "PoliticalForceEntry",
+      "note": "Practice instance IDs, inserted or replaced in recipe execution order."
+    },
+    "PoliticalForceEntry": {
+      "kind": "record",
+      "fields": {
+        "allegiance": { "type": "string", "optional": true, "nullable": true },
+        "amount": { "type": "number", "optional": false, "nullable": false },
+        "defenseOnly": { "type": "boolean", "optional": false, "nullable": false },
+        "untilSec": { "type": "number", "optional": false, "nullable": false }
+      },
+      "note": "practices.js:205–207; indexed by Practice instance ID."
+    },
+    "PopulationByClass": {
+      "kind": "record",
+      "fields": {
+        "villager": { "type": "PopulationClass", "optional": false, "nullable": false },
+        "stranger": { "type": "PopulationClass", "optional": false, "nullable": false }
+      }
+    },
+    "PopulationClass": {
+      "kind": "record",
+      "fields": {
+        "specialists": { "type": "Specialists", "optional": false, "nullable": false },
+        "children": { "type": "integer", "optional": false, "nullable": false },
+        "adults": { "type": "integer", "optional": false, "nullable": false },
+        "eldersByAge": { "type": "AgeCountsEldersByAge", "optional": false, "nullable": false },
+        "faith": { "type": "PopulationClassFaith", "optional": false, "nullable": false },
+        "happiness": { "type": "PopulationClassHappiness", "optional": false, "nullable": false },
+        "joint": { "type": "ClassCompositionJoint", "optional": true, "nullable": false }
+      }
+    },
+    "PopulationClassFaith": {
+      "kind": "record",
+      "fields": {
+        "tier": { "type": "string", "optional": false, "nullable": false },
+        "trend": { "type": "string", "optional": false, "nullable": true },
+        "streak": { "type": "integer", "optional": false, "nullable": false },
+        "collapseActive": { "type": "boolean", "optional": true, "nullable": false }
+      }
+    },
+    "PopulationClassHappiness": {
+      "kind": "record",
+      "fields": {
+        "status": { "type": "string", "optional": false, "nullable": false },
+        "fullFeedStreak": { "type": "integer", "optional": false, "nullable": false },
+        "missedFeedStreak": { "type": "integer", "optional": false, "nullable": false },
+        "partialFeedRatios": { "type": "HappinessPartialFeedRatios", "optional": false, "nullable": false }
+      }
+    },
+    "PopulationComposition": {
+      "kind": "record",
+      "fields": {
+        "villager": { "type": "ClassComposition", "optional": false, "nullable": false },
+        "stranger": { "type": "ClassComposition", "optional": false, "nullable": false }
+      }
+    },
+    "PopulationConsumeFilter": {
+      "kind": "record",
+      "fields": {
+        "kind": { "type": "string", "optional": false, "nullable": false },
+        "specialty": { "type": "string", "optional": false, "nullable": false }
+      }
+    },
+    "PopulationFilter": {
+      "kind": "record",
+      "fields": {
+        "classId": { "type": "string", "optional": true, "nullable": false },
+        "kind": { "type": "string", "optional": true, "nullable": false },
+        "specialty": { "type": "string", "optional": true, "nullable": false },
+        "opposing": { "type": "boolean", "optional": true, "nullable": false },
+        "allegiance": { "type": "string", "optional": true, "nullable": false }
+      },
+      "note": "Capture and political-recipes.js. Optional filters constrain a bin; omitted filters match any bin."
+    },
+    "PopulationRequireFilter": {
+      "kind": "record",
+      "fields": {
+        "kind": { "type": "string", "optional": false, "nullable": false },
+        "specialty": { "type": "string", "optional": false, "nullable": false },
+        "allegiance": { "type": "string", "optional": false, "nullable": false }
+      }
+    },
+    "Portrait": {
+      "kind": "record",
+      "fields": {
+        "skinTone": { "type": "string", "optional": false, "nullable": false },
+        "hairStyle": { "type": "string", "optional": false, "nullable": false },
+        "hairColor": { "type": "string", "optional": false, "nullable": false },
+        "faceShape": { "type": "string", "optional": false, "nullable": false },
+        "clothingColor": { "type": "string", "optional": false, "nullable": false },
+        "accessory": { "type": "string", "optional": false, "nullable": false },
+        "expression": { "type": "string", "optional": false, "nullable": false }
+      }
+    },
+    "PracticeDefinition": {
+      "kind": "record",
+      "fields": {
+        "id": { "type": "string", "optional": false, "nullable": false },
+        "label": { "type": "string", "optional": false, "nullable": false },
+        "pool": { "type": "string", "optional": false, "nullable": false },
+        "provenance": { "type": "string", "optional": true, "nullable": false },
+        "minimumQuality": { "type": "string", "optional": false, "nullable": false },
+        "tags": { "type": "StringArray", "optional": false, "nullable": false },
+        "effects": { "type": "PracticeDefinitionEffects", "optional": false, "nullable": false },
+        "consume": { "type": "ConstructionConsume", "optional": false, "nullable": false },
+        "require": { "type": "ConstructionConsume", "optional": false, "nullable": false },
+        "vassalPrestigeCost": { "type": "number", "optional": false, "nullable": false },
+        "vassalPhaseCost": { "type": "number", "optional": false, "nullable": false },
+        "ui": { "type": "PracticeDefinitionUi", "optional": false, "nullable": false },
+        "category": { "type": "string", "optional": true, "nullable": false },
+        "mode": { "type": "string", "optional": false, "nullable": false },
+        "lane": { "type": "string", "optional": false, "nullable": false },
+        "activation": { "type": "PracticeDefinitionActivation", "optional": false, "nullable": false },
+        "source": { "type": "PracticeDefinitionSource", "optional": false, "nullable": false },
+        "workerCapacity": { "type": "integer", "optional": false, "nullable": false },
+        "workerBonus": { "type": "number", "optional": false, "nullable": false },
+        "stockTraits": { "type": "StringArray", "optional": false, "nullable": false },
+        "stockCapacity": { "type": "number", "optional": false, "nullable": false },
+        "costs": { "type": "ConstructionConsume", "optional": false, "nullable": false },
+        "flavor": { "type": "string", "optional": true, "nullable": false },
+        "charge": { "type": "PracticeDefinitionCharge", "optional": true, "nullable": false },
+        "populationCondition": { "type": "string", "optional": true, "nullable": false },
+        "condition": { "type": "string", "optional": true, "nullable": false },
+        "populationConsume": { "type": "PracticeDefinitionPopulationConsume", "optional": true, "nullable": false },
+        "populationRequire": { "type": "PracticeDefinitionPopulationRequire", "optional": true, "nullable": false },
+        "requireBaseHeadroom": { "type": "boolean", "optional": true, "nullable": false },
+        "degradedFrom": { "type": "string", "optional": true, "nullable": false },
+        "workerCapacityPerQuality": { "type": "integer", "optional": true, "nullable": false },
+        "keywordOutputScale": { "type": "KeywordScale", "optional": true, "nullable": false },
+        "keywordCapacityScale": { "type": "KeywordScale", "optional": true, "nullable": false },
+        "workbook": { "type": "PracticeDefinitionWorkbook", "optional": true, "nullable": false },
+        "authoredEffect": { "type": "string", "optional": true, "nullable": false },
+        "authoredHook": { "type": "string", "optional": true, "nullable": false },
+        "provisionalNotes": { "type": "StringArray", "optional": true, "nullable": false },
+        "stockMultipliers": { "type": "PracticeDefinitionStockMultipliers", "optional": true, "nullable": false },
+        "locked": { "type": "boolean", "optional": true, "nullable": false },
+        "externalAction": { "type": "string", "optional": true, "nullable": false },
+        "cadenceMoons": { "type": "number", "optional": true, "nullable": false },
+        "fullMapOffer": { "type": "boolean", "optional": true, "nullable": false },
+        "scholarRequired": { "type": "boolean", "optional": true, "nullable": false },
+        "specialistRequired": { "type": "string", "optional": true, "nullable": false },
+        "supportMultiplier": { "type": "number", "optional": true, "nullable": false },
+        "minimumSupportRequired": { "type": "number", "optional": true, "nullable": false },
+        "defenseMultiplier": { "type": "number", "optional": true, "nullable": false },
+        "retinueForce": { "type": "number", "optional": true, "nullable": false },
+        "positiveSupportRequired": { "type": "boolean", "optional": true, "nullable": false },
+        "responseAction": { "type": "string", "optional": true, "nullable": false },
+        "minimumWarriors": { "type": "number", "optional": true, "nullable": false },
+        "connectedSupportRequired": { "type": "boolean", "optional": true, "nullable": false }
+      },
+      "note": "game-config.js:257–334 iterates authored keys, then overlays validated review fields. Locked and keyword/terrain modifiers may append or disappear. Observed multiple insertion orders with the same field set."
+    },
+    "PracticeDefinitionActivation": {
+      "kind": "record",
+      "fields": {
+        "type": { "type": "string", "optional": false, "nullable": false },
+        "stage": { "type": "string", "optional": true, "nullable": false },
+        "seasonKeys": { "type": "StringArray", "optional": true, "nullable": false },
+        "also": { "type": "StringArray", "optional": true, "nullable": false },
+        "conditions": { "type": "ActivationConditions", "optional": true, "nullable": false }
+      },
+      "note": "Observed multiple insertion orders with the same field set."
+    },
+    "PracticeDefinitionCharge": {
+      "kind": "record",
+      "fields": {
+        "gain": { "type": "integer", "optional": false, "nullable": false },
+        "threshold": { "type": "integer", "optional": false, "nullable": false },
+        "triggerText": { "type": "string", "optional": false, "nullable": false },
+        "trigger": { "type": "ChargeTrigger", "optional": false, "nullable": false },
+        "dischargeText": { "type": "string", "optional": false, "nullable": false }
+      },
+      "note": "Observed multiple insertion orders with the same field set."
+    },
+    "PracticeDefinitionEffects": {
+      "kind": "array",
+      "items": "PracticeEffect"
+    },
+    "PracticeDefinitionPopulationConsume": {
+      "kind": "array",
+      "items": "PracticeDefinitionPopulationConsumeEntry"
+    },
+    "PracticeDefinitionPopulationConsumeEntry": {
+      "kind": "record",
+      "fields": {
+        "amount": { "type": "integer", "optional": false, "nullable": false },
+        "filter": { "type": "PopulationConsumeFilter", "optional": false, "nullable": false }
+      }
+    },
+    "PracticeDefinitionPopulationRequire": {
+      "kind": "array",
+      "items": "PracticeDefinitionPopulationRequireEntry"
+    },
+    "PracticeDefinitionPopulationRequireEntry": {
+      "kind": "record",
+      "fields": {
+        "amount": { "type": "number", "optional": false, "nullable": false },
+        "filter": { "type": "PracticeDefinitionPopulationRequireFilter", "optional": false, "nullable": false },
+        "other": { "type": "boolean", "optional": false, "nullable": false }
+      }
+    },
+    "PracticeDefinitionPopulationRequireFilter": {
+      "kind": "record",
+      "fields": {
+        "kind": { "type": "string", "optional": false, "nullable": false },
+        "specialty": { "type": "string", "optional": false, "nullable": false }
+      }
+    },
+    "PracticeDefinitionSource": {
+      "kind": "record",
+      "fields": {
+        "icon": { "type": "string", "optional": false, "nullable": false },
+        "cadence": { "type": "string", "optional": false, "nullable": false }
+      }
+    },
+    "PracticeDefinitionStockMultipliers": {
+      "kind": "array",
+      "items": "PracticeStockMultiplier"
+    },
+    "PracticeDefinitionUi": {
+      "kind": "record",
+      "fields": {
+        "rule": { "type": "string", "optional": false, "nullable": false }
+      }
+    },
+    "PracticeDefinitionWorkbook": {
+      "kind": "record",
+      "fields": {
+        "version": { "type": "string", "optional": false, "nullable": false },
+        "sheet": { "type": "string", "optional": false, "nullable": false },
+        "row": { "type": "number", "optional": false, "nullable": false }
+      }
+    },
+    "PracticeEffect": {
+      "kind": "union",
+      "discriminator": "op",
+      "variants": {
+        "addMonsterPressure": "PracticeEffectaddMonsterPressure",
+        "triggerMonsterSpawn": "PracticeEffecttriggerMonsterSpawn",
+        "generateStock": "PracticeEffectgenerateStock",
+        "addChaos": "PracticeEffectaddChaos",
+        "research": "PracticeEffectresearch",
+        "train": "PracticeEffecttrain",
+        "addHousingForPhase": "PracticeEffectaddHousingForPhase",
+        "reduceLocalFoodRequirement": "PracticeEffectreduceLocalFoodRequirement",
+        "addFaithChaosResistance": "PracticeEffectaddFaithChaosResistance",
+        "bankCandidateDevelopment": "PracticeEffectbankCandidateDevelopment",
+        "bankShopQuality": "PracticeEffectbankShopQuality",
+        "bankSupport": "PracticeEffectbankSupport",
+        "bankPreview": "PracticeEffectbankPreview",
+        "boostSeasonalFood": "PracticeEffectboostSeasonalFood",
+        "convertPopulation": "PracticeEffectconvertPopulation",
+        "politicalForce": "PracticeEffectpoliticalForce"
+      }
+    },
+    "PracticeEffectaddChaos": {
+      "kind": "record",
+      "fields": {
+        "op": { "type": "PracticeEffectaddChaosTag", "optional": false, "nullable": false },
+        "amount": { "type": "number", "optional": false, "nullable": false },
+        "seasonAmounts": { "type": "SeasonAmounts", "optional": true, "nullable": false },
+        "activationAmounts": { "type": "ActivationAmounts", "optional": true, "nullable": false },
+        "keywordScale": { "type": "KeywordScale", "optional": true, "nullable": false }
+      }
+    },
+    "PracticeEffectaddChaosTag": {
+      "kind": "enum",
+      "values": [
+        "addChaos"
+      ]
+    },
+    "PracticeEffectaddFaithChaosResistance": {
+      "kind": "record",
+      "fields": {
+        "op": { "type": "PracticeEffectaddFaithChaosResistanceTag", "optional": false, "nullable": false },
+        "amount": { "type": "number", "optional": false, "nullable": false },
+        "seasonAmounts": { "type": "SeasonAmounts", "optional": true, "nullable": false },
+        "activationAmounts": { "type": "ActivationAmounts", "optional": true, "nullable": false },
+        "keywordScale": { "type": "KeywordScale", "optional": true, "nullable": false },
+        "populationBand": { "type": "number", "optional": true, "nullable": false },
+        "historyScale": { "type": "string", "optional": true, "nullable": false },
+        "localDeathScale": { "type": "boolean", "optional": true, "nullable": false },
+        "localDeathCap": { "type": "number", "optional": true, "nullable": false },
+        "externalConnectionScale": { "type": "boolean", "optional": true, "nullable": false }
+      }
+    },
+    "PracticeEffectaddFaithChaosResistanceTag": {
+      "kind": "enum",
+      "values": [
+        "addFaithChaosResistance"
+      ]
+    },
+    "PracticeEffectaddHousingForPhase": {
+      "kind": "record",
+      "fields": {
+        "op": { "type": "PracticeEffectaddHousingForPhaseTag", "optional": false, "nullable": false },
+        "amount": { "type": "number", "optional": false, "nullable": false },
+        "seasonAmounts": { "type": "SeasonAmounts", "optional": true, "nullable": false },
+        "activationAmounts": { "type": "ActivationAmounts", "optional": true, "nullable": false },
+        "keywordScale": { "type": "KeywordScale", "optional": true, "nullable": false },
+        "populationBand": { "type": "number", "optional": true, "nullable": false },
+        "historyScale": { "type": "string", "optional": true, "nullable": false },
+        "localDeathScale": { "type": "boolean", "optional": true, "nullable": false },
+        "localDeathCap": { "type": "number", "optional": true, "nullable": false },
+        "externalConnectionScale": { "type": "boolean", "optional": true, "nullable": false }
+      }
+    },
+    "PracticeEffectaddHousingForPhaseTag": {
+      "kind": "enum",
+      "values": [
+        "addHousingForPhase"
+      ]
+    },
+    "PracticeEffectaddMonsterPressure": {
+      "kind": "record",
+      "fields": {
+        "op": { "type": "PracticeEffectaddMonsterPressureTag", "optional": false, "nullable": false },
+        "amount": { "type": "number", "optional": false, "nullable": false },
+        "seasonAmounts": { "type": "SeasonAmounts", "optional": true, "nullable": false },
+        "activationAmounts": { "type": "ActivationAmounts", "optional": true, "nullable": false },
+        "keywordScale": { "type": "KeywordScale", "optional": true, "nullable": false }
+      }
+    },
+    "PracticeEffectaddMonsterPressureTag": {
+      "kind": "enum",
+      "values": [
+        "addMonsterPressure"
+      ]
+    },
+    "PracticeEffectbankCandidateDevelopment": {
+      "kind": "record",
+      "fields": {
+        "op": { "type": "PracticeEffectbankCandidateDevelopmentTag", "optional": false, "nullable": false },
+        "amount": { "type": "number", "optional": false, "nullable": false },
+        "seasonAmounts": { "type": "SeasonAmounts", "optional": true, "nullable": false },
+        "activationAmounts": { "type": "ActivationAmounts", "optional": true, "nullable": false },
+        "keywordScale": { "type": "KeywordScale", "optional": true, "nullable": false },
+        "populationBand": { "type": "number", "optional": true, "nullable": false },
+        "historyScale": { "type": "string", "optional": true, "nullable": false },
+        "localDeathScale": { "type": "boolean", "optional": true, "nullable": false },
+        "localDeathCap": { "type": "number", "optional": true, "nullable": false },
+        "externalConnectionScale": { "type": "boolean", "optional": true, "nullable": false },
+        "classId": { "type": "SpecialistClass", "optional": false, "nullable": false }
+      }
+    },
+    "PracticeEffectbankCandidateDevelopmentTag": {
+      "kind": "enum",
+      "values": [
+        "bankCandidateDevelopment"
+      ]
+    },
+    "PracticeEffectbankPreview": {
+      "kind": "record",
+      "fields": {
+        "op": { "type": "PracticeEffectbankPreviewTag", "optional": false, "nullable": false },
+        "amount": { "type": "number", "optional": false, "nullable": false },
+        "seasonAmounts": { "type": "SeasonAmounts", "optional": true, "nullable": false },
+        "activationAmounts": { "type": "ActivationAmounts", "optional": true, "nullable": false },
+        "keywordScale": { "type": "KeywordScale", "optional": true, "nullable": false },
+        "populationBand": { "type": "number", "optional": true, "nullable": false },
+        "historyScale": { "type": "string", "optional": true, "nullable": false },
+        "localDeathScale": { "type": "boolean", "optional": true, "nullable": false },
+        "localDeathCap": { "type": "number", "optional": true, "nullable": false },
+        "externalConnectionScale": { "type": "boolean", "optional": true, "nullable": false }
+      }
+    },
+    "PracticeEffectbankPreviewTag": {
+      "kind": "enum",
+      "values": [
+        "bankPreview"
+      ]
+    },
+    "PracticeEffectbankShopQuality": {
+      "kind": "record",
+      "fields": {
+        "op": { "type": "PracticeEffectbankShopQualityTag", "optional": false, "nullable": false },
+        "amount": { "type": "number", "optional": false, "nullable": false },
+        "seasonAmounts": { "type": "SeasonAmounts", "optional": true, "nullable": false },
+        "activationAmounts": { "type": "ActivationAmounts", "optional": true, "nullable": false },
+        "keywordScale": { "type": "KeywordScale", "optional": true, "nullable": false },
+        "populationBand": { "type": "number", "optional": true, "nullable": false },
+        "historyScale": { "type": "string", "optional": true, "nullable": false },
+        "localDeathScale": { "type": "boolean", "optional": true, "nullable": false },
+        "localDeathCap": { "type": "number", "optional": true, "nullable": false },
+        "externalConnectionScale": { "type": "boolean", "optional": true, "nullable": false },
+        "classId": { "type": "SpecialistClass", "optional": false, "nullable": false }
+      }
+    },
+    "PracticeEffectbankShopQualityTag": {
+      "kind": "enum",
+      "values": [
+        "bankShopQuality"
+      ]
+    },
+    "PracticeEffectbankSupport": {
+      "kind": "record",
+      "fields": {
+        "op": { "type": "PracticeEffectbankSupportTag", "optional": false, "nullable": false },
+        "amount": { "type": "number", "optional": false, "nullable": false },
+        "seasonAmounts": { "type": "SeasonAmounts", "optional": true, "nullable": false },
+        "activationAmounts": { "type": "ActivationAmounts", "optional": true, "nullable": false },
+        "keywordScale": { "type": "KeywordScale", "optional": true, "nullable": false },
+        "populationBand": { "type": "number", "optional": true, "nullable": false },
+        "historyScale": { "type": "string", "optional": true, "nullable": false },
+        "localDeathScale": { "type": "boolean", "optional": true, "nullable": false },
+        "localDeathCap": { "type": "number", "optional": true, "nullable": false },
+        "externalConnectionScale": { "type": "boolean", "optional": true, "nullable": false },
+        "bank": { "type": "string", "optional": false, "nullable": false }
+      }
+    },
+    "PracticeEffectbankSupportTag": {
+      "kind": "enum",
+      "values": [
+        "bankSupport"
+      ]
+    },
+    "PracticeEffectboostSeasonalFood": {
+      "kind": "record",
+      "fields": {
+        "op": { "type": "PracticeEffectboostSeasonalFoodTag", "optional": false, "nullable": false },
+        "amount": { "type": "number", "optional": false, "nullable": false },
+        "seasonAmounts": { "type": "SeasonAmounts", "optional": true, "nullable": false },
+        "activationAmounts": { "type": "ActivationAmounts", "optional": true, "nullable": false },
+        "keywordScale": { "type": "KeywordScale", "optional": true, "nullable": false },
+        "populationBand": { "type": "number", "optional": true, "nullable": false },
+        "historyScale": { "type": "string", "optional": true, "nullable": false },
+        "localDeathScale": { "type": "boolean", "optional": true, "nullable": false },
+        "localDeathCap": { "type": "number", "optional": true, "nullable": false },
+        "externalConnectionScale": { "type": "boolean", "optional": true, "nullable": false }
+      }
+    },
+    "PracticeEffectboostSeasonalFoodTag": {
+      "kind": "enum",
+      "values": [
+        "boostSeasonalFood"
+      ]
+    },
+    "PracticeEffectconvertPopulation": {
+      "kind": "record",
+      "fields": {
+        "op": { "type": "PracticeEffectconvertPopulationTag", "optional": false, "nullable": false },
+        "amount": { "type": "number", "optional": false, "nullable": false },
+        "seasonAmounts": { "type": "SeasonAmounts", "optional": true, "nullable": false },
+        "activationAmounts": { "type": "ActivationAmounts", "optional": true, "nullable": false },
+        "keywordScale": { "type": "KeywordScale", "optional": true, "nullable": false },
+        "populationBand": { "type": "number", "optional": true, "nullable": false },
+        "historyScale": { "type": "string", "optional": true, "nullable": false },
+        "localDeathScale": { "type": "boolean", "optional": true, "nullable": false },
+        "localDeathCap": { "type": "number", "optional": true, "nullable": false },
+        "externalConnectionScale": { "type": "boolean", "optional": true, "nullable": false },
+        "filter": { "type": "PopulationFilter", "optional": true, "nullable": false },
+        "reach": { "type": "string", "optional": true, "nullable": false },
+        "train": { "type": "SpecialistClass", "optional": true, "nullable": false }
+      }
+    },
+    "PracticeEffectconvertPopulationTag": {
+      "kind": "enum",
+      "values": [
+        "convertPopulation"
+      ]
+    },
+    "PracticeEffectgenerateStock": {
+      "kind": "record",
+      "fields": {
+        "op": { "type": "PracticeEffectgenerateStockTag", "optional": false, "nullable": false },
+        "amount": { "type": "number", "optional": false, "nullable": false },
+        "seasonAmounts": { "type": "SeasonAmounts", "optional": true, "nullable": false },
+        "activationAmounts": { "type": "ActivationAmounts", "optional": true, "nullable": false },
+        "keywordScale": { "type": "KeywordScale", "optional": true, "nullable": false },
+        "populationBand": { "type": "number", "optional": true, "nullable": false },
+        "historyScale": { "type": "string", "optional": true, "nullable": false },
+        "localDeathScale": { "type": "boolean", "optional": true, "nullable": false },
+        "localDeathCap": { "type": "number", "optional": true, "nullable": false },
+        "externalConnectionScale": { "type": "boolean", "optional": true, "nullable": false }
+      }
+    },
+    "PracticeEffectgenerateStockTag": {
+      "kind": "enum",
+      "values": [
+        "generateStock"
+      ]
+    },
+    "PracticeEffectpoliticalForce": {
+      "kind": "record",
+      "fields": {
+        "op": { "type": "PracticeEffectpoliticalForceTag", "optional": false, "nullable": false },
+        "amount": { "type": "number", "optional": false, "nullable": false },
+        "seasonAmounts": { "type": "SeasonAmounts", "optional": true, "nullable": false },
+        "activationAmounts": { "type": "ActivationAmounts", "optional": true, "nullable": false },
+        "keywordScale": { "type": "KeywordScale", "optional": true, "nullable": false },
+        "populationBand": { "type": "number", "optional": true, "nullable": false },
+        "historyScale": { "type": "string", "optional": true, "nullable": false },
+        "localDeathScale": { "type": "boolean", "optional": true, "nullable": false },
+        "localDeathCap": { "type": "number", "optional": true, "nullable": false },
+        "externalConnectionScale": { "type": "boolean", "optional": true, "nullable": false },
+        "defenseOnly": { "type": "boolean", "optional": true, "nullable": false },
+        "duration": { "type": "string", "optional": true, "nullable": false }
+      }
+    },
+    "PracticeEffectpoliticalForceTag": {
+      "kind": "enum",
+      "values": [
+        "politicalForce"
+      ]
+    },
+    "PracticeEffectreduceLocalFoodRequirement": {
+      "kind": "record",
+      "fields": {
+        "op": { "type": "PracticeEffectreduceLocalFoodRequirementTag", "optional": false, "nullable": false },
+        "amount": { "type": "number", "optional": false, "nullable": false },
+        "seasonAmounts": { "type": "SeasonAmounts", "optional": true, "nullable": false },
+        "activationAmounts": { "type": "ActivationAmounts", "optional": true, "nullable": false },
+        "keywordScale": { "type": "KeywordScale", "optional": true, "nullable": false },
+        "populationBand": { "type": "number", "optional": true, "nullable": false },
+        "historyScale": { "type": "string", "optional": true, "nullable": false },
+        "localDeathScale": { "type": "boolean", "optional": true, "nullable": false },
+        "localDeathCap": { "type": "number", "optional": true, "nullable": false },
+        "externalConnectionScale": { "type": "boolean", "optional": true, "nullable": false }
+      }
+    },
+    "PracticeEffectreduceLocalFoodRequirementTag": {
+      "kind": "enum",
+      "values": [
+        "reduceLocalFoodRequirement"
+      ]
+    },
+    "PracticeEffectresearch": {
+      "kind": "record",
+      "fields": {
+        "op": { "type": "PracticeEffectresearchTag", "optional": false, "nullable": false },
+        "amount": { "type": "number", "optional": false, "nullable": false },
+        "seasonAmounts": { "type": "SeasonAmounts", "optional": true, "nullable": false },
+        "activationAmounts": { "type": "ActivationAmounts", "optional": true, "nullable": false },
+        "keywordScale": { "type": "KeywordScale", "optional": true, "nullable": false },
+        "populationBand": { "type": "number", "optional": true, "nullable": false },
+        "historyScale": { "type": "string", "optional": true, "nullable": false },
+        "localDeathScale": { "type": "boolean", "optional": true, "nullable": false },
+        "localDeathCap": { "type": "number", "optional": true, "nullable": false },
+        "externalConnectionScale": { "type": "boolean", "optional": true, "nullable": false }
+      }
+    },
+    "PracticeEffectresearchTag": {
+      "kind": "enum",
+      "values": [
+        "research"
+      ]
+    },
+    "PracticeEffecttrain": {
+      "kind": "record",
+      "fields": {
+        "op": { "type": "PracticeEffecttrainTag", "optional": false, "nullable": false },
+        "amount": { "type": "number", "optional": false, "nullable": false },
+        "seasonAmounts": { "type": "SeasonAmounts", "optional": true, "nullable": false },
+        "activationAmounts": { "type": "ActivationAmounts", "optional": true, "nullable": false },
+        "keywordScale": { "type": "KeywordScale", "optional": true, "nullable": false },
+        "populationBand": { "type": "number", "optional": true, "nullable": false },
+        "historyScale": { "type": "string", "optional": true, "nullable": false },
+        "localDeathScale": { "type": "boolean", "optional": true, "nullable": false },
+        "localDeathCap": { "type": "number", "optional": true, "nullable": false },
+        "externalConnectionScale": { "type": "boolean", "optional": true, "nullable": false },
+        "classId": { "type": "SpecialistClass", "optional": false, "nullable": false }
+      }
+    },
+    "PracticeEffecttrainTag": {
+      "kind": "enum",
+      "values": [
+        "train"
+      ]
+    },
+    "PracticeEffecttriggerMonsterSpawn": {
+      "kind": "record",
+      "fields": {
+        "op": { "type": "PracticeEffecttriggerMonsterSpawnTag", "optional": false, "nullable": false },
+        "amount": { "type": "integer", "optional": false, "nullable": false }
+      }
+    },
+    "PracticeEffecttriggerMonsterSpawnTag": {
+      "kind": "enum",
+      "values": [
+        "triggerMonsterSpawn"
+      ]
+    },
+    "PracticeEvent": {
+      "kind": "record",
+      "fields": {
+        "tSec": { "type": "integer", "optional": false, "nullable": false },
+        "kind": { "type": "string", "optional": false, "nullable": false },
+        "regionId": { "type": "string", "optional": true, "nullable": false },
+        "targetPracticeId": { "type": "string", "optional": true, "nullable": false },
+        "slotIndex": { "type": "integer", "optional": true, "nullable": false },
+        "rootId": { "type": "integer", "optional": false, "nullable": false },
+        "parentId": { "type": "integer", "optional": false, "nullable": true },
+        "providers": { "type": "PracticeEventTraceProviders", "optional": true, "nullable": false },
+        "practiceId": { "type": "string", "optional": true, "nullable": false },
+        "activationType": { "type": "string", "optional": true, "nullable": false },
+        "id": { "type": "integer", "optional": false, "nullable": false },
+        "amount": { "type": "number", "optional": true, "nullable": false },
+        "traits": { "type": "StringArray", "optional": true, "nullable": false },
+        "tags": { "type": "StringArray", "optional": true, "nullable": false },
+        "pool": { "type": "string", "optional": true, "nullable": false },
+        "scholarStaffed": { "type": "boolean", "optional": true, "nullable": false },
+        "discharge": { "type": "boolean", "optional": true, "nullable": false },
+        "phase": { "type": "string", "optional": true, "nullable": false },
+        "premature": { "type": "boolean", "optional": true, "nullable": false },
+        "faction": { "type": "string", "optional": true, "nullable": true },
+        "controller": { "type": "string", "optional": true, "nullable": true },
+        "instanceId": { "type": "string", "optional": true, "nullable": true },
+        "reason": { "type": "string", "optional": true, "nullable": false },
+        "cause": { "type": "string", "optional": true, "nullable": false },
+        "targetRegionId": { "type": "string", "optional": true, "nullable": true },
+        "structureId": { "type": "string", "optional": true, "nullable": false },
+        "previousController": { "type": "string", "optional": true, "nullable": true },
+        "military": { "type": "boolean", "optional": true, "nullable": false },
+        "untilSec": { "type": "integer", "optional": true, "nullable": false },
+        "classId": { "type": "string", "optional": true, "nullable": true },
+        "actionKind": { "type": "string", "optional": true, "nullable": false },
+        "action": { "type": "string", "optional": true, "nullable": false },
+        "outcome": { "type": "string", "optional": true, "nullable": false },
+        "sourceRegionId": { "type": "string", "optional": true, "nullable": true },
+        "strengthBefore": { "type": "integer", "optional": true, "nullable": true },
+        "strengthAfter": { "type": "integer", "optional": true, "nullable": true },
+        "martial": { "type": "boolean", "optional": true, "nullable": false },
+        "destinationId": { "type": "string", "optional": true, "nullable": false },
+        "sourceRegionIds": { "type": "StringArray", "optional": true, "nullable": false },
+        "charge": { "type": "number", "optional": true, "nullable": false },
+        "threshold": { "type": "number", "optional": true, "nullable": false }
+      },
+      "note": "practice-events.js:8. Same emitted payload as trace plus mandatory event identity. Trace also contains resolver-only payloads."
+    },
+    "PracticeEventJournal": {
+      "kind": "record",
+      "fields": {
+        "nextId": { "type": "integer", "optional": false, "nullable": false },
+        "pending": { "type": "PracticeEventJournalPending", "optional": false, "nullable": false },
+        "trace": { "type": "DetailedSettlementPracticeActivationTrace", "optional": false, "nullable": false },
+        "stockTransfers": { "type": "PracticeEventJournalStockTransfers", "optional": true, "nullable": false },
+        "activeRoot": {
+          "type": "integer",
+          "optional": true,
+          "nullable": false,
+          "note": "Transient within synchronous recipe execution."
+        },
+        "activeEvent": {
+          "type": "integer",
+          "optional": true,
+          "nullable": false,
+          "note": "Transient within synchronous recipe execution."
+        }
+      }
+    },
+    "PracticeEventJournalPending": {
+      "kind": "array",
+      "items": "PracticeEvent"
+    },
+    "PracticeEventJournalStockTransfers": {
+      "kind": "record",
+      "fields": {
+        "tSec": { "type": "integer", "optional": false, "nullable": false },
+        "transfers": { "type": "StockTransfersTransfers", "optional": false, "nullable": false }
+      }
+    },
+    "PracticeEventTrace": {
+      "kind": "record",
+      "fields": {
+        "tSec": { "type": "integer", "optional": false, "nullable": false },
+        "kind": { "type": "string", "optional": false, "nullable": false },
+        "regionId": { "type": "string", "optional": true, "nullable": false },
+        "targetPracticeId": { "type": "string", "optional": true, "nullable": false },
+        "slotIndex": { "type": "integer", "optional": true, "nullable": false },
+        "rootId": { "type": "integer", "optional": false, "nullable": false },
+        "parentId": { "type": "integer", "optional": false, "nullable": true },
+        "providers": { "type": "PracticeEventTraceProviders", "optional": true, "nullable": false },
+        "practiceId": { "type": "string", "optional": true, "nullable": false },
+        "activationType": { "type": "string", "optional": true, "nullable": false },
+        "id": { "type": "integer", "optional": true, "nullable": false },
+        "amount": { "type": "number", "optional": true, "nullable": false },
+        "traits": { "type": "StringArray", "optional": true, "nullable": false },
+        "tags": { "type": "StringArray", "optional": true, "nullable": false },
+        "pool": { "type": "string", "optional": true, "nullable": false },
+        "scholarStaffed": { "type": "boolean", "optional": true, "nullable": false },
+        "discharge": { "type": "boolean", "optional": true, "nullable": false },
+        "phase": { "type": "string", "optional": true, "nullable": false },
+        "premature": { "type": "boolean", "optional": true, "nullable": false },
+        "faction": { "type": "string", "optional": true, "nullable": true },
+        "controller": { "type": "string", "optional": true, "nullable": true },
+        "instanceId": { "type": "string", "optional": true, "nullable": true },
+        "reason": { "type": "string", "optional": true, "nullable": false },
+        "cause": { "type": "string", "optional": true, "nullable": false },
+        "targetRegionId": { "type": "string", "optional": true, "nullable": true },
+        "structureId": { "type": "string", "optional": true, "nullable": false },
+        "previousController": { "type": "string", "optional": true, "nullable": true },
+        "military": { "type": "boolean", "optional": true, "nullable": false },
+        "untilSec": { "type": "integer", "optional": true, "nullable": false },
+        "classId": { "type": "string", "optional": true, "nullable": true },
+        "actionKind": { "type": "string", "optional": true, "nullable": false },
+        "action": { "type": "string", "optional": true, "nullable": false },
+        "outcome": { "type": "string", "optional": true, "nullable": false },
+        "sourceRegionId": { "type": "string", "optional": true, "nullable": true },
+        "strengthBefore": { "type": "integer", "optional": true, "nullable": true },
+        "strengthAfter": { "type": "integer", "optional": true, "nullable": true },
+        "martial": { "type": "boolean", "optional": true, "nullable": false },
+        "destinationId": { "type": "string", "optional": true, "nullable": false },
+        "sourceRegionIds": { "type": "StringArray", "optional": true, "nullable": false },
+        "charge": { "type": "number", "optional": true, "nullable": false },
+        "threshold": { "type": "number", "optional": true, "nullable": false }
+      },
+      "note": "practice-events.js:42 prefixes tSec, then spreads emitter payload. Shape and order depend on kind, ruleset and root context."
+    },
+    "PracticeEventTraceProviders": {
+      "kind": "array",
+      "items": "StockProvider"
+    },
+    "PracticeSlot": {
+      "kind": "record",
+      "fields": {
+        "practiceId": { "type": "string", "optional": false, "nullable": false },
+        "tier": { "type": "Quality", "optional": false, "nullable": false },
+        "stock": { "type": "integer", "optional": true, "nullable": false },
+        "charge": { "type": "integer", "optional": false, "nullable": false },
+        "work": { "type": "integer", "optional": false, "nullable": false },
+        "instanceId": { "type": "string", "optional": true, "nullable": false },
+        "allegiance": { "type": "string", "optional": true, "nullable": false },
+        "targetRegionId": { "type": "string", "optional": true, "nullable": false }
+      },
+      "note": "An empty slot is an array null. Influence slots may omit stock. The serializer appends tier when it is nullish. Observed multiple insertion orders with the same field set."
+    },
+    "PracticeSlotOrNull": {
+      "kind": "nullable",
+      "value": "PracticeSlot"
+    },
+    "PracticeStockMultiplier": {
+      "kind": "union",
+      "discriminator": "kind",
+      "variants": {
+        "outputMultiplier": "PracticeStockMultiplieroutputMultiplier",
+        "capacity": "PracticeStockMultipliercapacity"
+      }
+    },
+    "PracticeStockMultipliercapacity": {
+      "kind": "record",
+      "fields": {
+        "kind": { "type": "PracticeStockMultipliercapacityTag", "optional": false, "nullable": false },
+        "amount": { "type": "number", "optional": false, "nullable": false },
+        "biome": { "type": "string", "optional": true, "nullable": false },
+        "perRegion": { "type": "boolean", "optional": true, "nullable": false },
+        "seasonKeys": { "type": "StringArray", "optional": true, "nullable": false },
+        "stockedTraitsAny": { "type": "StringArray", "optional": true, "nullable": false }
+      }
+    },
+    "PracticeStockMultipliercapacityTag": {
+      "kind": "enum",
+      "values": [
+        "capacity"
+      ]
+    },
+    "PracticeStockMultiplieroutputMultiplier": {
+      "kind": "record",
+      "fields": {
+        "kind": { "type": "PracticeStockMultiplieroutputMultiplierTag", "optional": false, "nullable": false },
+        "amount": { "type": "number", "optional": false, "nullable": false },
+        "biome": { "type": "string", "optional": true, "nullable": false },
+        "perRegion": { "type": "boolean", "optional": true, "nullable": false },
+        "seasonKeys": { "type": "StringArray", "optional": true, "nullable": false },
+        "stockedTraitsAny": { "type": "StringArray", "optional": true, "nullable": false }
+      }
+    },
+    "PracticeStockMultiplieroutputMultiplierTag": {
+      "kind": "enum",
+      "values": [
+        "outputMultiplier"
+      ]
+    },
+    "PricesPractice": {
+      "kind": "record",
+      "fields": {
+        "bronze": { "type": "CardPrice", "optional": false, "nullable": false },
+        "silver": { "type": "CardPrice", "optional": false, "nullable": false },
+        "gold": { "type": "CardPrice", "optional": false, "nullable": false },
+        "diamond": { "type": "CardPrice", "optional": false, "nullable": false }
+      }
+    },
+    "PricesStructure": {
+      "kind": "record",
+      "fields": {
+        "bronze": { "type": "CardPrice", "optional": false, "nullable": false },
+        "silver": { "type": "CardPrice", "optional": false, "nullable": false },
+        "gold": { "type": "CardPrice", "optional": false, "nullable": false },
+        "diamond": { "type": "CardPrice", "optional": false, "nullable": false }
+      }
+    },
+    "PurchaseReceipt": {
+      "kind": "record",
+      "fields": {
+        "offerId": { "type": "string", "optional": false, "nullable": false },
+        "label": {
+          "type": "string",
+          "optional": true,
+          "nullable": false,
+          "note": "A Practice slot unlock receipt omits this shop card field."
+        },
+        "basePrestigeCost": { "type": "number", "optional": false, "nullable": false },
+        "basePhaseCost": {
+          "type": "integer",
+          "optional": true,
+          "nullable": false,
+          "note": "A Practice slot unlock receipt omits this shop card field."
+        },
+        "intervention": { "type": "Intervention", "optional": false, "nullable": false },
+        "baseCurrencyCost": { "type": "integer", "optional": true, "nullable": false },
+        "priceQuality": { "type": "string", "optional": true, "nullable": false },
+        "inventoryIndex": { "type": "integer", "optional": true, "nullable": false },
+        "prestigeCost": { "type": "number", "optional": false, "nullable": false },
+        "monsterPressureCost": { "type": "integer", "optional": false, "nullable": false },
+        "phaseCost": { "type": "integer", "optional": false, "nullable": false },
+        "currencyCost": { "type": "integer", "optional": false, "nullable": false },
+        "purchasedSec": { "type": "integer", "optional": false, "nullable": false },
+        "purchaseSequence": { "type": "integer", "optional": false, "nullable": false },
+        "sourceInventoryRoll": {
+          "type": "integer",
+          "optional": true,
+          "nullable": false,
+          "note": "A Practice slot unlock receipt omits this shop card field."
+        },
+        "sourceInventoryIndex": {
+          "type": "integer",
+          "optional": true,
+          "nullable": false,
+          "note": "A Practice slot unlock receipt omits this shop card field."
+        },
+        "displacedInstanceIds": { "type": "StringArray", "optional": true, "nullable": false },
+        "hourglassApplied": { "type": "boolean", "optional": true, "nullable": false },
+        "removalReceipts": { "type": "RemovalReceiptArray", "optional": true, "nullable": false },
+        "placement": { "type": "PurchaseReceiptPlacement", "optional": true, "nullable": false },
+        "sourceOfferId": { "type": "string", "optional": true, "nullable": false },
+        "practiceDraftBeforeMove": { "type": "PracticeDraftOrder", "optional": true, "nullable": false },
+        "tableauIndex": { "type": "integer", "optional": true, "nullable": false },
+        "replacedPracticeId": {
+          "type": "string",
+          "optional": true,
+          "nullable": false,
+          "note": "Replacement learn receipt in shop.js:383."
+        },
+        "practiceDraftBeforeReplacement": { "type": "PracticeDraftOrder", "optional": true, "nullable": false }
+      },
+      "note": "shop.js stages, spreads, updates and deletes receipt fields; purchase and undo history affects insertion order."
+    },
+    "PurchaseReceiptPlacement": {
+      "kind": "record",
+      "fields": {
+        "placementId": { "type": "string", "optional": false, "nullable": false },
+        "origin": { "type": "integer", "optional": false, "nullable": false },
+        "width": { "type": "integer", "optional": false, "nullable": false },
+        "structureId": { "type": "string", "optional": false, "nullable": false },
+        "construction": { "type": "PlacementConstruction", "optional": false, "nullable": false },
+        "qualityBonus": {
+          "type": "integer",
+          "optional": true,
+          "nullable": false,
+          "note": "Quality increments of a staged Structure or Vassal intervention."
+        }
+      }
+    },
+    "Quality": {
+      "kind": "enum",
+      "values": [
+        "bronze",
+        "silver",
+        "gold",
+        "diamond"
+      ]
+    },
+    "Region": {
+      "kind": "record",
+      "fields": {
+        "id": { "type": "string", "optional": false, "nullable": false },
+        "colour": { "type": "string", "optional": false, "nullable": false },
+        "controller": { "type": "string", "optional": false, "nullable": false },
+        "structureCapacity": { "type": "integer", "optional": false, "nullable": false },
+        "detailedSettlementEnabled": { "type": "boolean", "optional": false, "nullable": false },
+        "monster": { "type": "RegionMonster", "optional": true, "nullable": false },
+        "lostAtSec": { "type": "integer", "optional": true, "nullable": false },
+        "installedPracticeIds": {
+          "type": "StringArray",
+          "optional": true,
+          "nullable": false,
+          "note": "Legacy regional placement API reads an installed ID list; current constructors omit it. Unconfirmed supported live reachability."
+        }
+      }
+    },
+    "RegionMonster": {
+      "kind": "record",
+      "fields": {
+        "defense": { "type": "integer", "optional": false, "nullable": false },
+        "cleared": { "type": "boolean", "optional": true, "nullable": false }
+      }
+    },
+    "RelicPools": {
+      "kind": "record",
+      "fields": {
+        "relic": { "type": "RelicPoolsRelic", "optional": false, "nullable": false },
+        "specialRelic": { "type": "SpecialRelicPool", "optional": false, "nullable": false }
+      }
+    },
+    "RelicPoolsRelic": {
+      "kind": "record",
+      "fields": {
+        "qualities": { "type": "RelicQualities", "optional": false, "nullable": false }
+      }
+    },
+    "RelicQualities": {
+      "kind": "record",
+      "fields": {
+        "bronze": { "type": "RelicWeight", "optional": false, "nullable": false },
+        "silver": { "type": "RelicWeight", "optional": false, "nullable": false },
+        "gold": { "type": "RelicWeight", "optional": false, "nullable": false },
+        "diamond": { "type": "RelicWeight", "optional": false, "nullable": false }
+      }
+    },
+    "RelicWeight": {
+      "kind": "record",
+      "fields": {
+        "enabled": { "type": "boolean", "optional": false, "nullable": false },
+        "weight": { "type": "number", "optional": false, "nullable": false }
+      }
+    },
+    "RemovalReceipt": {
+      "kind": "record",
+      "fields": {
+        "instanceId": { "type": "string", "optional": false, "nullable": false },
+        "allegiance": { "type": "string", "optional": false, "nullable": true },
+        "prestigeTax": { "type": "number", "optional": true, "nullable": false },
+        "pressureTax": { "type": "number", "optional": true, "nullable": false },
+        "prestigeCost": { "type": "number", "optional": true, "nullable": false },
+        "monsterPressureCost": { "type": "number", "optional": true, "nullable": false }
+      },
+      "note": "shop.js:643–650 receipt shapes. Nonempty rows unconfirmed in capture."
+    },
+    "RemovalReceiptArray": {
+      "kind": "array",
+      "items": "RemovalReceipt"
+    },
+    "RngSeeds": {
+      "kind": "record",
+      "fields": {
+        "seed": { "type": "uint32", "optional": false, "nullable": false },
+        "baseSeed": { "type": "number", "optional": false, "nullable": false },
+        "vassalSeed": { "type": "uint32", "optional": false, "nullable": false },
+        "vassalDevelopmentSeed": { "type": "uint32", "optional": false, "nullable": false },
+        "vassalLifeMapSeed": { "type": "uint32", "optional": false, "nullable": false },
+        "vassalPortraitSeed": { "type": "uint32", "optional": false, "nullable": false }
+      },
+      "note": "Five modulo-2^32 Mulberry32 cursors and the finite run identity baseSeed."
+    },
+    "RunEndReason": {
+      "kind": "enum",
+      "values": [
+        "monsterOverrun",
+        "territorialLoss",
+        "tenuresExhausted"
+      ]
+    },
+    "RunStatus": {
+      "kind": "record",
+      "fields": {
+        "complete": { "type": "boolean", "optional": false, "nullable": false },
+        "reason": { "type": "RunEndReason", "optional": false, "nullable": false },
+        "year": { "type": "integer", "optional": false, "nullable": false },
+        "tSec": { "type": "integer", "optional": false, "nullable": false }
+      }
+    },
+    "SeasonalFoodBoost": {
+      "kind": "record",
+      "fields": {
+        "year": { "type": "integer", "optional": false, "nullable": false },
+        "practiceId": { "type": "string", "optional": false, "nullable": false },
+        "amount": { "type": "number", "optional": false, "nullable": false },
+        "seasons": { "type": "StringArray", "optional": false, "nullable": false }
+      }
+    },
+    "SeasonAmounts": {
+      "kind": "record",
+      "fields": {
+        "spring": { "type": "number", "optional": true, "nullable": false },
+        "summer": { "type": "number", "optional": true, "nullable": false },
+        "autumn": { "type": "number", "optional": true, "nullable": false },
+        "winter": { "type": "number", "optional": true, "nullable": false }
+      },
+      "note": "Season-keyed fixed vocabulary. game-config.js:331 retains source entry order."
+    },
+    "SettingValues": {
+      "kind": "record",
+      "fields": {
+        "seasonDurationSec": {
+          "type": "number",
+          "optional": false,
+          "nullable": false,
+          "note": "Settings validation requires an integer; configured init copies a finite Number before draft validation."
+        },
+        "phaseDurationSec": {
+          "type": "number",
+          "optional": false,
+          "nullable": false,
+          "note": "Settings validation requires an integer; configured init copies a finite Number before draft validation."
+        },
+        "unrestDurationYears": { "type": "integer", "optional": false, "nullable": false },
+        "unrestChaosPerYear": { "type": "number", "optional": false, "nullable": false },
+        "populationPerToken": { "type": "integer", "optional": false, "nullable": false },
+        "villagerEffectiveness": { "type": "number", "optional": false, "nullable": false },
+        "strangerEffectiveness": { "type": "number", "optional": false, "nullable": false },
+        "startingResearch": { "type": "integer", "optional": false, "nullable": false },
+        "researchSilverThreshold": { "type": "integer", "optional": false, "nullable": false },
+        "researchSilverFullThreshold": { "type": "integer", "optional": false, "nullable": false },
+        "researchGoldThreshold": { "type": "integer", "optional": false, "nullable": false },
+        "researchDiamondThreshold": { "type": "integer", "optional": false, "nullable": false },
+        "practiceReactionResolutionCap": { "type": "integer", "optional": false, "nullable": false },
+        "birthRateBronze": { "type": "number", "optional": false, "nullable": false },
+        "birthRateSilver": { "type": "number", "optional": false, "nullable": false },
+        "birthRateGold": { "type": "number", "optional": false, "nullable": false },
+        "birthRateDiamond": { "type": "number", "optional": false, "nullable": false },
+        "childToAdultRate": { "type": "number", "optional": false, "nullable": false },
+        "adultToElderRate": { "type": "number", "optional": false, "nullable": false },
+        "newElderAge": { "type": "integer", "optional": false, "nullable": false },
+        "fullFeedStreakForIncrease": { "type": "integer", "optional": false, "nullable": false },
+        "partialFeedMinimumRatio": { "type": "number", "optional": false, "nullable": false },
+        "partialFeedMemoryLength": { "type": "integer", "optional": false, "nullable": false },
+        "missedFeedStreakForStarvation": { "type": "integer", "optional": false, "nullable": false },
+        "overHousingNegativeRatio": { "type": "number", "optional": false, "nullable": false },
+        "faithStreakForShift": { "type": "integer", "optional": false, "nullable": false },
+        "bronzeCollapseLossRate": { "type": "number", "optional": false, "nullable": false },
+        "prematureDeathChaosWeight": { "type": "number", "optional": false, "nullable": false },
+        "externalEmigrationChaosWeight": { "type": "number", "optional": false, "nullable": false },
+        "oldAgeDeathChaosWeight": { "type": "number", "optional": false, "nullable": false },
+        "internalMigrationChaosWeight": { "type": "number", "optional": false, "nullable": false },
+        "primordialBasePressure": { "type": "number", "optional": false, "nullable": false },
+        "primordialGrowthFactor": { "type": "number", "optional": false, "nullable": false },
+        "primordialGrowthCadenceYears": { "type": "integer", "optional": false, "nullable": false },
+        "bronzeChaosResistancePopulation": { "type": "integer", "optional": false, "nullable": false },
+        "silverChaosResistancePopulation": { "type": "integer", "optional": false, "nullable": false },
+        "goldChaosResistancePopulation": { "type": "integer", "optional": false, "nullable": false },
+        "diamondChaosResistancePopulation": { "type": "integer", "optional": false, "nullable": false },
+        "populationChaosResistanceMultiplier": { "type": "number", "optional": false, "nullable": false },
+        "monsterExpansionThreshold": { "type": "integer", "optional": false, "nullable": false },
+        "monsterProgressPerChaosRatio": { "type": "number", "optional": false, "nullable": false },
+        "monsterDiversionProgress": { "type": "integer", "optional": false, "nullable": false },
+        "discoveryMonsterProgress": { "type": "integer", "optional": false, "nullable": false },
+        "conquestMonsterProgress": { "type": "integer", "optional": false, "nullable": false },
+        "conquestMonsterProgressPerDefense": { "type": "integer", "optional": false, "nullable": false },
+        "deepStudyMonsterProgress": { "type": "integer", "optional": false, "nullable": false },
+        "silverRelicMonsterProgress": { "type": "integer", "optional": false, "nullable": false },
+        "goldRelicMonsterProgress": { "type": "integer", "optional": false, "nullable": false },
+        "diamondRelicMonsterProgress": { "type": "integer", "optional": false, "nullable": false },
+        "greenAutomaticTier": { "type": "boolean", "optional": false, "nullable": false },
+        "greenForcedTier": { "type": "integer", "optional": false, "nullable": false },
+        "greenCadenceYears": { "type": "integer", "optional": false, "nullable": false },
+        "migrationHardshipDeathRate": { "type": "number", "optional": false, "nullable": false },
+        "elderMortalityThrough49": { "type": "number", "optional": false, "nullable": false },
+        "elderMortality50To54": { "type": "number", "optional": false, "nullable": false },
+        "elderMortality55To59": { "type": "number", "optional": false, "nullable": false },
+        "elderMortality60To64": { "type": "number", "optional": false, "nullable": false },
+        "elderMortality65To69": { "type": "number", "optional": false, "nullable": false },
+        "elderMortality70To74": { "type": "number", "optional": false, "nullable": false },
+        "elderMortality75Plus": { "type": "number", "optional": false, "nullable": false },
+        "elderPrestigeBaseAge": { "type": "integer", "optional": false, "nullable": false },
+        "resistancePerAdditionalElder": { "type": "integer", "optional": false, "nullable": false }
+      },
+      "note": "Fixed registry keys from GAME_SETTING_EDITOR_SECTIONS. The normalizer emits registry order regardless of launch input order."
+    },
+    "ShopOffer": {
+      "kind": "record",
+      "fields": {
+        "offerId": { "type": "string", "optional": false, "nullable": false },
+        "label": { "type": "string", "optional": false, "nullable": false },
+        "basePrestigeCost": { "type": "number", "optional": false, "nullable": false },
+        "basePhaseCost": { "type": "integer", "optional": false, "nullable": false },
+        "intervention": { "type": "Intervention", "optional": false, "nullable": false },
+        "baseCurrencyCost": { "type": "integer", "optional": true, "nullable": false },
+        "priceQuality": { "type": "string", "optional": true, "nullable": false },
+        "inventoryIndex": { "type": "integer", "optional": false, "nullable": false }
+      },
+      "note": "Observed multiple insertion orders with the same field set."
+    },
+    "ShopPricingPrices": {
+      "kind": "record",
+      "fields": {
+        "practice": { "type": "PricesPractice", "optional": false, "nullable": false },
+        "structure": { "type": "PricesStructure", "optional": false, "nullable": false }
+      }
+    },
+    "ShopSelectionChoices": {
+      "kind": "array",
+      "items": "ShopSelectionChoicesEntry"
+    },
+    "ShopSelectionChoicesEntry": {
+      "kind": "record",
+      "fields": {
+        "id": { "type": "string", "optional": false, "nullable": false },
+        "label": { "type": "string", "optional": false, "nullable": false },
+        "iconId": { "type": "string", "optional": true, "nullable": false },
+        "description": { "type": "string", "optional": false, "nullable": false },
+        "enabled": { "type": "boolean", "optional": false, "nullable": false },
+        "prestigeGain": { "type": "integer", "optional": true, "nullable": false }
+      }
+    },
+    "ShopServicesDelve": {
+      "kind": "record",
+      "fields": {
+        "time": { "type": "BalanceValue", "optional": false, "nullable": false }
+      }
+    },
+    "ShopServicesEmptyConfirm": {
+      "kind": "record",
+      "fields": {
+        "time": { "type": "BalanceValue", "optional": false, "nullable": false }
+      }
+    },
+    "SignatureNode": {
+      "kind": "record",
+      "fields": {
+        "id": { "type": "string", "optional": false, "nullable": false },
+        "groupId": { "type": "string", "optional": false, "nullable": false },
+        "label": { "type": "string", "optional": false, "nullable": false },
+        "glyph": { "type": "string", "optional": false, "nullable": false },
+        "color": { "type": "integer", "optional": false, "nullable": false },
+        "description": { "type": "string", "optional": false, "nullable": false },
+        "variantId": { "type": "string", "optional": false, "nullable": false },
+        "removalKind": { "type": "string", "optional": true, "nullable": false },
+        "tag": { "type": "string", "optional": true, "nullable": false }
+      },
+      "note": "Observed multiple insertion orders with the same field set."
+    },
+    "Site": {
+      "kind": "record",
+      "fields": {
+        "id": { "type": "string", "optional": false, "nullable": false },
+        "regionId": { "type": "string", "optional": false, "nullable": false },
+        "simulationMode": { "type": "string", "optional": false, "nullable": false },
+        "name": { "type": "string", "optional": false, "nullable": false },
+        "detailedState": { "type": "DetailedSettlement", "optional": false, "nullable": false },
+        "town": { "type": "Town", "optional": true, "nullable": false },
+        "neutral": { "type": "NeutralMarket", "optional": true, "nullable": false }
+      }
+    },
+    "SkillModifiers": {
+      "kind": "record",
+      "fields": {
+        "global": { "type": "SkillModifiersGlobal", "optional": false, "nullable": false },
+        "pawnById": { "type": "SkillModifiersPawnById", "optional": false, "nullable": false }
+      }
+    },
+    "SkillModifiersGlobal": {
+      "kind": "record",
+      "fields": {
+        "apCapBonus": { "type": "integer", "optional": false, "nullable": false },
+        "editableHistoryWindowBonusSec": { "type": "integer", "optional": false, "nullable": false },
+        "projectionHorizonBonusSec": { "type": "integer", "optional": false, "nullable": false },
+        "populationFoodMult": { "type": "integer", "optional": false, "nullable": false }
+      }
+    },
+    "SkillModifiersPawnById": {
+      "kind": "dict",
+      "key": "string",
+      "value": "PawnSkillModifiers",
+      "note": "Pawn IDs are normalized strings, including legacy nonnumeric IDs."
+    },
+    "SkillRuntime": {
+      "kind": "record",
+      "fields": {
+        "modifiers": { "type": "SkillModifiers", "optional": false, "nullable": false },
+        "unlocks": { "type": "SkillRuntimeUnlocks", "optional": false, "nullable": false }
+      }
+    },
+    "SkillRuntimeUnlocks": {
+      "kind": "record",
+      "fields": {
+        "recipes": { "type": "StringArray", "optional": false, "nullable": false },
+        "hubStructures": { "type": "StringArray", "optional": false, "nullable": false },
+        "envTags": { "type": "StringArray", "optional": false, "nullable": false },
+        "hubTags": { "type": "StringArray", "optional": false, "nullable": false },
+        "features": { "type": "StringArray", "optional": false, "nullable": false },
+        "itemTags": { "type": "StringArray", "optional": false, "nullable": false }
+      }
+    },
+    "SpawnCause": {
+      "kind": "enum",
+      "values": [
+        "creep",
+        "direct"
+      ]
+    },
+    "SpawnOutcome": {
+      "kind": "enum",
+      "values": [
+        "intercepted",
+        "expanded",
+        "appeared",
+        "strengthened",
+        "blocked"
+      ]
+    },
+    "SpecialistClass": {
+      "kind": "enum",
+      "values": [
+        "scholar",
+        "warrior"
+      ]
+    },
+    "Specialists": {
+      "kind": "record",
+      "fields": {
+        "scholar": { "type": "AgeCounts", "optional": false, "nullable": false },
+        "warrior": { "type": "AgeCounts", "optional": false, "nullable": false }
+      }
+    },
+    "SpecialRelicPool": {
+      "kind": "record",
+      "fields": {
+        "entries": { "type": "SpecialRelicPoolEntries", "optional": false, "nullable": false }
+      }
+    },
+    "SpecialRelicPoolEntries": {
+      "kind": "dict",
+      "key": "string",
+      "value": "RelicWeight",
+      "note": "Relic definition IDs. Traverse in registry order for pool construction."
+    },
+    "StockInput": {
+      "kind": "record",
+      "fields": {
+        "traits": { "type": "StringArray", "optional": false, "nullable": false },
+        "amount": { "type": "number", "optional": false, "nullable": false }
+      },
+      "note": "Observed multiple insertion orders with the same field set."
+    },
+    "StockProvider": {
+      "kind": "record",
+      "fields": {
+        "kind": { "type": "string", "optional": false, "nullable": false },
+        "regionId": { "type": "string", "optional": false, "nullable": false },
+        "slotIndex": { "type": "integer", "optional": false, "nullable": false },
+        "practiceId": { "type": "string", "optional": true, "nullable": false },
+        "amount": { "type": "integer", "optional": false, "nullable": false },
+        "traits": { "type": "StringArray", "optional": false, "nullable": false },
+        "substitution": { "type": "StringArray", "optional": true, "nullable": false },
+        "paymentFor": { "type": "string", "optional": true, "nullable": false },
+        "marketStockId": { "type": "string", "optional": true, "nullable": false },
+        "label": { "type": "string", "optional": true, "nullable": false },
+        "unitPrice": { "type": "integer", "optional": true, "nullable": false }
+      }
+    },
+    "StockTransfersTransfers": {
+      "kind": "array",
+      "items": "StockTransfersTransfersEntry"
+    },
+    "StockTransfersTransfersEntry": {
+      "kind": "record",
+      "fields": {
+        "transferId": { "type": "string", "optional": false, "nullable": false },
+        "boundarySec": { "type": "integer", "optional": false, "nullable": false },
+        "systemId": { "type": "string", "optional": false, "nullable": false },
+        "resourceId": { "type": "string", "optional": false, "nullable": false },
+        "reason": { "type": "string", "optional": false, "nullable": false },
+        "kind": { "type": "string", "optional": false, "nullable": false },
+        "sourceRegionId": { "type": "string", "optional": false, "nullable": false },
+        "destinationRegionId": { "type": "string", "optional": false, "nullable": false },
+        "slotIndex": { "type": "integer", "optional": false, "nullable": false },
+        "practiceId": { "type": "string", "optional": true, "nullable": false },
+        "traits": { "type": "StringArray", "optional": false, "nullable": false },
+        "amount": { "type": "integer", "optional": false, "nullable": false }
+      }
+    },
+    "StringArray": {
+      "kind": "array",
+      "items": "string"
+    },
+    "StructureCell": {
+      "kind": "record",
+      "fields": {
+        "structureId": { "type": "string", "optional": false, "nullable": false },
+        "origin": { "type": "integer", "optional": false, "nullable": false },
+        "width": { "type": "integer", "optional": false, "nullable": false },
+        "placementId": { "type": "string", "optional": false, "nullable": false },
+        "qualityBonus": { "type": "integer", "optional": true, "nullable": false },
+        "construction": { "type": "StructureCellConstruction", "optional": true, "nullable": false },
+        "upkeepActive": { "type": "boolean", "optional": true, "nullable": false }
+      },
+      "note": "Only a placement origin has a record. Non-origin cells are null, even when covered by a footprint. Observed multiple insertion orders with the same field set."
+    },
+    "StructureCellConstruction": {
+      "kind": "record",
+      "fields": {
+        "completedCycles": { "type": "integer", "optional": false, "nullable": false }
+      }
+    },
+    "StructureCellOrNull": {
+      "kind": "nullable",
+      "value": "StructureCell"
+    },
+    "StructureDefinition": {
+      "kind": "record",
+      "fields": {
+        "id": { "type": "string", "optional": false, "nullable": false },
+        "label": { "type": "string", "optional": false, "nullable": false },
+        "pool": { "type": "string", "optional": false, "nullable": false },
+        "provenance": { "type": "string", "optional": true, "nullable": false },
+        "minimumQuality": { "type": "string", "optional": false, "nullable": false },
+        "tags": { "type": "StringArray", "optional": false, "nullable": false },
+        "effects": { "type": "PracticeDefinitionEffects", "optional": false, "nullable": false },
+        "consume": { "type": "ConstructionConsume", "optional": true, "nullable": false },
+        "require": { "type": "ConstructionConsume", "optional": true, "nullable": false },
+        "vassalPrestigeCost": { "type": "number", "optional": false, "nullable": false },
+        "vassalPhaseCost": { "type": "number", "optional": false, "nullable": false },
+        "ui": { "type": "StructureDefinitionUi", "optional": false, "nullable": false },
+        "footprint": { "type": "integer", "optional": false, "nullable": false },
+        "housing": { "type": "number", "optional": true, "nullable": false },
+        "modifiers": { "type": "StructureDefinitionModifiers", "optional": true, "nullable": false },
+        "construction": { "type": "StructureDefinitionConstruction", "optional": false, "nullable": false },
+        "localCurrencyCost": { "type": "number", "optional": false, "nullable": false },
+        "conversionSupport": { "type": "StructureDefinitionConversionSupport", "optional": true, "nullable": false },
+        "flavor": { "type": "string", "optional": true, "nullable": false },
+        "upkeep": { "type": "StructureDefinitionUpkeep", "optional": true, "nullable": false },
+        "mealExtra": { "type": "number", "optional": true, "nullable": false },
+        "degradedFrom": { "type": "string", "optional": true, "nullable": false },
+        "workbook": { "type": "StructureDefinitionWorkbook", "optional": true, "nullable": false },
+        "authoredRule": { "type": "string", "optional": true, "nullable": false },
+        "authoredHook": { "type": "string", "optional": true, "nullable": false },
+        "candidateBonus": { "type": "number", "optional": true, "nullable": false },
+        "provisionalNotes": { "type": "StringArray", "optional": true, "nullable": false },
+        "specialistGate": { "type": "number", "optional": true, "nullable": false },
+        "locked": {
+          "type": "boolean",
+          "optional": true,
+          "nullable": false,
+          "note": "Optional review/profile lock."
+        }
+      },
+      "note": "game-config.js:257–334 uses authored template order and optionally appends locked. Observed multiple insertion orders with the same field set."
+    },
+    "StructureDefinitionConstruction": {
+      "kind": "record",
+      "fields": {
+        "cycles": { "type": "integer", "optional": false, "nullable": false },
+        "activation": { "type": "ConstructionActivation", "optional": false, "nullable": false },
+        "consume": { "type": "ConstructionConsume", "optional": false, "nullable": false }
+      }
+    },
+    "StructureDefinitionConversionSupport": {
+      "kind": "record",
+      "fields": {
+        "amount": { "type": "integer", "optional": true, "nullable": false },
+        "query": { "type": "ConversionSupportQuery", "optional": true, "nullable": false },
+        "filter": { "type": "ConversionSupportFilter", "optional": true, "nullable": false },
+        "require": { "type": "ConversionSupportRequire", "optional": true, "nullable": false },
+        "consumeTrait": { "type": "string", "optional": true, "nullable": false },
+        "reach": { "type": "string", "optional": true, "nullable": false },
+        "consume": { "type": "ConversionSupportConsume", "optional": true, "nullable": false },
+        "minimumPopulation": { "type": "number", "optional": true, "nullable": false },
+        "train": { "type": "string", "optional": true, "nullable": false },
+        "activation": { "type": "string", "optional": true, "nullable": false },
+        "populationRequire": { "type": "ConversionSupportPopulationRequire", "optional": true, "nullable": false }
+      }
+    },
+    "StructureDefinitionModifiers": {
+      "kind": "array",
+      "items": "StructureDefinitionModifiersEntry"
+    },
+    "StructureDefinitionModifiersEntry": {
+      "kind": "record",
+      "fields": {
+        "kind": { "type": "string", "optional": false, "nullable": false },
+        "amount": { "type": "number", "optional": true, "nullable": false },
+        "arms": { "type": "number", "optional": true, "nullable": false },
+        "adjacent": { "type": "boolean", "optional": true, "nullable": false },
+        "query": { "type": "ModifiersQuery", "optional": true, "nullable": false },
+        "warriors": { "type": "integer", "optional": true, "nullable": false },
+        "sources": { "type": "StringArray", "optional": true, "nullable": false },
+        "cap": { "type": "number", "optional": true, "nullable": false },
+        "from": { "type": "string", "optional": true, "nullable": false },
+        "to": { "type": "string", "optional": true, "nullable": false },
+        "providerTagsAny": { "type": "StringArray", "optional": true, "nullable": false }
+      },
+      "note": "Observed multiple insertion orders with the same field set."
+    },
+    "StructureDefinitionUi": {
+      "kind": "record",
+      "fields": {
+        "rule": { "type": "string", "optional": false, "nullable": false }
+      }
+    },
+    "StructureDefinitionUpkeep": {
+      "kind": "record",
+      "fields": {
+        "activation": { "type": "string", "optional": false, "nullable": false },
+        "consume": { "type": "ConstructionConsume", "optional": false, "nullable": false },
+        "disables": { "type": "boolean", "optional": false, "nullable": false }
+      }
+    },
+    "StructureDefinitionWorkbook": {
+      "kind": "record",
+      "fields": {
+        "version": { "type": "string", "optional": false, "nullable": false },
+        "sheet": { "type": "string", "optional": false, "nullable": false },
+        "row": { "type": "number", "optional": false, "nullable": false }
+      }
+    },
+    "StructureDraftEdit": {
+      "kind": "record",
+      "fields": {
+        "placementId": { "type": "string", "optional": false, "nullable": false },
+        "origin": { "type": "integer", "optional": false, "nullable": true }
+      },
+      "note": "shop.js:591."
+    },
+    "StructureDraftEditArray": {
+      "kind": "array",
+      "items": "StructureDraftEdit"
+    },
+    "SupportBank": {
+      "kind": "record",
+      "fields": {
+        "formation": { "type": "number", "optional": true, "nullable": false },
+        "siege": { "type": "number", "optional": true, "nullable": false },
+        "mobility": { "type": "number", "optional": true, "nullable": false },
+        "coordination": { "type": "number", "optional": true, "nullable": false },
+        "greatHost": { "type": "number", "optional": true, "nullable": false }
+      },
+      "note": "Known bank names in mechanics.js; key insertion follows first contribution."
+    },
+    "Town": {
+      "kind": "record",
+      "fields": {
+        "type": { "type": "string", "optional": false, "nullable": false },
+        "activated": { "type": "boolean", "optional": false, "nullable": false },
+        "market": { "type": "NeutralMarket", "optional": true, "nullable": false }
+      }
+    },
+    "TriggerAny": {
+      "kind": "array",
+      "items": "TriggerClause"
+    },
+    "TriggerClause": {
+      "kind": "union",
+      "discriminator": "kind",
+      "variants": {
+        "monsterSpawn": "TriggerClausemonsterSpawn",
+        "monsterPressure": "TriggerClausemonsterPressure",
+        "stockGenerated": "TriggerClausestockGenerated",
+        "stockConsumed": "TriggerClausestockConsumed",
+        "chaosIncreased": "TriggerClausechaosIncreased",
+        "candidateDevelopment": "TriggerClausecandidateDevelopment",
+        "supportContributed": "TriggerClausesupportContributed",
+        "martialActionResolved": "TriggerClausemartialActionResolved",
+        "populationDied": "TriggerClausepopulationDied",
+        "monsterDestroyed": "TriggerClausemonsterDestroyed",
+        "defenseSucceeded": "TriggerClausedefenseSucceeded",
+        "practiceInstalled": "TriggerClausepracticeInstalled",
+        "dangerSurvived": "TriggerClausedangerSurvived",
+        "campaignWon": "TriggerClausecampaignWon",
+        "externalTrade": "TriggerClauseexternalTrade",
+        "challengeCompleted": "TriggerClausechallengeCompleted",
+        "settlementLost": "TriggerClausesettlementLost",
+        "crisisResolved": "TriggerClausecrisisResolved"
+      }
+    },
+    "TriggerClausecampaignWon": {
+      "kind": "record",
+      "fields": {
+        "kind": { "type": "TriggerClausecampaignWonTag", "optional": false, "nullable": false },
+        "scope": { "type": "string", "optional": true, "nullable": false },
+        "faction": { "type": "string", "optional": true, "nullable": false },
+        "controller": { "type": "string", "optional": true, "nullable": false },
+        "classId": { "type": "SpecialistClass", "optional": true, "nullable": false }
+      }
+    },
+    "TriggerClausecampaignWonTag": {
+      "kind": "enum",
+      "values": [
+        "campaignWon"
+      ]
+    },
+    "TriggerClausecandidateDevelopment": {
+      "kind": "record",
+      "fields": {
+        "kind": { "type": "TriggerClausecandidateDevelopmentTag", "optional": false, "nullable": false },
+        "scope": { "type": "string", "optional": true, "nullable": false },
+        "faction": { "type": "string", "optional": true, "nullable": false },
+        "controller": { "type": "string", "optional": true, "nullable": false },
+        "classId": { "type": "SpecialistClass", "optional": true, "nullable": false }
+      }
+    },
+    "TriggerClausecandidateDevelopmentTag": {
+      "kind": "enum",
+      "values": [
+        "candidateDevelopment"
+      ]
+    },
+    "TriggerClausechallengeCompleted": {
+      "kind": "record",
+      "fields": {
+        "kind": { "type": "TriggerClausechallengeCompletedTag", "optional": false, "nullable": false },
+        "scope": { "type": "string", "optional": true, "nullable": false },
+        "faction": { "type": "string", "optional": true, "nullable": false },
+        "controller": { "type": "string", "optional": true, "nullable": false },
+        "classId": { "type": "SpecialistClass", "optional": true, "nullable": false }
+      }
+    },
+    "TriggerClausechallengeCompletedTag": {
+      "kind": "enum",
+      "values": [
+        "challengeCompleted"
+      ]
+    },
+    "TriggerClausechaosIncreased": {
+      "kind": "record",
+      "fields": {
+        "kind": { "type": "TriggerClausechaosIncreasedTag", "optional": false, "nullable": false },
+        "scope": { "type": "string", "optional": true, "nullable": false },
+        "faction": { "type": "string", "optional": true, "nullable": false },
+        "controller": { "type": "string", "optional": true, "nullable": false }
+      }
+    },
+    "TriggerClausechaosIncreasedTag": {
+      "kind": "enum",
+      "values": [
+        "chaosIncreased"
+      ]
+    },
+    "TriggerClausecrisisResolved": {
+      "kind": "record",
+      "fields": {
+        "kind": { "type": "TriggerClausecrisisResolvedTag", "optional": false, "nullable": false },
+        "scope": { "type": "string", "optional": true, "nullable": false },
+        "faction": { "type": "string", "optional": true, "nullable": false },
+        "controller": { "type": "string", "optional": true, "nullable": false }
+      }
+    },
+    "TriggerClausecrisisResolvedTag": {
+      "kind": "enum",
+      "values": [
+        "crisisResolved"
+      ]
+    },
+    "TriggerClausedangerSurvived": {
+      "kind": "record",
+      "fields": {
+        "kind": { "type": "TriggerClausedangerSurvivedTag", "optional": false, "nullable": false },
+        "scope": { "type": "string", "optional": true, "nullable": false },
+        "faction": { "type": "string", "optional": true, "nullable": false },
+        "controller": { "type": "string", "optional": true, "nullable": false },
+        "classId": { "type": "SpecialistClass", "optional": true, "nullable": false },
+        "martial": { "type": "boolean", "optional": true, "nullable": false }
+      }
+    },
+    "TriggerClausedangerSurvivedTag": {
+      "kind": "enum",
+      "values": [
+        "dangerSurvived"
+      ]
+    },
+    "TriggerClausedefenseSucceeded": {
+      "kind": "record",
+      "fields": {
+        "kind": { "type": "TriggerClausedefenseSucceededTag", "optional": false, "nullable": false },
+        "scope": { "type": "string", "optional": true, "nullable": false },
+        "faction": { "type": "string", "optional": true, "nullable": false },
+        "controller": { "type": "string", "optional": true, "nullable": false }
+      }
+    },
+    "TriggerClausedefenseSucceededTag": {
+      "kind": "enum",
+      "values": [
+        "defenseSucceeded"
+      ]
+    },
+    "TriggerClauseexternalTrade": {
+      "kind": "record",
+      "fields": {
+        "kind": { "type": "TriggerClauseexternalTradeTag", "optional": false, "nullable": false },
+        "scope": { "type": "string", "optional": true, "nullable": false },
+        "faction": { "type": "string", "optional": true, "nullable": false },
+        "controller": { "type": "string", "optional": true, "nullable": false }
+      }
+    },
+    "TriggerClauseexternalTradeTag": {
+      "kind": "enum",
+      "values": [
+        "externalTrade"
+      ]
+    },
+    "TriggerClausemartialActionResolved": {
+      "kind": "record",
+      "fields": {
+        "kind": { "type": "TriggerClausemartialActionResolvedTag", "optional": false, "nullable": false },
+        "scope": { "type": "string", "optional": true, "nullable": false },
+        "faction": { "type": "string", "optional": true, "nullable": false },
+        "controller": { "type": "string", "optional": true, "nullable": false },
+        "classId": { "type": "SpecialistClass", "optional": true, "nullable": false },
+        "actionKindsAny": { "type": "StringArray", "optional": true, "nullable": false },
+        "minimumSources": { "type": "integer", "optional": true, "nullable": false }
+      }
+    },
+    "TriggerClausemartialActionResolvedTag": {
+      "kind": "enum",
+      "values": [
+        "martialActionResolved"
+      ]
+    },
+    "TriggerClausemonsterDestroyed": {
+      "kind": "record",
+      "fields": {
+        "kind": { "type": "TriggerClausemonsterDestroyedTag", "optional": false, "nullable": false },
+        "scope": { "type": "string", "optional": true, "nullable": false },
+        "faction": { "type": "string", "optional": true, "nullable": false },
+        "controller": { "type": "string", "optional": true, "nullable": false },
+        "classId": { "type": "SpecialistClass", "optional": true, "nullable": false }
+      }
+    },
+    "TriggerClausemonsterDestroyedTag": {
+      "kind": "enum",
+      "values": [
+        "monsterDestroyed"
+      ]
+    },
+    "TriggerClausemonsterPressure": {
+      "kind": "record",
+      "fields": {
+        "kind": { "type": "TriggerClausemonsterPressureTag", "optional": false, "nullable": false },
+        "scope": { "type": "string", "optional": true, "nullable": false },
+        "faction": { "type": "string", "optional": true, "nullable": false },
+        "controller": { "type": "string", "optional": true, "nullable": false }
+      }
+    },
+    "TriggerClausemonsterPressureTag": {
+      "kind": "enum",
+      "values": [
+        "monsterPressure"
+      ]
+    },
+    "TriggerClausemonsterSpawn": {
+      "kind": "record",
+      "fields": {
+        "kind": { "type": "TriggerClausemonsterSpawnTag", "optional": false, "nullable": false },
+        "scope": { "type": "string", "optional": true, "nullable": false }
+      }
+    },
+    "TriggerClausemonsterSpawnTag": {
+      "kind": "enum",
+      "values": [
+        "monsterSpawn"
+      ]
+    },
+    "TriggerClausepopulationDied": {
+      "kind": "record",
+      "fields": {
+        "kind": { "type": "TriggerClausepopulationDiedTag", "optional": false, "nullable": false },
+        "scope": { "type": "string", "optional": true, "nullable": false },
+        "faction": { "type": "string", "optional": true, "nullable": false },
+        "controller": { "type": "string", "optional": true, "nullable": false },
+        "premature": { "type": "boolean", "optional": true, "nullable": false }
+      }
+    },
+    "TriggerClausepopulationDiedTag": {
+      "kind": "enum",
+      "values": [
+        "populationDied"
+      ]
+    },
+    "TriggerClausepracticeInstalled": {
+      "kind": "record",
+      "fields": {
+        "kind": { "type": "TriggerClausepracticeInstalledTag", "optional": false, "nullable": false },
+        "scope": { "type": "string", "optional": true, "nullable": false },
+        "faction": { "type": "string", "optional": true, "nullable": false },
+        "controller": { "type": "string", "optional": true, "nullable": false }
+      }
+    },
+    "TriggerClausepracticeInstalledTag": {
+      "kind": "enum",
+      "values": [
+        "practiceInstalled"
+      ]
+    },
+    "TriggerClausesettlementLost": {
+      "kind": "record",
+      "fields": {
+        "kind": { "type": "TriggerClausesettlementLostTag", "optional": false, "nullable": false },
+        "scope": { "type": "string", "optional": true, "nullable": false },
+        "faction": { "type": "string", "optional": true, "nullable": false },
+        "controller": { "type": "string", "optional": true, "nullable": false }
+      }
+    },
+    "TriggerClausesettlementLostTag": {
+      "kind": "enum",
+      "values": [
+        "settlementLost"
+      ]
+    },
+    "TriggerClausestockConsumed": {
+      "kind": "record",
+      "fields": {
+        "kind": { "type": "TriggerClausestockConsumedTag", "optional": false, "nullable": false },
+        "scope": { "type": "string", "optional": true, "nullable": false },
+        "faction": { "type": "string", "optional": true, "nullable": false },
+        "controller": { "type": "string", "optional": true, "nullable": false },
+        "traitsAny": { "type": "StringArray", "optional": true, "nullable": false },
+        "tagsAny": { "type": "StringArray", "optional": true, "nullable": false },
+        "pool": { "type": "string", "optional": true, "nullable": false }
+      }
+    },
+    "TriggerClausestockConsumedTag": {
+      "kind": "enum",
+      "values": [
+        "stockConsumed"
+      ]
+    },
+    "TriggerClausestockGenerated": {
+      "kind": "record",
+      "fields": {
+        "kind": { "type": "TriggerClausestockGeneratedTag", "optional": false, "nullable": false },
+        "scope": { "type": "string", "optional": true, "nullable": false },
+        "faction": { "type": "string", "optional": true, "nullable": false },
+        "controller": { "type": "string", "optional": true, "nullable": false },
+        "traitsAny": { "type": "StringArray", "optional": true, "nullable": false },
+        "tagsAny": { "type": "StringArray", "optional": true, "nullable": false },
+        "pool": { "type": "string", "optional": true, "nullable": false },
+        "scholarStaffed": { "type": "boolean", "optional": true, "nullable": false }
+      }
+    },
+    "TriggerClausestockGeneratedTag": {
+      "kind": "enum",
+      "values": [
+        "stockGenerated"
+      ]
+    },
+    "TriggerClausesupportContributed": {
+      "kind": "record",
+      "fields": {
+        "kind": { "type": "TriggerClausesupportContributedTag", "optional": false, "nullable": false },
+        "scope": { "type": "string", "optional": true, "nullable": false },
+        "faction": { "type": "string", "optional": true, "nullable": false },
+        "controller": { "type": "string", "optional": true, "nullable": false },
+        "classId": { "type": "SpecialistClass", "optional": true, "nullable": false },
+        "actionKindsAny": { "type": "StringArray", "optional": true, "nullable": false }
+      }
+    },
+    "TriggerClausesupportContributedTag": {
+      "kind": "enum",
+      "values": [
+        "supportContributed"
+      ]
+    },
+    "VariantFlags": {
+      "kind": "record",
+      "fields": {
+        "actionPointCostsEnabled": { "type": "boolean", "optional": false, "nullable": false },
+        "actionLogEnabled": { "type": "boolean", "optional": false, "nullable": false },
+        "inventoryTransferPlannerEnabled": { "type": "boolean", "optional": false, "nullable": false },
+        "inventoryTransferGhostPreviewEnabled": { "type": "boolean", "optional": false, "nullable": false },
+        "showApHud": { "type": "boolean", "optional": false, "nullable": false },
+        "settlementPrototypeEnabled": { "type": "boolean", "optional": false, "nullable": false }
+      }
+    },
+    "Vassal": {
+      "kind": "record",
+      "fields": {
+        "classId": { "type": "SpecialistClass", "optional": false, "nullable": true },
+        "founderClassId": { "type": "string", "optional": false, "nullable": true },
+        "archetype": { "type": "string", "optional": false, "nullable": false },
+        "candidateId": { "type": "string", "optional": false, "nullable": false },
+        "locationRegionId": { "type": "string", "optional": false, "nullable": false },
+        "originRegionId": { "type": "string", "optional": false, "nullable": false },
+        "prestige": { "type": "number", "optional": false, "nullable": false },
+        "stats": { "type": "VassalStats", "optional": false, "nullable": false },
+        "portrait": { "type": "Portrait", "optional": false, "nullable": false },
+        "signatureNode": { "type": "SignatureNode", "optional": false, "nullable": true },
+        "vassalId": { "type": "string", "optional": false, "nullable": false },
+        "initialAge": { "type": "integer", "optional": false, "nullable": false },
+        "selectedSec": { "type": "integer", "optional": false, "nullable": false },
+        "selectedYear": { "type": "integer", "optional": false, "nullable": false },
+        "developmentProgress": { "type": "number", "optional": false, "nullable": false },
+        "developmentChoiceQueue": { "type": "VassalDevelopmentChoiceQueue", "optional": false, "nullable": false },
+        "nextDevelopmentChoiceId": { "type": "integer", "optional": false, "nullable": false },
+        "lifeMap": { "type": "LifeMap", "optional": false, "nullable": false },
+        "lifeEvents": { "type": "VassalLifeEvents", "optional": false, "nullable": false },
+        "isDead": { "type": "boolean", "optional": false, "nullable": false },
+        "endedReason": { "type": "string", "optional": false, "nullable": true },
+        "deathCause": { "type": "string", "optional": false, "nullable": true },
+        "endSec": { "type": "integer", "optional": false, "nullable": true },
+        "heirlooms": { "type": "VassalHeirlooms", "optional": false, "nullable": false },
+        "commissionOffers": { "type": "VassalCommissionOffers", "optional": true, "nullable": false },
+        "deathSec": { "type": "integer", "optional": true, "nullable": false },
+        "discoveryAccess": { "type": "boolean", "optional": true, "nullable": false },
+        "commissionHistory": { "type": "StringArray", "optional": true, "nullable": false },
+        "completedCommissions": { "type": "integer", "optional": true, "nullable": false },
+        "commission": {
+          "type": "ActiveCommission",
+          "optional": true,
+          "nullable": true,
+          "note": "Commission acceptance spreads the offer before appending progress."
+        }
+      },
+      "note": "candidates.js selects by spreading candidate fields except age, then creates per-life state. Commissions and lifecycle append/update runtime fields."
+    },
+    "VassalCommissionOffers": {
+      "kind": "array",
+      "items": "CommissionOffer"
+    },
+    "VassalDevelopmentChoiceQueue": {
+      "kind": "array",
+      "items": "VassalDevelopmentChoiceQueueEntry"
+    },
+    "VassalDevelopmentChoiceQueueEntry": {
+      "kind": "record",
+      "fields": {
+        "choiceId": { "type": "string", "optional": false, "nullable": false },
+        "offeredStatIds": { "type": "StringArray", "optional": false, "nullable": false }
+      }
+    },
+    "VassalHeirlooms": {
+      "kind": "record",
+      "fields": {
+        "equipped": { "type": "VassalHeirloomSlots", "optional": false, "nullable": false },
+        "carry": { "type": "VassalHeirloomSlots", "optional": false, "nullable": false }
+      }
+    },
+    "VassalLegacyFutureStartingStatBonuses": {
+      "kind": "record",
+      "fields": {
+        "cunning": { "type": "number", "optional": false, "nullable": false },
+        "wisdom": { "type": "number", "optional": false, "nullable": false },
+        "effectiveness": { "type": "number", "optional": false, "nullable": false },
+        "intelligence": { "type": "number", "optional": false, "nullable": false }
+      }
+    },
+    "VassalLifeEvents": {
+      "kind": "array",
+      "items": "VassalLifeEventsEntry"
+    },
+    "VassalLifeEventsEntry": {
+      "kind": "record",
+      "fields": {
+        "eventId": { "type": "string", "optional": false, "nullable": false },
+        "kind": { "type": "string", "optional": false, "nullable": false },
+        "tSec": { "type": "integer", "optional": false, "nullable": false },
+        "text": { "type": "string", "optional": true, "nullable": false },
+        "nodeId": { "type": "string", "optional": true, "nullable": false },
+        "offerId": { "type": "string", "optional": true, "nullable": false },
+        "intervention": { "type": "LifeEventsIntervention", "optional": true, "nullable": false },
+        "result": { "type": "string", "optional": true, "nullable": false },
+        "age": { "type": "integer", "optional": true, "nullable": false },
+        "choiceId": { "type": "string", "optional": true, "nullable": false },
+        "statId": { "type": "string", "optional": true, "nullable": false },
+        "causeOfDeath": { "type": "string", "optional": true, "nullable": true },
+        "cause": { "type": "string", "optional": true, "nullable": false },
+        "fromRegionId": { "type": "string", "optional": true, "nullable": false },
+        "toRegionId": { "type": "string", "optional": true, "nullable": false }
+      }
+    },
+    "VassalStats": {
+      "kind": "record",
+      "fields": {
+        "cunning": { "type": "number", "optional": false, "nullable": false },
+        "wisdom": { "type": "number", "optional": false, "nullable": false },
+        "effectiveness": { "type": "number", "optional": false, "nullable": false },
+        "intelligence": { "type": "number", "optional": false, "nullable": false }
+      }
+    },
+    "Version16": {
+      "kind": "enum",
+      "values": [
+        16
+      ]
+    },
+    "Version31": {
+      "kind": "enum",
+      "values": [
+        31
+      ]
+    },
+    "Version53": {
+      "kind": "enum",
+      "values": [
+        53
+      ]
+    },
+    "Version9": {
+      "kind": "enum",
+      "values": [
+        9
+      ]
+    },
+    "World": {
+      "kind": "record",
+      "fields": {
+        "definitionId": { "type": "string", "optional": false, "nullable": false },
+        "regions": { "type": "WorldRegions", "optional": false, "nullable": false },
+        "connections": { "type": "WorldConnections", "optional": false, "nullable": false },
+        "sites": { "type": "WorldSites", "optional": false, "nullable": false }
+      }
+    },
+    "WorldConnections": {
+      "kind": "array",
+      "items": "Connection"
+    },
+    "WorldRegions": {
+      "kind": "array",
+      "items": "Region"
+    },
+    "WorldSites": {
+      "kind": "array",
+      "items": "Site"
+    },
+    "BirthAllegianceLedger": {
+      "kind": "dict",
+      "key": "string",
+      "value": "number",
+      "note": "Allegiance IDs. The allocator traverses a sorted faction list; retain original object enumeration for the codec."
+    },
+    "StringOrNull": {
+      "kind": "nullable",
+      "value": "string"
+    },
+    "PracticeDraftOrder": {
+      "kind": "array",
+      "items": "StringOrNull"
+    },
+    "VaultSlots": {
+      "kind": "tuple",
+      "items": [
+        "HeirloomOrNull",
+        "HeirloomOrNull",
+        "HeirloomOrNull",
+        "HeirloomOrNull",
+        "HeirloomOrNull",
+        "HeirloomOrNull"
+      ]
+    },
+    "VassalHeirloomSlots": {
+      "kind": "tuple",
+      "items": [
+        "HeirloomOrNull",
+        "HeirloomOrNull",
+        "HeirloomOrNull"
+      ]
+    }
+  }
+}

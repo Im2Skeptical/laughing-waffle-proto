@@ -88,7 +88,7 @@ export function checkFoodContention(state) {
 export function checkSeasonalFoodBoost(state) {
   const { detailedState } = state.world.sites.find(entry => entry.regionId === "R16");
   assert.deepEqual(detailedState.seasonalFoodBoost.seasons, ["autumn"]);
-  assert.ok(state.civilization.practiceEvents.trace.some(event => event.tSec === 17 &&
+  assert.ok(state.civilization.practiceEvents.trace.some(event => event.tSec === state.tSec &&
     event.kind === "stockGenerated" && event.regionId === "R16" &&
     event.practiceId === "fm_fallowFields" && event.amount >= 3));
 }
