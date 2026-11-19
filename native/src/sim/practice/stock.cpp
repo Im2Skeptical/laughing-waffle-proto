@@ -2,6 +2,8 @@
 
 #include "core/js_number.hpp"
 
+#include <charconv>
+
 namespace waffle::sim::practice::detail {
 namespace {
 
@@ -333,6 +335,13 @@ Sources stock_sources(const RuntimeState& state, const Site& site, bool localOnl
     return result;
 }
 
+}
+
+namespace waffle::sim::practice {
+
+using namespace detail;
+using namespace content;
+
 StockPlan plan_stock(const RuntimeState& state, const Site& site,
                      std::span<const StockInput> consume, std::span<const StockInput> require,
                      const PracticeSlot* consumer, bool scholar, bool localOnly,
@@ -415,7 +424,10 @@ StockPlan plan_stock(const RuntimeState& state, const Site& site,
                 market.remaining -= amount;
                 needed -= amount;
             }
-            if (needed > 0) return false;
+            if (needed > 0) {
+                result.missing = StockPlan::Missing{kind, needed, traits};
+                return false;
+            }
         }
         return true;
     };
@@ -425,8 +437,9 @@ StockPlan plan_stock(const RuntimeState& state, const Site& site,
     return result;
 }
 
-void apply_stock(RuntimeState& state, const Site& site, const StockPlan& plan)
+bool apply_stock(RuntimeState& state, const Site& site, const StockPlan& plan)
 {
+    if (!plan.ok) return false;
     const auto& v = state.practiceVocabulary;
     Buffer<std::pair<RegionId, double>, 20> purchases;
     auto& civ = state.hot.civilization;
@@ -472,7 +485,13 @@ void apply_stock(RuntimeState& state, const Site& site, const StockPlan& plan)
         const auto requested = row.receipt.substitution.empty() ? row.receipt.traits : row.receipt.substitution;
         const auto match = std::ranges::find_if(requested, [&](auto trait) { return has(row.source.traits, trait); });
         const auto trait = match != requested.end() ? *match : requested.empty() ? TraitId{} : requested.front();
-        const auto id = "stock:" + core::js::number_to_string(state.hot.tSec) + ":" + std::to_string(history.size());
+        std::array<char, 48> textBuffer;
+        auto* end = std::ranges::copy(std::string_view{"stock:"}, textBuffer.data()).out;
+        auto* limit = textBuffer.data() + textBuffer.size();
+        end = std::to_chars(end, limit, static_cast<std::uint64_t>(state.hot.tSec)).ptr;
+        *end++ = ':';
+        end = std::to_chars(end, limit, history.size()).ptr;
+        const std::string_view id(textBuffer.data(), static_cast<std::size_t>(end - textBuffer.data()));
         history.append([&](HistoryPayload& page) {
             auto text = [&](std::string_view value) { return page.intern_text(value, "Stock transfer"); };
             return StockTransfersTransfersEntry{text(id), state.hot.tSec, text("stock"),
@@ -481,7 +500,12 @@ void apply_stock(RuntimeState& state, const Site& site, const StockPlan& plan)
                 store(page, trait ? std::span<const TraitId>(&trait, 1) : std::span<const TraitId>{}), p.amount};
         });
     }
+    return true;
 }
+
+}
+
+namespace waffle::sim::practice::detail {
 
 double stock_capacity(const RuntimeState& state, const Site& site, Index<PracticeSlot> slot, bool scholar)
 {

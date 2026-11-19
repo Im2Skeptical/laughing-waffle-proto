@@ -62,24 +62,37 @@ struct PlannedProvider {
     RegionId paymentFor;
 };
 
-struct StockPlan {
-    Buffer<PlannedProvider, 128> providers;
-    bool ok{};
-};
-
 using Sources = Buffer<Source, 128>;
 Sources stock_sources(const RuntimeState& state, const Site& site, bool localOnly,
                       FactionId beneficiary = {});
-StockPlan plan_stock(const RuntimeState& state, const Site& site,
-                     std::span<const content::StockInput> consume,
-                     std::span<const content::StockInput> require,
-                     const PracticeSlot* consumer, bool scholar, bool localOnly,
-                     std::span<const content::StockInput> extraConsume = {},
-                     std::span<const content::StockInput> extraRequire = {});
-void apply_stock(RuntimeState& state, const Site& site, const StockPlan& plan);
 double stock_capacity(const RuntimeState& state, const Site& site, Index<PracticeSlot> slot,
                       bool scholar);
 double stock_output(const RuntimeState& state, const Site& site, const content::PracticeDefinition& def,
                     const ModifierList& list, bool scholar);
+
+}
+
+namespace waffle::sim::practice {
+
+struct StockPlan {
+    detail::Buffer<detail::PlannedProvider, 128> providers;
+    struct Missing {
+        runtime::SymbolId kind;
+        double amount;
+        std::span<const runtime::TraitId> traits;
+    };
+    std::optional<Missing> missing;
+    bool ok{};
+};
+
+// Plan reads activation-start Stock. Apply once against the same state before
+// another writer changes the board or inventories. Receipts borrow trait spans.
+StockPlan plan_stock(const RuntimeState& state, const runtime::Site& site,
+                     std::span<const content::StockInput> consume,
+                     std::span<const content::StockInput> require,
+                     const runtime::PracticeSlot* consumer, bool scholar, bool localOnly,
+                     std::span<const content::StockInput> extraConsume = {},
+                     std::span<const content::StockInput> extraRequire = {});
+bool apply_stock(RuntimeState& state, const runtime::Site& site, const StockPlan& plan);
 
 }

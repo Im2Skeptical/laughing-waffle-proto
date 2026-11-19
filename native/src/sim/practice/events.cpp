@@ -127,6 +127,8 @@ void admit(RuntimeState& state)
     v.capacityFull = sym("Stock capacity is full");
     v.noTraining = sym("No unclassed adults available for training");
     v.unmetCondition = sym("State / population requirements not satisfied");
+    v.requiresScholar = sym("Requires a Scholar worker");
+    v.noExternalTarget = sym("No eligible external target");
     v.player = state.intern<FactionId>("player", "Practice faction");
     v.frontier = state.intern<FactionId>("frontier", "Practice faction");
     v.external = state.intern<FactionId>("external-a", "Practice faction");

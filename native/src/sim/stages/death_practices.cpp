@@ -1,11 +1,12 @@
 #include "sim/stages/entries.hpp"
+#include "sim/practice/practice.hpp"
 
 namespace waffle::sim::stages {
 
-bool death_practices(RuntimeState&, StageContext&)
+bool death_practices(RuntimeState& state, StageContext&)
 {
-    // TODO: Recipes, Stock, Charge, events.
-    return false;
+    practice::activate(state, content::Activation::death);
+    return true;
 }
 
 }

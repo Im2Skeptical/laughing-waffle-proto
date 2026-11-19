@@ -18,6 +18,7 @@ struct Candidate {
     runtime::SiteId site;
     std::uint32_t slot;
     runtime::PracticeId definition;
+    unsigned triggerKinds{};
 };
 
 inline constexpr auto trigger_kind_count = static_cast<std::size_t>(EventKind::scheduledActivation);
@@ -25,7 +26,7 @@ inline constexpr auto trigger_kind_count = static_cast<std::size_t>(EventKind::s
 struct ListenerIndex {
     std::vector<Candidate> candidates;
     std::vector<runtime::Range<std::uint32_t>> local;
-    std::array<std::vector<std::uint32_t>, trigger_kind_count> byKind;
+    std::array<std::vector<std::uint32_t>, trigger_kind_count> remoteByKind;
     std::vector<std::uint32_t> dynamicThreshold;
     std::vector<std::optional<EventKind>> eventKinds;
 };
@@ -39,6 +40,7 @@ struct Vocabulary {
     std::array<runtime::ResidencyId, 2> residencies;
     std::array<runtime::SymbolId, 4> martialActions;
     runtime::SymbolId consume, require, sacrifice, alreadyDischarged, capacityFull, noTraining, unmetCondition;
+    runtime::SymbolId requiresScholar, noExternalTarget;
     runtime::FactionId player, frontier, external, neutral, beneficiary;
     runtime::TagId knowledge, food;
     runtime::TraitId currency, edible, record;

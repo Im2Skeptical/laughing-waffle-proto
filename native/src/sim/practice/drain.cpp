@@ -148,10 +148,14 @@ void handle_charge(RuntimeState& state, std::uint32_t listener, std::optional<Ev
     const auto candidate = state.practiceListeners.candidates[listener];
     const auto& site = settlement::site_at(state, candidate.site);
     const auto* slot = live_slot(state, candidate);
-    if (!slot || !eligible(state, site, false)) return;
+    const auto controller = holder(state, site.regionId);
+    const auto& vocabulary = state.practiceVocabulary;
+    if (!slot || site.neutral || settlement::detailed_site(state, site.regionId) != &site ||
+        (!state.hot.rulesetId && controller != vocabulary.player && controller != vocabulary.external)) return;
     const auto& def = definition(state, slot->practiceId);
     auto& charge = state.practiceCharge[site.detailedState.practiceSlots.slots[candidate.slot].value];
-    const bool gain = kind && matches_event(state, site, *slot, def, *kind, event, fields);
+    const bool gain = kind && (candidate.triggerKinds & mask_bit(*kind)) &&
+        matches_event(state, site, *slot, def, *kind, event, fields);
     if (!gain && charge == 0) return;
     const auto worker = workers(state, site)[candidate.slot];
     const auto limit = threshold(state, site, def, worker.scholar);
@@ -190,7 +194,7 @@ void rebuild_listeners(RuntimeState& state)
     index.candidates.clear();
     index.local.assign(state.hot.world.regions.size(), {});
     index.dynamicThreshold.clear();
-    for (auto& rows : index.byKind) rows.clear();
+    for (auto& rows : index.remoteByKind) rows.clear();
     const auto& t = state.compiledContent->tables;
     for (const auto id : settlement::active_sites(state)) {
         const auto& site = settlement::site_at(state, id);
@@ -209,12 +213,18 @@ void rebuild_listeners(RuntimeState& state)
             const auto& def = definition(state, state.tables.at(slots[slot]).practiceId);
             if (!def.charge || def.mode != Mode::charge) continue;
             const auto row = checked_index(index.candidates.size(), "Practice listeners");
-            index.candidates.push_back({id, slot, def.id});
-            if (dynamic) index.dynamicThreshold.push_back(row);
-            unsigned kinds = 0;
-            for (const auto& clause : t.view(def.charge->trigger.any)) kinds |= mask_bit(trigger_kind(clause));
+            if (dynamic || state.practiceCharge[slots[slot].value] > def.charge->threshold)
+                index.dynamicThreshold.push_back(row);
+            unsigned kinds = 0, remoteKinds = 0;
+            for (const auto& clause : t.view(def.charge->trigger.any)) {
+                const auto bit = mask_bit(trigger_kind(clause));
+                kinds |= bit;
+                if (std::visit([](const auto& c) { return c.scope && c.scope != TriggerScope::local; }, clause))
+                    remoteKinds |= bit;
+            }
+            index.candidates.push_back({id, slot, def.id, kinds});
             for (std::size_t i = 0; i < trigger_kind_count; ++i)
-                if (kinds & (1u << i)) index.byKind[i].push_back(row);
+                if (remoteKinds & (1u << i)) index.remoteByKind[i].push_back(row);
         }
         local.end = checked_index(index.candidates.size(), "Practice listeners");
     }
@@ -276,14 +286,14 @@ void drain_retries(RuntimeState& state, std::span<const Candidate> retries, Acti
             trace(state, event, read_event(state, row, scratch.providers), true);
 
             const auto kind = event.kind.value < index.eventKinds.size() ? index.eventKinds[event.kind.value] : std::nullopt;
-            const auto listeners = kind ? std::span<const std::uint32_t>(index.byKind[static_cast<std::size_t>(*kind)])
+            const auto listeners = kind ? std::span<const std::uint32_t>(index.remoteByKind[static_cast<std::size_t>(*kind)])
                                         : std::span<const std::uint32_t>{};
-            for (auto listener : index.dynamicThreshold)
-                if (!std::ranges::binary_search(listeners, listener)) handle_charge(state, listener, {}, event, fields);
-            for (auto listener : listeners) handle_charge(state, listener, kind, event, fields);
-
             const auto local = event.regionId && event.regionId->value < index.local.size() ? index.local[event.regionId->value]
                                                                                             : Range<std::uint32_t>{};
+            for (auto listener : index.dynamicThreshold)
+                if ((listener < local.begin || listener >= local.end) && !std::ranges::binary_search(listeners, listener))
+                    handle_charge(state, listener, {}, event, fields);
+            merge_listeners(listeners, local, [&](auto listener) { handle_charge(state, listener, kind, event, fields); });
             merge_listeners(listeners, local, [&](auto listener) {
                 if (listener < local.begin || listener >= local.end) {
                     const auto candidate = index.candidates[listener];

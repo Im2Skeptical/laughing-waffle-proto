@@ -1,6 +1,8 @@
 #include "sim/practice/recipes.hpp"
 #include "core/js_number.hpp"
 
+#include <charconv>
+
 namespace waffle::sim::practice::detail {
 namespace {
 
@@ -685,24 +687,50 @@ bool attempt(RuntimeState& state, Candidate candidate, Activation activation, bo
             return false;
         }
     }
-    auto fail = [&](SymbolId reason) {
+    auto fail = [&](SymbolId reason, const std::optional<StockPlan::Missing>& missing = {}) {
         if (blocked) *blocked = true;
         if (parent && !localOnly) {
             EventData record{};
             record.fields.targetPracticeId = def.id;
             record.fields.reason = reason;
+            std::array<char, 512> text;
+            auto* end = text.data();
+            auto* limit = end + text.size();
+            if (missing) {
+                auto append = [&](std::string_view part) {
+                    if (part.size() > static_cast<std::size_t>(limit - end))
+                        throw std::length_error("Discharge blocker text exceeds scratch capacity");
+                    end = std::ranges::copy(part, end).out;
+                };
+                append("Missing ");
+                append(state.name(missing->kind));
+                append(": ");
+                const auto length = std::to_chars(end, limit, missing->amount);
+                if (length.ec != std::errc{}) throw std::length_error("Discharge blocker amount exceeds scratch capacity");
+                end = length.ptr;
+                append(" [");
+                bool first = true;
+                for (auto trait : missing->traits) {
+                    if (!first) append(" / ");
+                    first = false;
+                    append(state.name(trait));
+                }
+                append("]");
+            }
             trace(state, {state.hot.tSec, event_id(state, EventKind::dischargeBlocked), site.regionId,
-                          parent->rootId, parent->id, 0}, record);
+                          parent->rootId, parent->id, 0}, record, false,
+                  {text.data(), static_cast<std::size_t>(end - text.data())});
         }
         return false;
     };
     const auto& v = state.practiceVocabulary;
     if (activation == Activation::death && def.activation.conditions &&
         !conditions(state, site, def, worker, def.activation.conditions->death, localOnly)) return fail(v.unmetCondition);
-    if (!conditions(state, site, def, worker, def.condition, localOnly)) return fail(v.unmetCondition);
+    if (!conditions(state, site, def, worker, def.condition, localOnly))
+        return fail(def.scholarRequired.value_or(false) && !worker.scholar ? v.requiresScholar : v.unmetCondition);
     const auto& t = state.compiledContent->tables;
     auto stock = plan_stock(state, site, t.view(def.consume), t.view(def.require_), &slot, worker.scholar, localOnly);
-    if (!stock.ok) return fail(v.unmetCondition);
+    if (!stock.ok) return fail(v.unmetCondition, stock.missing);
     if (def.mode == Mode::charge) {
         const auto effects = t.view(def.effects);
         if (std::ranges::any_of(effects, [](const auto& effect) { return opcode(effect) == EffectOp::generateStock; })) {
@@ -719,7 +747,7 @@ bool attempt(RuntimeState& state, Candidate candidate, Activation activation, bo
                 return fail(v.noTraining);
         }
     }
-    if (def.externalAction) return fail(v.unmetCondition); // N03e-8 target preflight.
+    if (def.externalAction) return fail(v.noExternalTarget); // N03e-8 target preflight.
     const auto mods = modifiers(state, site);
     PopulationPlan population;
     auto& scratch = population_scratch();
@@ -730,7 +758,7 @@ bool attempt(RuntimeState& state, Candidate candidate, Activation activation, bo
     if (!population.extraConsume.empty() || !population.extraRequire.empty()) {
         stock = plan_stock(state, site, t.view(def.consume), t.view(def.require_), &slot, worker.scholar, localOnly,
                            population.extraConsume.view(), population.extraRequire.view());
-        if (!stock.ok) return fail(v.unmetCondition);
+        if (!stock.ok) return fail(v.unmetCondition, stock.missing);
     }
     auto root = parent ? *parent : [&] {
         EventData event{};
