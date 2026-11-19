@@ -130,7 +130,9 @@ else()
 	if(WIN32)
 		add_executable(waffle_native_game
 			src/app/connected_art.cpp
+			src/app/connected_controls.cpp
 			src/app/connected_main.cpp
+			src/app/connected_map.cpp
 			src/app/connected_session.cpp
 			src/app/connected_smoke.cpp
 			src/app/connected_view.cpp
@@ -151,6 +153,10 @@ else()
 			target_link_options(waffle_native_game PRIVATE -static)
 		endif()
 		add_test(NAME connected_slice_smoke COMMAND waffle_native_game --smoke --seed 42)
+		add_test(NAME connected_interaction_smoke COMMAND waffle_native_game --interaction-smoke --seed 42)
+		add_test(NAME connected_interaction_compact COMMAND waffle_native_game --interaction-smoke --seed 42 --size 640 360)
+		set_tests_properties(connected_interaction_smoke connected_interaction_compact PROPERTIES TIMEOUT 60
+			ENVIRONMENT "SDL_VIDEODRIVER=dummy;SDL_RENDER_DRIVER=software")
 		add_test(NAME connected_slice_import COMMAND waffle_native_game --smoke
 			--load "${CMAKE_CURRENT_LIST_DIR}/reference/fixtures/seed-1/state-0.json")
 		add_test(NAME connected_slice_runner_save COMMAND "${CMAKE_COMMAND}"

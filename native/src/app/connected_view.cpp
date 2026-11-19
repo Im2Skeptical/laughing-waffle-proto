@@ -42,10 +42,12 @@ std::string number(double value, int precision = 0)
 }
 
 std::string button(std::string_view op, std::string_view id, std::string_view label,
-                   std::string_view classes = "decision")
+                   std::string_view classes = "decision", std::string_view help = {}, bool disabled = false)
 {
-    return "<button class=\"" + std::string(classes) + "\" data-op=\"" + std::string(op) +
-        "\" data-id=\"" + escape(id) + "\">" + escape(label) + "</button>";
+    return "<button class=\"button " + std::string(classes) + (disabled ? " disabled" : "") +
+        "\" data-op=\"" + std::string(op) + "\" data-id=\"" + escape(id) +
+        "\" data-help=\"" + escape(help) + (disabled ? "\" disabled=\"disabled" : "") +
+        "\">" + escape(label) + "</button>";
 }
 
 bool contains(SDL_FRect rect, SDL_FPoint p)
@@ -65,11 +67,12 @@ void line(SDL_Renderer* renderer, SDL_FPoint a, SDL_FPoint b, Colour ink)
 }
 
 constexpr std::array<const char*, 4> holderClass{"player", "crown", "neutral", "monster"};
-constexpr std::array<Colour, 4> holderInk{{
-    {149, 177, 116, 255}, {171, 126, 76, 255}, {106, 112, 83, 255}, {173, 95, 87, 255}}};
-constexpr std::array<Colour, 7> terrain{{
-    {103, 112, 69, 255}, {92, 91, 88, 255}, {60, 91, 65, 255}, {49, 79, 84, 255},
-    {122, 116, 78, 255}, {71, 92, 77, 255}, {78, 85, 69, 255}}};
+constexpr std::array holders{"Your holding", "Crown holding", "Unheld", "Creep"};
+
+void show(Rml::Element& element, bool visible)
+{
+    element.SetProperty("display", visible ? "block" : "none");
+}
 
 }
 
@@ -81,7 +84,17 @@ View::View(Rml::Context& context, SDL_Renderer* renderer, Session& session, Sele
     if (!Rml::LoadFontFace(WAFFLE_CONNECTED_FONT, "Lato", Rml::Style::FontStyle::Normal,
             Rml::Style::FontWeight::Auto, true))
         throw std::runtime_error("Could not load native UI font");
-    auto rml = readText(WAFFLE_CONNECTED_RML);
+    auto model = context_.CreateDataModel("connected");
+    if (!model || !model.Bind("clock", &currentClock_) || !model.Bind("status", &currentStatus_) ||
+        !model.Bind("progress", &currentProgress_))
+        throw std::runtime_error("Could not bind the connected view");
+    bindings_ = model.GetModelHandle();
+    const std::filesystem::path source = WAFFLE_CONNECTED_RML;
+    auto rml = readText(source);
+    constexpr std::string_view styles = "<!-- interaction styles -->";
+    const auto directory = source.parent_path();
+    rml.replace(rml.find(styles), styles.size(), "<style>" + readText(directory / "interaction.rcss") +
+        readText(directory / "connected-layout.rcss") + "</style>");
     constexpr std::string_view marker = "<!-- atlas styles -->";
     rml.replace(rml.find(marker), marker.size(), art.css);
     rml.insert(rml.find("</body>"),
@@ -89,13 +102,15 @@ View::View(Rml::Context& context, SDL_Renderer* renderer, Session& session, Sele
     document_ = context.LoadDocumentFromMemory(rml, "connected.rml");
     if (!document_) throw std::runtime_error("Could not load the connected view");
     document_->AddEventListener(Rml::EventId::Click, this);
-    document_->Show();
+    document_->Show(Rml::ModalFlag::None, Rml::FocusFlag::Document);
     resize();
 }
 
 View::~View()
 {
     document_->RemoveEventListener(Rml::EventId::Click, this);
+    document_->Close();
+    context_.RemoveDataModel("connected");
 }
 
 SDL_FRect View::bounds(const char* id) const
@@ -114,15 +129,9 @@ void View::resize()
     SDL_GetRenderOutputSize(renderer_, &width, &height);
     if (width <= 0 || height <= 0) return;
     context_.SetDimensions({width, height});
-    context_.SetDensityIndependentPixelRatio(std::clamp(std::min(width / 1120.f, height / 640.f), .73f, 1.5f));
+    context_.SetDensityIndependentPixelRatio(std::clamp(std::min(width / 1120.f, height / 640.f), .78f, 1.5f));
     markersDirty_ = true;
     context_.Update();
-}
-
-SDL_FPoint View::project(Point p, SDL_FRect map) const
-{
-    return {map.x + map.w * (.5f + static_cast<float>(p[0] - .5) * zoom_ * .94f) + pan_.x,
-        map.y + map.h * (.47f + static_cast<float>(p[1] - .5) * zoom_ * .84f) + pan_.y};
 }
 
 std::optional<std::string> View::hit(SDL_FPoint point) const
@@ -135,9 +144,9 @@ std::optional<std::string> View::hit(SDL_FPoint point) const
         const auto& polygon = shapes[i].outline;
         if (polygon.size() < 3) continue;
         bool inside = false;
-        auto a = project(polygon.back(), map);
+        auto a = map_.project(polygon.back(), map);
         for (const auto& vertex : polygon) {
-            const auto b = project(vertex, map);
+            const auto b = map_.project(vertex, map);
             if ((a.y > point.y) != (b.y > point.y) && point.x < (b.x - a.x) * (point.y - a.y) / (b.y - a.y) + a.x)
                 inside = !inside;
             a = b;
@@ -171,50 +180,65 @@ void View::refreshMarkers(const Snapshot* snapshot)
 {
     std::string markup;
     if (snapshot) {
-        const auto map = bounds("map");
-        const auto& shapes = session_.shapes();
-        for (std::size_t i = 0; i < shapes.size(); ++i) {
-            const auto& region = snapshot->regions[i];
-            const auto point = project(shapes[i].label, map);
-            if (!contains(map, point)) continue;
-            const bool selected = region.id == selection_.region;
+        for (const auto& region : snapshot->regions) {
             markup += "<div class=\"marker " + std::string(holderClass[static_cast<std::size_t>(region.holder)]) +
-                (selected ? " selected" : "") + "\" style=\"left:" + number(point.x - map.x) +
-                "px;top:" + number(point.y - map.y) + "px;\">";
-            if (region.id == snapshot->capital) markup += "* ";
-            markup += escape(region.id);
-            if (selected && region.hasSite) markup += " · " + number(region.population);
-            markup += "</div>";
+                (region.id == selection_.region ? " selected" : "") + "\">" + escape(region.id) + "</div>";
         }
     }
-    element("markers").SetInnerRML(markup);
+    if (markerMarkup_ != markup) {
+        element("markers").SetInnerRML(markerMarkup_ = std::move(markup));
+        markersDirty_ = true;
+    }
+}
+
+void View::positionMarkers()
+{
+    auto& markers = element("markers");
+    if (!markers.GetNumChildren()) return;
+    const auto area = bounds("map");
+    const auto& shapes = session_.shapes();
+    for (int i = 0; i < markers.GetNumChildren(); ++i) {
+        auto& marker = *markers.GetChild(i);
+        const auto point = map_.project(shapes[static_cast<std::size_t>(i)].label, area);
+        marker.SetProperty("left", number(point.x - area.x) + "px");
+        marker.SetProperty("top", number(point.y - area.y + 7) + "px");
+    }
 }
 
 void View::refreshPanel(const Snapshot* snapshot)
 {
+    auto& content = element("panel-content");
     if (!snapshot) {
-        element("panel").SetInnerRML("");
+        if (!panelMarkup_.empty()) {
+            panelMarkup_.clear();
+            lastStats_.clear();
+            lastPracticeValues_.clear();
+            content.SetInnerRML("");
+        }
         return;
     }
     std::string html;
+    std::string stats, values;
     const auto* site = selection_.selected(snapshot);
     const bool editable = canStage(*snapshot, site);
+    const bool showStage = selection_.destination && (editable || pendingAction_ == "reform");
     if (!site) {
         html = "<h2>Settlements</h2><p class=\"quiet rule\">Select a region to view its settlement.</p>";
     } else {
         const auto holder = static_cast<std::size_t>(site->holder);
-        constexpr std::array holders{"Your holding", "Crown holding", "Unheld", "Creep"};
         html = "<h2>" + escape(site->name) + "</h2><p class=\"quiet\">" + holders[holder];
         if (site->hasSite) html += " · " + escape(site->settlement);
         html += "</p>";
-        if (site->hasSite)
-            html += "<p class=\"rule\">" + number(site->population) + " residents &nbsp; · &nbsp; " +
-                number(site->food, 1) + " Food &nbsp; · &nbsp; " + number(site->currency, 1) + " Currency</p>";
+        if (site->hasSite) {
+            html += "<p id=\"site-stats\" class=\"stats\"></p>";
+            stats = "<span class=\"gold\">" + number(site->population) + "</span> residents &nbsp; · &nbsp; " +
+                number(site->food, 1) + " Food &nbsp; · &nbsp; " + number(site->currency, 1) + " Currency";
+        }
         if (site->detailed) {
             html += "<div id=\"board\">";
             for (std::size_t i = 0; i < site->cards.size(); ++i) {
                 auto shown = i;
-                if (editable && selection_.card && selection_.destination) {
+                if (showStage && selection_.card) {
                     const auto from = *selection_.card, to = *selection_.destination;
                     if (i == to) shown = from;
                     else if (from < to && i >= from && i < to) shown = i + 1;
@@ -223,38 +247,55 @@ void View::refreshPanel(const Snapshot* snapshot)
                 const auto& card = site->cards[shown];
                 const bool placed = !card.id.empty();
                 html += "<button class=\"card";
-                if (!placed) html += " empty";
+                if (!placed) html += " empty disabled";
                 if (selection_.card == shown) html += " chosen";
-                if (selection_.destination == i) html += " staged";
-                html += "\" data-op=\"card\" data-id=\"" + std::to_string(shown) + "\">";
+                if (showStage && selection_.destination == i) html += " staged";
+                const auto help = placed ? card.name + " · " + card.mode : card.locked ? "This slot is locked." : "No Practice is installed in this slot.";
+                html += "\" data-op=\"card\" data-locked=\"" + std::string(card.locked ? "true" : "false") +
+                    "\" data-id=\"" + std::to_string(shown) + "\" data-help=\"" +
+                    escape(help) + (placed ? "\"" : "\" disabled=\"disabled\"") + ">";
                 if (const auto art = sprites_.find(card.id); art != sprites_.end())
                     html += "<div class=\"card-art\" style=\"decorator:image(" + art->second + " fill);\"></div>";
+                html += "<div class=\"card-slot\">" + std::to_string(i + 1) + "</div>";
+                if (showStage && selection_.destination == i) html += "<div class=\"staged-mark\">Staged</div>";
                 html += "<div class=\"card-name\">" + escape(placed ? card.name : card.locked ? "Locked" : "Empty") +
                     "</div></button>";
             }
             html += "</div>";
             if (selection_.card && !site->cards[*selection_.card].id.empty()) {
                 const auto& card = site->cards[*selection_.card];
+                if (showStage) {
+                    html += "<div class=\"reform-controls\"><p class=\"pending\">Staged move to slot " +
+                        std::to_string(*selection_.destination + 1);
+                    if (snapshot->shopSeconds) html += " · " + std::to_string(*snapshot->shopSeconds) + " seconds";
+                    html += "</p>";
+                    const bool applying = pendingAction_ == "reform";
+                    html += button("review", {}, applying ? "Applying reform" : "Review reform",
+                        applying ? "decision primary busy" : "decision primary", "Review the time cost before committing.", applying);
+                    html += button("undo", {}, "Undo", "decision", "Restore the committed order.", applying);
+                    html += "</div>";
+                } else if (editable) {
+                    html += "<div class=\"reform-controls\">";
+                    for (const int step : {-1, 1}) {
+                        const auto next = static_cast<int>(*selection_.card) + step;
+                        const bool outside = next < 0 || next >= static_cast<int>(site->cards.size());
+                        const bool locked = !outside && site->cards[static_cast<std::size_t>(next)].locked;
+                        html += button("stage", std::to_string(next), step < 0 ? "Move left" : "Move right", "decision",
+                            outside ? "This Practice is at the edge of the board." : locked ? "The destination slot is locked." :
+                            "Stage this move.", outside || locked);
+                    }
+                    html += "</div>";
+                }
                 html += "<div id=\"inspector\"><h2>" + escape(card.name) + "</h2><p class=\"quiet\">" +
                     escape(card.quality) + " · " + escape(card.mode);
                 if (!card.tags.empty()) html += " · " + escape(card.tags);
                 html += "</p><p class=\"rule\">" + escape(card.rule) + "</p>";
-                if (card.workerCapacity > 0) html += "<p class=\"quiet rule\">Worker capacity " + number(card.workerCapacity) + "</p>";
-                if (card.stock) html += "<p class=\"quiet rule\">Stock " + number(*card.stock, 1) + "</p>";
-                if (card.mode == "Charge") html += "<p class=\"quiet rule\">Charge " + number(card.charge, 1) + "</p>";
-                if (editable) {
-                    if (selection_.destination) {
-                        html += "<p class=\"gold rule\">Move to slot " + std::to_string(*selection_.destination + 1);
-                        if (snapshot->shopSeconds) html += " · " + std::to_string(*snapshot->shopSeconds) + " s";
-                        html += "</p>";
-                        html += button("confirm", {}, "Confirm", "decision primary") + button("undo", {}, "Undo");
-                    } else {
-                        for (const int step : {-1, 1}) {
-                            const auto next = static_cast<int>(*selection_.card) + step;
-                            if (next >= 0 && next < static_cast<int>(site->cards.size()) && !site->cards[next].locked)
-                                html += button("stage", std::to_string(next), step < 0 ? "Move left" : "Move right");
-                        }
-                    }
+                html += "<div id=\"practice-values\"></div>";
+                if (card.workerCapacity > 0) values += "<p class=\"quiet rule\">Worker capacity " + number(card.workerCapacity) + "</p>";
+                if (card.stock) values += "<p class=\"quiet rule\">Stock " + number(*card.stock, 1) + "</p>";
+                if (card.mode == "Charge") values += "<p class=\"quiet rule\">Charge " + number(card.charge, 1) + "</p>";
+                if (session_.previewing()) {
+                    html += "<p class=\"quiet rule\">Preview is read-only. Return to Live to make decisions.</p>";
                 }
                 html += "</div>";
             }
@@ -262,30 +303,100 @@ void View::refreshPanel(const Snapshot* snapshot)
             html += "<p class=\"quiet rule\">Market settlement</p>";
         }
     }
-    if (!session_.previewing() && !session_.busy()) {
+    if (!session_.previewing()) {
         const auto& choices = snapshot->choices;
         if (!choices.empty() && choices.front().kind != Decision::reorder) {
             constexpr std::array labels{"Choose a Vassal", "Choose a Commission", "Life Map", "Practice Reform", "", ""};
             const auto label = std::string_view(labels[static_cast<std::size_t>(choices.front().kind)]);
             if (!label.empty()) html += "<p class=\"quiet rule\">" + std::string(label) + "</p>";
-            for (std::size_t i = 0; i < choices.size(); ++i) html += button("choice", std::to_string(i), choices[i].label);
+            for (std::size_t i = 0; i < choices.size(); ++i)
+                html += button("choice", std::to_string(i), choices[i].label, "decision",
+                    session_.busy() ? "Another decision is being applied." : "", session_.busy());
         } else if (editable && !selection_.card) {
             html += "<p class=\"quiet rule\">Practice Reform · Select a Practice to reorder it.</p>";
         }
     }
-    const auto scroll = element("panel").GetScrollTop();
-    element("panel").SetInnerRML(html);
-    if (selectedRegion_ == selection_.region) element("panel").SetScrollTop(scroll);
+    const bool remount = html != panelMarkup_;
+    const bool sameRegion = selectedRegion_ == selection_.region;
+    if (remount) {
+        auto& panel = element("panel");
+        const auto scroll = panel.GetScrollTop();
+        auto* focus = context_.GetFocusElement();
+        auto* ancestor = focus;
+        while (ancestor && ancestor != &content) ancestor = ancestor->GetParentNode();
+        const bool restoreFocus = ancestor && focus->IsPseudoClassSet("focus-visible") && !dialog_;
+        const auto op = focus ? focus->GetAttribute<Rml::String>("data-op", "") : "";
+        const auto id = focus ? focus->GetAttribute<Rml::String>("data-id", "") : "";
+        content.SetInnerRML(panelMarkup_ = std::move(html));
+        content.SetClass("enter", !sameRegion);
+        if (auto* inspector = document_->GetElementById("inspector"))
+            inspector->SetClass("enter", selectedCard_ != selection_.card);
+        if (sameRegion) panel.SetScrollTop(scroll);
+        else panel.SetScrollTop(0);
+        if (restoreFocus && !op.empty()) {
+            Rml::ElementList controls;
+            content.QuerySelectorAll(controls, "button");
+            Rml::Element* next = nullptr;
+            for (auto* control : controls) {
+                if (control->HasAttribute("disabled")) continue;
+                const auto operation = control->GetAttribute<Rml::String>("data-op", "");
+                if (operation == op && control->GetAttribute<Rml::String>("data-id", "") == id) {
+                    next = control;
+                    break;
+                }
+                if (!next || operation == "review" || operation == "choice" ||
+                    (op == "review" && operation == "stage")) next = control;
+            }
+            if (next) next->Focus(true);
+        }
+    }
+    const auto updateValues = [&](const char* target, const std::string& value, std::string& previous, bool comparable) {
+        const bool changed = value != previous;
+        if (!remount && !changed) return;
+        if (auto* node = document_->GetElementById(target)) {
+            node->SetInnerRML(value);
+            if (changed && comparable && !previous.empty() && !session_.previewing() && !previewing_) {
+                node->SetClass("value-change", false);
+                node->SetClass("value-change", true);
+            }
+        }
+        previous = value;
+    };
+    updateValues("site-stats", stats, lastStats_, sameRegion);
+    updateValues("practice-values", values, lastPracticeValues_, sameRegion && selectedCard_ == selection_.card);
 }
 
 void View::refresh()
 {
     const auto* snapshot = session_.opening() ? nullptr : session_.displayed();
+    if (session_.error() != lastError_) {
+        lastError_ = session_.error();
+        if (!lastError_.empty()) notify(lastError_, true);
+    }
+    if (!pendingAction_.empty() && !session_.busy()) {
+        if (session_.generation() != pendingGeneration_) {
+            if (pendingAction_ == "reform") {
+                selection_.card.reset();
+                selection_.destination.reset();
+                show(element("reform-dialog"), false);
+                dialogClosedAt_ = 0;
+                notify("Practice Reform complete. Updating the forecast.");
+            } else {
+                notify("Decision recorded.");
+            }
+        }
+        pendingAction_.clear();
+    }
     if (revision_ != session_.viewRevision() || opening_ != session_.opening() || busy_ != session_.busy() ||
         previewing_ != session_.previewing() || selectedRegion_ != selection_.region ||
         selectedCard_ != selection_.card || staged_ != selection_.destination) {
+        if (selectedRegion_ != selection_.region && snapshot && !selection_.region.empty()) {
+            const auto chosen = std::ranges::find(snapshot->regions, selection_.region, &Region::id);
+            if (chosen != snapshot->regions.end())
+                map_.focus(session_.shapes()[static_cast<std::size_t>(chosen - snapshot->regions.begin())].label);
+        }
         refreshPanel(snapshot);
-        markersDirty_ = true;
+        refreshMarkers(snapshot);
         revision_ = session_.viewRevision();
         opening_ = session_.opening();
         busy_ = session_.busy();
@@ -293,33 +404,62 @@ void View::refresh()
         selectedRegion_ = selection_.region;
         selectedCard_ = selection_.card;
         staged_ = selection_.destination;
-        const auto clock = snapshot ? "Year " + number(snapshot->year) + " &nbsp; · &nbsp; " +
+        const auto clock = snapshot ? "Year " + number(snapshot->year) + "  ·  " +
             number(snapshot->prestige) + " Prestige" : "";
-        element("clock").SetInnerRML(clock);
+        if (clock != currentClock_) {
+            currentClock_ = clock;
+            bindings_.DirtyVariable("clock");
+        }
+        element("timegraph").SetClass("preview", previewing_);
+        element("live").SetClass("on", !previewing_);
+        element("live").SetClass("primary", previewing_);
+        element("live").SetInnerRML(previewing_ ? "Back to Live" : "Live");
+        element("new-game").SetClass("busy", busy_);
+        element("new-game").SetClass("disabled", busy_);
+        element("new-game").SetAttribute("data-help", busy_ ? "A decision is being applied." : "Start a fresh run with the current seed.");
     }
-    if (markersDirty_) {
-        refreshMarkers(snapshot);
+    if (map_.animate(now_, reduced_) || markersDirty_) {
+        positionMarkers();
         markersDirty_ = false;
     }
     const bool loading = session_.opening() || !session_.displayed();
     if (loading != loadingVisible_) {
-        element("opening").SetProperty("display", loading ? "block" : "none");
+        show(element("opening"), loading);
+        if (!loading) map_.reveal(now_);
         loadingVisible_ = loading;
     }
     const auto& chart = session_.chart();
+    const bool scrubEnabled = !loading && !busy_ && chart.through.has_value();
+    element("plot").SetClass("unavailable", !scrubEnabled);
+    const auto coverage = session_.coverage();
+    const bool forecasting = coverage && (coverage->completion == timegraph::Completion::running ||
+        chart.through != coverage->publishedThrough);
+    const auto percentage = coverage && chart.through && coverage->target > coverage->start
+        ? std::clamp(static_cast<double>(*chart.through - coverage->start) /
+            static_cast<double>(coverage->target - coverage->start), 0., 1.) * 100 : 0;
+    if (loading) {
+        const auto progress = number(percentage, 1) + "%";
+        if (progress != currentProgress_) {
+            currentProgress_ = progress;
+            bindings_.DirtyVariable("progress");
+        }
+    }
     std::string status;
-    if (!session_.error().empty()) status = session_.error();
+    if (loading && !session_.error().empty()) status = session_.error();
     else if (const auto requested = session_.requested()) {
         const auto label = *requested < session_.liveSnapshot()->second ? "History preview · " : "Forecast preview · ";
-        status = (session_.previewReady() ? label : "Restoring · ") + std::to_string(*requested) + " s";
+        status = label + std::to_string(*requested) + " s";
+        if (!session_.previewReady()) status += " · Restoring";
+        else if (forecasting) status += " · Forecast " + number(percentage) + "%";
     }
-    else if (session_.busy() && !loading) status = "Applying decision";
-    else if (chart.through) status = "Forecast through " + std::to_string(*chart.through) + " s";
-    else if (!loading) status = "Preparing the forecast";
+    else if (session_.busy() && !loading) status = pendingAction_ == "reform" ? "Applying reform" : "Applying decision";
+    else if (forecasting) status = (loading ? "" : "Live · ") + std::string("Forecasting ") +
+        (percentage < 1 ? "<1" : number(percentage)) + "%";
+    else if (chart.through) status = "Live · " + std::to_string(session_.liveSnapshot()->second) + " s";
+    else status = "Preparing the forecast";
     if (status != currentStatus_) {
-        element("graph-status").SetInnerRML(session_.error().empty() ? status : escape(status));
-        element("loading-status").SetInnerRML(session_.error().empty() ? status : escape(status));
         currentStatus_ = status;
+        bindings_.DirtyVariable("status");
     }
     const bool failed = loading && !session_.error().empty();
     if (failed != loadingFailed_) {
@@ -330,237 +470,123 @@ void View::refresh()
     const auto end = chart.through ? std::to_string(chart.end) + " s" : "";
     if (start != currentAxisStart_) element("axis-start").SetInnerRML(currentAxisStart_ = start);
     if (end != currentAxisEnd_) element("axis-end").SetInnerRML(currentAxisEnd_ = end);
-}
-
-void View::drawMap(const Snapshot& snapshot)
-{
-    const auto map = bounds("map");
-    const SDL_Rect clip{static_cast<int>(map.x), static_cast<int>(map.y), static_cast<int>(map.w), static_cast<int>(map.h)};
-    SDL_SetRenderClipRect(renderer_, &clip);
-    colour(renderer_, {36, 55, 54, 255});
-    SDL_RenderFillRect(renderer_, &map);
-    const auto& shapes = session_.shapes();
-    std::vector<SDL_Vertex> fill;
-    std::vector<int> indices;
-    for (std::size_t i = 0; i < shapes.size(); ++i) {
-        const auto& region = snapshot.regions[i];
-        const auto& shape = shapes[i];
-        const auto base = static_cast<int>(fill.size());
-        auto ink = terrain.at(region.biome);
-        const auto allegiance = holderInk[static_cast<std::size_t>(region.holder)];
-        for (int channel = 0; channel < 3; ++channel)
-            ink[channel] = static_cast<Uint8>((ink[channel] * 2 + allegiance[channel]) / 3);
-        const SDL_FColor tint{ink[0] / 255.f, ink[1] / 255.f, ink[2] / 255.f, 1};
-        fill.push_back({project(shape.label, map), tint, {}});
-        for (const auto& corner : shape.outline) fill.push_back({project(corner, map), tint, {}});
-        const auto count = static_cast<int>(shape.outline.size());
-        for (int j = 0; j < count; ++j) {
-            indices.push_back(base);
-            indices.push_back(base + j + 1);
-            indices.push_back(base + (j + 1) % count + 1);
-        }
+    if (!notice_.empty() && !noticeError_ && now_ >= noticeUntil_) notify("");
+    if (dialogClosedAt_ && (reduced_ || now_ - dialogClosedAt_ >= 90)) {
+        show(element("reform-dialog"), false);
+        dialogClosedAt_ = 0;
     }
-    SDL_RenderGeometry(renderer_, nullptr, fill.data(), static_cast<int>(fill.size()), indices.data(), static_cast<int>(indices.size()));
-    std::vector<SDL_FPoint> outline;
-    const auto drawOutline = [&](std::size_t i, Colour ink) {
-        outline.clear();
-        for (const auto& vertex : shapes[i].outline) outline.push_back(project(vertex, map));
-        if (outline.empty()) return;
-        outline.push_back(outline.front());
-        colour(renderer_, ink);
-        SDL_RenderLines(renderer_, outline.data(), static_cast<int>(outline.size()));
-    };
-    for (std::size_t i = 0; i < shapes.size(); ++i) drawOutline(i, {40, 49, 40, 255});
-    for (const auto& [a, b] : snapshot.roads)
-        line(renderer_, project(shapes[a].label, map), project(shapes[b].label, map), {193, 163, 103, 255});
-    for (std::size_t i = 0; i < shapes.size(); ++i)
-        if (snapshot.regions[i].id == selection_.region) drawOutline(i, {243, 206, 121, 255});
-    SDL_SetRenderClipRect(renderer_, nullptr);
+    refreshReadout();
+    refreshHelp();
 }
 
 void View::drawGraph()
 {
-    if (session_.opening()) return;
+    if (loadingVisible_) return;
     const auto area = plot();
-    colour(renderer_, {25, 27, 22, 255});
+    const SDL_Rect clip{static_cast<int>(area.x), static_cast<int>(area.y), static_cast<int>(area.w), static_cast<int>(area.h)};
+    SDL_SetRenderClipRect(renderer_, &clip);
+    colour(renderer_, previewing_ ? Colour{20, 30, 34, 255} : Colour{26, 27, 22, 255});
     SDL_RenderFillRect(renderer_, &area);
     const auto& chart = session_.chart();
-    if (!chart.through) return;
-    const auto span = static_cast<double>(chart.end - chart.start);
-    const auto end = area.x + area.w * static_cast<float>(static_cast<double>(*chart.through - chart.start) / span);
+    if (!chart.through) {
+        SDL_SetRenderClipRect(renderer_, nullptr);
+        return;
+    }
+    const auto end = xAt(*chart.through);
+    const auto fill = [&](SDL_FRect rect, Colour ink) {
+        colour(renderer_, ink);
+        SDL_RenderFillRect(renderer_, &rect);
+    };
+    const auto height = area.h - 9;
+    const auto published = end - area.x;
+    fill({area.x, area.y, published, height}, previewing_ ? Colour{31, 48, 56, 255} : Colour{41, 45, 31, 255});
+    fill({area.x, area.y + height + 3, area.w, 4}, {67, 61, 48, 255});
+    fill({area.x, area.y + height + 3, published, 4}, {186, 155, 96, 255});
     for (int step = 0; step <= 2; ++step) {
-        const auto y = area.y + (area.h - 1) * step / 2.f;
-        line(renderer_, {area.x, y}, {area.x + area.w, y}, {64, 59, 44, 255});
+        const auto y = area.y + (height - 1) * step / 2.f;
+        line(renderer_, {area.x, y}, {area.x + area.w, y},
+            previewing_ ? Colour{54, 68, 73, 255} : Colour{68, 65, 49, 255});
     }
     std::array<SDL_FPoint, Chart::width * 2> points;
-    int count = 0;
-    const auto px = [&](float value) { return area.y + area.h - 2 - (area.h - 4) * value / chart.peak; };
+    std::array<SDL_FRect, Chart::width> ranges;
+    int count = 0, rangeCount = 0;
+    const auto px = [&](float value) { return area.y + height - 2 - (height - 4) * value / chart.peak; };
     for (std::size_t i = 0; i < chart.population.size(); ++i) {
         const auto& band = chart.population[i];
         if (!band.count) continue;
         const float x = std::min(end, area.x + area.w * static_cast<float>(i) / (Chart::width - 1));
-        if (band.low != band.high) line(renderer_, {x, px(band.low)}, {x, px(band.high)}, {116, 145, 103, 255});
+        if (band.low != band.high) ranges[rangeCount++] = {x, px(band.high), 1.f, px(band.low) - px(band.high)};
         points[count++] = {x, px(band.first)};
         if (band.first != band.last) points[count++] = {x, px(band.last)};
     }
-    colour(renderer_, {167, 188, 128, 255});
+    colour(renderer_, previewing_ ? Colour{101, 143, 153, 255} : Colour{116, 145, 103, 255});
+    if (rangeCount) SDL_RenderFillRects(renderer_, ranges.data(), rangeCount);
+    colour(renderer_, previewing_ ? Colour{155, 203, 211, 255} : Colour{188, 204, 139, 255});
     SDL_RenderLines(renderer_, points.data(), count);
-    const auto x = [&](Second second) {
-        return area.x + area.w * static_cast<float>(std::clamp(static_cast<double>(second - chart.start) / span, 0., 1.));
+    const auto grip = [&](Second second, Colour ink, bool active) {
+        const auto x = xAt(second);
+        line(renderer_, {x, area.y}, {x, area.y + area.h}, ink);
+        const float size = active && drag_ == Drag::graph ? 16.f : 12.f;
+        const auto left = std::clamp(x - size / 2, area.x, area.x + area.w - size);
+        const auto y = area.y + height - 3;
+        fill({left, y, size, 12}, {20, 22, 18, 255});
+        fill({left + 1, y + 1, size - 2, 10}, ink);
+        for (int offset : {-2, 1}) fill({left + size / 2 + offset, y + 3, 1, 6}, {53, 52, 39, 255});
     };
-    if (const auto* live = session_.liveSnapshot()) {
-        const auto liveX = x(live->second);
-        line(renderer_, {liveX, area.y}, {liveX, area.y + area.h}, {184, 148, 89, 255});
+    if (const auto* live = session_.liveSnapshot()) grip(live->second, {236, 196, 118, 255}, !previewing_);
+    if (const auto requested = session_.requested()) grip(*requested, {162, 216, 232, 255}, true);
+    if (hoverSecond_ && drag_ != Drag::graph) {
+        const auto x = xAt(*hoverSecond_);
+        line(renderer_, {x, area.y}, {x, area.y + height}, {144, 151, 126, 255});
     }
-    if (const auto requested = session_.requested()) {
-        const auto cursor = x(*requested);
-        line(renderer_, {cursor, area.y}, {cursor, area.y + area.h}, {245, 221, 152, 255});
-    }
+    SDL_SetRenderClipRect(renderer_, nullptr);
 }
 
-void View::frame()
+void View::prepareFrame()
 {
+    now_ = SDL_GetTicks();
     refresh();
     context_.Update();
+}
+
+void View::drawFrame()
+{
     SDL_SetRenderClipRect(renderer_, nullptr);
-    colour(renderer_, {23, 26, 22, 255});
+    colour(renderer_, {22, 24, 20, 255});
     SDL_RenderClear(renderer_);
-    if (const auto* snapshot = session_.displayed(); snapshot && !session_.opening()) drawMap(*snapshot);
+    if (const auto* snapshot = session_.displayed(); snapshot && !session_.opening())
+        map_.draw(renderer_, bounds("map"), *snapshot, session_.shapes(), selection_.region, hoveredRegion_,
+            drag_ == Drag::map && !moved_, now_, reduced_);
+    SDL_SetRenderDrawBlendMode(renderer_, SDL_BLENDMODE_BLEND_PREMULTIPLIED);
     context_.Render();
+    SDL_SetRenderDrawBlendMode(renderer_, SDL_BLENDMODE_NONE);
     SDL_SetRenderClipRect(renderer_, nullptr);
     drawGraph();
 }
 
 bool View::scrubAt(float x)
 {
+    if (session_.busy() || session_.opening() || !session_.chart().through) return false;
+    selection_.destination.reset();
+    return session_.scrub(secondAt(x));
+}
+
+Second View::secondAt(float x) const
+{
     const auto area = plot();
     const auto& chart = session_.chart();
-    const float ratio = std::clamp((x - area.x) / area.w, 0.f, 1.f);
-    selection_.destination.reset();
-    return session_.scrub(chart.start + static_cast<Second>(std::llround(ratio * static_cast<double>(chart.end - chart.start))));
+    const float ratio = std::clamp((x - area.x) / std::max(1.f, area.w), 0.f, 1.f);
+    const auto second = chart.start + static_cast<Second>(std::llround(ratio * static_cast<double>(chart.end - chart.start)));
+    return std::min(second, chart.through.value_or(chart.start));
 }
 
-bool View::input(SDL_Event event)
+float View::xAt(Second second) const
 {
-    if (event.type == SDL_EVENT_QUIT || event.type == SDL_EVENT_WINDOW_CLOSE_REQUESTED ||
-        (event.type == SDL_EVENT_KEY_DOWN && event.key.key == SDLK_ESCAPE)) return false;
-    if (event.type == SDL_EVENT_WINDOW_PIXEL_SIZE_CHANGED) resize();
-    if (event.type == SDL_EVENT_WINDOW_FOCUS_LOST) drag_ = Drag::none;
-    SDL_ConvertEventToRenderCoordinates(renderer_, &event);
-    if (event.type == SDL_EVENT_MOUSE_MOTION) {
-        const SDL_FPoint point{event.motion.x, event.motion.y};
-        if (drag_ == Drag::graph) scrubAt(point.x);
-        else if (drag_ == Drag::map) {
-            moved_ |= std::hypot(point.x - pressed_.x, point.y - pressed_.y) > 4;
-            if (moved_) {
-                pan_.x += point.x - last_.x;
-                pan_.y += point.y - last_.y;
-                markersDirty_ = true;
-            }
-            last_ = point;
-        } else {
-            if (drag_ == Drag::card) moved_ |= std::hypot(point.x - pressed_.x, point.y - pressed_.y) > 4;
-            context_.ProcessMouseMove(static_cast<int>(point.x), static_cast<int>(point.y), 0);
-        }
-    }
-    if ((event.type == SDL_EVENT_MOUSE_BUTTON_DOWN || event.type == SDL_EVENT_MOUSE_BUTTON_UP) &&
-        event.button.button == SDL_BUTTON_LEFT) {
-        const SDL_FPoint point{event.button.x, event.button.y};
-        if (event.type == SDL_EVENT_MOUSE_BUTTON_DOWN) {
-            if (contains(plot(), point) && !session_.opening()) {
-                drag_ = Drag::graph;
-                scrubAt(point.x);
-            } else if (contains(bounds("map"), point) && !session_.opening()) {
-                drag_ = Drag::map;
-                pressed_ = last_ = point;
-                moved_ = false;
-            } else {
-                const auto* snapshot = session_.displayed();
-                if (const auto slot = cardAt(point); slot && snapshot && canStage(*snapshot, selection_.selected(snapshot))) {
-                    auto* card = element("board").GetChild(static_cast<int>(*slot));
-                    draggedCard_ = card->GetAttribute<int>("data-id", static_cast<int>(*slot));
-                    if (!selection_.selected(snapshot)->cards[draggedCard_].id.empty()) {
-                        drag_ = Drag::card;
-                        pressed_ = point;
-                        moved_ = false;
-                    }
-                }
-                context_.ProcessMouseMove(static_cast<int>(point.x), static_cast<int>(point.y), 0);
-                context_.ProcessMouseButtonDown(0, 0);
-            }
-        } else {
-            if (drag_ == Drag::map && !moved_) {
-                if (auto selected = hit(point)) selection_.select(std::move(*selected));
-            } else if (drag_ == Drag::graph) scrubAt(point.x);
-            else if (drag_ == Drag::card && moved_) {
-                context_.ProcessMouseLeave();
-                context_.ProcessMouseButtonUp(0, 0);
-                const auto* snapshot = session_.displayed();
-                if (const auto target = cardAt(point); target && snapshot && canStage(*snapshot, selection_.selected(snapshot))) {
-                    auto staged = selection_;
-                    if (staged.inspect(snapshot, draggedCard_) && staged.stage(snapshot, *target)) selection_ = std::move(staged);
-                }
-            }
-            else context_.ProcessMouseButtonUp(0, 0);
-            drag_ = Drag::none;
-        }
-    }
-    if (event.type == SDL_EVENT_MOUSE_WHEEL && drag_ == Drag::none) {
-        const SDL_FPoint point{event.wheel.mouse_x, event.wheel.mouse_y};
-        const auto map = bounds("map");
-        if (contains(map, point)) {
-            const auto old = zoom_;
-            zoom_ = std::clamp(zoom_ * std::pow(1.16f, event.wheel.y), 1.f, 3.5f);
-            if (zoom_ == 1) pan_ = {};
-            else {
-                const float ratio = zoom_ / old;
-                pan_.x = pan_.x * ratio + (point.x - map.x - map.w / 2) * (1 - ratio);
-                pan_.y = pan_.y * ratio + (point.y - map.y - map.h / 2) * (1 - ratio);
-            }
-            markersDirty_ = true;
-        } else {
-            context_.ProcessMouseWheel({-event.wheel.x, -event.wheel.y}, 0);
-        }
-    }
-    return true;
-}
-
-void View::ProcessEvent(Rml::Event& event)
-{
-    auto* target = event.GetTargetElement();
-    while (target && !target->HasAttribute("data-op")) target = target->GetParentNode();
-    if (!target) return;
-    const auto op = target->GetAttribute<Rml::String>("data-op", "");
-    const auto id = target->GetAttribute<Rml::String>("data-id", "");
-    if (op == "new" && !session_.busy()) {
-        auto launch = launch_;
-        launch.save.clear();
-        selection_.select({});
-        zoom_ = 1;
-        pan_ = {};
-        session_.open(launch);
-    } else if (op == "live") {
-        selection_.destination.reset();
-        session_.live();
-    } else if (op == "card") {
-        selection_.inspect(session_.displayed(), std::stoul(id));
-    } else if (op == "stage") {
-        selection_.stage(session_.displayed(), std::stoul(id));
-    } else if (op == "undo") {
-        selection_.destination.reset();
-    } else if (op == "confirm" && selection_.card && selection_.destination) {
-        if (session_.reorder(selection_.region, *selection_.card, *selection_.destination)) {
-            selection_.card.reset();
-            selection_.destination.reset();
-        }
-    } else if (op == "choice" && session_.liveSnapshot()) {
-        const auto index = std::stoul(id);
-        const auto& view = *session_.liveSnapshot();
-        if (index < view.choices.size()) {
-            const auto& choice = view.choices[index];
-            if (session_.choose(choice) && choice.kind == Decision::enterShop) selection_.select(view.vassalRegion);
-        }
-    }
+    const auto area = plot();
+    const auto& chart = session_.chart();
+    const auto span = std::max<Second>(1, chart.end - chart.start);
+    const auto part = std::clamp(second, chart.start, chart.end) - chart.start;
+    return area.x + area.w * static_cast<float>(static_cast<double>(part) / static_cast<double>(span));
 }
 
 }

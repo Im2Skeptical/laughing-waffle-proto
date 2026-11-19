@@ -1,0 +1,66 @@
+body { width: 100%; height: 100%; margin: 0; }
+#header { position: absolute; left: 2%; right: 2%; top: 2%; bottom: 89%; border-bottom: 1dp #655439; }
+#header h1 { line-height: 37dp; }
+#header-controls { position: absolute; top: 0; right: 0; display: flex; gap: 6dp; }
+#clock { color: #dfc798; padding: 8dp; white-space: nowrap; }
+
+#map { position: absolute; left: 2%; width: 56%; top: 13%; bottom: 25%; border: 1dp #877050;
+  overflow: hidden; clip: always; tab-index: auto; }
+#map:focus-visible { border-color: #fff0b9; }
+#markers { position: absolute; width: 100%; height: 100%; pointer-events: none; }
+.marker { position: absolute; transform: translate(-50%, 0dp); font-size: 12dp; color: #f5e6c7;
+  background-color: #212420ed; border: 1dp #868578; padding: 1dp 4dp; white-space: nowrap; }
+.player { background-color: #253427; border-color: #aab773; }
+.crown { background-color: #3e2c20; border-color: #cda074; }
+.monster { background-color: #3e2624; border-color: #ce8b7b; }
+.marker.selected { border-color: #ffda88; color: #fff2c8; }
+#legend { position: absolute; bottom: 7dp; left: 7dp; background-color: #20221cf0;
+  padding: 4dp 7dp; border: 1dp #716147; pointer-events: none; white-space: nowrap; }
+.player-key { color: #c3d391; }
+.crown-key { color: #e4b28b; }
+.creep-key { color: #e6a194; }
+#map-tools { position: absolute; top: 6dp; right: 6dp; display: flex; gap: 4dp; }
+#map-tools button { min-width: 16dp; text-align: center; }
+
+#panel { position: absolute; left: 59.3%; right: 2%; top: 13%; bottom: 25%;
+  padding: 11dp; overflow-y: auto; overflow-x: hidden; }
+#board { display: flex; gap: 5dp; margin: 10dp 0 9dp; }
+#board .card { flex: 1; min-width: 0; height: 102dp; }
+#inspector { border-top: 1dp #706045; padding: 8dp 0 3dp; }
+#inspector h2 { font-size: 19dp; }
+.decision { margin: 4dp 4dp 1dp 0; }
+.reform-controls { margin-bottom: 7dp; }
+.stats { margin-top: 5dp; padding: 4dp 0; border-bottom: 1dp #4d442f; }
+#modal-dimmer { position: absolute; left: 0; top: 0; right: 0; bottom: 22.5%; background-color: #090c0b91; display: none; }
+#reform-dialog { position: absolute; left: 26%; right: 26%; top: 29%; display: none; }
+#dialog-copy { margin: 8dp 0; }
+#dialog-cost { margin-bottom: 8dp; }
+#reform-dialog .decision { margin-top: 8dp; }
+
+#timegraph { position: absolute; left: 2%; right: 2%; top: 77.5%; bottom: 2%;
+  transition: border-color 0.14s quadratic-out, background-color 0.14s quadratic-out; }
+#timegraph.preview { background-color: #202b32; border-color: #7ca3b4; }
+.reduce-motion #timegraph { transition: none; }
+#graph-caption { position: absolute; top: 7dp; left: 9dp; color: #f0d69f; }
+#graph-status { position: absolute; top: 8dp; right: 9dp; }
+#timegraph.preview #graph-status, #timegraph.preview #graph-caption { color: #c6e9f5; }
+#plot { position: absolute; left: 118dp; right: 10dp; top: 31dp; bottom: 25dp; cursor: move; tab-index: auto; }
+#plot:focus-visible { border: 1dp #fff0b9; }
+#plot.unavailable { cursor: default; tab-index: none; }
+#axis-start { position: absolute; bottom: 5dp; left: 118dp; }
+#axis-end { position: absolute; bottom: 5dp; right: 10dp; }
+#live { position: absolute; left: 8dp; top: 34dp; width: 80dp; text-align: center; white-space: nowrap; }
+#readout { position: absolute; display: none; bottom: 100%; white-space: nowrap; }
+#opening { position: absolute; left: 26%; right: 26%; top: 34%; text-align: center; }
+#opening p, #opening .progress { margin-top: 9dp; }
+#notice { position: absolute; display: none; right: 2%; bottom: 24%; width: 275dp; }
+#help { position: absolute; display: none; width: 218dp; }
+
+@media (max-width: 820px) {
+  #map { width: 51%; }
+  #panel { left: 54.5%; padding: 8dp; }
+  #board { gap: 3dp; margin: 6dp 0; }
+  #board .card { height: 86dp; }
+  #reform-dialog, #opening { left: 20%; right: 20%; }
+  #legend { font-size: 12dp; }
+}

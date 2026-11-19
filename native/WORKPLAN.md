@@ -3254,6 +3254,115 @@ that bounded dense summary reads and direct, generation-checked priority
 restores fit the Windows input budget under this forecast workload. Browser
 worker transport and physical device timing still need their own measurements.
 
+### N04f - Native interaction and presentation
+
+Windows implementation on `t3/native-interaction`, based on `f781c456`.
+The [interaction design](docs/interaction-system.md) was committed first in
+`97322d8e`. Shared RCSS provides the control and feedback vocabulary. The
+connected view binds the status, clock and progress to the app read model and
+keeps both the atlas and population strip in view during decisions. The
+settlement board shows the staged order and its time cost next to its cards.
+Review opens a separate confirmation. Cancel preserves a staged order, and
+Undo returns the board to committed order. Errors report the reason.
+
+The map bakes biome ink and topology into an SDL texture. The live view draws
+faction borders, roads, settlement marks and selection over it. The camera
+eases to zoom and selection targets and follows direct panning. The strip
+shows published coverage, separate Live and Preview playheads and the
+population at the restored second. Hover reads the published population band.
+Keyboard controls, Escape, touch drag, long-press help and a session Motion
+toggle share the desktop and 640×360 landscape presentation paths.
+
+The interaction smokes drive SDL input on both window sizes. They cover
+selection, inspection, non-activating touch help, a rejected locked drop,
+keyboard staging and undo, touch staging, review and cancel, confirmation,
+preview and Live, reduced motion and New Game. Simulation, schemas, RNG,
+replay and the timegraph worker are unchanged.
+
+#### 1,000-year forecast
+
+Windows 11 build 26200, i9-10900K, RTX 3080, SDL Direct3D 11, 1120×640, VSync
+off. Five interleaved baseline and current runs per preset, alternating their
+order. The baseline uses the `f781c456` app and RML with the same unchanged
+native libraries as the current build. The workload is the N04d seed-1 long
+fixture. All 20 replacement forecasts reached second 32,192 from Live 192.
+The table reports medians of per-run percentiles and forecast times.
+
+| Build | Frame p50 / p95 / p99, ms | Loaded scrub p95, ms | Forecast wall time, ms |
+| --- | ---: | ---: | ---: |
+| MSVC baseline | 1.205 / 1.821 / 2.539 | 3.316 | 275.92 |
+| MSVC N04f | 1.036 / 1.706 / 2.201 | 2.372 | 296.83 |
+| Clang baseline | 1.036 / 1.904 / 2.313 | 3.203 | 204.87 |
+| Clang N04f | 0.810 / 1.845 / 2.279 | 2.531 | 227.44 |
+
+All 2,013 N04f loaded scrubs presented within two harness frames. Maximum
+elapsed input-to-present was 3.381 ms. The paired p99 improved by 13% on MSVC
+and 1% on Clang. The earlier archived N04d p99 was 1.602 ms on MSVC and
+2.599 ms on Clang. Use the paired rows for the same-session comparison.
+The current harness exercised roughly twice as many scrubs per forecast as
+the baseline. Raw paired rows are in `artifacts/n04f/paired/`. A separate
+unpaired run during concurrent compiler activity is retained under
+`artifacts/n04f/after/bench-*.json`.
+
+```powershell
+node -e "const fs=require('node:fs'),s=JSON.parse(fs.readFileSync('native/reference/fixtures/seed-1/state-0.json')); Object.assign(s.gameConfig.settings.values,{phaseDurationSec:64,monsterExpansionThreshold:1e9}); fs.writeFileSync('artifacts/n04f/seed-1-n04c-long.json',JSON.stringify(s))"
+$env:SDL_RENDER_DRIVER = 'direct3d11'
+& native/build/optimized/waffle_native_game.exe --bench 2400 artifacts/n04f/sample.json --load artifacts/n04f/seed-1-n04c-long.json
+```
+
+Repeat with `optimized-clang` and with the baseline presentation build at
+`f781c456`. The local baseline rebuild recipe is in
+`artifacts/n04f/build-baseline.py`.
+
+**Cross-runtime handoff.** Caching the procedural terrain kept its detail
+away from the scrub render path. The app also collects a restore that becomes
+ready during layout, without waiting on the worker. The paired workload
+covers the full forecast and authoritative replay checks. A browser
+equivalent would need its own message-delivery and input-to-present
+measurement before adopting the late handoff.
+
+#### Verification and reproduction
+
+Both optimized presets passed 47/47 CTests, including the original connected
+smoke and two new interaction tests. The standalone seed-42 smokes committed
+at second 148 and restored second 227. Each compiler passed 30 step windows
+and 153 comparisons with zero masks. Replay passed 33 journals, 242 browser
+checkpoints in three replay modes and 55 rejected actions.
+
+```powershell
+. native/tools/env.ps1
+Push-Location native
+foreach ($preset in 'optimized','optimized-clang') {
+    cmake --preset $preset
+    cmake --build --preset $preset
+    ctest --preset $preset --output-on-failure
+}
+Pop-Location
+node native/reference/trace.mjs
+foreach ($preset in 'optimized','optimized-clang') {
+    $parity = "native/build/$preset/src/sim/waffle_parity.exe"
+    node native/reference/step-windows.mjs $parity
+    node native/reference/replay-windows.mjs $parity
+    & "native/build/$preset/waffle_native_game.exe" --smoke --seed 42
+}
+$env:SDL_RENDER_DRIVER = 'direct3d11'
+$game = 'native/build/optimized/waffle_native_game.exe'
+& $game --seed 42 --capture artifacts/n04f/after
+& $game --seed 42 --size 640 360 --capture artifacts/n04f/compact
+```
+
+Captures and raw benchmark rows are under [artifacts/n04f](../artifacts/n04f/).
+The `before/` captures use the N04d view with extra capture checkpoints. The
+baseline staged screen contains its one-step confirmation. The `after/` and
+`compact/` sets each include the atlas, settlement, Practice inspection,
+staged move, confirmation, published forecast progress, held scrub and Live.
+`interaction.mp4` records the desktop interaction run.
+
+**Integration.** Save slots, title flow, lifecycle, Android packaging and
+physical-phone validation are separate work. Packaging the connected
+document requires both `interaction.rcss` and `connected-layout.rcss` alongside
+`connected.rml`. The Motion setting lasts for the current application run.
+
 ## N05 - Iteration and installed profiles (pending N04)
 
 Finish development, performance and full-art installed profiles sharing the same
