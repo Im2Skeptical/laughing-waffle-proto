@@ -1,6 +1,7 @@
 #pragma once
 
 #include "core/json.hpp"
+#include "sim/world/generate.hpp"
 #include "tools/json_file.hpp"
 
 namespace waffle::tools {
@@ -35,6 +36,14 @@ inline core::json::Value read_reference_topology(const std::filesystem::path& di
     if (relative.has_root_path() || relative != relative.filename() || relative.extension() != ".json")
         throw std::invalid_argument(context + "invalid topology filename");
     return core::json::parse(read_file(directory / relative));
+}
+
+inline std::optional<core::json::Value> reference_topology_override(const std::filesystem::path& directory,
+                                                                  const std::filesystem::path& fallbackDirectory,
+                                                                  std::string_view definitionId)
+{
+    if (directory.empty() && sim::generated_regional_seed(definitionId)) return {};
+    return read_reference_topology(directory.empty() ? fallbackDirectory : directory, definitionId);
 }
 
 }

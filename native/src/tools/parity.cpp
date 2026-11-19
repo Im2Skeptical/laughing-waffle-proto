@@ -3,6 +3,7 @@
 #include "sim/state/runtime_state.hpp"
 #include "sim/step/advance_second.hpp"
 #include "sim/step/stages.hpp"
+#include "sim/world/new_game.hpp"
 #include "tools/json_file.hpp"
 #include "tools/parity_masks.hpp"
 #include "tools/parity_run.hpp"
@@ -161,15 +162,16 @@ std::size_t mirror_dynamic_bytes(const T& value)
 sim::RuntimeState admit_parity_state(const Value& input, const std::filesystem::path& topologyDir)
 {
     const auto state = browser::import_game_state(input);
-    const auto dir = topologyDir.empty() ? std::filesystem::path(WAFFLE_REFERENCE_TOPOLOGY_DIR) : topologyDir;
-    const auto topology = waffle::tools::read_reference_topology(dir, state.world.definitionId);
-    return sim::admit_runtime(state, &topology, input.find("gameConfig"));
+    const auto topology = waffle::tools::reference_topology_override(
+        topologyDir, WAFFLE_REFERENCE_TOPOLOGY_DIR, state.world.definitionId);
+    return sim::admit_runtime(state, topology ? &*topology : nullptr, input.find("gameConfig"));
 }
 
 struct StepOptions {
     std::filesystem::path from, expectDir, masks, report, topologyDir;
+    std::optional<std::size_t> warmup;
     std::size_t seconds{};
-    bool time{};
+    bool time{}, pause{};
 };
 
 StepOptions parse_step_options(int argc, char** argv)
@@ -181,6 +183,10 @@ StepOptions parse_step_options(int argc, char** argv)
             options.time = true;
             continue;
         }
+        if (flag == "--pause" && !options.pause) {
+            options.pause = true;
+            continue;
+        }
         if (index + 1 == argc) throw std::invalid_argument("step: missing value for " + std::string(flag));
         const std::string_view value = argv[++index];
         if (flag == "--from" && options.from.empty()) options.from = value;
@@ -188,6 +194,14 @@ StepOptions parse_step_options(int argc, char** argv)
         else if (flag == "--masks" && options.masks.empty()) options.masks = value;
         else if (flag == "--report" && options.report.empty()) options.report = value;
         else if (flag == "--topology-dir" && options.topologyDir.empty()) options.topologyDir = value;
+        else if (flag == "--warmup" && !options.warmup) {
+            const auto end = value.data() + value.size();
+            std::size_t seconds{};
+            const auto parsed = std::from_chars(value.data(), end, seconds);
+            if (parsed.ec != std::errc{} || parsed.ptr != end)
+                throw std::invalid_argument("step: --warmup must be a nonnegative integer");
+            options.warmup = seconds;
+        }
         else if (flag == "--seconds" && options.seconds == 0) {
             const auto end = value.data() + value.size();
             const auto parsed = std::from_chars(value.data(), end, options.seconds);
@@ -200,7 +214,7 @@ StepOptions parse_step_options(int argc, char** argv)
     if (options.from.empty() || options.expectDir.empty() || options.masks.empty() || options.seconds == 0)
         throw std::invalid_argument("Usage: waffle_parity step --from <state.json> --seconds <k> "
                                     "--expect-dir <directory> --masks <masks.json> "
-                                    "[--report <path>] [--time] [--topology-dir <directory>]");
+                                    "[--warmup <k>] [--pause] [--report <path>] [--time] [--topology-dir <directory>]");
     return options;
 }
 
@@ -274,12 +288,23 @@ void report_stage_timing(const sim::RuntimeState& initial, std::size_t seconds, 
 int step(const StepOptions& options)
 {
     const waffle::tools::ParityMasks masks(json::parse(read_file(options.masks)));
-    const auto initial = admit_parity_state(json::parse(read_file(options.from)), options.topologyDir);
+    auto initial = admit_parity_state(json::parse(read_file(options.from)), options.topologyDir);
+    constexpr double maxSafeInteger = 0x1p53 - 1;
+    const auto warmup = options.warmup.value_or(0);
+    const double available = maxSafeInteger - initial.hot.tSec;
+    if (initial.hot.tSec < 0 || static_cast<double>(warmup) > available ||
+        static_cast<double>(options.seconds) > available - static_cast<double>(warmup))
+        throw std::invalid_argument("step: comparison range falls outside nonnegative safe integer seconds");
+    for (std::size_t second = 0; second < warmup; ++second) {
+        if (!sim::advance_one_second(initial))
+            throw std::invalid_argument("step: warmup stopped at second " + std::to_string(initial.hot.tSec));
+    }
+    if (options.pause) {
+        initial.hot.paused = true;
+        initial.hot.phase = browser::Phase::planning;
+    }
     auto state = initial;
     const double start = state.hot.tSec;
-    constexpr double maxSafeInteger = 0x1p53 - 1;
-    if (start < 0 || start > maxSafeInteger || static_cast<double>(options.seconds) > maxSafeInteger - start)
-        throw std::invalid_argument("step: comparison range falls outside nonnegative safe integer seconds");
 
     Value report(Value::Object{{"startSec", Value(start)}, {"masks", Value(static_cast<double>(masks.size()))}});
     const auto write_report = [&] {
@@ -337,6 +362,85 @@ int step(const StepOptions& options)
         report_stage_timing(initial, advances, report);
     }
     write_report();
+    return 0;
+}
+
+std::filesystem::path scenario_config_file(std::string_view scenario)
+{
+    const auto reference = std::filesystem::path(WAFFLE_REFERENCE_TOPOLOGY_DIR).parent_path();
+    const auto opening = [&](std::string_view id) { return reference / "fixtures" / id / "state-0.json"; };
+    if (scenario.empty()) return opening("seed-1");
+    const auto idChar = [](char ch) { return (ch >= 'a' && ch <= 'z') || (ch >= '0' && ch <= '9') || ch == '-'; };
+    if (!std::ranges::all_of(scenario, idChar))
+        throw std::invalid_argument("new-game: invalid scenario ID");
+    const auto fixture = opening(scenario);
+    if (std::filesystem::is_regular_file(fixture)) return fixture;
+
+    // These trace scenarios use the same captured ordinary New Game config.
+    // The scenario seed, anchor and actions are outside the opening recipe.
+    const auto path = reference / "scenarios" / (std::string(scenario) + ".json");
+    if (std::filesystem::is_regular_file(path)) {
+        const auto recipe = json::parse(read_file(path));
+        const auto* start = recipe.find("start");
+        const auto* kind = start ? start->find("kind") : nullptr;
+        if (kind && (kind->as_string() == "newGame" || kind->as_string() == "performanceAnchor"))
+            return opening("seed-1");
+    }
+    throw std::invalid_argument("new-game: no captured opening config for scenario " + std::string(scenario));
+}
+
+int new_game(int argc, char** argv)
+{
+    std::optional<std::uint32_t> seed;
+    std::string_view scenario;
+    std::filesystem::path out;
+    bool time = false;
+    for (int i = 2; i < argc; ++i) {
+        const std::string_view flag = argv[i];
+        if (flag == "--time" && !time) {
+            time = true;
+            continue;
+        }
+        if (i + 1 == argc || std::string_view(argv[i + 1]).empty())
+            throw std::invalid_argument("new-game: missing value for " + std::string(flag));
+        const std::string_view value = argv[++i];
+        if (flag == "--scenario" && scenario.empty()) scenario = value;
+        else if (flag == "--out" && out.empty()) out = value;
+        else if (flag == "--seed" && !seed) {
+            std::uint32_t parsedSeed{};
+            const auto end = value.data() + value.size();
+            const auto parsed = std::from_chars(value.data(), end, parsedSeed);
+            if (parsed.ec != std::errc{} || parsed.ptr != end)
+                throw std::invalid_argument("new-game: --seed must be an unsigned 32-bit integer");
+            seed = parsedSeed;
+        } else {
+            throw std::invalid_argument("new-game: unknown or repeated option " + std::string(flag));
+        }
+    }
+    if (!seed || out.empty())
+        throw std::invalid_argument("Usage: waffle_parity new-game --seed <n> [--scenario <id>] --out <state.json> [--time]");
+
+    const auto fixture = json::parse(read_file(scenario_config_file(scenario)));
+    const auto* capture = fixture.find("gameConfig");
+    if (!capture) throw std::invalid_argument("new-game: missing captured gameConfig");
+    const auto config = browser::import_game_config(*capture);
+    using Clock = std::chrono::steady_clock;
+    const auto begin = Clock::now();
+    auto state = sim::build_new_game(*seed, config, capture);
+    if (time) {
+        std::array<double, 7> samples{};
+        samples.front() = std::chrono::duration<double, std::milli>(Clock::now() - begin).count();
+        const auto digest = sim::state_digest(state);
+        for (std::size_t run = 1; run < samples.size(); ++run) {
+            const auto start = Clock::now();
+            auto repeated = sim::build_new_game(*seed, config, capture);
+            samples[run] = std::chrono::duration<double, std::milli>(Clock::now() - start).count();
+            if (sim::state_digest(repeated) != digest) throw std::logic_error("new-game: repeated build changed state");
+        }
+        std::ranges::sort(samples);
+        std::cout << "Seed " << *seed << ": " << samples[samples.size() / 2] << " ms median over 7 builds.\n";
+    }
+    write_file(out, json::stringify(browser::export_game_state(sim::export_runtime(state))) + '\n');
     return 0;
 }
 
@@ -622,12 +726,14 @@ int main(int argc, char** argv)
         if (command == "diff" && argc == 4)
             return diff_files(json::parse(read_file(argv[2])), json::parse(read_file(argv[3])));
         if (command == "step") return step(parse_step_options(argc, argv));
+        if (command == "new-game") return new_game(argc, argv);
         if (command == "stage") return stage(parse_stage_options(argc, argv));
         if (command == "run") return waffle::tools::parity_run(argc, argv);
 
         throw std::invalid_argument("Usage: waffle_parity (roundtrip | runtime-roundtrip) <state.json> [--out <path>] | "
                                     "runtime-stats <state.json> | "
-                                    "hash <state.json> | diff <a.json> <b.json> | step [options] | stage [options] | run [options]");
+                                    "hash <state.json> | diff <a.json> <b.json> | new-game [options] | "
+                                    "step [options] | stage [options] | run [options]");
     } catch (const std::exception& error) {
         std::cerr << error.what() << '\n';
         return 2;

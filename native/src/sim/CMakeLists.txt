@@ -14,6 +14,8 @@ add_library(waffle_sim STATIC
 	world/generate.cpp
 	world/generate_biomes.cpp
 	world/generate_names.cpp
+	world/new_game.cpp
+	world/opening_towns.cpp
 	settlement/population.cpp
 	settlement/migration_reservation.cpp
 	settlement/prelude.cpp
@@ -123,6 +125,11 @@ if(NOT ANDROID)
 		--from "${native_dir}/reference/fixtures/seed-1/state-0.json"
 		--seconds 1 --expect-dir "${native_dir}/reference/fixtures/windows/seed-1/0"
 		--masks "${native_dir}/reference/parity-masks.json")
+	add_test(NAME new_game_parity COMMAND "${CMAKE_COMMAND}"
+		"-Dparity=$<TARGET_FILE:waffle_parity>"
+		"-Dexpected=${native_dir}/reference/fixtures/seed-1/state-0.json"
+		"-Doutput=${CMAKE_CURRENT_BINARY_DIR}/new-game-seed-1.json"
+		-P "${native_dir}/src/tests/check-new-game.cmake")
 	add_test(NAME native_run_restore_smoke COMMAND waffle_parity run
 		--from "${native_dir}/reference/fixtures/seed-1/state-0.json" --seconds 256
 		--hashes "${CMAKE_CURRENT_BINARY_DIR}/native-run-smoke.tsv"
@@ -138,7 +145,7 @@ if(NOT ANDROID)
 	add_test(NAME faith_collapse_restore COMMAND waffle_faith_stage_test
 		"${native_dir}/reference/fixtures/seed-1/state-0.json")
 	set_tests_properties(browser_state_l0 browser_state_controls runtime_state_l0 runtime_state_controls
-		parity_cli step_parity native_run_restore_smoke step_clock captured_content runtime_history_appends faith_collapse_restore
+		parity_cli step_parity new_game_parity native_run_restore_smoke step_clock captured_content runtime_history_appends faith_collapse_restore
 		PROPERTIES TIMEOUT 60)
 
 	find_program(WAFFLE_NODE_EXECUTABLE NAMES node)

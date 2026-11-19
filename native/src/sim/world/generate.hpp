@@ -4,7 +4,9 @@
 
 #include <array>
 #include <cstdint>
+#include <optional>
 #include <string>
+#include <string_view>
 #include <utility>
 #include <vector>
 
@@ -31,5 +33,6 @@ struct RegionalWorld {
 };
 
 RegionalWorld generate_regional_world(std::uint32_t seed);
+std::optional<std::uint32_t> generated_regional_seed(std::string_view definitionId);
 
 }

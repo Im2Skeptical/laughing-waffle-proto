@@ -3,6 +3,7 @@
 #include "core/js_math.hpp"
 
 #include <algorithm>
+#include <charconv>
 #include <limits>
 #include <map>
 #include <numbers>
@@ -474,6 +475,19 @@ double decoration_random(std::uint32_t seed, std::uint32_t index)
     return (value ^ (value >> 13)) / 0x1p32;
 }
 
+}
+
+std::optional<std::uint32_t> generated_regional_seed(std::string_view definitionId)
+{
+    constexpr std::string_view prefix = "regional-v2:";
+    if (!definitionId.starts_with(prefix)) return {};
+    const auto id = definitionId.substr(prefix.size());
+    if (id.empty() || (id.size() > 1 && id.front() == '0')) return {};
+    std::uint32_t seed{};
+    const auto end = id.data() + id.size();
+    const auto parsed = std::from_chars(id.data(), end, seed);
+    if (parsed.ec != std::errc{} || parsed.ptr != end) return {};
+    return seed;
 }
 
 RegionalWorld generate_regional_world(std::uint32_t seed)
