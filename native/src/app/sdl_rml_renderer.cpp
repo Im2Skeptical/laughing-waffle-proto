@@ -14,6 +14,11 @@
 SdlRmlRenderer::SdlRmlRenderer(SDL_Renderer* renderer, std::string art_root)
 	: renderer_(renderer), art_root_(std::move(art_root)) {}
 
+void SdlRmlRenderer::SetPreparedAtlas(Rml::Vector2i size, std::vector<Rml::byte> pixels) {
+	atlas_size_ = size;
+	atlas_pixels_ = std::move(pixels);
+}
+
 Rml::CompiledGeometryHandle SdlRmlRenderer::CompileGeometry(Rml::Span<const Rml::Vertex> vertices, Rml::Span<const int> indices) {
 	auto mesh = std::make_unique<Mesh>();
 	mesh->vertices.reserve(vertices.size());
@@ -56,6 +61,13 @@ void SdlRmlRenderer::ReleaseGeometry(Rml::CompiledGeometryHandle geometry) {
 }
 
 Rml::TextureHandle SdlRmlRenderer::LoadTexture(Rml::Vector2i& dimensions, const Rml::String& source) {
+	if (source == "connected-cards" || source == "/connected-cards") {
+		dimensions = atlas_size_;
+		const auto texture = GenerateTexture({atlas_pixels_.data(), atlas_pixels_.size()}, dimensions);
+		if (texture) ++art_count_;
+		std::vector<Rml::byte>().swap(atlas_pixels_);
+		return texture;
+	}
 	// The RML uses root-relative artwork paths. SDL reads UTF-8 paths on Windows
 	// and the same relative paths from the Android asset manager.
 	const std::string path = art_root_ + source;

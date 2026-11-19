@@ -32,7 +32,8 @@ struct RegionalWorld {
     core::json::Value topology_json() const;
 };
 
-RegionalWorld generate_regional_world(std::uint32_t seed);
+using RegionalOutlines = std::array<std::vector<std::array<double, 2>>, regional_region_count>;
+RegionalWorld generate_regional_world(std::uint32_t seed, RegionalOutlines* outlines = nullptr);
 std::optional<std::uint32_t> generated_regional_seed(std::string_view definitionId);
 
 }
