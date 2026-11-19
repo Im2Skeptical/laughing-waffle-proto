@@ -1422,6 +1422,45 @@ Action application and `rebuildStateAtSecond` (L2), then new game and world
 generation (L3). Windows/Android hash agreement (L4) is required before N04
 completes.
 
+### N03f L2 action and replay contract (active, `t3/native-actions-replay`)
+
+Oracle: browser `496d9971`, v52. `trace.mjs` records ordered scenario
+entries through `appendActionAtCursor`, groups them by second, and applies
+each group through `applyReplayActionsAtSecond`. At an initial state, apply
+its entries before advancing. At subsequent seconds, finish the full tick
+sequence, including the clock tail, then apply entries in append order.
+A post-action anchor already includes that second's entries. A failure stops
+the group at the failing entry. Replay ignores the live pause gate, still
+rejects completed runs, and charges enabled, floored nonnegative AP costs on
+success only. Native rejects without changing state, including RNG; browser
+commands that perform provisional work before rejecting require isolation.
+
+| Kind | Validation and committed effects | RNG |
+| --- | --- | --- |
+| `settlementAssignGarrison` | Full-map player holding; non-null target must be a connected adjacent friendly settlement enabled by a Structure modifier. Set support and emit assignment. | None |
+| `settlementSelectVassal` | Finite candidate index, no living actor or Vault overflow, matching optional pool identity and a surviving player site. Create selected actor, graph and lineage links; clear pool and flag loadout. | Life Map stream for graph generation |
+| `settlementRerollVassals` | No living actor or Vault overflow. Increment reroll count and regenerate candidates, consuming candidate development where applicable. | Vassal stream |
+| `vassalEnterLifeNode` | Current actor, no mandatory picks or pending/active node, reachable graph node, Warrior for Campaign. Create node state and offers, set active node and record entry. | Vassal stream for randomized choices and inventories |
+| `vassalSelectLifeOption` | Active idle node and valid affordable option, specialty or Campaign mode. Set selection or rebuild options/inventory. Random specialty grants Prestige. | Vassal stream for specialty inventory |
+| `vassalMoveShopStructure` | Active Shop, editable placement and valid reservation. Update staged placement or board draft. | None |
+| `vassalPurchaseShopOffer` | Active Shop, available offer or unlock, valid placement/order and affordable reserved costs. Stage receipt, draft edits and time, remove nonrepeatable offer. | None |
+| `vassalUndoShopPurchase` | Active Shop and existing undoable receipt. Restore offer and reconstruct dependent draft order/time/cost. | None |
+| `vassalReorderShopPurchase` | Active Shop, valid Practice receipt/order and reservation. Update draft order and receipt. | None |
+| `vassalRerollShop` | Active idle Scholar Shop with specialty picked and no staged purchases. Start timed Delve. | None at action time; resolution rolls mortality and inventory |
+| `vassalConfirmLifeNode` | Active idle node, selected specialty/option, legal acquisition and affordable valid reservations. Commit draft/option, then schedule node or encounter resolution or resolve immediately. | Vassal stream for random reward/risk encounters and immediate resolution; downstream effects can use their own streams |
+| `vassalChooseCommission` | Idle active Scholar with a live offer and no accepted Commission. Accept, record baseline stat where applicable and clear offers. | None |
+| `vassalChooseDevelopmentStat` | Current actor, queue head ID and offered stat. Increase permanent stat, record progress and event, pop choice. | None directly |
+| `vassalConfirmHeirloomLoadout` | Current actor, no overflow, up to two unique available Vault IDs. Equip in supplied order, unmark Sanctified items, compact Vault and clear loadout flag. | None |
+| `vassalResolveVaultOverflow` | Pending overflow and the exact Vault capacity of unique available IDs. Replace Vault in supplied order and clear overflow flags. | None |
+| `debugSetCap` | Control action. Set or clear AP override and clamp current points. | None |
+| `debugSetSettlementSlotOverrides` | Legacy local hub and valid ordered override entries. Set Practice/Structure debug values, rebuild occupancy and derived state. | None directly |
+| `regionInstallPractice` | Known regional Practice and player region with capacity. Append ID. | None |
+| `regionUninstallPractice` | Player region and valid integer installed index. Remove that entry. | None |
+
+The registry constants for pawn placement, inventory move/split/stack, build
+designation, tile/hub tag order/toggles, crop/recipe selection and debug
+environment queue have no dispatch branch and return `unsupportedAction`.
+
 N03f-3 topology checkpoint, 19 Nov 2026. Paused at Cam's request after
 porting the immutable `regional-v2` world generator from browser baseline
 `496d9971`. `generate_regional_world` provides ordered regions, physical
