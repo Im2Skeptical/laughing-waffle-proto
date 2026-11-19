@@ -273,6 +273,8 @@ human playtest work.
   requires sustained 3x effective population to buy at least 100 additional years
   per start. It isolates the Resistance contribution; played population growth
   still needs Food, Housing and Faith support.
+  Primordial income caps at 1 billion Chaos per moon. A zero base yields zero
+  income at every year, and total Chaos can continue to accumulate.
   Passive Creep is tuned against the real simulation over each starting
   road; dangerous-action costs and the 100-progress threshold stay independent.
 - Authored Raid, conquest, forbidden Discovery, selected advanced/esoteric
@@ -282,7 +284,8 @@ human playtest work.
   Threshold, passive rate, Crisis diversion and Life Map risk costs are editable in Game Settings;
   individual Practice amounts are editable in the card reviewer.
   Campaign Monster victories award 12 + 4×Defense Prestige and 3×Defense Research;
-  automatic hunts award stronger capacity-limited Loot/Record/Currency trophies and 6 Research.
+  automatic hunts award capacity-limited Loot/Record/Currency trophies. Research
+  comes from dedicated Practices and personal Campaign victories.
   Successful defense and diversion grant Defense Research, and diversion also
   grants 6 Prestige. Monster-facing Research and candidate engines are strengthened.
 - Trade is a connected-stocked-neutral bonus to Barter, not a rival buying strategy.

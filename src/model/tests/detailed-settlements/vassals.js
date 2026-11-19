@@ -244,10 +244,9 @@ assert.deepEqual(
 );
 vassal.initialAge = vassal.interventions[0].requiredPrestige - vassal.traitPrestigeModifier;
 vassal.deathAge = vassal.initialAge;
-vassalState._seasonChanged = true;
 vassalState.currentSeasonIndex = 0;
 vassalState.year += 1;
-stepDetailedSettlementsSecond(vassalState, 34);
+stepDetailedSettlementsSecond(vassalState, 34, { seasonChanged: true });
 const finished = vassalState.civilization.vassalLineage.selectedVassals.at(-1);
 assert.equal(finished.interventions[0].status, "applied",
   "passing intervention applies before same-boundary death");
@@ -277,10 +276,9 @@ assert.equal(
   34,
   "a pending intervention forecasts the first eligible Faith boundary"
 );
-interventionState._seasonChanged = true;
 interventionState.currentSeasonIndex = 0;
 interventionState.year += 1;
-stepDetailedSettlementsSecond(interventionState, 34);
+stepDetailedSettlementsSecond(interventionState, 34, { seasonChanged: true });
 assert.equal(getDetailedSettlement(interventionState, "river-crown").practiceSlots[3].practiceId, "exchange");
 assert.equal(getDetailedSettlement(interventionState, "river-crown").structureSlots[3].structureId, "granary");
 assert.ok(interventionState.world.connections.some((entry) =>

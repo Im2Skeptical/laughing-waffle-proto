@@ -102,7 +102,7 @@ for(const [kind,defs] of [['practice',practices],['structure',structures]])for(c
   if(FULL_MAP_SEED_CARD_IDS.includes(def.id))assert.equal(def.stockMultipliers,undefined,'starters have no authored multiplier machinery');
   for(const field of ['keywordOutputScale','keywordCapacityScale'])if(def[field])assert.equal(def[field].cap,undefined,'ordinary card keyword scaling is uncapped');
 }
-assert.equal(reviewed,117);
+assert.equal(reviewed,120);
 const bake=getGamepieceFace(null,'structure','fm_publicBakehouse').reading.effects.map(e=>e.text).join(' ');
 assert.match(bake,/Fuel/,'printed Bakehouse condition is visible');
 const archive=getGamepieceFace(null,'structure','fm_openArchive').reading.effects.map(e=>e.text).join(' ');
@@ -125,4 +125,4 @@ const expected=serializeGameState(state);
 assert.deepEqual(serializeGameState(loaded),expected,'JSON continuation');
 assert.deepEqual(serializeGameState(rebuildStateAtSecond(timeline,18).state),expected,'authoritative replay');
 assert.deepEqual(forecast.lastStateData,expected,'forecast uses the same rules');
-console.log('[card-content-pass] OK: 117 card readings; real terrain/supply activation, retained yield, blocked payment, independent storage, captured DSL, JSON/replay/forecast parity');
+console.log('[card-content-pass] OK: 120 card readings; real terrain/supply activation, retained yield, blocked payment, independent storage, captured DSL, JSON/replay/forecast parity');

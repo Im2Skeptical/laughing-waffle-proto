@@ -10,8 +10,12 @@ import {
   getDetailedSettlementSites,
 } from "../queries.js";
 
+// Match the highest configurable base pressure. Accumulated Chaos still grows.
+const MAX_PRIMORDIAL_PRESSURE = 1_000_000_000;
+
 export function getPrimordialChaosPressure(state) {
   const basePressure = Math.max(0, getGameSetting(state, "primordialBasePressure"));
+  if (basePressure === 0) return 0;
   const growthFactor = Math.max(1, getGameSetting(state, "primordialGrowthFactor"));
   const growthCadenceYears = Math.max(
     1,
@@ -19,7 +23,14 @@ export function getPrimordialChaosPressure(state) {
   );
   const elapsedYears = Math.max(0, Math.floor(state?.year ?? 1) - 1);
   const growthSteps = Math.floor(elapsedYears / growthCadenceYears);
-  return roundChaos(basePressure * (growthFactor ** growthSteps));
+  let pressure = basePressure * growthFactor ** growthSteps;
+  if (pressure === Infinity && basePressure < 1) {
+    // A tiny positive base can still produce ordinary pressure after the
+    // growth factor alone overflows. Multiply it in before the second power.
+    const halfSteps = Math.floor(growthSteps / 2);
+    pressure = basePressure * growthFactor ** halfSteps * growthFactor ** (growthSteps - halfSteps);
+  }
+  return roundChaos(Math.min(MAX_PRIMORDIAL_PRESSURE, pressure));
 }
 
 export function getChaosResistanceBreakdown(state) {

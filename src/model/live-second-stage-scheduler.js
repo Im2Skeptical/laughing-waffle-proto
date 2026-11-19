@@ -8,9 +8,7 @@ const LIVE_SECOND_STAGES = [
   {
     id: "detailedSettlements",
     applies: (state) => isSettlementPrototypeEnabled(state),
-    run: (state, tSec) => {
-      stepDetailedSettlementsSecond(state, tSec);
-    },
+    run: stepDetailedSettlementsSecond,
   },
 ];
 

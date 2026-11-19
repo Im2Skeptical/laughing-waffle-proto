@@ -89,7 +89,7 @@ const huntSlot=martialSite.detailedState.practiceSlots[3],huntDef=getDetailedPra
 assert.equal(stockOutputBreakdown(martial,martialSite.detailedState,huntSlot).multiplier,3);
 const hunting=evaluateDetailedPracticeSlot(martial,martialSite.regionId,3);
 assert.equal(hunting.effects[0].scaledValue.effectiveValue,3*3*hunting.effects[0].scaledValue.workerMultiplier,'Trophies multiply the original three-Stock yield');
-assert.equal(hunting.effects[1].scaledValue.effectiveValue,6,'Research output is unchanged');
+assert.ok(hunting.effects.every(effect=>effect.op!=='research'),'Monster Hunting produces trophy Stock without Research');
 const face=getGamepieceFace(martial,'practice','monsterHunting',huntSlot.tier,{slot:huntSlot,settlement:martialSite.detailedState});
 assert.equal(face.reading.keyword.inMultiplierPool,true,'inspection routes the keyword to the existing multiplier');
 assert.ok(face.reading.effects.filter(effect=>effect.timing).every(effect=>!effect.text.includes(face.reading.keyword.name)),'timed effects do not repeat the passive keyword modifier');

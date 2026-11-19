@@ -3,7 +3,9 @@
 Implemented for v1.1.74, GameState 52. Covers all 56 shop-obtainable cards and
 61 inherited map cards. Legacy and review-only definitions retain their authored
 rules. No cards, artwork, unlock tiers, acquisition pools, shop prices or Practice
-slots are added. Existing original workbook provenance is retained.
+slots were added by that pass. Existing original workbook provenance is retained.
+The subsequent [Research redesign](research-card-outputs.md) adds three existing
+Scholar Practices to ordinary offers, bringing the current review scope to 120.
 
 ## Direction and rules
 
@@ -31,7 +33,8 @@ slots are added. Existing original workbook provenance is retained.
   +1 Output for Record while a local Practice holds Paper, alongside its existing
   Record-consuming Influence support. Veterans' Hearth retains Housing and
   supports additional Warrior conversions, differentiating it from Oath Hall.
-- Political, Research and Housing cards otherwise keep their existing engines.
+- Political and Housing cards otherwise keep their existing engines. The
+  [v1.1.76 Research redesign](research-card-outputs.md) updates six recipes.
   Every scoped card has specific short flavor. Structured readings now expose
   conversion/training targets, before/after-meal timing, Hunt conditions and its
   flat Monster Strength Stock bonus after Output/worker scaling, upkeep
@@ -84,7 +87,7 @@ to hide that question.
 
 Run `node scripts/card-content-pass-test.mjs`, `npm run test:keywords`,
 `npm run test:detailed-settlements` and `npm run verify`. The focused contract
-checks all 117 catalogue faces, actual terrain/supply activation and Stock
+checks all 120 catalogue faces, actual terrain/supply activation and Stock
 retention, blocked atomic payment, storage specialisation, pending construction,
 captured edited coefficients, pure reads and exact JSON/replay/forecast parity.
 The keyword suites exercise class boundaries and real Hunt/Campaign emitters.
@@ -174,7 +177,7 @@ retain their direct engine role.
 | Copying Texts (`copyingTexts`) | scholar / silver | Charge on Stock production in this settlement (Stock with Paper or Record; Practices tagged Knowledge); another Practice only. Produce 3 Stock +1 Output Multiplier per Synthesis. |
 | Bowmaking (`bowmaking`) | warrior / bronze | Consume 1 Timber Stock. Require 1 Tool Stock (kept). Birth phase: Produce 3 Stock +1 Output Multiplier while a local Practice holds Bone Stock. |
 | Weaponsmithing (`weaponsmithing`) | warrior / silver | Consume 1 Metal Stock. Consume 1 Fuel Stock. Birth phase: Produce 3 Stock +1 Output Multiplier while a local Practice holds Tool Stock. |
-| Monster Hunting (`monsterHunting`) | warrior / silver | Consume 1 Arms Stock. Consume 1 Edible Stock. Requires an adjacent Monster whose Strength does not exceed local Martial Force. Death phase: On a successful Hunt: Produce 3 Stock, plus Stock equal to the defeated Monster's Strength (added after Output Multiplier and worker bonuses) Death phase: On a successful Hunt: Gain 6 Research +1 Output Multiplier per Monster Trophies. |
+| Monster Hunting (`monsterHunting`) | warrior / silver | Consume 1 Arms Stock. Consume 1 Edible Stock. Requires an adjacent Monster whose Strength does not exceed local Martial Force. Death phase: On a successful Hunt: Produce 3 Stock, plus Stock equal to the defeated Monster's Strength (added after Output Multiplier and worker bonuses) +1 Output Multiplier per Monster Trophies. |
 | Border Skirmishing (`borderSkirmishing`) | warrior / silver | Charge on Successful Defense in this settlement. Produce 1 Stock |
 | Oath Hall (`fm_oathHall`) | warrior / bronze | Successful local Warrior Influence Practices convert 1 additional eligible opposing residents to that Practice's allegiance. Copies do not stack. |
 | Frontier Watch (`fm_frontierWatch`) | warrior / bronze | +2 supplied occupation Force with 1 loyal adult Warriors and 1 local Arms; may be assigned to one adjacent road-connected allied holding |

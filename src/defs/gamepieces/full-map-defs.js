@@ -3735,5 +3735,6 @@ export const FULL_MAP_SEED_CARD_IDS = Object.freeze(
 );
 export function isFullMapOfferDefinition(def) {
   return !!def && !FULL_MAP_SEED_CARD_IDS.includes(def.id) && !!(fullMapPractices[def.id] || fullMapStructures[def.id]
-    || FULL_MAP_SUPPLY_DEPENDENCIES.includes(def.id) || FULL_MAP_MAINLINE_PRACTICES.includes(def.id));
+    || FULL_MAP_SUPPLY_DEPENDENCIES.includes(def.id) || FULL_MAP_MAINLINE_PRACTICES.includes(def.id)
+    || def.fullMapOffer === true);
 }

@@ -1,4 +1,5 @@
 import { MECHANICS, mechanicEffect, mechanicEvent, gamepieceMechanics } from '../defs/mechanics.js';
+import { SEASONS, SEASON_DURATION_SEC } from '../defs/gamesettings/gamerules-defs.js';
 import { describeMechanicEffect, describeMechanicTrigger } from './mechanic-readings.js';
 import { keywordPrototypeReading } from './keywords-classes-prototype.js';
 import { keywordReading } from './practice-keywords.js';
@@ -40,34 +41,20 @@ function describeStructureValues(def) {
   return [...(def.housing?[`${def.housing} Housing. Numeric bonuses from duplicate structures add.`]:[]),...(def.pool !== 'common' && def.candidateBonus?[`+${def.candidateBonus} ${def.pool === 'scholar' ? 'Ingenuity' : 'Prowess'} for future local ${def.pool} candidates while active. Combined institutional bonus capped at +5.`]:[])];
 }
 
-const seasonBoundaryOffsets = new Map();
-function seasonBoundaryOffset(duration) {
-  if (!seasonBoundaryOffsets.has(duration)) {
-    // Match the calendar's 60 additions per second. Depending on the configured
-    // duration, floating-point accumulation crosses on the boundary second or
-    // one second later. Measure once per duration without advancing game state.
-    let clock = 0, ticks = 0;
-    while (clock < duration) { clock += 1 / 60; ticks++; }
-    seasonBoundaryOffsets.set(duration, Math.ceil(ticks / 60) - duration);
-  }
-  return seasonBoundaryOffsets.get(duration);
-}
-
 function seasonalReadiness(state, activation) {
-  const seasons = ['spring', 'summer', 'autumn', 'winter'];
-  const duration = Number.isFinite(state?.seasonDurationSec) && state.seasonDurationSec > 0 ? state.seasonDurationSec : 8;
+  const seasons = state?.seasons?.length ? state.seasons : SEASONS;
+  const duration = Number.isInteger(state?.seasonDurationSec) && state.seasonDurationSec > 0
+    ? state.seasonDurationSec : SEASON_DURATION_SEC;
   const time = Math.max(0, state?.tSec ?? 0);
   const authoredSeasons = activation.seasonKeys?.filter(season => seasons.includes(season));
   const relevant = authoredSeasons?.length ? authoredSeasons : seasons;
-  const offset = seasonBoundaryOffset(duration);
-  // Seasonal activation is consumed at the next whole-second simulation tick.
   // The opening spring has no season-change event; its first repeat is year 2.
-  const boundary = Math.max(1, Math.floor((time - offset) / duration) + 1);
+  const boundary = Math.floor(time / duration) + 1;
   let next = boundary, previous = boundary - 1;
-  while (!relevant.includes(seasons[next % 4])) next++;
-  while (previous > 0 && !relevant.includes(seasons[previous % 4])) previous--;
-  const nextSec = next * duration + offset, previousSec = previous > 0 ? previous * duration + offset : 0;
-  return { nextTrigger: { season: seasons[next % 4], tSec: nextSec }, fill: (time - previousSec) / (nextSec - previousSec) };
+  while (!relevant.includes(seasons[next % seasons.length])) next++;
+  while (previous > 0 && !relevant.includes(seasons[previous % seasons.length])) previous--;
+  const nextSec = next * duration, previousSec = previous * duration;
+  return { nextTrigger: { season: seasons[next % seasons.length], tSec: nextSec }, fill: (time - previousSec) / (nextSec - previousSec) };
 }
 
 export function getGamepieceFace(state, kind, id, tier = 'bronze', { evaluation = null, workers = null, slot = null, settlement = null, activationTrace = [] } = {}) {

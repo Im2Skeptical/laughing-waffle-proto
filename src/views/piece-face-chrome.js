@@ -143,12 +143,24 @@ export function eventIcon(parent, icon, x, y, size) {
   g.eventMode='none';parent.addChild(g);return g;
 }
 
-function chargeDock(parent, face, w, h, pulse) {
+function researchTray(parent, rows, w, y = -8) {
+  if (!rows.length) return null;
+  const seasonal=rows.some(row=>row.season), width=seasonal?90:65, x=w-width, height=rows.length*42;
+  plate(parent,x,y,width,height);
+  rows.forEach((row,i)=>{
+    const cy=y+21+i*42;
+    eventIcon(parent,'research',x+14,cy,23);
+    if(row.season)seasonIcon(parent,row.season,x+38,cy,21);
+    numeral(parent,row.value,x+width-21,cy,26,34);
+  });
+  return {x,y,width,height};
+}
+
+function chargeDock(parent, face, w, h, pulse, rows) {
   const workers=workerDock(parent,face,w,h,true);
   const costs=face.inputs??[];
   const start=(workers?.width??0)+(costs.length?44:0);
   const inputs=inputTray(parent,costs,start,h);
-  const rows=face.production?.length?face.production:face.outputs??[];
   const showIcons=rows.length>1||rows.some(row=>row.icon!=='stock');
   const yieldWidth=rows.length?Math.max(showIcons?45:34,...rows.map(row=>String(row.value).length*12+(showIcons?23:10))):0;
   const end=w-yieldWidth, y=h-31, height=28;
@@ -325,15 +337,21 @@ export function addPieceFaceChrome(parent, face, w, h, {time=0,reducedMotion=fal
     }
     stock={x,y,width,height};
   } else stock=stockTray(parent,face,w);
+  const production=face.production?.length ? face.production : face.outputs ?? [];
+  const researchRows=!(face.stockCapacity>0)&&!production.some(row=>row.icon==='stock')
+    ?production.filter(row=>row.icon==='research'):[];
+  // Research is an immediate outcome, never retained Stock. Give it the same
+  // upper-right address as allegiance; leave other effects beside the recipe.
+  const research=researchTray(parent,researchRows,w,stock?stock.y+stock.height+2:-8);
+  const rows=production.filter(row=>!researchRows.includes(row));
   const age=face.activationAge==null?null:face.activationAge+Math.max(0,time-(face.viewedTime??time));
   const pulse=age!=null&&age<1.25?(reducedMotion?.65:Math.max(0,1-age/1.25)):0;
   if(face.lane==='charge') {
-    const sections={stock,...chargeDock(parent,face,w,h,pulse)};
+    const sections={stock,research,...chargeDock(parent,face,w,h,pulse,rows)};
     addPracticeFeedback(parent,face,sections,w,h,pulse);
     return sections;
   }
   const workers=workerDock(parent,face,w,h);
-  const rows=face.production?.length ? face.production : face.outputs ?? [];
   const end=workers?.x ?? w;
   const showIcons=rows.length>1 || !!rows[0]?.season || !face.lane || (rows[0]?.icon && rows[0].icon !== 'stock');
   const widest=Math.max(0,...rows.map(row=>String(row.value).length));
@@ -380,7 +398,7 @@ export function addPieceFaceChrome(parent, face, w, h, {time=0,reducedMotion=fal
     }
   }
   if(pulse && yields)parent.addChild(new PIXI.Graphics().lineStyle(2,0xffe4a0,pulse).drawRoundedRect(yields.x+1,yields.y+1,yields.width-2,yields.height-2,3));
-  const sections={stock,workers,inputs,yields,schedule};
+  const sections={stock,research,workers,inputs,yields,schedule};
   addPracticeFeedback(parent,face,sections,w,h,pulse);
   return sections;
 }
@@ -406,6 +424,7 @@ function addPracticeFeedback(parent, face, sections, w, h, pulse) {
     if(sections.stock)numeral(parent,'Full',sections.stock.x+sections.stock.width/2,sections.stock.y+sections.stock.height+9,12,sections.stock.width);
   }
   if(pulse>0) {
+    outline(sections.research,0xbcecc3,pulse,3);
     outline(sections.yields,0xbcecc3,pulse,3);
     if((face.production??[]).some(row=>row.icon==='stock')) {
       outline(sections.stock,0xbcecc3,pulse,3);
