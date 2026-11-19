@@ -153,6 +153,8 @@ void admit(RuntimeState& state)
     reserve(state.pendingPracticePayload.rows<RegionId>(), events);
     auto& siteTraces = state.histories.rows<History<PracticeEventTrace, 100, DetailedSettlement_practiceActivationTrace>>();
     reserve(siteTraces, state.hot.world.sites.size());
+    reserve(state.histories.rows<History<StockTransfersTransfersEntry, 0, PracticeEventJournalStockTransfers_transfers>>(), 1);
+    prepare_recipe_storage(state);
     rebuild_listeners(state);
 }
 
@@ -203,6 +205,7 @@ runtime::PracticeEvent emit(RuntimeState& state, EventKind kind,
     using namespace detail;
     auto& journal = state.hot.civilization.practiceEvents;
     auto& p = data.fields;
+    FactionId defaultFaction;
     if (state.hot.rulesetId) {
         const auto controller = region ? holder(state, *region) : FactionId{};
         const PracticeSlot* slot = nullptr;
@@ -221,12 +224,14 @@ runtime::PracticeEvent emit(RuntimeState& state, EventKind kind,
                 }
             }
         }
+        defaultFaction = slot ? slot->allegiance.value_or(controller) : controller;
         if (!p.controller.has_key()) p.controller = nullable(controller);
-        if (!p.faction.has_key()) p.faction = nullable(slot ? slot->allegiance.value_or(controller) : controller);
+        if (!p.faction.has_key()) p.faction = nullable(defaultFaction);
         if (!p.instanceId.has_key()) p.instanceId = nullable(slot ? slot->instanceId.value_or(InstanceId{}) : InstanceId{});
     }
+    const auto attributedFaction = p.faction.has_key() ? p.faction.value().value_or(defaultFaction) : defaultFaction;
     if (kind == EventKind::monsterDestroyed &&
-        (!state.hot.rulesetId || (p.faction.has_key() && p.faction.value() == state.practiceVocabulary.player)))
+        (!state.hot.rulesetId || attributedFaction == state.practiceVocabulary.player))
         ++state.hot.civilization.history.monsterTrophies;
     const auto id = journal.nextId++;
     PracticeEvent event{state.hot.tSec, event_id(state, kind), region,

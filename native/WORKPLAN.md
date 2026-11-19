@@ -382,6 +382,73 @@ workers are stopped; nothing native is running.
 Note: N03e-3 and N03e-6a both edit `gamestate.v52.json` and regenerate the
 mirror, so expect schema merge conflicts.
 
+**N03e-3 result (19 Nov 2026).** `t3/native-scheduled-recipe-engine` resumes
+`ba7abdc3` with the seed-1 topology stub still isolated at `c40df7fd`.
+[Practice activation and reactions](src/sim/practice/practice.hpp) expose
+`activate` for a typed timing and optional phase seam, `emit` for typed
+event payloads, and `drain` for the synchronous FIFO. Call
+`rebuild_listeners` after changing installed cards, Structures, or site
+membership. [Hosted Stock](src/sim/practice/stock.hpp) exposes
+`plan_stock` and `apply_stock` for a synchronous plan and commit against
+the same state. The plan exposes receipts borrowing typed Trait spans.
+Structure upkeep, modifiers, and conversion support use compiled definitions.
+The interpreter uses `recipeEffects` to commit conversions with the
+population and Stock transaction before executing the remaining effects
+in declaration order. It finishes the scheduled local pass, drains all
+FIFO events with Charge gains before Discharges, then processes one shared
+retry at a time with its children ahead of the next retry. Both per-root
+caps and first-parent deferred retry order follow browser baseline
+`496d9971`.
+
+The ordinary active-Vassal overlay reads the live Vassal and holder at
+the multiplier read point. In the full-map ruleset the player must hold
+the region. A living, current Scholar contributes Synthesis from other
+Scholar-staffed, independently Stock-supplied Practices. The current
+Warrior reads the persistent Monster Trophy count. The card's compiled
+coefficient applies to its declared additive Output or Capacity pool.
+The interpreter keeps compiled definitions immutable across Vassal
+changes. Experimental keyword prototype rewrites remain open.
+
+Verification used `node native/reference/stage-probe.mjs --all`, then
+`node native/reference/stage-pairs.mjs <waffle_parity.exe> <stage>` without
+masks. Seasonal passed 10/10, After Meals 4/4, Migration Practices 7/7,
+Death Practices 5/5, and final flush 36/36. Both captured same-root
+Smelting and Toolmaking cascades matched, as did a second-17 replay with
+cap 3 and two stopped roots. All three non-seed-1 Death pairs require
+the real adjacency fixture. An ignored compatibility build, reproduced
+with `artifacts/n03e-3-topology-check.ps1`, used the N03d-4 input from
+`44d39ed4` and restored the isolated stub afterwards. In `native/`,
+`cmake --preset optimized`, `cmake --build --preset optimized`, and
+`ctest --preset optimized --output-on-failure` passed 25/25 CTests.
+Both schema codegen checks passed. After `node native/reference/trace.mjs`,
+`node native/reference/step-windows.mjs <waffle_parity.exe>` passed all
+nine windows and 107 comparisons with 136 masks. Eight masks were
+removed, covering the drained queue and seven recipe-owned site fields.
+The remaining shared journal and spending masks identify the unported
+phase epilogue, other event producers and Food routing.
+
+On the i9-10900K Windows host, `waffle_parity step --time` measured
+26.79 µs/sim-second from `seed-1/0` and 26.23 µs/sim-second from
+`seed-2026-late/3200`. These are seven-run medians over 9,984 and
+2,816 timed advances per run. The inputs have 71 Practices and 48
+Structures at opening and 63 Practices and 42 Structures at the late
+anchor. Timing uses the topology compatibility build and the existing
+History implementation. With 64 warmup steps, the optimized
+`artifacts/n03e-3-alloc.exe <window-start-state.json> 3200` probe on the
+regular build counted 504,217 calls to `operator new` from the opening
+and 441,070 from the late anchor over 3,200 advances each. Trace appends
+still copy and allocate History pages. Admission reserves recipe effect
+rows and the event queue, and reactions index local slots and remote
+trigger kinds. Scratch can still grow at new high-water marks. The
+allocation and desktop budget gates remain open pending N03d-5 and a
+repeat of these measurements.
+
+The remaining integration points are N03d-4 topology admission, N03d-5
+allocation-free History appends, and N03e-8 external action targets and
+immediate Spawn resolution for pressure and Spawn effects. The lunar
+phase event producer remains a stub. No intentional browser divergence
+was introduced. Android runtime parity remains unverified.
+
 ## N03f - Actions, replay and new game (pending N03e)
 
 Action application and `rebuildStateAtSecond` (L2), then new game and world

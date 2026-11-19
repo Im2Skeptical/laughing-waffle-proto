@@ -13,6 +13,7 @@ namespace waffle::sim::practice::detail {
 using namespace runtime;
 
 void admit(RuntimeState& state);
+void prepare_recipe_storage(RuntimeState& state);
 
 template<class Range, class T>
 bool has(const Range& values, const T& value)

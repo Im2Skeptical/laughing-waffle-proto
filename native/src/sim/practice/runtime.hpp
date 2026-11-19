@@ -2,6 +2,8 @@
 
 #include "sim/state/tables.hpp"
 
+namespace waffle::sim::runtime { struct PoliticalForceEntry; }
+
 namespace waffle::sim::practice {
 
 enum class EventKind : std::uint8_t {
@@ -29,6 +31,13 @@ struct ListenerIndex {
     std::array<std::vector<std::uint32_t>, trigger_kind_count> remoteByKind;
     std::vector<std::uint32_t> dynamicThreshold;
     std::vector<std::optional<EventKind>> eventKinds;
+};
+
+struct RecipeStorage {
+    using RegionalModifier = runtime::Entry<runtime::RegionId, double>;
+    runtime::Range<RegionalModifier> housing, food;
+    std::vector<runtime::Range<runtime::SeasonId>> boostSeasons;
+    std::vector<runtime::Range<runtime::Entry<runtime::InstanceId, runtime::PoliticalForceEntry>>> politicalForce;
 };
 
 struct Vocabulary {

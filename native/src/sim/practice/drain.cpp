@@ -100,11 +100,12 @@ struct Root {
     double id{};
     unsigned events{}, resolutions{};
     bool stopped{};
+    std::uint32_t lastDischarge{no_index};
 };
 
 struct Resolved {
-    double root;
     Identity identity;
+    std::uint32_t previous;
 };
 
 struct Deferred {
@@ -257,12 +258,16 @@ void drain_retries(RuntimeState& state, std::span<const Candidate> retries, Acti
         const auto same = [&](const auto& entry, double rootId) {
             return rootId == event.rootId && entry.identity == identity;
         };
-        const bool already = std::ranges::any_of(resolved, [&](const auto& entry) { return same(entry, entry.root); });
+        bool already = false;
+        for (auto prior = root.lastDischarge; prior != no_index && !already; prior = resolved[prior].previous)
+            already = resolved[prior].identity == identity;
         bool blocked = false;
         if (attempt(state, candidate, Activation::charge, local, event, &blocked, already)) {
             for (auto& entry : deferred)
                 if (entry.live && same(entry, entry.event.rootId)) entry.live = false;
-            resolved.push_back({event.rootId, identity});
+            const auto index = checked_index(resolved.size(), "Practice Discharges");
+            resolved.push_back({identity, root.lastDischarge});
+            root.lastDischarge = index;
             if (++root.resolutions >= cap) stop_root(state, root, event, cap);
         } else if (local && blocked && !std::ranges::any_of(deferred, [&](const auto& entry) {
             return entry.live && same(entry, entry.event.rootId);

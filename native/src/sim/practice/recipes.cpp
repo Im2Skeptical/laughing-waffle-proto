@@ -408,27 +408,35 @@ void train(RuntimeState& state, SiteId siteId, Site& site, double amount, Specia
 }
 
 template<class T>
-void append_range(RuntimeState& state, Range<T>& range, T item)
+Range<T> reserve_range(RuntimeState& state, Range<T>& range, std::size_t capacity)
 {
     auto& table = state.tables.table<T>();
-    if (range.size() && range.end != table.values.size()) {
-        const auto start = table.values.size();
-        table.values.reserve(start + range.size() + 1);
-        for (auto i = range.begin; i < range.end; ++i) table.values.push_back(table.values[i]);
-        range = {checked_index(start, "Practice state"), checked_index(table.values.size(), "Practice state")};
+    const auto storage = table.append(std::max<std::size_t>(capacity, range.size()), "Practice state");
+    std::ranges::copy(state.tables.view(range), table.values.begin() + storage.begin);
+    range = {storage.begin, storage.begin + range.size()};
+    return storage;
+}
+
+template<class T>
+void append_range(RuntimeState& state, Range<T>& range, Range<T>& storage, T item)
+{
+    if (range.size() >= storage.size()) {
+        storage = reserve_range(state, range, std::max<std::size_t>(1, storage.size() * 2));
+    } else if (range.begin != storage.begin) {
+        auto& rows = state.tables.rows<T>();
+        std::ranges::copy(state.tables.view(range), rows.begin() + storage.begin);
+        range = {storage.begin, storage.begin + range.size()};
     }
-    if (!range.size()) range.begin = checked_index(table.values.size(), "Practice state");
-    table.values.push_back(item);
-    range.end = checked_index(table.values.size(), "Practice state");
+    state.tables.rows<T>()[range.end++] = item;
 }
 
 void add_phase_modifier(RuntimeState& state, Range<Entry<RegionId, double>>& entries,
-                        RegionId region, double amount)
+                        Range<Entry<RegionId, double>>& storage, RegionId region, double amount)
 {
     auto view = state.tables.view(entries);
     auto found = std::ranges::find(view, region, &Entry<RegionId, double>::key);
     if (found != view.end()) found->value += amount;
-    else append_range(state, entries, Entry<RegionId, double>{region, amount});
+    else append_range(state, entries, storage, Entry<RegionId, double>{region, amount});
 }
 
 Buffer<TagId, 64> tags(const RuntimeState& state, const PracticeDefinition& def, bool scholar)
@@ -438,12 +446,6 @@ Buffer<TagId, 64> tags(const RuntimeState& state, const PracticeDefinition& def,
         if (!has(result, tag)) result.push_back(tag);
     if (scholar && !has(result, state.practiceVocabulary.knowledge)) result.push_back(state.practiceVocabulary.knowledge);
     return result;
-}
-
-double js_round(double value)
-{
-    const auto lower = std::floor(value);
-    return lower + (value - lower >= .5);
 }
 
 void generate(RuntimeState& state, const Site& site, Index<PracticeSlot> slotIndex, double amount, bool scholar)
@@ -484,7 +486,7 @@ void apply_effect(RuntimeState& state, SiteId siteId, Site& site, Index<Practice
     case EffectOp::addChaos:
         if (player) {
             if (amount <= 0) break;
-            civ.chaos.chaosPower = std::max(0.0, js_round((civ.chaos.chaosPower + amount) * 100000) / 100000);
+            civ.chaos.chaosPower = std::max(0.0, core::js::round((civ.chaos.chaosPower + amount) * 100000) / 100000);
             EventData event{};
             event.fields.practiceId = def.id;
             event.fields.amount = amount;
@@ -493,7 +495,7 @@ void apply_effect(RuntimeState& state, SiteId siteId, Site& site, Index<Practice
         break;
     case EffectOp::addMonsterPressure:
         if (!terminal(state))
-            civ.chaos.monsterPressure = js_round((civ.chaos.monsterPressure + amount) * 1e9) / 1e9;
+            civ.chaos.monsterPressure = core::js::round((civ.chaos.monsterPressure + amount) * 1e9) / 1e9;
         // N03e-8 resolves thresholds immediately after the meter write.
         break;
     case EffectOp::triggerMonsterSpawn:
@@ -509,7 +511,7 @@ void apply_effect(RuntimeState& state, SiteId siteId, Site& site, Index<Practice
         if (!d.politicalForce) d.politicalForce.emplace();
         auto rows = state.tables.view(*d.politicalForce);
         auto found = std::ranges::find(rows, entry.key, &Entry<InstanceId, PoliticalForceEntry>::key);
-        if (found == rows.end()) append_range(state, *d.politicalForce, entry);
+        if (found == rows.end()) append_range(state, *d.politicalForce, state.practiceRecipeStorage.politicalForce[siteId.value], entry);
         else *found = entry;
         break;
     }
@@ -523,10 +525,10 @@ void apply_effect(RuntimeState& state, SiteId siteId, Site& site, Index<Practice
         break;
     }
     case EffectOp::addHousingForPhase:
-        add_phase_modifier(state, civ.phaseModifiers.housingByRegion, site.regionId, amount);
+        add_phase_modifier(state, civ.phaseModifiers.housingByRegion, state.practiceRecipeStorage.housing, site.regionId, amount);
         break;
     case EffectOp::reduceLocalFoodRequirement:
-        add_phase_modifier(state, civ.phaseModifiers.foodByRegion, site.regionId, amount);
+        add_phase_modifier(state, civ.phaseModifiers.foodByRegion, state.practiceRecipeStorage.food, site.regionId, amount);
         break;
     case EffectOp::addFaithChaosResistance:
         if (player) civ.phaseModifiers.faithResistance += amount;
@@ -631,7 +633,8 @@ void resolve(RuntimeState& state, Candidate candidate, Site& site, Index<Practic
             apply_effect(state, candidate.site, site, index, def, effects[i], amounts[i], worker.scholar);
     auto& boost = site.detailedState.seasonalFoodBoost;
     if (def.activation.type == Activation::season && boost && boost->practiceId == def.id &&
-        !has(state.tables.view(boost->seasons), season_id(state))) append_range(state, boost->seasons, season_id(state));
+        !has(state.tables.view(boost->seasons), season_id(state)))
+        append_range(state, boost->seasons, state.practiceRecipeStorage.boostSeasons[candidate.site.value], season_id(state));
     const auto& journal = state.hot.civilization.practiceEvents;
     EventData record{};
     record.fields.targetPracticeId = def.id;
@@ -643,6 +646,27 @@ void resolve(RuntimeState& state, Candidate candidate, Site& site, Index<Practic
     emit(state, EventKind::practiceResolved, site.regionId, base);
 }
 
+}
+
+void prepare_recipe_storage(RuntimeState& state)
+{
+    auto& storage = state.practiceRecipeStorage;
+    auto& phase = state.hot.civilization.phaseModifiers;
+    const auto regionCount = state.hot.world.regions.size();
+    storage.food = reserve_range(state, phase.foodByRegion, regionCount);
+    storage.housing = reserve_range(state, phase.housingByRegion, regionCount);
+    const auto sites = state.tables.view(state.hot.world.sites);
+    storage.boostSeasons.resize(sites.size());
+    storage.politicalForce.resize(sites.size());
+    for (auto& site : sites) {
+        auto& detailed = site.detailedState;
+        auto seasons = detailed.seasonalFoodBoost ? detailed.seasonalFoodBoost->seasons : Range<SeasonId>{};
+        storage.boostSeasons[site.id.value] = reserve_range(state, seasons, state.hot.seasons.size());
+        if (detailed.seasonalFoodBoost) detailed.seasonalFoodBoost->seasons = seasons;
+        auto force = detailed.politicalForce.value_or(Range<Entry<InstanceId, PoliticalForceEntry>>{});
+        storage.politicalForce[site.id.value] = reserve_range(state, force, force.size() + detailed.practiceSlots.slots.size());
+        if (detailed.politicalForce) *detailed.politicalForce = force;
+    }
 }
 
 bool eligible(const RuntimeState& state, const Site& site, bool discharge)
@@ -675,9 +699,10 @@ bool attempt(RuntimeState& state, Candidate candidate, Activation activation, bo
     const auto& slot = state.tables.at(index);
     if (slot.practiceId != candidate.definition) return false;
     const auto& def = definition(state, slot.practiceId);
+    if (parent && (def.mode != Mode::charge || state.practiceCharge[index.value] < 1)) return false;
     const auto worker = workers(state, site)[slot.slot];
     if (parent) {
-        if (def.mode != Mode::charge || state.practiceCharge[index.value] < threshold(state, site, def, worker.scholar)) return false;
+        if (state.practiceCharge[index.value] < threshold(state, site, def, worker.scholar)) return false;
         if (already) {
             EventData record{};
             record.fields.targetPracticeId = def.id;

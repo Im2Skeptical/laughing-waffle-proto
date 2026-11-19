@@ -86,6 +86,7 @@ struct RuntimeState {
     PopulationVocabulary populationVocabulary;
     practice::Vocabulary practiceVocabulary;
     practice::ListenerIndex practiceListeners;
+    practice::RecipeStorage practiceRecipeStorage;
     // The browser omits this latch on export and clears it on import.
     bool seasonChanged{};
     // Derived from tSec and immutable settings. Zero triggers calculation.
