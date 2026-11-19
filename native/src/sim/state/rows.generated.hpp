@@ -1135,10 +1135,27 @@ using HotTables = Tables<
     Entry<RegionId, MoonRegionResult>,
     MigrationIntent>;
 
-struct HistoryPayload : Tables<StockProvider, TraitId, TagId, RegionId> {
-    Strings text;
+struct HistoryPayload : ArenaTables<StockProvider, TraitId, TagId, RegionId> {
+    ArenaStrings text;
+    explicit HistoryPayload(std::pmr::memory_resource* memory = std::pmr::get_default_resource())
+        : ArenaTables(memory), text(memory) {}
+    HistoryPayload(const HistoryPayload& source, std::pmr::memory_resource* memory)
+        : ArenaTables(source, memory), text(source.text, memory) {}
     HistoryTextId intern_text(std::string_view value, std::string_view path);
-    std::size_t live_bytes() const { return Tables::live_bytes() + text.live_bytes(); }
+    std::size_t live_bytes() const { return ArenaTables::live_bytes() + text.live_bytes(); }
+
+    struct Checkpoint {
+        Sizes columns;
+        std::size_t textBytes;
+        std::size_t textOffsets;
+    };
+    Checkpoint checkpoint() const { return {ArenaTables::checkpoint(), text.bytes.size(), text.offsets.size()}; }
+    void rollback(const Checkpoint& checkpoint)
+    {
+        ArenaTables::rollback(checkpoint.columns);
+        text.bytes.resize(checkpoint.textBytes);
+        text.offsets.resize(checkpoint.textOffsets);
+    }
 };
 
 using ColdTables = Tables<

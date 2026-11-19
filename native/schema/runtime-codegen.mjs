@@ -216,7 +216,7 @@ const header = [
   "};", "",
   "using ColdTables = Tables<",
   "    " + [...coldPools].map(([tag, { type }]) => "ColdValue<" + type + ", " + tag + ">").join(",\n    ") + ">;", "",
-  "using HistoryTables = HistoryStorage<",
+  "using HistoryTables = Tables<",
   "    " + [...historyPools].map(([tag, { row, limit }]) => "History<" + row + ", " + limit + ", " + tag + ">").join(",\n    ") + ">;", "",
   ...[...new Set([...hotPools, ...historyPayloadPools, ...[...historyPools.values()].map(({ row }) => row),
     "PracticeEventPayload", "HotState"])].map(type => "static_assert(std::is_trivially_copyable_v<" + type + ">);"), "",

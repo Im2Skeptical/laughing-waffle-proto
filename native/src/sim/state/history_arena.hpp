@@ -7,19 +7,12 @@
 
 namespace waffle::sim::runtime {
 
-// Shared by a run's histories, or by the new writes of one forecast generation.
-// Readers may release snapshots on another thread. This lock protects allocator
-// metadata only. Rows and page-local payloads have independent ownership.
+// An arena lives as long as any history cursor or page using it. Readers may
+// release snapshots on another thread, so recycling protects slab metadata.
+// Page reads do not touch the allocator.
 class HistoryArena final : public std::pmr::memory_resource {
 public:
-    struct Stats {
-        std::size_t reservedBytes;
-        std::size_t usedBytes;
-        std::size_t upstreamAllocations;
-    };
-
     ~HistoryArena() override;
-    Stats stats() const;
 
 private:
     struct FreeBlock { FreeBlock* next; };
@@ -28,6 +21,7 @@ private:
         FreeBlock* recycled{};
         std::byte* next{};
         std::size_t remaining{};
+        std::size_t nextSlabBlocks{8};
     };
 
     static constexpr std::size_t minShift = 4;
@@ -37,10 +31,9 @@ private:
     static_assert((1u << minShift) >= sizeof(FreeBlock));
     static_assert((1u << minShift) >= alignof(Slab));
 
-    mutable std::mutex mutex_;
+    std::mutex mutex_;
     Slab* slabs_{};
     std::array<Bucket, maxShift - minShift + 1> buckets_{};
-    Stats stats_{0, 0, 0};
 
     static std::size_t bucket_shift(std::size_t bytes);
     void grow(Bucket& bucket, std::size_t stride);

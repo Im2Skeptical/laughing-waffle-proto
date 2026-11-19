@@ -355,8 +355,31 @@ N03e-3 coding against fixed interfaces:
   adjacency, biome, mountain components) shared from RuntimeState. For now it
   is loaded from browser-exported files in `reference/topology/`. N03f must
   later generate identical topology natively (L3).
-- N03d-5 allocation-free history appends: in-place writes to a branch-owned
-  tail plus an amortized page arena, with the `History` API unchanged.
+- N03d-5 allocation-free history appends completed from WIP `2b2db2d4`.
+  Private 16-row tails append in place, shared tails detach on write, and full
+  pages stay shared. Recyclable slabs back directory chunks, pages and variable
+  payload columns. Existing stages and the adapter use the same `History` API.
+  From `native/` after dot-sourcing `native/tools/env.ps1` at the repo root,
+  `cmake --preset optimized`, `cmake --build --preset optimized --parallel 8`
+  and `ctest --preset optimized --output-on-failure` passed 26/26 on Windows.
+  `waffle_history_test` proved 0 global `new` and 0 `delete` calls over 8,192
+  warmed seconds with ring rollovers, growing history and retained anchors.
+  It also passed interleaved copy isolation, cross-thread snapshot release
+  and restore/replay from a `RuntimeState` anchor. `node native/reference/trace.mjs`
+  and `node native/reference/step-windows.mjs native/build/optimized/src/sim/waffle_parity.exe`
+  passed all 9 windows (107 comparisons). After `node native/schema/capture.mjs --queued`,
+  `native/build/optimized/src/sim/waffle_browser_tests.exe runtime-corpus artifacts/native-reference/traces artifacts/native-schema/queued`
+  passed L0 on 25 trace states and 2 queued snapshots. On the i9-10900K with MSVC
+  19.50, `native/build/optimized/src/sim/waffle_parity.exe runtime-stats artifacts/native-reference/traces/seed-2026-late/state-3200.json`
+  gave a 5.9 µs median full copy (seven runs of 101 samples).
+  `native/build/optimized/src/sim/waffle_history_test.exe --bench` gave a 223 ns
+  median append with provider, trait and text payloads (seven runs of 100,000,
+  217–249 ns). First use, slab growth and requests above the pooled size or
+  alignment limits can allocate. Measure cold-history high-water capacity and
+  admission under the recipe engine and retained forecast anchors. Android
+  runtime and timing remain open.
+  The browser can use the same anchor-isolation tests if its history storage
+  changes. The allocation and timing results describe the native store.
 
 19 Nov 2026: the Codex workspace ran out of credits. N03e-7a stopped
 mid-task. Its unverified partial work is preserved as WIP commit 3d01d5fb on

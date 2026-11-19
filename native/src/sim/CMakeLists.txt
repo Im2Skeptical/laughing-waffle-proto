@@ -82,8 +82,10 @@ if(NOT ANDROID)
 		--seconds 1 --expect-dir "${native_dir}/reference/fixtures/windows/seed-1/0"
 		--masks "${native_dir}/reference/parity-masks.json")
 	add_test(NAME step_clock COMMAND waffle_step_clock_test)
+	add_test(NAME runtime_history_appends COMMAND waffle_history_test
+		"${native_dir}/reference/fixtures/seed-1/state-0.json")
 	set_tests_properties(browser_state_l0 browser_state_controls runtime_state_l0 runtime_state_controls
-		parity_cli step_parity step_clock captured_content PROPERTIES TIMEOUT 60)
+		parity_cli step_parity step_clock captured_content runtime_history_appends PROPERTIES TIMEOUT 60)
 
 	find_program(WAFFLE_NODE_EXECUTABLE NAMES node)
 	if(WAFFLE_NODE_EXECUTABLE)

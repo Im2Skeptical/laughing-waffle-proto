@@ -66,8 +66,17 @@ struct Entry {
 
 std::uint32_t checked_index(std::size_t value, std::string_view path);
 
-template<class T, class Allocator = std::allocator<T>>
+// These columns can live in either hot state or a generated history payload.
+// The adapter uses the same table type for either memory resource.
+struct StockProvider;
+
+template<class T>
+inline constexpr bool history_column = std::is_same_v<T, StockProvider> || std::is_same_v<T, TraitId> ||
+    std::is_same_v<T, TagId> || std::is_same_v<T, RegionId>;
+
+template<class T>
 struct Table {
+    using Allocator = std::conditional_t<history_column<T>, std::pmr::polymorphic_allocator<T>, std::allocator<T>>;
     std::vector<T, Allocator> values;
 
     Range<T> append(std::size_t count, std::string_view path)
@@ -80,17 +89,11 @@ struct Table {
     }
 };
 
-template<template<class> class Allocator, class... Ts>
-struct BasicTables : Table<Ts, Allocator<Ts>>... {
-    BasicTables() = default;
-    explicit BasicTables(std::pmr::memory_resource* memory)
-        : Table<Ts, Allocator<Ts>>{std::vector<Ts, Allocator<Ts>>(memory)}... {}
-    BasicTables(const BasicTables& source, std::pmr::memory_resource* memory)
-        : Table<Ts, Allocator<Ts>>{std::vector<Ts, Allocator<Ts>>(source.template rows<Ts>(), memory)}... {}
-
+template<class... Ts>
+struct Tables : Table<Ts>... {
     template<class T> static constexpr bool contains = (std::is_same_v<T, Ts> || ...);
-    template<class T> auto& table() { return static_cast<Table<T, Allocator<T>>&>(*this); }
-    template<class T> const auto& table() const { return static_cast<const Table<T, Allocator<T>>&>(*this); }
+    template<class T> auto& table() { return static_cast<Table<T>&>(*this); }
+    template<class T> const auto& table() const { return static_cast<const Table<T>&>(*this); }
     template<class T> auto& rows() { return table<T>().values; }
     template<class T> const auto& rows() const { return table<T>().values; }
 
@@ -120,13 +123,15 @@ private:
 };
 
 template<class... Ts>
-using Tables = BasicTables<std::allocator, Ts...>;
-
-template<class... Ts>
-struct ArenaTables : BasicTables<std::pmr::polymorphic_allocator, Ts...> {
-    using Base = BasicTables<std::pmr::polymorphic_allocator, Ts...>;
-    using Base::Base;
+struct ArenaTables : Tables<Ts...> {
+    static_assert((history_column<Ts> && ...));
+    using Base = Tables<Ts...>;
     using Sizes = std::array<std::size_t, sizeof...(Ts)>;
+
+    explicit ArenaTables(std::pmr::memory_resource* memory)
+        : Base{Table<Ts>{std::pmr::vector<Ts>(memory)}...} {}
+    ArenaTables(const ArenaTables& source, std::pmr::memory_resource* memory)
+        : Base{Table<Ts>{std::pmr::vector<Ts>(source.template rows<Ts>(), memory)}...} {}
 
     Sizes checkpoint() const { return {this->template rows<Ts>().size()...}; }
     void rollback(const Sizes& sizes)
@@ -157,8 +162,11 @@ struct BasicStrings {
     std::vector<Range<char>, Allocator<Range<char>>> offsets;
 
     BasicStrings() = default;
-    explicit BasicStrings(std::pmr::memory_resource* memory) : bytes(memory), offsets(memory) {}
+    explicit BasicStrings(std::pmr::memory_resource* memory)
+        requires std::is_constructible_v<Allocator<char>, std::pmr::memory_resource*>
+        : bytes(memory), offsets(memory) {}
     BasicStrings(const BasicStrings& source, std::pmr::memory_resource* memory)
+        requires std::is_constructible_v<Allocator<char>, std::pmr::memory_resource*>
         : bytes(source.bytes, memory), offsets(source.offsets, memory) {}
 
     std::optional<std::uint32_t> find(std::string_view name) const;

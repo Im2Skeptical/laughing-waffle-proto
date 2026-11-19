@@ -7,6 +7,7 @@
 #include <atomic>
 #include <cassert>
 #include <memory>
+#include <new>
 #include <utility>
 
 namespace waffle::sim::runtime {
@@ -139,27 +140,13 @@ class History {
     };
 
     using DirectoryHandle = typename Directory::Link;
-    std::shared_ptr<HistoryArena> arena_;
     DirectoryHandle directory_;
     std::size_t size_{};
     std::size_t first_{};
 
 public:
     using Name = Field;
-    History() = default;
-    explicit History(std::shared_ptr<HistoryArena> arena) : arena_(std::move(arena)) {}
     std::size_t size() const { return directory_ ? size_ : 0; }
-
-    // Reset a batch while keeping the arena warm for the next batch.
-    void clear()
-    {
-        directory_ = {};
-        size_ = first_ = 0;
-    }
-
-    // Existing immutable pages retain their original backing storage.
-    void use_arena(std::shared_ptr<HistoryArena> arena) { arena_ = std::move(arena); }
-    const std::shared_ptr<HistoryArena>& arena() const { return arena_; }
 
     const Row& at(std::size_t index) const
     {
@@ -171,9 +158,9 @@ public:
     // Import preserves the exact input window, even for a capture larger than
     // the writer's retention limit. The next append applies that limit.
     template<class Build>
-    static History load(std::size_t count, Build build, std::shared_ptr<HistoryArena> arena = {})
+    static History load(std::size_t count, Build build)
     {
-        History result(std::move(arena));
+        History result;
         for (std::size_t index = 0; index < count; ++index) {
             auto row = [&](Payload& payload) { return build(payload, index); };
             result.append_record(row);
@@ -187,7 +174,7 @@ public:
         if constexpr (Limit != 0) {
             if (size() > Limit) {
                 auto trimmed = newest(Limit - 1);
-                trimmed.append_record(build);
+                trimmed.append_record(build, &directory_->arena);
                 *this = std::move(trimmed);
                 return;
             }
@@ -207,29 +194,17 @@ public:
         }
     }
 
-    void push(Row row) { append([&](auto&) { return row; }); }
+    void push(Row row)
+    {
+        append([&](auto&) noexcept(std::is_nothrow_copy_constructible_v<Row>) { return row; });
+    }
 
     template<class Visit>
     void for_each(Visit visit) const
     {
         if (!directory_) return;
         auto first = first_;
-        const auto visit_chunk = [&](const Directory& directory) {
-            for (std::size_t pageIndex = 0; pageIndex < directory.count; ++pageIndex) {
-                const auto& page = *directory.pages[pageIndex];
-                for (std::size_t index = first; index < page.count; ++index)
-                    visit(page.rows[index], page.payload);
-                first = 0;
-            }
-        };
-        if (directory_->previous) {
-            // Only long logs need scratch space to walk older chunks in order.
-            std::vector<const Directory*> older;
-            for (auto* chunk = &*directory_->previous; chunk; chunk = chunk->previous.operator->())
-                older.push_back(chunk);
-            for (auto it = older.rbegin(); it != older.rend(); ++it) visit_chunk(**it);
-        }
-        visit_chunk(*directory_);
+        visit_directory(*directory_, first, visit);
     }
 
     std::size_t live_bytes() const
@@ -246,6 +221,18 @@ public:
     }
 
 private:
+    template<class Visit>
+    static void visit_directory(const Directory& directory, std::size_t& first, Visit& visit)
+    {
+        if (directory.previous) visit_directory(*directory.previous, first, visit);
+        for (std::size_t pageIndex = 0; pageIndex < directory.count; ++pageIndex) {
+            const auto& page = *directory.pages[pageIndex];
+            for (std::size_t index = first; index < page.count; ++index)
+                visit(page.rows[index], page.payload);
+            first = 0;
+        }
+    }
+
     const PageHandle& page_at(std::size_t index) const
     {
         auto fromEnd = (first_ + size_ - 1) / pageSize - index;
@@ -259,12 +246,12 @@ private:
 
     History newest(std::size_t count) const
     {
-        History result(arena_);
+        History result;
         if (count == 0) return result;
         result.size_ = count;
         const auto start = first_ + size_ - count;
         result.first_ = start % pageSize;
-        result.directory_ = DirectoryHandle::make(arena_);
+        result.directory_ = DirectoryHandle::make(directory_->arena);
         auto& dir = result.directory_.write();
         for (auto page = start / pageSize; page <= (first_ + size_ - 1) / pageSize; ++page)
             dir.pages[dir.count++] = page_at(page);
@@ -272,25 +259,30 @@ private:
     }
 
     template<class Build>
-    void append_record(Build& build)
+    void append_record(Build& build, const std::shared_ptr<HistoryArena>* inheritedArena = nullptr)
     {
-        if (!arena_) arena_ = std::make_shared<HistoryArena>();
+        std::shared_ptr<HistoryArena> newArena;
+        if (!directory_) newArena = inheritedArena ? *inheritedArena : std::make_shared<HistoryArena>();
+        const auto& arena = directory_ ? directory_->arena : newArena;
         const auto oldSize = size();
         const bool extend = directory_ && directory_->pages[directory_->count - 1]->count < pageSize;
         DirectoryHandle replacement;
         if (!directory_ || (!extend && directory_->count == directorySize)) {
-            replacement = DirectoryHandle::make(arena_);
+            replacement = DirectoryHandle::make(arena);
             replacement.write().previous = directory_;
-        } else if (!directory_.unique() || directory_->arena != arena_) {
-            replacement = DirectoryHandle::make(arena_, *directory_);
+        } else if (!directory_.unique()) {
+            replacement = DirectoryHandle::make(arena, *directory_);
         }
 
         auto& target = replacement ? replacement.write() : directory_.write();
         auto& slot = target.pages[extend ? target.count - 1 : target.count];
-        if (extend && slot.unique() && slot->arena == arena_) {
+        if (extend && slot.unique()) {
             // A builder adds page-local payloads. Existing offsets and values
             // remain valid, including if a builder fails before publishing its row.
-            if constexpr (requires(Payload& payload) { payload.rollback(payload.checkpoint()); }) {
+            if constexpr (std::is_nothrow_invocable_r_v<Row, Build&, Payload&> &&
+                          std::is_nothrow_move_assignable_v<Row>) {
+                add_row(slot.write(), build);
+            } else if constexpr (requires(Payload& payload) { payload.rollback(payload.checkpoint()); }) {
                 auto& page = slot.write();
                 const auto checkpoint = page.payload.checkpoint();
                 try {
@@ -299,17 +291,14 @@ private:
                     page.payload.rollback(checkpoint);
                     throw;
                 }
-            } else if constexpr (std::is_nothrow_invocable_r_v<Row, Build&, Payload&> &&
-                                 std::is_nothrow_move_assignable_v<Row>) {
-                add_row(slot.write(), build);
             } else {
                 // Preserve the previous API for custom payloads without rollback.
-                auto page = PageHandle::make(arena_, *slot);
+                auto page = PageHandle::make(arena, *slot);
                 add_row(page.write(), build);
                 slot = std::move(page);
             }
         } else {
-            auto page = extend ? PageHandle::make(arena_, *slot) : PageHandle::make(arena_);
+            auto page = extend ? PageHandle::make(arena, *slot) : PageHandle::make(arena);
             add_row(page.write(), build);
             slot = std::move(page);
         }
