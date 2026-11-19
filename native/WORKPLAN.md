@@ -33,7 +33,12 @@
   - v53 browser catch-up, after PR #107 merges.
 - Coordination: one supervising session sets design and reviews and integrates
   delegated items on its branch. Each item has one owner at a time.
-- Active owners: none. Wave merged:
+- Active owners (wave started 19 Nov 2026 from 6baa16dd):
+  - N03f L2 actions and replay: sol 6.2 worker on `t3/native-actions-replay`.
+  - N03e-3q pass 4 (exact-rule Food and Birth wins, plus a structural plan
+    toward the budget): Astra specialist on
+    `t3/native-pipeline-performance-4`. The supervisor audits it.
+- Previous wave, merged:
   - N03e-9 535f641d (merge 56baea63)
   - N03g ae3ccaa6 (efba073f)
   - N03f-3 33208558 (9afb8501)
