@@ -18,7 +18,7 @@
   - The N03g merge was also checked on `optimized-clang`: 34/34 CTests,
     and 23 windows that agreed hash for hash with MSVC.
 
-  Pipeline cost, with the N03e-3q-3 method (CPU 15, 5 runs, medians):
+  Pipeline cost before pass 4, with the N03e-3q-3 method (CPU 15, 5 runs, medians):
   - Opening: **19.3 µs/sim-s**. Food 8.9, Birth 3.5, phase drain 2.8,
     seasonal 1.2.
   - Late: **23.3**. Birth 6.5, Food 5.2, drain 5.1.
@@ -35,9 +35,19 @@
   delegated items on its branch. Each item has one owner at a time.
 - Active owners (wave started 19 Nov 2026 from 6baa16dd):
   - N03f L2 actions and replay: sol 6.2 worker on `t3/native-actions-replay`.
-  - N03e-3q pass 4 (exact-rule Food and Birth wins, plus a structural plan
-    toward the budget): Astra specialist on
-    `t3/native-pipeline-performance-4`. The supervisor audits it.
+  - N03e-3q pass 4: merged from 83cac22d.
+    - The supervisor audited the staffing-cache invalidation (ledger
+      reindex, `rebuild_listeners`, the `sitesDirty` bypass) and Birth's
+      deferred application (only the rolls draw RNG).
+    - Re-verified: 36/36 CTests, 829/829 pairs, 30 windows with zero masks,
+      and the New Game checks.
+    - Pipeline is now **18.4 opening / 22.7 late** µs/sim-s.
+    - Plan: [n03e-3q-pass-4-budget](docs/n03e-3q-pass-4-budget.md).
+      1000 game years per wall second allows 31.25 µs per published second
+      on desktop, so the desktop dream target is within reach. Pixel 6 is
+      the binding constraint, at a projected 15–21k sim-s/s against 32k.
+  - N03e-3q pass 5, the exact-parity shared trace storage prototype: Astra
+    specialist on `t3/native-trace-storage`. The supervisor audits it.
 - Previous wave, merged:
   - N03e-9 535f641d (merge 56baea63)
   - N03g ae3ccaa6 (efba073f)
