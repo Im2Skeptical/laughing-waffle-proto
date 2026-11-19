@@ -9,6 +9,7 @@
 #include "tools/parity_run.hpp"
 #include "tools/replay_checks.hpp"
 #include "tools/reference_topology.hpp"
+#include "tools/timegraph_tool.hpp"
 
 #include <algorithm>
 #include <array>
@@ -743,11 +744,12 @@ int main(int argc, char** argv)
         if (command == "new-game") return new_game(argc, argv);
         if (command == "stage") return stage(parse_stage_options(argc, argv));
         if (command == "run") return waffle::tools::parity_run(argc, argv);
+        if (command == "timegraph") return waffle::tools::timegraph_tool(argc, argv);
 
         throw std::invalid_argument("Usage: waffle_parity (roundtrip | runtime-roundtrip) <state.json> [--out <path>] | "
                                     "runtime-stats <state.json> | "
                                     "hash <state.json> | diff <a.json> <b.json> | new-game [options] | "
-                                    "step [options] | stage [options] | run [options]");
+                                    "step [options] | stage [options] | run [options] | timegraph [options]");
     } catch (const std::exception& error) {
         std::cerr << error.what() << '\n';
         return 2;

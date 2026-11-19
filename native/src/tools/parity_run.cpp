@@ -1,4 +1,5 @@
 #include "tools/parity_run.hpp"
+#include "tools/timegraph_tool.hpp"
 
 #include "sim/state/runtime_state.hpp"
 #include "sim/step/advance_second.hpp"
@@ -34,6 +35,7 @@ constexpr std::string_view streamVersion = "waffle-state-digest-v1";
 
 struct Options {
     std::filesystem::path from, hashes, expect, report, snapshot, topologyDir, actions, checkpoints;
+    std::filesystem::path timegraphHashes;
     std::optional<std::size_t> seconds;
     bool anchors = false;
 };
@@ -57,6 +59,7 @@ Options parse_options(int argc, char** argv)
         else if (flag == "--topology-dir" && options.topologyDir.empty()) options.topologyDir = value;
         else if (flag == "--actions" && options.actions.empty()) options.actions = value;
         else if (flag == "--browser-checkpoints" && options.checkpoints.empty()) options.checkpoints = value;
+        else if (flag == "--timegraph-hashes" && options.timegraphHashes.empty()) options.timegraphHashes = value;
         else if (flag == "--seconds" && !options.seconds) {
             std::size_t seconds{};
             const auto end = value.data() + value.size();
@@ -72,11 +75,14 @@ Options parse_options(int argc, char** argv)
         throw std::invalid_argument("Usage: waffle_parity run --from <state.json> --seconds <n> --hashes <path> "
                                     "[--expect <path>] [--anchors] [--report <path>] [--snapshot <path>] "
                                     "[--topology-dir <directory>] [--actions <journal.json>] "
-                                    "[--browser-checkpoints <sha256.tsv>]");
+                                    "[--browser-checkpoints <sha256.tsv>] [--timegraph-hashes <path>]");
     if (!options.checkpoints.empty() && !options.anchors)
         throw std::invalid_argument("run: --browser-checkpoints requires --anchors");
     if (options.hashes == options.expect)
         throw std::invalid_argument("run: --hashes and --expect need separate paths");
+    if (!options.timegraphHashes.empty() &&
+        (options.timegraphHashes == options.hashes || options.timegraphHashes == options.expect))
+        throw std::invalid_argument("run: --timegraph-hashes needs its own path");
     return options;
 }
 
@@ -324,6 +330,14 @@ int parity_run(int argc, char** argv)
     std::ofstream stream(options.hashes, std::ios::binary);
     stream << streamVersion << '\n';
     if (!stream) throw std::runtime_error("could not write " + options.hashes.string());
+    std::ofstream timegraphHashes;
+    std::vector<timegraph::SiteSummary> sites;
+    if (!options.timegraphHashes.empty()) {
+        timegraphHashes.open(options.timegraphHashes, std::ios::binary);
+        timegraphHashes << timegraphDigestHeader << '\n';
+        if (!timegraphHashes) throw std::runtime_error("could not write " + options.timegraphHashes.string());
+        sites.resize(state.hot.world.regions.size());
+    }
 
     std::vector<std::uint64_t> hashes;
     std::vector<sim::RuntimeState> anchors;
@@ -348,6 +362,9 @@ int parity_run(int argc, char** argv)
         line << static_cast<std::uint64_t>(state.hot.tSec) << '\t' << std::hex << std::setfill('0') << std::setw(16)
              << lastHash;
         stream << line.str() << '\n';
+        if (timegraphHashes.is_open())
+            write_timegraph_digest(timegraphHashes, timegraph::summarize(state, sites), sites,
+                i % stride == 0 || i == seconds ? std::optional(lastHash) : std::nullopt);
         if (expected.is_open()) {
             const auto wanted = expected_line(expected);
             if (wanted != line.str())
@@ -368,6 +385,10 @@ int parity_run(int argc, char** argv)
         throw std::runtime_error("run: extra rows in expected hash stream");
     stream.close();
     if (!stream) throw std::runtime_error("could not write " + options.hashes.string());
+    if (timegraphHashes.is_open()) {
+        timegraphHashes.close();
+        if (!timegraphHashes) throw std::runtime_error("could not write " + options.timegraphHashes.string());
+    }
     if (lastHash != forecastHash) throw std::logic_error("instrumented pass changed final state");
     const auto validationMs = elapsed_ms(validationBegin);
     if (!options.snapshot.empty()) write_file(options.snapshot, snapshot(state));
