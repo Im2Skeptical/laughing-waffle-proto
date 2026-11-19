@@ -1212,6 +1212,80 @@ ordinary second-zero starts for all five scenario seeds, and run step windows
 from native-generated starts. This checkpoint contains no state builder or
 new-game parity result.
 
+### N03f-3 second-zero builder (done)
+
+The [builder](src/sim/world/new_game.hpp) creates a playable runtime from a
+uint32 seed and captured GameConfig. It draws the starter road and structure
+capacities, rolls founders on their existing streams, and then assigns Crown,
+neutral and Monster regions. It builds the ledger, boards, markets and live
+roads in browser order and reuses native Stock capacity and compiled content.
+Runtime admission generates regional-v2 topology from the definition ID.
+Explicit topology JSON still supports replay of captured reference and authored
+definitions.
+
+From the repository root in PowerShell:
+
+```powershell
+. native/tools/env.ps1
+Push-Location native
+cmake --preset optimized
+cmake --build --preset optimized --parallel 6
+ctest --preset optimized --output-on-failure
+Pop-Location
+$parity = "native/build/optimized/src/sim/waffle_parity.exe"
+node native/reference/export-new-game.mjs --windows
+node native/reference/new-game-windows.mjs $parity
+node native/reference/trace.mjs
+node native/reference/step-windows.mjs $parity
+node native/reference/stage-probe.mjs --all
+node native/reference/stage-pairs.mjs $parity prelude
+foreach ($seed in 1,42,123,1867,2026) {
+    & $parity new-game --seed $seed --out "artifacts/n03f-3/seed-$seed.json" --time
+}
+```
+
+- All 34 enabled optimized CTests passed, including `new_game_parity` against
+  the checked-in seed-1 fixture and generated/loaded topology admission.
+  `pipeline_steady_state_allocations` remains disabled.
+- Browser `npm run verify` and the final `npm run check:docs` passed.
+- The five ordinary starts matched every serialized field at second zero.
+  Both runtimes advanced from their own second-zero states for all ten
+  configured windows across those seeds, including anchors through 3200 s.
+  All 92 comparisons passed with zero masks, including the paused gate.
+  Seeds 0, 2147483648 and 4294967295 also matched at second zero. A seed-42
+  capture with edited settings, Stock capacity, housing and Life Map design
+  matched using the same builder.
+- For each of the five ordinary seeds, `waffle_parity run --from <state-0.json>
+  --seconds 64 --hashes <generated.tsv> --anchors` matched a second run with
+  `--topology-dir native/reference/topology --expect <generated.tsv>` and a
+  separate output path. All 325 state digests and the restore checks agreed.
+- Standard browser-anchor windows passed 23/23 with 138 comparisons. Stage
+  pairs passed 751/752. Run `stage-pairs.mjs` with each of the 18 stage names
+  in `native/src/sim/step/stages.cpp` and the existing masks file for `vassal_check`.
+  The known N03e prelude failure at `death-committed-arrivals/2035` starts at
+  `$.civilization.practiceEvents.nextId` and produced identical hashes and
+  53 differing leaves with generated and loaded topology. The existing 14
+  N03e-9 masks were used for the standard windows and Vassal stage pairs.
+  This item added and removed zero masks.
+- Optimized Windows MSVC 19.50 on i9-10900K, median of seven full builds per
+  seed, excluding process startup, captured-config file reading and output
+  serialization. Seed 1 took 27.16 ms, seed 42 took 27.57 ms, seed 123 took
+  28.27 ms, seed 1867 took 34.00 ms and seed 2026 took 28.35 ms. The median
+  across seeds was 28.27 ms. The earlier world-generation-only median was
+  22.96 ms. Timing includes content compilation and runtime admission.
+- Android arm64 `waffle_sim` cross-build passed with NDK r30, API 31 and
+  `Release`. Configure with `cmake -S native -B native/build/n03f3-android -G Ninja
+  -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE=<ndk>/build/cmake/android.toolchain.cmake
+  -DANDROID_ABI=arm64-v8a -DANDROID_PLATFORM=android-31` and build with
+  `cmake --build native/build/n03f3-android --target waffle_sim --parallel 4`.
+  Device hash agreement remains part of N03g.
+
+`new-game --scenario <id>` selects the starting configuration from a captured
+fixture. The built-in ordinary trace scenarios reuse the seed-1 capture.
+The supplied seed still controls topology and all RNG streams.
+Verification artifacts are in `artifacts/n03f-3/`. The remaining N03f work is
+the L2 action and replay port.
+
 ## N04 - Connected playable slice (pending N02 and N03)
 
 This includes the native forecast/timegraph: worker threads, anchors, restore,
