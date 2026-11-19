@@ -3297,7 +3297,7 @@
       "kind": "record",
       "fields": {
         "placementId": { "type": "string", "optional": false, "nullable": false },
-        "origin": { "type": "integer", "optional": false, "nullable": false }
+        "origin": { "type": "integer", "optional": false, "nullable": true }
       },
       "note": "shop.js:591."
     },
