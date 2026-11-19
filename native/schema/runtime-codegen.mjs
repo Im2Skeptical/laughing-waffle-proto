@@ -215,7 +215,6 @@ const header = [
   "        text.offsets.resize(checkpoint.textOffsets);",
   "    }",
   "};", "",
-  "}", '#include "sim/state/practice_trace.hpp"', "namespace waffle::sim::runtime {", "",
   "using ColdTables = Tables<",
   "    " + [...coldPools].map(([tag, { type }]) => "ColdValue<" + type + ", " + tag + ">").join(",\n    ") + ">;", "",
   "using HistoryTables = Tables<",

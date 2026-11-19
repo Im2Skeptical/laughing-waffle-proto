@@ -46,8 +46,8 @@
       1000 game years per wall second allows 31.25 µs per published second
       on desktop, so the desktop dream target is within reach. Pixel 6 is
       the binding constraint, at a projected 15–21k sim-s/s against 32k.
-  - N03e-3q pass 5, the exact-parity shared trace storage prototype: Astra
-    specialist on `t3/native-trace-storage`. The supervisor audits it.
+  - N03e-3q pass 5: stopped at the shared-storage checkpoint. Savings were
+    1.144 opening / 1.173 late µs/sim-s. [Measurements and verification](#n03e-3q-pass-5--shared-practice-trace-storage-stopped-19-nov-2026).
 - Previous wave, merged:
   - N03e-9 535f641d (merge 56baea63)
   - N03g ae3ccaa6 (efba073f)
@@ -1510,6 +1510,94 @@ python "$d/confirmation.py" base birth
 - Sampling used `& "$d/diag-build.ps1" sample` after sourcing the MSVC environment, then `& "$d/sample.exe" artifacts/native-reference/windows/seed-1/0/state-0.json native/reference/topology 39` and the analogous `seed-2026-late/3200/state-3200.json` with `11`. Raw files use UTF-16 PowerShell redirection. The post-change copy is `sample-final`. The diagnostic floor used `& "$d/diag-build.ps1" floor` then `& "$d/floor.exe" <state> <window-length>` on the same anchors. See `loops.txt`, `groups.txt`, and `floor-{opening,late}.txt`.
 
 **Decision for the supervisor.** The live pipeline still exceeds the 10–12 desktop allocation. Prototype exact shared trace storage with independent retention cursors and a restore oracle first. Cam's decision is needed only to change seeded sampling, lunar cadence or observable diagnostic content. The physical Pixel 6 throughput, thermal behavior and Android hash run remain open. This branch ends at the structural plan.
+
+
+### N03e-3q pass 5 — shared Practice trace storage (stopped, 19 Nov 2026)
+
+Branch `t3/native-trace-storage`, base `c4db1832`, measured prototype `05c81306`. The checkpoint saved **1.144 µs/sim-s opening and 1.173 late**. Both fall below the supervisor's approximately 2 µs stop threshold. The branch restores the base runtime and retains the measured prototype as a separate commit for inspection. The experiment produced no independently measured subchange to carry forward.
+
+The prototype writes each newly emitted Practice row and its provider, trait, tag and receipt payload once. The civilization and site pages each retain their own ordered reference and their own 100-row eviction cursor. A writer allocates into a 4 KiB arena bucket. Published objects have stable addresses, and copying a writer gives the fork an empty tail. Direct phase rows store the second, ID, region, event kind, phase and captured controller. Inspection, Export and digest expand the remaining fields. The rare page-local phase string takes the full-row path. Reactive pending events retain their fields and receipts. Imported windows load their own captured rows, including oversized captures. The storage experiment did not attempt to identify common rows across two independently supplied JSON arrays at admission.
+
+**Pipeline and stages.** Optimized MSVC, i9-10900K, logical CPU 15, five alternating AB/BA pairs per window, process execution-speed throttling disabled. Each executable checked 39 opening or 11 late advances before timing 256 resets. The pipeline uses the unobserved pass. All 18 stages use the separate instrumented pass and are weighted per simulated second. Opening was faster in 5/5 pairs, late in 3/5. The median of the paired differences was 1.162 opening and 1.173 late. The table gives medians per executable.
+
+| µs/sim-s | Opening base | Opening prototype | Late base | Late prototype |
+| --- | ---: | ---: | ---: | ---: |
+| pipeline | 18.653 | 17.509 | 23.512 | 22.339 |
+| advance_clock | 0.133 | 0.129 | 0.152 | 0.157 |
+| prelude | 0.297 | 0.298 | 0.309 | 0.315 |
+| seasonal_practices | 1.115 | 1.024 | 1.859 | 1.668 |
+| spring_death_baseline | 0.003 | 0.004 | 0.010 | 0.011 |
+| birth | 3.014 | 2.967 | 5.920 | 5.813 |
+| food | 8.825 | 8.377 | 5.024 | 4.879 |
+| after_meals_practices | 0.066 | 0.066 | 0.120 | 0.120 |
+| garrison_upkeep | 0.085 | 0.084 | 0.045 | 0.047 |
+| housing | 0.100 | 0.096 | 0.208 | 0.201 |
+| faith | 0.066 | 0.059 | 0.126 | 0.116 |
+| migration_practices | 0.648 | 0.534 | 0.392 | 0.359 |
+| migration | 0.135 | 0.134 | 0.297 | 0.304 |
+| death | 0.157 | 0.150 | 0.379 | 0.388 |
+| death_practices | 0.828 | 0.827 | 0.904 | 0.869 |
+| control_and_spatial_pressure | 0.359 | 0.355 | 0.407 | 0.408 |
+| phase_events_and_drain | 2.849 | 2.438 | 5.064 | 4.592 |
+| vassal_check | 0.017 | 0.017 | 0.018 | 0.019 |
+| final_flush | 0.020 | 0.020 | 0.021 | 0.019 |
+
+**Restore and retained anchors.** Each of five alternating runs per binary/window used `waffle_parity run --anchors` across the full digest horizon. The CLI samples 32 restores, each including the value copy and up to 63 advances. The table reports the median of the five per-run percentiles. The last two pairs saw higher background CPU load. Their observations are included.
+
+| Metric | Opening base | Opening prototype | Late base | Late prototype |
+| --- | ---: | ---: | ---: | ---: |
+| Copy plus restore p50, ms | 1.2184 | 1.1351 | 1.3510 | 1.3306 |
+| Copy plus restore p95, ms | 1.6878 | 1.4565 | 1.6844 | 1.6300 |
+| Anchor creation alone p50, ms | 0.1510 | 0.1530 | 0.1713 | 0.1665 |
+| Anchor creation alone p95, ms | 0.2214 | 0.1981 | 0.2319 | 0.2372 |
+| Retained bytes per additional anchor, rounded | 1,421,694 | 1,349,603 | 1,558,690 | 1,466,447 |
+
+The memory probe counts outstanding bytes requested through scalar, array and aligned global C++ allocation, including retained arena slabs. It advances the same state and takes a copy every 64 seconds in both arms. One arm keeps every anchor and one keeps the latest. At second 3712, the extra 58 anchors retained 82,458,278 → 78,276,990 bytes. At second 5632, the extra 38 retained 59,230,222 → 55,724,974 bytes. All five alternating pairs produced identical byte counts and endpoint digests. Allocator bookkeeping and OS residency are outside this measure. The prototype CLI's per-history `live_bytes()` counts cursor storage only. The separate allocation probe accounts for the shared chunks without charging them to both windows.
+
+**Reproduction and verification.** All experiment files are local under `native/artifacts/n03e-3q-5/` (`$d` below). This keeps generated output inside the assigned native tree. `validation/` contains a copy of the reference scripts and read-only access to the supervisor's matching trace and window inputs. The stage and new-game generators wrote fresh captures there. Commands begin at the repository root in PowerShell.
+
+```powershell
+$d = (Resolve-Path native/artifacts/n03e-3q-5).Path
+. native/tools/env.ps1
+node native/schema/codegen.mjs
+node native/schema/runtime-codegen.mjs
+Push-Location native
+foreach ($preset in 'optimized','optimized-clang') {
+    cmake --preset $preset
+    cmake --build --preset $preset
+    ctest --preset $preset --output-on-failure
+    ctest --preset $preset -V -R pipeline_steady_state_allocations
+}
+Pop-Location
+
+# Saved optimized executables are base.exe (c4db1832) and shared.exe (05c81306).
+python "$d/confirmation.py" base shared
+python "$d/anchors.py" 0 5 base shared
+python "$d/retained-pairs.py"
+& "$d/endpoints.ps1" $d
+python "$d/report.py"
+
+Push-Location "$d/validation"
+node native/reference/stage-probe.mjs --all
+$stages = (Get-Content "$d/base_shared-opening-base-0.json" -Raw |
+    ConvertFrom-Json).stages.PSObject.Properties.Name
+foreach ($stage in $stages) { node native/reference/stage-pairs.mjs "$d/shared.exe" $stage }
+node native/reference/step-windows.mjs "$d/shared.exe"
+node native/reference/export-new-game.mjs --windows
+node native/reference/new-game-windows.mjs "$d/shared.exe"
+node native/reference/stage-probe.mjs seed-1 43
+$s = 'artifacts/native-reference/stages/seed-1/43'
+& "$d/shared.exe" stage --stage birth --before "$s/after-advance_clock.json" --after "$s/after-birth.json"
+Pop-Location
+```
+
+- Candidate CTest results were 36/36 optimized MSVC and 36/36 optimized Clang. Both verbose allocation gates measured zero allocations over 3,200 opening and 1,920 late advances after 512 warmup seconds.
+- A fresh `stage-probe --all` supplied 828 distinct pairs across all 18 stages. The independently hash-checked Birth at seed-1/43 supplied pair 829, as in pass four. All passed. The extra capture is stored separately in `extra-seed-1-43/` so it does not change the standard corpus counts.
+- All 30 step windows passed with 153 comparisons, 152 advancing and one gated, with zero masks. New Game passed five exact starts and 10 native-start windows, 92 comparisons.
+- The five paired anchor runs matched every base digest from 0 through 3712 inclusive (3,713 rows) and 3200 through 5632 inclusive (2,433 rows). Optimized Clang also matched both complete MSVC base streams. Every paired anchor run verified value-copy continuations and five browser-save adapter round trips. Base and candidate endpoint exports matched byte for byte at 841,009 bytes opening and 848,272 late.
+- `confirmation.py` calls `waffle_parity step --from <start> --seconds 39|11 --expect-dir <window> --masks native/reference/parity-masks.json --time --report <json>`. `anchors.py` calls `run --anchors --from <start> --seconds 3712|2432 --hashes <tsv> --report <json>` and adds `--expect <base.tsv>` for the candidate. `retained.cpp` was linked with the measured candidate library and the pass-four library whose native sources match the base. `retained-pairs.txt` records both controls. Individual timings, host load, CTest logs and export hashes are beside the scripts.
+
+**Supervisor disposition and cross-runtime handoff.** Publishing once removed roughly 0.45 opening Food and 0.47 late phase-drain µs/sim-s. The measured result covers building receipts, writing both cursor references, retaining chunks and evicting each window. Pass four's 8.6/8.2 trace-plus-enqueue estimate includes work this prototype still performs, including constructing reactive events. A follow-up would need a profile that separately prices enqueue, receipt construction and reference publication before funding a second layout. The browser can reuse the independent-window eviction and emit-time receipt oracles. The native timing and allocator results apply to this desktop workload. Ownership released.
 
 
 ## N03f - Actions, replay and new game (pending N03e)

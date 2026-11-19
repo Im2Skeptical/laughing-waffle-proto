@@ -133,14 +133,10 @@ void copy_isolation()
 {
     Trace left;
     for (int i = 0; i < 19; ++i) append_trace(left, i);
-    auto row_address = [](const Trace& trace, int index) {
-        const PracticeEventTrace* address = nullptr;
-        trace.for_each([&](const auto& row, const auto&) { if (index-- == 0) address = &row; });
-        return address;
-    };
-    const auto* sealedRow = row_address(left, 0);
-    const auto* tailRow = row_address(left, 18);
+    const auto* sealedRow = &left.at(0);
+    const auto* tailRow = &left.at(18);
     append_trace(left, 19);
+    expect(&left.at(18) == tailRow, "private append should reuse the tail in place");
 
     const auto anchor = left;
     auto right = anchor;
@@ -148,8 +144,8 @@ void copy_isolation()
         append_trace(left, i);
         append_trace(right, -i);
         if (i == 20) {
-            expect(row_address(left, 0) == sealedRow && row_address(right, 0) == sealedRow, "sealed page should stay shared");
-            expect(row_address(left, 18) == tailRow && row_address(right, 18) == tailRow, "published records stay shared across branches");
+            expect(&left.at(0) == sealedRow && &right.at(0) == sealedRow, "sealed page should stay shared");
+            expect(&left.at(18) != tailRow && &right.at(18) != tailRow, "branches must detach a shared tail");
         }
         expect(anchor.size() == 20 && anchor.at(19).rootId == 19, "anchor changed after a branch append");
     }
