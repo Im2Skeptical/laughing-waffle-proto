@@ -5,6 +5,7 @@
 #include <algorithm>
 #include <cmath>
 #include <condition_variable>
+#include <cstring>
 #include <mutex>
 #include <thread>
 
@@ -53,14 +54,57 @@ std::string replay_error(const sim::ReplayResult& result)
 }
 
 struct Page {
-    static std::size_t bytes(std::size_t rows, std::size_t regions)
+    // Each cell indexes an exact region record in this page. The storage cap
+    // bounds the total number of records well below the 32-bit index limit.
+    static_assert(forecastStorageCap / sizeof(SiteSummary) < UINT32_MAX);
+    static std::size_t initialBytes(std::size_t rows, std::size_t regions)
     {
-        return sizeof(Page) + rows * (sizeof(SummaryHeader) + regions * sizeof(SiteSummary));
+        return sizeof(Page) + rows * (sizeof(SummaryHeader) + regions * sizeof(std::uint32_t)) +
+            regions * sizeof(SiteSummary);
     }
 
-    Page(std::size_t rows, std::size_t regions) : headers(rows), sites(rows * regions) {}
+    Page(std::size_t rows, std::size_t regions) : headers(rows), indices(rows * regions)
+    {
+        records.reserve(regions);
+    }
+
+    std::size_t bytes() const
+    {
+        return sizeof(Page) + headers.capacity() * sizeof(SummaryHeader) +
+            indices.capacity() * sizeof(std::uint32_t) + records.capacity() * sizeof(SiteSummary);
+    }
+
+    // Stage indices in the unpublished row so admission knows exactly how
+    // much capacity to reserve. Published rows and records are immutable.
+    std::size_t stage(std::size_t slot, std::span<const SiteSummary> row)
+    {
+        auto next = records.size();
+        auto* dest = indices.data() + slot * row.size();
+        for (std::size_t i = 0; i < row.size(); ++i) {
+            if (slot) {
+                const auto prior = indices[(slot - 1) * row.size() + i];
+                // SiteSummary contains exactly 16 doubles and no padding.
+                if (std::memcmp(&records[prior], &row[i], sizeof(SiteSummary)) == 0) {
+                    dest[i] = prior;
+                    continue;
+                }
+            }
+            dest[i] = static_cast<std::uint32_t>(next++);
+        }
+        if (next <= records.capacity()) return 0;
+        return std::min(indices.size(), std::max(next, records.capacity() * 2)) - records.capacity();
+    }
+
+    void append(std::size_t slot, std::span<const SiteSummary> row, std::size_t growth)
+    {
+        if (growth) records.reserve(records.capacity() + growth);
+        for (std::size_t i = 0; i < row.size(); ++i)
+            if (indices[slot * row.size() + i] == records.size()) records.push_back(row[i]);
+    }
+
     std::vector<SummaryHeader> headers;
-    std::vector<SiteSummary> sites;
+    std::vector<std::uint32_t> indices;
+    std::vector<SiteSummary> records;
 };
 
 struct Generation {
@@ -100,7 +144,7 @@ struct Generation {
         info.completion = Completion::retained;
         const auto kept = (end - info.start) / stride + 1;
         while (pages.size() > kept) {
-            summaryBytes -= Page::bytes(pages.back()->headers.size(), info.regions);
+            summaryBytes -= pages.back()->bytes();
             pages.pop_back();
         }
         while (anchors.back()->second() > end) anchors.pop_back();
@@ -323,13 +367,14 @@ struct Forecast::Impl {
         const bool end = header.terminal.has_value() || second == info.target;
         const auto previousRuntimeBytes = generation.runtimeBytes;
         if (slot == 0 || end) generation.measure(job.state);
-        const auto newPage = slot == 0 ? Page::bytes(rows, info.regions) : 0;
+        const auto newPage = slot == 0 ? Page::initialBytes(rows, info.regions) : 0;
         const auto indexGrowth = [](const auto& index, bool append) {
             return append && index.size() == index.capacity() ? std::max<std::size_t>(1, index.size()) : 0;
         };
         const auto pageIndexGrowth = indexGrowth(generation.pages, slot == 0);
         const auto anchorIndexGrowth = indexGrowth(generation.anchors, slot == 0 || end);
-        const auto pageCharge = newPage + pageIndexGrowth * sizeof(generation.pages.front());
+        const auto recordGrowth = slot ? generation.pages.back()->stage(slot, job.row) : 0;
+        const auto pageCharge = recordGrowth * sizeof(SiteSummary) + newPage + pageIndexGrowth * sizeof(generation.pages.front());
         const auto anchorIndexCharge = anchorIndexGrowth * sizeof(generation.anchors.front());
 
         const auto finishAtLimit = [&] {
@@ -366,6 +411,7 @@ struct Forecast::Impl {
             if (pageIndexGrowth) generation.pages.reserve(generation.pages.size() + pageIndexGrowth);
             generation.pages.push_back(std::make_unique<Page>(rows, info.regions));
             generation.summaryBytes += newPage;
+            generation.pages.back()->stage(0, job.row);
         }
         if (anchor) {
             if (anchorIndexGrowth) generation.anchors.reserve(generation.anchors.size() + anchorIndexGrowth);
@@ -373,7 +419,8 @@ struct Forecast::Impl {
         }
         auto& page = *generation.pages.back();
         page.headers[slot] = header;
-        std::ranges::copy(job.row, page.sites.begin() + slot * info.regions);
+        page.append(slot, job.row, recordGrowth);
+        generation.summaryBytes += recordGrowth * sizeof(SiteSummary);
         info.publishedThrough = second;
         info.anchors = generation.anchors.size();
         if (end) {
@@ -505,7 +552,9 @@ std::size_t Forecast::readSummaries(GenerationId generation, Second first, std::
         const auto slot = offset % stride;
         const auto rows = std::min<std::size_t>(count - i, page.headers.size() - slot);
         std::copy_n(page.headers.begin() + slot, rows, headers.begin() + i);
-        std::copy_n(page.sites.begin() + slot * regions, rows * regions, sites.begin() + i * regions);
+        const auto* indices = page.indices.data() + slot * regions;
+        for (std::size_t j = 0; j < rows * regions; ++j)
+            sites[i * regions + j] = page.records[indices[j]];
         i += rows;
     }
     return count;
