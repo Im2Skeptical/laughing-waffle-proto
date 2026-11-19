@@ -22,7 +22,6 @@
   | Item | Branch | Commit | Remaining |
   | --- | --- | --- | --- |
   | N03e-9 | `t3/native-timed-vassal-resolution` | 58f3feae | Campaign, Delve and Founding probes fail; Commission not started |
-  | N03g | `t3/native-cross-compiler-determinism` | 2131c16b | Clang preset and Android target; 32,000 s cross-compiler runs not yet done |
 
   Not started:
   - N03f-3 new-game state builder. World generation is merged.
@@ -35,8 +34,19 @@
   from e6cef481 and merges its WIP commit first:
   - N03e-9 Vassal: sol 6.2 worker on `t3/native-timed-vassal-resolution-2`
     (merges 58f3feae).
-  - N03g cross-compiler determinism: sol 6.2 worker on
-    `t3/native-cross-compiler-determinism-2` (merges 2131c16b).
+  - N03g desktop part: merged 19 Nov 2026 from ae3ccaa6 (efba073f).
+    - MSVC and llvm-mingw clang, in dev and optimized builds, produced
+      identical per-second hashes.
+    - The new 2,048 s `native_run_cross_compiler` CTest passes under both
+      compilers.
+    - The supervisor re-ran it on the merged branch: 34/34 CTests on
+      `optimized` and `optimized-clang`, and 23 windows / 138 comparisons on
+      clang.
+    - The 32,000 s stability runs used saves altered to stay alive
+      (`phaseDurationSec=64`, no Monster expansion), because the real saves
+      end in Monster Overrun by second 5,676.
+    - Still open for L4: Android arm64 hashes. The binary builds, but no
+      device was attached; the commands are in the N03g section.
   - N03e-3q performance pass 3 and the allocation gate: Astra specialist on
     `t3/native-pipeline-performance-3`. The supervisor audits it.
   - N03f-3 new-game state builder: sol 6.2 worker on
