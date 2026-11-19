@@ -75,9 +75,23 @@
     - Finding: one 1000-year generation charges about 225–240 MiB (summaries
       83, anchor tables 57, retained history 81), so a successor stops
       around second 4,400 while the previous generation is kept.
-  - N04c forecast memory reduction (target ≤128 MiB per 1000-year
-    generation): Astra specialist on `t3/native-timegraph-compact`. The
-    supervisor audits it.
+  - N04c forecast memory reduction: merged from dec85a18.
+    - The largest 1000-year generation is now 117.5 MiB (it was 222–241).
+      With the previous generation retained, the successor reaches the full
+      horizon; the largest pair is 228 MiB.
+    - Supervisor audit:
+      - Summary interning stores an index to a bit-identical earlier
+        record, under the forecast mutex.
+      - Packed trace records use a presence mask, with present values stored
+        as their object representation (null stays distinct), and the
+        generated field visitor drives both encode and decode.
+      - Payloads grow from the back of the chunk inside the reserved record
+        span.
+    - Supervisor re-run: 42/42 CTests on MSVC and clang, 829/829 pairs,
+      30 windows with zero masks, 242 replay checkpoints, and the New Game
+      checks.
+    - Seed 1 longevity: 32,000 s in 257 ms, charging 107.6 MB. Seed 1
+      ordinary: 4,890 s in 112 ms, charging 44.5 MB. Pipeline 17.6 / 21.4.
   - N03f L2b remaining action kinds: merged from a75f3478 (259987e0).
     - The `parity_run` option conflict was resolved by keeping both
       `--rejections` and `--timegraph-hashes`.
