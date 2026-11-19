@@ -30,17 +30,19 @@ const clockFixture = ["before-advance_clock.json", "after-advance_clock.json"];
 const tickCount = TICKS_PER_REPLAY_SECOND;
 const dt = DEFAULT_REPLAY_DT_STEP;
 
+const chargeCascadeSeconds = [17, 41];
 const suite = {
   // Faith samples cover all six tier shifts, entry/re-entry into collapse,
   // ongoing collapse, a Resistance crossing and accrued Unrest income.
-  "seed-1": [1, 2, 3, 4, 5, 6, 7, 9, 17, 25, 33, 40, 82, 184, 202, 220, 226, 292, 298, 310,
+  "seed-1": [1, 2, 3, 4, 5, 6, 7, 9, 13, 17, 19, 25, 31, 33, 37, 40, 82, 97, 184, 202, 220, 226, 292, 298, 310,
     388, 400, 406, 412, 802, 880, 1595, 1596, 1597, 1598, 1599, 1600],
   "seed-1-migration": [1715],
-  "seed-1867": [58, 76, 82],
+  "seed-1867": [58, 61, 76, 79, 82, 85],
   "seed-42-shops": [7, 12, 13, 52, 70, 71, 76, 80, 81, 82, 88, 132],
-  "seed-2026-late": [3201, 3202, 3203, 3204, 3205, 3206, 3207, 3209, 3232, 3233, 3262, 3334],
-  "seed-42-charge": [17, 41],
-  "seed-123-migration": [2033, 2039, 2123, 2129, 2675],
+  "seed-2026-late": [3201, 3202, 3203, 3204, 3205, 3206, 3207, 3209, 3211, 3217, 3232, 3233, 3262, 3334],
+  // Both Charge Birth boundaries have no newborns. At Migration 2041 a child matures.
+  "seed-42-charge": [1, 19, ...chargeCascadeSeconds].sort((a, b) => a - b),
+  "seed-123-migration": [2033, 2039, 2041, 2123, 2129, 2675],
 };
 
 function requireThat(condition, message) {
@@ -214,7 +216,7 @@ function captureSecond(id, baseline, live, sec, actions, hashes) {
   state._seasonChanged = false;
   const end = boundary("second-end");
   const cascades = dischargeCascades(state);
-  if (id === "seed-42-charge" && suite[id].includes(sec)) {
+  if (id === "seed-42-charge" && chargeCascadeSeconds.includes(sec)) {
     requireThat(cascades.some(({ practices }) => practices.join() === "smelting,toolmaking"),
       label + ": expected the Smelting-to-Toolmaking Discharge cascade");
   }

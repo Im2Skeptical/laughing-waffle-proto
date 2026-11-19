@@ -90,5 +90,7 @@ void add_age_cohort(Cohort& target, CohortView source, int sign, CohortScratch& 
 void split_specialist_cohorts(const RuntimeState& state, const runtime::PopulationClass& population,
                               std::array<Cohort, 3>& parts, CohortScratch& scratch);
 void combine_specialist_cohorts(const std::array<Cohort, 3>& parts, Cohort& combined, CohortScratch& scratch);
+void write_legacy_cohorts(RuntimeState& state, runtime::SiteId site, Residency residency,
+                          const std::array<Cohort, 3>& parts, const Cohort& combined);
 
 }

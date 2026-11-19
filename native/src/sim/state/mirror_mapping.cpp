@@ -418,6 +418,7 @@ RuntimeState import_live_state(const browser::GameState& state, std::shared_ptr<
     settlement::prepare_population(result);
     rebuild_runtime_indexes(result);
     settlement::prepare_prelude(result);
+    settlement::prepare_birth(result);
     settlement::prepare_migration(result);
     stages::prepare_faith(result);
     return result;
