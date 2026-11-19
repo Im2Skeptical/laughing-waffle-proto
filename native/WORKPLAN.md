@@ -45,13 +45,43 @@
       browser's `moveVassalShopStructure`.
     - Pipeline is now **17.4 opening / 20.9 late** µs/sim-s.
     - Remaining action kinds have owners in the N03f section.
-- Active owners (wave started 19 Nov 2026 from 6c803fd3):
-  - N04d connected Windows slice (live sim and forecast drive the UI: map,
-    settlement, Practice change, forecast, scrub): sol 6.2 worker on
-    `t3/native-connected-slice`.
-  - N03e-3q pass 6 (trace and recipe attribution, then exact wins toward
-    the phone budget): Astra specialist on
-    `t3/native-pipeline-performance-6`. The supervisor audits it.
+- Active owners: none in native. The browser Housing fix (Campaign
+  conquest restoring a ruin mid-turn) is owned by its own sol 6.2 project
+  thread and needs Cam's PR authorization.
+- Wave started 19 Nov 2026 from 6c803fd3 (merged):
+  - N03e-3q pass 6: merged from c4ecf242.
+    - Shared trace chunks are retained once per cursor run, standalone
+      scheduled Stock recipes are compiled, and scalar receipts are packed.
+    - Supervisor audit: chunk lifetime is pinned by the page's first
+      owning ref; the recipe fast path applies only when admission proves
+      a single generateStock effect with no inputs, population or external
+      action; and absent versus present-empty receipt fields are kept.
+    - Supervisor re-run: 42/42 CTests on MSVC and clang, 829/829 pairs,
+      30 windows with zero masks, 242 replay checkpoints, and the New Game
+      checks.
+    - Pipeline **16.1 opening / 21.2 late** µs/sim-s. The longevity forecast
+      ran 32,000 s in 252 ms.
+    - Remaining gap to 10 µs: about 6 opening and 11 late. Measure the
+      Pixel before another pass.
+  - N04d connected Windows slice: merged from cee8c47c.
+    - `waffle_native_game.exe --seed <n>` or `--load <save.json>`. The loop:
+      select a settlement, inspect a Practice, confirm a Practice Reform
+      reorder (which starts a new forecast), scrub the population strip
+      (map and board show the restored state), then return to Live.
+    - Supervisor re-run: 45/45 CTests on MSVC and clang. The connected
+      smoke passed: generation 5, 5 actions, scrub t=227, live t=148.
+      Windows passed and 242 replay checkpoints matched.
+    - Worker measurements (MSVC, i9 + RTX 3080, 1120×640): first playable
+      729 ms; frame p50/p99 1.1/1.6 ms during a 1000-year forecast; loaded
+      scrub input-to-present p95 2.6 ms (2 frames); private memory 217 MiB.
+    - Deferred: full Life Map and Shop workflows, save slots, terrain art,
+      previous-forecast overlays, reveal animations, and Pixel.
+  - Next ready, pending Cam:
+    - The Pixel 6 session (`native/tools/benchmark-android-timegraph.ps1`)
+      for L4 hashes and phone timings.
+    - Rule-level performance options (lighter observable traces,
+      inverse-binomial Birth, lunar cadence).
+    - The scope and UX priorities for expanding the connected slice.
 - Wave started 19 Nov 2026 from 48302da1 (merged):
   - N04a headless forecast core (`waffle_timegraph`): merged from 6cd2f9d6.
     - Supervisor audit:
