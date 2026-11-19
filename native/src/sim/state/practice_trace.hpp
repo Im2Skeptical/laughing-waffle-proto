@@ -1,5 +1,7 @@
 #pragma once
 
+#include <cstring>
+
 // Included by rows.generated.hpp after the trace and its payload are defined.
 namespace waffle::sim::runtime {
 
@@ -20,16 +22,78 @@ struct PhaseTrace {
     }
 };
 
+// The field mask records optional key presence. Present values keep their
+// object representation, including the distinct null state of OptionalNullable.
+// No padding participates in deciding which fields or how many bytes to store.
+struct TraceEncoder {
+    std::byte* next;
+    std::uint64_t present{};
+
+    template<class T>
+    void put(const T& value)
+    {
+        static_assert(std::is_trivially_copyable_v<T>);
+        std::memcpy(next, &value, sizeof(T));
+        next += sizeof(T);
+    }
+
+    template<unsigned I, class T>
+    void field(const T& value)
+    {
+        static_assert(I < 64);
+        if constexpr (requires { value.has_value(); }) {
+            if (!value) return;
+            present |= std::uint64_t{1} << I;
+            put(*value);
+        } else if constexpr (requires { value.has_key(); }) {
+            if (!value.has_key()) return;
+            present |= std::uint64_t{1} << I;
+            put(value);
+        } else {
+            put(value);
+        }
+    }
+};
+
+struct TraceDecoder {
+    const std::byte* next;
+    std::uint64_t present;
+
+    template<class T>
+    void get(T& value)
+    {
+        static_assert(std::is_trivially_copyable_v<T>);
+        std::memcpy(&value, next, sizeof(T));
+        next += sizeof(T);
+    }
+
+    template<unsigned I, class T>
+    void field(T& value)
+    {
+        if constexpr (requires { value.has_value(); }) {
+            if (present & (std::uint64_t{1} << I)) get(value.emplace());
+        } else if constexpr (requires { value.has_key(); }) {
+            if (present & (std::uint64_t{1} << I)) get(value);
+        } else {
+            get(value);
+        }
+    }
+};
+
+enum class TraceFormat : std::uint8_t { phase, packed, withPayload };
+
 // A chunk has exactly one writer. Published records own disjoint, stable
 // storage. Growing a subsequent receipt cannot invalidate an earlier reader.
 class PracticeTraceChunk final : public history_detail::Node, private std::pmr::memory_resource {
 public:
-    struct Rich {
-        Rich(std::pmr::memory_resource* resource, Rich* previous)
-            : payload(resource), previous(previous) {}
-        PracticeEventTrace row;
+    struct PayloadNode {
         HistoryPayload payload;
-        Rich* previous;
+        PayloadNode* previous;
+    };
+    // Reserve the largest possible record while its builder is active.
+    // After packing, the next record starts just past the actual fields.
+    struct alignas(PayloadNode) RecordSpace {
+        std::byte bytes[sizeof(PayloadNode) + sizeof(std::uint64_t) + sizeof(PracticeEventTrace)];
     };
 
     explicit PracticeTraceChunk(const std::shared_ptr<HistoryArena>& arena) : Node(arena), upstream_(arena.get()) {}
@@ -46,34 +110,53 @@ public:
     T* reserve_row()
     {
         const auto offset = (used_ + alignof(T) - 1) & ~(alignof(T) - 1);
-        if (sizeof(T) > storage_.size() - offset) return nullptr;
+        if (offset > payloadBegin_ || sizeof(T) > payloadBegin_ - offset) return nullptr;
         used_ = offset + sizeof(T);
         return reinterpret_cast<T*>(storage_.data() + offset);
     }
 
     template<class Build>
-    void build(Rich* slot, Build& fill)
+    TraceFormat build(RecordSpace* slot, Build& fill)
     {
-        auto* record = ::new (slot) Rich(this, last_);
-        last_ = record;
+        auto* start = reinterpret_cast<std::byte*>(slot);
+        HistoryPayload payload(this);
+        PracticeEventTrace row;
         if constexpr (std::is_invocable_v<Build&, PracticeEventTrace&, HistoryPayload&>)
-            fill(record->row, record->payload);
+            fill(row, payload);
         else
-            record->row = fill(record->payload);
+            row = fill(payload);
+
+        auto format = TraceFormat::packed;
+        if (payload.live_bytes()) {
+            static_assert(std::is_nothrow_move_constructible_v<HistoryPayload>);
+            last_ = ::new (start) PayloadNode{std::move(payload), last_};
+            start += sizeof(PayloadNode);
+            format = TraceFormat::withPayload;
+        }
+        TraceEncoder encoder{start + sizeof(std::uint64_t)};
+        visit_trace_fields(row, encoder);
+        std::memcpy(start, &encoder.present, sizeof(encoder.present));
+        used_ = static_cast<std::size_t>(encoder.next - storage_.data());
+        return format;
     }
 
 private:
     alignas(std::max_align_t) std::array<std::byte, 3968> storage_;
     std::size_t used_{};
-    Rich* last_{};
+    std::size_t payloadBegin_{storage_.size()};
+    PayloadNode* last_{};
     HistoryArena* upstream_;
 
+    // Records grow from the front, variable payload from the back. A builder
+    // can allocate payload before the size of its packed record is known.
     void* do_allocate(std::size_t bytes, std::size_t alignment) override
     {
-        const auto offset = (used_ + alignment - 1) & ~(alignment - 1);
-        if (alignment <= alignof(std::max_align_t) && offset <= storage_.size() && bytes <= storage_.size() - offset) {
-            used_ = offset + bytes;
-            return storage_.data() + offset;
+        if (alignment <= alignof(std::max_align_t) && bytes <= payloadBegin_) {
+            const auto begin = (payloadBegin_ - bytes) & ~(alignment - 1);
+            if (begin >= used_) {
+                payloadBegin_ = begin;
+                return storage_.data() + begin;
+            }
         }
         return upstream_->allocate(bytes, alignment);
     }
@@ -89,18 +172,27 @@ private:
 struct PracticeTraceRef {
     history_detail::Handle<PracticeTraceChunk> owner;
     const void* record{};
-    bool phase{};
+    TraceFormat format{};
 
     template<class Visit>
     void inspect(Visit& visit) const
     {
-        if (phase) {
-            static const HistoryPayload empty;
+        static const HistoryPayload empty;
+        if (format == TraceFormat::phase) {
             visit(static_cast<const PhaseTrace*>(record)->expand(), empty);
-        } else {
-            const auto& rich = *static_cast<const PracticeTraceChunk::Rich*>(record);
-            visit(rich.row, rich.payload);
+            return;
         }
+        auto* bytes = static_cast<const std::byte*>(record);
+        const auto* payload = &empty;
+        if (format == TraceFormat::withPayload) {
+            payload = &static_cast<const PracticeTraceChunk::PayloadNode*>(record)->payload;
+            bytes += sizeof(PracticeTraceChunk::PayloadNode);
+        }
+        TraceDecoder decoder{bytes + sizeof(std::uint64_t), 0};
+        std::memcpy(&decoder.present, bytes, sizeof(decoder.present));
+        PracticeEventTrace row;
+        visit_trace_fields(row, decoder);
+        visit(row, *payload);
     }
 };
 
@@ -141,16 +233,15 @@ public:
     template<class Build>
     PracticeTraceRef rich(Build& build, const std::shared_ptr<HistoryArena>& arena)
     {
-        auto* slot = reserve<PracticeTraceChunk::Rich>(arena);
-        tail_->build(slot, build);
-        return {owner_, slot, false};
+        auto* slot = reserve<PracticeTraceChunk::RecordSpace>(arena);
+        return {owner_, slot, tail_->build(slot, build)};
     }
 
     PracticeTraceRef phase(PhaseTrace row, const std::shared_ptr<HistoryArena>& arena)
     {
         auto* slot = reserve<PhaseTrace>(arena);
         std::construct_at(slot, row);
-        return {owner_, slot, true};
+        return {owner_, slot, TraceFormat::phase};
     }
 };
 

@@ -1105,6 +1105,53 @@ struct HotState {
     std::optional<RunStatus> runStatus{};
 };
 
+// Visit the complete trace schema in order for its in-memory sparse encoding.
+template<class Row, class Visit>
+void visit_trace_fields(Row& row, Visit& visit)
+{
+    visit.template field<0>(row.tSec);
+    visit.template field<1>(row.kind);
+    visit.template field<2>(row.regionId);
+    visit.template field<3>(row.targetPracticeId);
+    visit.template field<4>(row.slotIndex);
+    visit.template field<5>(row.rootId);
+    visit.template field<6>(row.parentId);
+    visit.template field<7>(row.providers);
+    visit.template field<8>(row.practiceId);
+    visit.template field<9>(row.activationType);
+    visit.template field<10>(row.id);
+    visit.template field<11>(row.amount);
+    visit.template field<12>(row.traits);
+    visit.template field<13>(row.tags);
+    visit.template field<14>(row.pool);
+    visit.template field<15>(row.scholarStaffed);
+    visit.template field<16>(row.discharge);
+    visit.template field<17>(row.phase);
+    visit.template field<18>(row.premature);
+    visit.template field<19>(row.faction);
+    visit.template field<20>(row.controller);
+    visit.template field<21>(row.instanceId);
+    visit.template field<22>(row.reason);
+    visit.template field<23>(row.cause);
+    visit.template field<24>(row.targetRegionId);
+    visit.template field<25>(row.structureId);
+    visit.template field<26>(row.previousController);
+    visit.template field<27>(row.military);
+    visit.template field<28>(row.untilSec);
+    visit.template field<29>(row.classId);
+    visit.template field<30>(row.actionKind);
+    visit.template field<31>(row.action);
+    visit.template field<32>(row.outcome);
+    visit.template field<33>(row.sourceRegionId);
+    visit.template field<34>(row.strengthBefore);
+    visit.template field<35>(row.strengthAfter);
+    visit.template field<36>(row.martial);
+    visit.template field<37>(row.destinationId);
+    visit.template field<38>(row.sourceRegionIds);
+    visit.template field<39>(row.charge);
+    visit.template field<40>(row.threshold);
+}
+
 using HotTables = Tables<
     Index<StructureCell>,
     SeasonId,

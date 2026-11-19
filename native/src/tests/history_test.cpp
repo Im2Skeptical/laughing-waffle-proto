@@ -5,6 +5,7 @@
 #include "tools/json_file.hpp"
 #include "tools/reference_topology.hpp"
 
+#include <bit>
 #include <charconv>
 #include <chrono>
 #include <cstdlib>
@@ -129,17 +130,36 @@ void clear_and_reuse()
     expect(live.size() == 1, "reused history must publish only new rows");
 }
 
+void packed_trace_values()
+{
+    Trace trace;
+    PracticeEventTrace source;
+    source.amount = -0.0;
+    source.faction = browser::OptionalNullable<FactionId>{std::nullopt};
+    source.instanceId = browser::OptionalNullable<InstanceId>{InstanceId{17}};
+    source.martial = false;
+    source.threshold = 0.125;
+    trace.push(source);
+    const auto row = trace.at(0);
+    expect(row.amount && std::bit_cast<std::uint64_t>(*row.amount) == std::bit_cast<std::uint64_t>(-0.0) &&
+           row.faction.has_key() && !row.faction.value() && !row.controller.has_key() &&
+           row.instanceId.has_key() && row.instanceId.value() == InstanceId{17} &&
+           row.martial == false && row.threshold == source.threshold,
+           "trace packing lost optional, nullable or binary64 values");
+}
+
 void copy_isolation()
 {
     Trace left;
     for (int i = 0; i < 19; ++i) append_trace(left, i);
-    auto row_address = [](const Trace& trace, int index) {
-        const PracticeEventTrace* address = nullptr;
-        trace.for_each([&](const auto& row, const auto&) { if (index-- == 0) address = &row; });
+    auto payload_address = [](const Trace& trace, int index) {
+        const HistoryPayload* address = nullptr;
+        trace.for_each([&](const auto&, const auto& payload) { if (index-- == 0) address = &payload; });
         return address;
     };
-    const auto* sealedRow = row_address(left, 0);
-    const auto* tailRow = row_address(left, 18);
+    const auto* sealedRow = payload_address(left, 0);
+    const auto* tailRow = payload_address(left, 18);
+    expect(sealedRow != tailRow, "distinct receipts should own distinct payloads");
     append_trace(left, 19);
 
     const auto anchor = left;
@@ -148,8 +168,8 @@ void copy_isolation()
         append_trace(left, i);
         append_trace(right, -i);
         if (i == 20) {
-            expect(row_address(left, 0) == sealedRow && row_address(right, 0) == sealedRow, "sealed page should stay shared");
-            expect(row_address(left, 18) == tailRow && row_address(right, 18) == tailRow, "published records stay shared across branches");
+            expect(payload_address(left, 0) == sealedRow && payload_address(right, 0) == sealedRow, "sealed page should stay shared");
+            expect(payload_address(left, 18) == tailRow && payload_address(right, 18) == tailRow, "published records stay shared across branches");
         }
         expect(anchor.size() == 20 && anchor.at(19).rootId == 19, "anchor changed after a branch append");
     }
@@ -393,6 +413,7 @@ int main(int argc, char** argv)
             return opening && late ? 0 : 1;
         } else {
             expect(argc == 2, "usage: waffle_history_test <fixture> | --bench");
+            packed_trace_values();
             copy_isolation();
             clear_and_reuse();
             failed_append();
