@@ -73,7 +73,24 @@
     (adb `Access is denied`). Stopping its service freed the phone.
     `adb` (platform-tools 37.0.1) is now in
     `native/.tools/android-sdk/platform-tools`.
-- Active owners:
+- Active owners (wave started 19 Nov 2026 from f781c456, after Cam's direction
+  on app UX):
+  - Direction: build proper videogame interaction (states, feedback,
+    motion, confirmations), and improve code-rendered visuals freely in the
+    game's tone. The browser build is a content and layout reference only.
+    Gameplay rules stay exactly as ported.
+  - N04e app shell (save slots, title screen, lifecycle, Android
+    packaging, touch, and Pixel 6 Pro measurements): sol 6.2 worker on
+    `t3/native-app-shell`.
+  - N04f interaction and presentation system (component states, feedback,
+    motion, procedural map terrain, reveal, timegraph strip polish): sol 6.2
+    worker on `t3/native-interaction`.
+  - N03i native catch-up to browser main 9123ed72 (PR #108, merged by the
+    supervisor after Cam's go-ahead): sol 6.2 worker on
+    `t3/native-catch-up-108`.
+  - Next after N04f: the Life Map and Shop flows, built on the N04f
+    components.
+- Previous wave:
   - N03h v53 catch-up: merged from bd2aeedd. Supervisor audit: uint32 RNG
     cursors match the browser's `>>> 0`; the clock derives from the tick
     index; and the late allocation test's threshold override is test-only.
