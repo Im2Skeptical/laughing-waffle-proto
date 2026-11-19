@@ -1166,6 +1166,10 @@ struct HistoryPayload : ArenaTables<StockProvider, TraitId, TagId, RegionId> {
     }
 };
 
+}
+#include "sim/state/practice_trace.hpp"
+namespace waffle::sim::runtime {
+
 using ColdTables = Tables<
     ColdValue<std::string, World_definitionId>,
     ColdValue<std::string, Region_colour>,
