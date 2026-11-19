@@ -1,0 +1,17 @@
+{
+  "id": "action-shop-unlocks",
+  "start": {"kind":"actionExhibit","variant":"shop-unlocks","seed":1},
+  "actions": [
+    {"tSec":1,"kind":"vassalPurchaseShopOffer","payload":{"nodeId":"life-d03-r03","offerId":"practice-slot:4"}},
+    {"tSec":2,"kind":"vassalPurchaseShopOffer","payload":{"nodeId":"life-d03-r03","offerId":"practice-slot:5"}},
+    {"tSec":3,"kind":"vassalUndoShopPurchase","payload":{"nodeId":"life-d03-r03","offerId":"practice-slot:5"}},
+    {"tSec":4,"kind":"vassalPurchaseShopOffer","payload":{"nodeId":"life-d03-r03","offerId":"practice-slot:5"}},
+    {"tSec":5,"kind":"vassalConfirmLifeNode","payload":{"nodeId":"life-d03-r03"}}
+  ],
+  "horizonSec": 68,
+  "keepSeconds": [0, 1, 2, 3, 4, 5, 64, 68],
+  "rejections": [
+    {"action":{"tSec":0,"kind":"vassalPurchaseShopOffer","payload":{"nodeId":"life-d03-r03","offerId":"practice-slot:5"}},"reason":"practiceUnlockUnavailable"},
+    {"action":{"tSec":2,"kind":"vassalUndoShopPurchase","payload":{"nodeId":"life-d03-r03","offerId":"practice-slot:4"}},"reason":"practiceUnlockInUse"}
+  ]
+}

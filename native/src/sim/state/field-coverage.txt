@@ -160,7 +160,7 @@ hot id
 
 [LifeEventsIntervention]
 HistoryTextId kind mode tier resultingTier
-RegionId targetRegionId
+RegionId targetRegionId regionAId regionBId
 PracticeId practiceId
 StructureId structureId
 InstanceId instanceId

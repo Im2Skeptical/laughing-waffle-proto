@@ -30,6 +30,33 @@ export function prepareActionExhibit(state, variant) {
   const martial = variant === "choice-challenge" || variant.startsWith("choice-campaign");
   const { vassal } = requireAction(selectLifeMapVassal(state, martial ? 1 : 0));
   const map = vassal.lifeMap;
+  if (["shop-unlocks", "shop-currency", "shop-connections"].includes(variant)) {
+    const graphNode = map.graph.nodes.find(node => node.family === "publicWorks");
+    civ.prestige = 80;
+    if (variant === "shop-currency") {
+      for (const price of Object.values(state.gameConfig.lifeMapGenerator.design.shopPricing.prices.structure)) {
+        price.currency = 1;
+      }
+    }
+    map.availableNodeIds = [graphNode.id];
+    const { nodeState } = requireAction(enterVassalLifeNode(state, graphNode.id));
+    requireAction(selectVassalNodeOption(state, graphNode.id, "Housing"));
+    if (variant === "shop-currency") {
+      nodeState.inventory[1].baseCurrencyCost = 999;
+    }
+    if (variant === "shop-connections") {
+      const connection = (offerId, mode, regionAId, regionBId, inventoryIndex) => ({
+        offerId, label: offerId, basePrestigeCost: 1, basePhaseCost: 0, inventoryIndex,
+        intervention: { kind: "connection", mode, regionAId, regionBId },
+      });
+      nodeState.inventory = [
+        connection("legacy-route-add", "add", "R08", "R09", 0),
+        connection("legacy-route-remove", "remove", "R09", "R16", 1),
+        connection("legacy-route-existing", "add", "R02", "R09", 2),
+      ];
+    }
+    return state;
+  }
   if (variant.startsWith("choice-")) {
     const [family, outcome] = variant.slice("choice-".length).split("-");
     const node = map.graph.nodes.find(node => family === "legacyPlus" ? node.id === map.graph.bossNodeId : node.depth === 1);

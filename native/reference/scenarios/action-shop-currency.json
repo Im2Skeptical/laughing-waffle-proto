@@ -1,0 +1,13 @@
+{
+  "id": "action-shop-currency",
+  "start": {"kind":"actionExhibit","variant":"shop-currency","seed":1},
+  "actions": [
+    {"tSec":1,"kind":"vassalPurchaseShopOffer","payload":{"nodeId":"life-d03-r03","offerId":"life-d03-r03:r0:structure:0"}},
+    {"tSec":2,"kind":"vassalConfirmLifeNode","payload":{"nodeId":"life-d03-r03"}}
+  ],
+  "horizonSec": 68,
+  "keepSeconds": [0, 1, 2, 3, 4, 5, 64, 68],
+  "rejections": [
+    {"action":{"tSec":0,"kind":"vassalPurchaseShopOffer","payload":{"nodeId":"life-d03-r03","offerId":"life-d03-r03:r0:structure:1"}},"reason":"insufficientCurrency"}
+  ]
+}
