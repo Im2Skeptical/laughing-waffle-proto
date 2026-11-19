@@ -418,6 +418,42 @@ zero allocations across 50,000 warmed invocations per input, including real
 bookings and unresolved reservations. Scratch and state arenas allocate
 when first populated or at a new high-water mark. Android was untested.
 
+**N03e-7b Death result (19 Nov 2026).** Death feeds migrants from destination
+Edible Stock and commits surviving cohorts as Strangers before rolling hardship
+and old-age mortality in browser order. It publishes regional and last-meal
+reports, updates population and loss history, and drains death events before
+Death Practices. Migration still records legacy external departures when it
+books them. Prelude refunds pending bookings and leaves committed arrivals in
+place. Death reuses admission-time report rows and reserves survivor payloads
+alongside Migration bookings. Restored pending bookings use the same typed
+payload layout.
+
+Browser baseline `496d9971` covers natural arrivals at seed-123/2034 and
+/2130 and seed-1/1716, hardship, old-age deaths and zero-death moons.
+Prepared stage exhibits cover partial and total arrival losses, the legacy
+mitigation cap, 130 external emigrants and an expiry after commitment.
+Reproduce with `node native/reference/trace.mjs`,
+`node native/reference/stage-probe.mjs --all`,
+`node native/reference/stage-pairs.mjs native/build/optimized/src/sim/waffle_parity.exe death`
+and `node native/reference/step-windows.mjs native/build/optimized/src/sim/waffle_parity.exe`.
+Windows optimized build and all 30 CTests pass. Death (15/15), Migration
+(16/16) and Death Practices (10/10) stage pairs pass unmasked. All 14 windows
+and 120 comparisons pass. A prepared two-second continuation also passes
+with native-booked arrival payloads and 30 survivors among 32 migrants.
+Movement, arrival and loss-accounting masks are removed. Narrow Villager
+mortality and site-history masks, plus the general RNG mask, belong to
+N03e-4 until Birth draws and aging are integrated. Food still owns the
+step mask for creating the parent last-meal record. The Death pairs expose
+its updated Migration fields.
+
+Seven optimized MSVC timing runs on the i9-10900K used the `step --time`
+command above with seed-1/0 (`k=39`) and seed-2026-late/3200 (`k=11`). A
+focused timer around the Death dispatch within the same runs measured
+0.116 and 0.567 µs/sim-s, respectively, including non-Death seconds in the
+denominator. Those runs put the pipeline at 12.89 and 14.37 µs/sim-s.
+The exact per-person stream meets the Death budget, so no sampled alternative
+or divergence was proposed. Android runtime parity remains unverified.
+
 N03d-4 result, 19 Nov 2026. Gameplay admission retains immutable topology
 and compiled content and shares both across runtime copies. The parity
 tools resolve `world.definitionId` through the topology manifest. From

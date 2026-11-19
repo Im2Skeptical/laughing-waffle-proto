@@ -93,6 +93,7 @@ struct RuntimeState {
     runtime::IdTables addedIds;
     SettlementPreludeCache settlementPrelude;
     FaithStageCache faithStage;
+    runtime::Range<runtime::MoonRegionResultDeath> deathReports;
     settlement::MigrationReservationCache migrationReservations;
     PopulationVocabulary populationVocabulary;
     settlement::MigrationCache migration;

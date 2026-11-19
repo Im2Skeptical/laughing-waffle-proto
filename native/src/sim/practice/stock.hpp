@@ -95,4 +95,14 @@ StockPlan plan_stock(const RuntimeState& state, const runtime::Site& site,
                      std::span<const content::StockInput> extraRequire = {});
 bool apply_stock(RuntimeState& state, const runtime::Site& site, const StockPlan& plan);
 
+// Settlement-wide modifiers have no consumer Practice to match.
+inline double structure_modifier_total(const RuntimeState& state, const runtime::Site& site,
+                                       content::ModifierKind kind)
+{
+    double total = 0;
+    for (const auto& mod : detail::modifiers(state, site))
+        if (mod.def->kind == kind) total += mod.amount;
+    return total;
+}
+
 }

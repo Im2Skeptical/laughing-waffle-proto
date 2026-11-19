@@ -433,10 +433,28 @@ bool owns(Range<T> capacity, Range<T> live)
     return live.size() && capacity.begin <= live.begin && live.end <= capacity.end;
 }
 
-bool owns_report(const MigrationStorage& storage, const MigrationReport& report)
+bool owns_report(const RuntimeState& state, const MigrationStorage& storage, const MigrationReport& report)
 {
-    return owns(storage.movements, report.inbound) || owns(storage.movements, report.outbound) ||
-           owns(storage.summaries, report.intents);
+    if (owns(storage.movements, report.inbound) || owns(storage.movements, report.outbound) ||
+        owns(storage.summaries, report.intents)) return true;
+    // An arrival report created for a newly detailed site can have its
+    // own movement rows while still borrowing this booking's compositions.
+    const auto ownsComposition = [&](const PopulationComposition& composition) {
+        for (const auto* cohort : {&composition.villager, &composition.stranger}) {
+            if (owns(storage.joint, cohort->joint.value_or(Range<JointCohort>{})) ||
+                owns(storage.elders, cohort->eldersByAge) ||
+                owns(storage.elders, cohort->specialists.scholar.eldersByAge) ||
+                owns(storage.elders, cohort->specialists.warrior.eldersByAge)) return true;
+        }
+        return false;
+    };
+    for (const auto range : {report.inbound, report.outbound}) {
+        for (const auto& move : state.tables.view(range)) {
+            if (ownsComposition(move.composition) ||
+                (move.survivorComposition && ownsComposition(*move.survivorComposition))) return true;
+        }
+    }
+    return false;
 }
 
 bool referenced(const RuntimeState& state, const MigrationStorage& storage)
@@ -447,14 +465,14 @@ bool referenced(const RuntimeState& state, const MigrationStorage& storage)
         if (owns(storage.movements, moon.movements) || owns(storage.unresolved, moon.unresolved) ||
             owns(storage.summaries, moon.migrationIntentSummaries.value_or(Range<MigrationIntentSummary>{}))) return true;
         for (const auto& region : state.tables.view(moon.regions))
-            if (region.value.migration && owns_report(storage, state.tables.at(*region.value.migration))) return true;
+            if (region.value.migration && owns_report(state, storage, state.tables.at(*region.value.migration))) return true;
     }
     for (const auto& site : state.tables.view(state.hot.world.sites)) {
         const auto& detail = site.detailedState;
-        if (detail.lastMeal && owns_report(storage, state.tables.at(*detail.lastMeal).migration)) return true;
+        if (detail.lastMeal && owns_report(state, storage, state.tables.at(*detail.lastMeal).migration)) return true;
         if (detail.lastMoonResult) {
             const auto report = state.tables.at(*detail.lastMoonResult).migration;
-            if (report && owns_report(storage, state.tables.at(*report))) return true;
+            if (report && owns_report(state, storage, state.tables.at(*report))) return true;
         }
     }
     return false;
@@ -466,7 +484,7 @@ void grow(Table<T>& table, Range<T>& storage, std::size_t needed)
     if (needed > storage.size()) storage = table.append(std::max(needed, std::size_t{2} * storage.size()), path);
 }
 
-MigrationStorage acquire_storage(RuntimeState& state, const Workspace& scratch)
+MigrationStorage* acquire_storage(RuntimeState& state, const Workspace& scratch)
 {
     const auto intents = std::ranges::count_if(scratch.work, [](const auto& w) { return w.requested > 0; });
     if (!intents) return {};
@@ -492,13 +510,15 @@ MigrationStorage acquire_storage(RuntimeState& state, const Workspace& scratch)
     grow(state.tables.table<MigrationMovement>(), storage.movements, movementRows);
     grow(state.tables.table<MigrationIntentSummary>(), storage.summaries, summaryRows);
     grow(state.tables.table<MigrationSourceLoss>(), storage.unresolved, unresolved);
+    // Death can retain a smaller composition beside the original booking.
+    binCount += scratch.payload.size();
     grow(state.tables.table<JointCohort>(), storage.joint, binCount);
     grow(state.tables.table<ElderCohort>(), storage.elders, 2 * binCount);
     state.jointCounts.resize(state.tables.rows<JointCohort>().size());
-    return storage;
+    return &storage;
 }
 
-MigrationReport publish_bookings(RuntimeState& state, MoonTurn& turn, Workspace& scratch, MigrationStorage storage)
+MigrationReport publish_bookings(RuntimeState& state, MoonTurn& turn, Workspace& scratch, MigrationStorage& storage)
 {
     auto nextMovement = storage.movements.begin;
     auto nextSummary = storage.summaries.begin;
@@ -549,6 +569,8 @@ MigrationReport publish_bookings(RuntimeState& state, MoonTurn& turn, Workspace&
     turn.movements = {storage.movements.begin, nextMovement};
     turn.unresolved = {storage.unresolved.begin, nextUnresolved};
     turn.migrationIntentSummaries = Range<MigrationIntentSummary>{storage.summaries.begin, nextSummary};
+    storage.survivorJoint = joint;
+    storage.survivorElders = elders;
     return {{nextSummary, storage.summaries.end}, {nextMovement, storage.movements.end}};
 }
 
@@ -606,6 +628,16 @@ void update_last_meal(RuntimeState& state, Site& site, MigrationReport report)
     state.tables.at(*site.detailedState.lastMeal).migration = report;
 }
 
+MigrationMovement compact_movement(MigrationMovement movement)
+{
+    movement.external = movement.external.value_or(false);
+    movement.originalIndex.reset();
+    // The booking defers arrival survival. Its report clones the absent
+    // survivor composition as an empty pair of cohorts.
+    if (!movement.survivorComposition) movement.survivorComposition.emplace();
+    return movement;
+}
+
 void publish_reports(RuntimeState& state, MoonTurn& turn, MigrationReport available)
 {
     auto nextSummary = available.intents.begin;
@@ -614,22 +646,14 @@ void publish_reports(RuntimeState& state, MoonTurn& turn, MigrationReport availa
     for (const auto id : detailed_sites(state)) {
         auto& site = site_at(state, id);
         const auto region = site.regionId;
-        const auto compact = [](MigrationMovement movement) {
-            movement.external = movement.external.value_or(false);
-            movement.originalIndex.reset();
-            // The booking defers arrival survival. The report clones its
-            // absent survivor composition as an empty pair of cohorts.
-            if (!movement.survivorComposition) movement.survivorComposition.emplace();
-            return movement;
-        };
         MigrationReport report;
         report.tSec = state.hot.tSec;
         report.intents = copy_selected(state, *turn.migrationIntentSummaries, nextSummary,
                                        [&](const auto& item) { return item.sourceRegionId == region; });
         report.outbound = copy_selected(state, turn.movements, nextMovement,
-                                        [&](const auto& item) { return item.sourceRegionId == region; }, compact);
+                                        [&](const auto& item) { return item.sourceRegionId == region; }, compact_movement);
         report.inbound = copy_selected(state, turn.movements, nextMovement,
-                                        [&](const auto& item) { return item.destinationRegionId == region; }, compact);
+                                        [&](const auto& item) { return item.destinationRegionId == region; }, compact_movement);
         auto& result = region_result(state, turn, region, ordinal++);
         const auto index = report_slot(state, id, site);
         state.tables.at(index) = report;
@@ -677,14 +701,65 @@ void resolve_migration(RuntimeState& state, MoonTurn& turn)
     refresh_intents(state, intents, scratch);
     rank_destinations(state, scratch);
     allocate_housing(state, scratch);
-    const auto storage = acquire_storage(state, scratch);
-    const auto available = publish_bookings(state, turn, scratch, storage);
+    auto* storage = acquire_storage(state, scratch);
+    MigrationStorage empty;
+    const auto available = publish_bookings(state, turn, scratch, storage ? *storage : empty);
     for (const auto id : detailed_sites(state)) {
         const auto& source = scratch.sites[id.value];
         if (source.changed)
             write_population_bins(state, id, source.residents, scratch.ledger, joint_bins(source.residents));
     }
     publish_reports(state, turn, available);
+}
+
+PopulationComposition store_arrival_survivors(RuntimeState& state, Range<MigrationMovement> movements,
+                                              std::span<const PopulationBin> bins, bool joint,
+                                              LedgerScratch& scratch)
+{
+    for (auto& storage : state.migration.storage) {
+        if (owns(storage.movements, movements))
+            return write_population_composition(state, bins, joint, scratch,
+                                                storage.survivorJoint, storage.survivorElders);
+    }
+    // A stage probe or restored save can contain bookings created before
+    // admission, outside this state's reusable Migration storage.
+    auto jointCursor = joint ? state.tables.table<JointCohort>().append(bins.size(), path).begin : 0;
+    auto elderCursor = state.tables.table<ElderCohort>().append(2 * bins.size(), path).begin;
+    state.jointCounts.resize(state.tables.rows<JointCohort>().size());
+    return write_population_composition(state, bins, joint, scratch, jointCursor, elderCursor);
+}
+
+double finish_migration_report(RuntimeState& state, SiteId id, const MoonTurn& turn,
+                               MoonRegionResult& result)
+{
+    auto& site = site_at(state, id);
+    if (!result.migration) {
+        result.migration = report_slot(state, id, site);
+        state.tables.at(*result.migration) = {};
+    }
+    auto& report = state.tables.at(*result.migration);
+    double arrivalDeaths = 0;
+    if (turn.movements.size()) {
+        const auto refresh = [&](auto& range, auto regionField) {
+            const auto matches = [&](const auto& movement) { return movement.*regionField == site.regionId; };
+            const auto count = std::ranges::count_if(state.tables.view(turn.movements), matches);
+            // Usually the current report already has slots for these bookings.
+            // A site joining the detailed list mid-moon can need new slots.
+            if (static_cast<std::size_t>(count) != range.size())
+                range = state.tables.table<MigrationMovement>().append(count, path);
+            auto next = range.begin;
+            copy_selected(state, turn.movements, next, matches, compact_movement);
+        };
+        refresh(report.outbound, &MigrationMovement::sourceRegionId);
+        refresh(report.inbound, &MigrationMovement::destinationRegionId);
+        for (const auto& movement : state.tables.view(report.inbound)) arrivalDeaths += movement.arrivalDeaths;
+    } else {
+        report.outbound = report.inbound = {};
+    }
+    // Death copies the whole regional result, including Migration's tSec.
+    if (site.detailedState.lastMeal)
+        state.tables.at(*site.detailedState.lastMeal).migration = report;
+    return arrivalDeaths;
 }
 
 void cancel_moon_migration(RuntimeState& state, RegionId region)
