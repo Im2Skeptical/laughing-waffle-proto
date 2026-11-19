@@ -3371,7 +3371,7 @@ $game = 'native/build/optimized/waffle_native_game.exe'
 & $game --seed 42 --size 640 360 --capture artifacts/n04f/compact
 ```
 
-Captures and raw benchmark rows are under [artifacts/n04f](../artifacts/n04f/).
+Captures and raw benchmark rows are under `artifacts/n04f/` (local, not committed).
 The `before/` captures use the N04d view with extra capture checkpoints. The
 baseline staged screen contains its one-step confirmation. The `after/` and
 `compact/` sets each include the atlas, settlement, Practice inspection,
