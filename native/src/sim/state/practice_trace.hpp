@@ -197,6 +197,17 @@ struct PracticeTraceRef {
 };
 
 struct TraceCursorPayload {
+    // Pages retain even their evicted prefix until the entire page is dropped.
+    // The first row of a run owns the chunk for subsequent rows on that page.
+    const PracticeTraceChunk* lastChunk{};
+
+    PracticeTraceRef retain(const PracticeTraceRef& ref) noexcept
+    {
+        if (lastChunk == ref.owner.operator->()) return {{}, ref.record, ref.format};
+        lastChunk = ref.owner.operator->();
+        return ref;
+    }
+
     std::size_t live_bytes() const { return 0; }
 };
 
@@ -264,9 +275,9 @@ public:
         History result;
         if (!count) return result;
         result.arena_ = arena ? arena : std::make_shared<HistoryArena>();
-        result.cursor_ = Cursor::load(count, [&](TraceCursorPayload&, std::size_t index) {
+        result.cursor_ = Cursor::load(count, [&](TraceCursorPayload& owners, std::size_t index) {
             auto fill = [&](HistoryPayload& page) { return build(page, index); };
-            return result.writer_.rich(fill, result.arena_);
+            return owners.retain(result.writer_.rich(fill, result.arena_));
         }, result.arena_);
         return result;
     }
@@ -287,7 +298,7 @@ public:
     }
     void link(const PracticeTraceRef& ref, const std::shared_ptr<HistoryArena>& arena)
     {
-        cursor_.append([&](TraceCursorPayload&) noexcept { return ref; }, arena);
+        cursor_.append([&](TraceCursorPayload& owners) noexcept { return owners.retain(ref); }, arena);
     }
     void push(PracticeEventTrace row) { append([&](HistoryPayload&) { return row; }); }
 
