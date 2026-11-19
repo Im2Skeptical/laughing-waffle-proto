@@ -5,7 +5,7 @@ import { splitSpecialistCohorts, combineSpecialistCohorts } from "../cohorts.js"
 
 import { POPULATION_CLASS_ORDER } from "../../../defs/gamepieces/detailed-settlement-defs.js";
 import { getGameSetting } from "../../game-config.js";
-import { clone } from "../helpers.js";
+import { ensureMoonRegionResult } from "../helpers.js";
 import { runPracticeActivation } from "../practices.js";
 import { getDetailedSettlementSites } from "../queries.js";
 import { beginMoonTurn } from "./moon-turn.js";
@@ -84,7 +84,7 @@ export function runBirthPhase(state, phase) {
       if(!hasPopulationLedger(settlement)) combineSpecialistCohorts(classState, parts);
       Object.assign(result.byClass[classId], totals);
     }
-    turn.regions[site.regionId].birth = result;
+    ensureMoonRegionResult(turn, site.regionId).birth = result;
   }
   state.civilization.lastPopulationAgingYear = Math.max(
     lastAgedYear,

@@ -2,7 +2,7 @@
 
 import { POPULATION_CLASS_ORDER } from "../../../defs/gamepieces/detailed-settlement-defs.js";
 import { getGameSetting } from "../../game-config.js";
-import { classPopulationTotal } from "../helpers.js";
+import { classPopulationTotal, ensureMoonRegionResult } from "../helpers.js";
 import { runPracticeActivation } from "../practices.js";
 import { getPlayerAndUnrestSettlementSites } from "../queries.js";
 import { runGlobalChaos } from "./chaos.js";
@@ -49,15 +49,16 @@ export function runFaithPhase(state, phase) {
   runPracticeActivation(state, "faith");
   for (const site of getPlayerAndUnrestSettlementSites(state)) {
     const settlement = site.detailedState;
+    const regionResult = ensureMoonRegionResult(turn, site.regionId);
     const byClass = {};
-    const housingCap = turn.regions[site.regionId].housing?.happinessCap ?? "positive";
+    const housingCap = regionResult.housing?.happinessCap ?? "positive";
     for (const classId of POPULATION_CLASS_ORDER) {
       const classState = settlement.populationByClass[classId];
       if (classId === "stranger" && classPopulationTotal(classState) <= 0) {
         resetEmptyStrangerCohort(settlement);
         continue;
       }
-      const food = turn.regions[site.regionId].food?.byClass?.[classId];
+      const food = regionResult.food?.byClass?.[classId];
       const previousHappiness = classState.happiness.status;
       const foodTarget = food?.targetHappiness ?? previousHappiness;
       const foodIndex = Math.max(0, HAPPINESS_ORDER.indexOf(foodTarget));
@@ -100,7 +101,7 @@ export function runFaithPhase(state, phase) {
       };
     }
     if (settlement.happinessFloor?.remainingResolutions > 0) settlement.happinessFloor.remainingResolutions -= 1;
-    turn.regions[site.regionId].faith = { tSec: state.tSec, byClass };
+    regionResult.faith = { tSec: state.tSec, byClass };
   }
   runGlobalChaos(state);
 }
