@@ -1176,6 +1176,26 @@ trace contract. The native fast path is a candidate for a browser-specific
 measurement if its drain is revisited. Reuse the phase stage probes to
 check the queue, threshold and Discharge guards and verify trace ID order.
 
+**N03e-3q ? pipeline performance, third pass (19 Nov 2026).**
+
+Phase 1 re-enabled the allocation gate. Admission reserves worker scratch for
+Migration, Death and Practice population writes, table headroom for reports,
+growing reservation payloads and returning storefronts, and small history
+payload slabs. Full uninterrupted runs after 512 warmup seconds measured
+zero global allocations at opening (3,200 seconds) and late (1,920 seconds,
+3712 to 5632). The late fixture keeps the hash-checked 3200 anchor and ends
+44 seconds before Monster Overrun. Opening previously allocated 263 times.
+The counter and the assertion that every measured second advances remain
+active. The new reserves are capacity hints; larger worlds can still grow.
+
+Paired optimized MSVC timings on logical CPU 15, five alternating runs per
+binary and anchor, measured 41.441 ? 44.200 ?s/sim-s opening and
+53.664 ? 49.097 late for Phase 1. These host timings differ from the
+supervisor's idle baseline. Raw reports and executable copies are in
+`artifacts/n03e-3q-3/`. From the repository root run
+`python artifacts/n03e-3q-3/time.py base gate` and, from native,
+`ctest --preset optimized -V -R pipeline_steady_state_allocations`.
+
 ## N03f - Actions, replay and new game (pending N03e)
 
 Action application and `rebuildStateAtSecond` (L2), then new game and world

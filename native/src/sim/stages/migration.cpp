@@ -678,6 +678,41 @@ void prepare_migration(RuntimeState& state)
     auto& cache = state.migration;
     cache.reports = state.tables.table<MigrationReport>().append(state.hot.world.sites.size() * 3, path);
     cache.storage.reserve(4);
+    const std::size_t sites = state.hot.world.sites.size();
+    // Food, Housing and Faith can each reserve both residencies per site.
+    const auto intents = sites * 6;
+    const auto bins = state.birthStorage.binCapacityHint;
+    auto& scratch = workspace();
+    scratch.sites.resize(sites);
+    scratch.intentRows.resize(intents);
+    for (const auto& site : state.tables.view(state.hot.world.sites)) {
+        auto& row = scratch.sites[site.id.value];
+        row.available.reserve(bins);
+        row.residents.reserve(bins);
+        row.candidates.reserve(neighbors(state, site.regionId).size());
+    }
+    for (auto& row : scratch.intentRows) row.bins.reserve(bins);
+    scratch.eligible.reserve(bins);
+    scratch.selected.reserve(bins);
+    scratch.removed.reserve(bins);
+    scratch.ledger.reserve(bins);
+    scratch.cohort.reserve(bins);
+    for (auto& row : scratch.parts) row.elders.reserve(bins);
+    scratch.proposals.reserve(intents);
+    scratch.ranked.reserve(std::max(intents, bins));
+    scratch.refunds.reserve(intents);
+    scratch.bookings.reserve(intents);
+    scratch.payload.reserve(sites * bins);
+
+    // Headroom for live moon reports and the new booking. Logical rows are
+    // still acquired on demand, so anchors only copy materialized reports.
+    auto reserveRows = [&]<class T>(std::size_t extra) {
+        auto& rows = state.tables.rows<T>();
+        rows.reserve(rows.size() + extra);
+    };
+    reserveRows.operator()<MigrationSourceLoss>(3 * intents);
+    reserveRows.operator()<MigrationMovement>(3 * intents);
+    reserveRows.operator()<MigrationIntentSummary>(3 * intents);
     cache.stayed = state.intern<SymbolId>("stayed", path);
     cache.ruin = state.intern<FactionId>("ruin", path);
     cache.classes = {state.intern<ResidencyId>("villager", path), state.intern<ResidencyId>("stranger", path)};

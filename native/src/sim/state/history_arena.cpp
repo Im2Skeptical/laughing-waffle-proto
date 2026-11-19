@@ -6,10 +6,13 @@
 
 namespace waffle::sim::runtime {
 
-HistoryArena::HistoryArena(std::size_t firstSlabBlocks)
+HistoryArena::HistoryArena(std::size_t firstSlabBlocks, std::size_t smallPayloadBlocks)
 {
-    for (auto& bucket : buckets_)
-        bucket.nextSlabBlocks = std::clamp(firstSlabBlocks, std::size_t{1}, slabBlocks);
+    for (std::size_t i = 0; i < buckets_.size(); ++i) {
+        const auto stride = std::size_t{1} << (minShift + i);
+        const auto blocks = stride <= 128 ? std::max(firstSlabBlocks, smallPayloadBlocks) : firstSlabBlocks;
+        buckets_[i].nextSlabBlocks = std::clamp(blocks, std::size_t{1}, slabBlocks);
+    }
 }
 
 HistoryArena::~HistoryArena()

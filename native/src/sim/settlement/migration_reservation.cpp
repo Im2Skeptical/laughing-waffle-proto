@@ -275,7 +275,7 @@ void prepare_migration_reservations(RuntimeState& state)
             const auto elders = legacy_bin_capacity(population) - 6;
             const auto bins = std::max(joints, elders + 6);
             constexpr std::size_t headroom = 8;
-            prepare_scratch(cache, bins + headroom);
+            prepare_scratch(cache, std::max(bins + headroom, state.birthStorage.binCapacityHint));
             for (auto& bank : cache.banks) {
                 for (std::size_t phase = 0; phase < reservationPhases; ++phase) {
                     auto& payload = bank.payloads[payload_index(site.id, residency, phase)];
@@ -285,7 +285,15 @@ void prepare_migration_reservations(RuntimeState& state)
             }
         }
     }
-    state.jointCounts.resize(state.tables.rows<JointCohort>().size());
+    // Selection payloads and Migration reports share these growing columns.
+    const auto reportBins = sites.size() * state.birthStorage.binCapacityHint;
+    auto& joints = state.tables.rows<JointCohort>();
+    auto& elders = state.tables.rows<ElderCohort>();
+    // Allow both live reservation banks to grow as the population ages.
+    joints.reserve(joints.size() + 2 * reportBins);
+    elders.reserve(elders.size() + 2 * reportBins);
+    state.jointCounts.reserve(joints.capacity());
+    state.jointCounts.resize(joints.size());
 }
 
 double reserve_migration(RuntimeState& state, MoonTurn& turn, SiteId siteId, Residency residency,

@@ -658,6 +658,11 @@ void resolve(RuntimeState& state, Candidate candidate, Site& site, Index<Practic
 
 void prepare_recipe_storage(RuntimeState& state)
 {
+    auto& scratch = population_scratch();
+    const auto bins = state.birthStorage.binCapacityHint;
+    for (auto* rows : {&scratch.bins, &scratch.selectFrom, &scratch.selected,
+                       &scratch.selections, &scratch.victims, &scratch.removed}) rows->reserve(bins);
+    scratch.ledger.reserve(bins);
     auto& storage = state.practiceRecipeStorage;
     auto& phase = state.hot.civilization.phaseModifiers;
     const auto regionCount = state.hot.world.regions.size();
