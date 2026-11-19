@@ -1,4 +1,5 @@
 #include "sim/vassal/actions.hpp"
+#include "sim/vassal/presentation.hpp"
 
 #include "sim/practice/detail.hpp"
 #include "sim/practice/stock.hpp"
@@ -938,6 +939,17 @@ ActionResult dispatch_node_action(RuntimeState& state, const Action& action)
     return result;
 }
 
+}
+
+ChoicePrice quote_choice(const RuntimeState& state, const runtime::Vassal& actor,
+                         const browser::LifeMapNodeState& node, const browser::LifeMapOption& option)
+{
+    const auto phases = node.family == "campaign" && !node.rewardAcquisition && option.id != "campaign-leave"
+        ? (state.compiledContent->values.lifeMapGenerator.design.enabled
+            ? phase_cost(state, actor, node, option.phaseCost) : option.phaseCost)
+        : phase_cost(state, actor, node, option.phaseCost, option.locationRegionId.has_value());
+    return {prestige_cost(state, actor, option.prestigeCost),
+        phases * state.compiledContent->settings().phaseDurationSec};
 }
 
 ActionResult apply_node_action(RuntimeState& state, const Action& action)

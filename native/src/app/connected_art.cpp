@@ -18,7 +18,7 @@ Artwork prepareArtwork()
     std::vector<unsigned char> titlePixels;
     int titleWidth{}, titleHeight{};
     for (const std::string name : {"full-map-content-prototype", "settlement-pieces-0",
-                                    "settlement-pieces-1", "settlement-pieces-2"}) {
+                                    "settlement-pieces-1", "settlement-pieces-2", "heirlooms"}) {
         const auto manifest = core::json::parse(readAsset((directory + name + ".json").c_str()));
         const auto encoded = readAsset((directory + name + ".png").c_str());
         int width{}, height{};

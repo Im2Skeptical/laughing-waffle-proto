@@ -239,6 +239,7 @@ bool View::back()
     else if (shell_.screen() == Screen::title) return false;
     else if (noticeError_) notify("");
     else if (session_.previewing()) returnLive();
+    else if (lifeOpen_) setLifeOpen(false);
     else if (selection_.destination && pendingAction_ != "reform") selection_.destination.reset();
     else if (pendingAction_ == "reform") return true;
     else if (selection_.card) selection_.card.reset();
@@ -359,7 +360,7 @@ void View::pointer(const SDL_Event& event)
         pointer_ = {event.motion.x, event.motion.y};
         hoveredAt_ = SDL_GetTicks();
         const auto map = bounds("map");
-        auto hovered = game && !dialog_ && contains(map, pointer_) && !contains(bounds("map-tools"), pointer_)
+        auto hovered = game && !lifeOpen_ && !dialog_ && contains(map, pointer_) && !contains(bounds("map-tools"), pointer_)
             ? hit(pointer_).value_or("") : "";
         if (hovered != hoveredRegion_) {
             hoveredRegion_ = std::move(hovered);
@@ -380,8 +381,8 @@ void View::pointer(const SDL_Event& event)
             if (drag_ == Drag::card && touch_ && moved_ &&
                 !dropTarget_ && std::abs(pointer_.y - pressed_.y) > 1.4f * std::abs(pointer_.x - pressed_.x))
                 drag_ = Drag::panel;
-            if ((drag_ == Drag::panel || drag_ == Drag::shell) && moved_) {
-                auto& panel = element(drag_ == Drag::panel ? "panel" : "shell-panel");
+            if ((drag_ == Drag::panel || drag_ == Drag::shell || drag_ == Drag::lifePanel) && moved_) {
+                auto& panel = element(drag_ == Drag::panel ? "panel" : drag_ == Drag::lifePanel ? "life-inspector" : "shell-panel");
                 panel.SetScrollTop(panel.GetScrollTop() + last_.y - pointer_.y);
             }
             last_ = pointer_;
@@ -405,7 +406,7 @@ void View::pointer(const SDL_Event& event)
                 element("plot").Focus();
                 drag_ = Drag::graph;
                 scrubAt(pointer_.x);
-            } else if (game && !dialog_ && contains(bounds("map"), pointer_) &&
+            } else if (game && !lifeOpen_ && !dialog_ && contains(bounds("map"), pointer_) &&
                        !contains(bounds("map-tools"), pointer_) && !session_.opening()) {
                 element("map").Focus();
                 drag_ = Drag::map;
@@ -416,10 +417,11 @@ void View::pointer(const SDL_Event& event)
                 const auto* snapshot = session_.displayed();
                 const auto* site = selection_.selected(snapshot);
                 if (!dialog_ && touch_) {
-                    if (game && contains(bounds("panel"), pointer_)) drag_ = Drag::panel;
+                    if (game && !lifeOpen_ && contains(bounds("panel"), pointer_)) drag_ = Drag::panel;
+                    if (game && lifeOpen_ && contains(bounds("life-inspector"), pointer_)) drag_ = Drag::lifePanel;
                     if (!game && contains(bounds("shell-panel"), pointer_)) drag_ = Drag::shell;
                 }
-                if (const auto slot = game ? cardAt(pointer_) : std::nullopt;
+                if (const auto slot = game && !lifeOpen_ ? cardAt(pointer_) : std::nullopt;
                     !dialog_ && slot && snapshot && !selection_.destination && canStage(*snapshot, site)) {
                     auto* card = element("board").GetChild(static_cast<int>(*slot));
                     draggedCard_ = card->GetAttribute<int>("data-id", static_cast<int>(*slot));
@@ -456,7 +458,7 @@ void View::pointer(const SDL_Event& event)
     if (event.type == SDL_EVENT_MOUSE_WHEEL && drag_ == Drag::none && !dialog_) {
         const SDL_FPoint at{event.wheel.mouse_x, event.wheel.mouse_y};
         const auto area = bounds("map");
-        if (game && contains(area, at) && !session_.opening()) map_.zoom(event.wheel.y, at, area);
+        if (game && !lifeOpen_ && contains(area, at) && !session_.opening()) map_.zoom(event.wheel.y, at, area);
         else context_.ProcessMouseWheel({-event.wheel.x, -event.wheel.y}, 0);
     }
     if (!pointerDown_ && event.type == SDL_EVENT_MOUSE_MOTION) {
@@ -586,7 +588,8 @@ void View::activate(Rml::Element& control)
     const auto op = control.GetAttribute<Rml::String>("data-op", "");
     const auto id = control.GetAttribute<Rml::String>("data-id", "");
     if (dialog_ && op != "back" && op != "confirm") return;
-    if (op == "start" && shell_.screen() == Screen::title) startFromSeed();
+    if (op.starts_with("life-")) activateLife(op, id);
+    else if (op == "start" && shell_.screen() == Screen::title) startFromSeed();
     else if (op == "continue" && shell_.screen() == Screen::title) shell_.continueGame();
     else if (op == "load" && shell_.screen() == Screen::title) shell_.show(Screen::load);
     else if (op == "save" && !session_.busy() && session_.liveSnapshot()) shell_.show(Screen::save);
@@ -632,6 +635,10 @@ void View::activate(Rml::Element& control)
         closeConfirmation();
         if (confirmation_ == Confirmation::overwrite) shell_.confirmOverwrite();
         else if (confirmation_ == Confirmation::title) shell_.returnToTitle();
+        else if (confirmation_ == Confirmation::life) {
+            if (lifeConfirm_) submitLife(*lifeConfirm_);
+            lifeConfirm_.reset();
+        }
         else if (selection_.card && selection_.destination &&
             session_.reorder(selection_.region, *selection_.card, *selection_.destination)) {
             pendingAction_ = "reform";
@@ -641,18 +648,6 @@ void View::activate(Rml::Element& control)
                 session_.busy() ? "A decision is already being applied." : "The staged order is no longer available.";
             notify(reason, true);
         }
-    } else if (op == "choice" && session_.liveSnapshot()) {
-        const auto index = std::stoul(id);
-        const auto& view = *session_.liveSnapshot();
-        if (index >= view.choices.size() || !session_.choose(view.choices[index])) {
-            notify(session_.previewing() ? "Return to Live to make this decision." :
-                session_.busy() ? "A decision is already being applied." : "This decision is no longer available.", true);
-            return;
-        }
-        notify("");
-        pendingAction_ = "choice";
-        pendingGeneration_ = session_.generation();
-        if (view.choices[index].kind == Decision::enterShop) selectRegion(view.vassalRegion);
     }
 }
 

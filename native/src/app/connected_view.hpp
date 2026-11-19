@@ -36,6 +36,11 @@ private:
     void refreshShell();
     void refresh();
     void refreshPanel(const Snapshot* snapshot);
+    void refreshLife(const Snapshot& snapshot);
+    void setLifeOpen(bool open);
+    void activateLife(std::string_view op, const std::string& id);
+    void submitLife(const LifeCommand& command);
+    void drawLifePaths();
     void refreshMarkers(const Snapshot* snapshot);
     void positionMarkers();
     void refreshHelp();
@@ -44,7 +49,7 @@ private:
     void selectRegion(std::string region);
     void navigateMap(SDL_Keycode key);
     void reviewReform();
-    enum class Confirmation { reform, overwrite, title };
+    enum class Confirmation { reform, overwrite, title, life };
     void confirm(Confirmation action, std::string_view title, std::string_view copy,
         std::string_view detail, std::string_view label);
     void closeConfirmation();
@@ -90,9 +95,16 @@ private:
     bool reduced_{}, dialog_{}, noticeError_{}, touch_{}, longPress_{}, pointerDown_{};
     SDL_Keycode keyDown_{};
     Rml::ObserverPtr<Rml::Element> keyControl_;
+    bool lifeOpen_{}, lifeDirty_{true}, lifeReadOnly_{}, lifeBusy_{};
+    std::uint64_t lifeRevision_ = ~std::uint64_t{};
+    LifeReading life_;
+    std::string lifeChartMarkup_, lifeInspectorMarkup_;
+    std::string lifeNode_, lifeFeedback_;
+    std::vector<std::size_t> heirloomPicks_;
+    std::optional<LifeCommand> lifeConfirm_;
     RegionalMap map_;
     SDL_FPoint pointer_{}, last_{}, pressed_{};
-    enum class Drag { none, map, graph, card, panel, shell, pinch };
+    enum class Drag { none, map, graph, card, panel, shell, lifePanel, pinch };
     float density_ = 1;
     Drag drag_ = Drag::none;
     std::size_t draggedCard_{};

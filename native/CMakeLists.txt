@@ -69,6 +69,7 @@ set(WAFFLE_DEMO_SOURCES
 set(WAFFLE_CONNECTED_SOURCES
 	src/app/connected_art.cpp
 	src/app/connected_controls.cpp
+	src/app/connected_life_view.cpp
 	src/app/connected_map.cpp
 	src/app/connected_main.cpp
 	src/app/connected_save.cpp
@@ -79,6 +80,7 @@ set(WAFFLE_CONNECTED_SOURCES
 	src/app/sdl_asset_file.cpp
 	src/app/sdl_rml_renderer.cpp
 	src/ui/connected_model.cpp
+	src/ui/life_map.cpp
 )
 
 if(ANDROID)

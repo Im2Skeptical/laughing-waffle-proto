@@ -201,9 +201,13 @@ $gameAssets = Join-Path $assets "game"
 New-Item -ItemType Directory -Force -Path $gameAssets | Out-Null
 Copy-Item -LiteralPath (Join-Path $native "reference\fixtures\seed-1\state-0.json") -Destination (Join-Path $gameAssets "opening.json") -Force
 # The connected app builds its card atlas from these read-only sprite sheets.
-$artPaths = foreach ($sheet in @("full-map-content-prototype", "settlement-pieces-0", "settlement-pieces-1", "settlement-pieces-2")) {
+$artPaths = foreach ($sheet in @("full-map-content-prototype", "settlement-pieces-0", "settlement-pieces-1", "settlement-pieces-2", "heirlooms")) {
 	foreach ($extension in @("json", "png")) { "images/sprite-sheets/$sheet.$extension" }
 }
+$artPaths += @(
+    "images/dark-fantasy/vassal-class-v1/scholar-founder.png",
+    "images/dark-fantasy/vassal-class-v1/warrior-founder.png"
+)
 foreach ($art in $artPaths) {
 	$destination = Join-Path $assets $art
 	New-Item -ItemType Directory -Force -Path (Split-Path -Parent $destination) | Out-Null

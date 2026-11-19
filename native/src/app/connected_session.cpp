@@ -347,6 +347,25 @@ void Session::transact(std::vector<sim::Action> actions, bool resolve)
     });
 }
 
+bool Session::submit(const LifeCommand& command)
+{
+    if (!run_ || busy() || opening_ || previewing() || suspended_) return false;
+    if (command.advance) {
+        if (!currentVassal(*run_->live) || !currentVassal(*run_->live)->lifeMap.pendingResolution) return false;
+        transact({}, true);
+    } else {
+        transact({action(run_->snapshot.second, command.kind.c_str(), command.payload)});
+    }
+    return true;
+}
+
+LifeReading Session::lifeMap(bool detail) const
+{
+    if (!run_) return {};
+    const auto& state = previewState_ ? *previewState_ : *run_->live;
+    return readLifeMap(state, !previewing(), detail);
+}
+
 bool Session::choose(const Choice& choice)
 {
     if (!run_ || busy() || opening_ || previewing() || suspended_) return false;

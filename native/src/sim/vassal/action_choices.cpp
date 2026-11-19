@@ -697,6 +697,13 @@ bool create_node_choices(RuntimeState& state, const Vassal& actor, Node& node)
     return true;
 }
 
+double immediate_risk(const RuntimeState& state, const Vassal& actor, const Option& option)
+{
+    const auto base = std::clamp(option.immediateDeathChance.value_or(0), 0.0, 1.0);
+    if (!has_identity(state, actor, "warrior")) return base;
+    return std::max(0.0, 1 - (1 - base) * (1 + .15 * (whole(actor.stats.intelligence) + equipped(state, actor, "abacus"))));
+}
+
 ActionResult commit_node_choice(RuntimeState& state, Vassal& actor, Node& node, const Option& option,
                                 double price)
 {
@@ -725,12 +732,7 @@ ActionResult commit_node_choice(RuntimeState& state, Vassal& actor, Node& node, 
             })) return {"rescueUnavailable"};
         }
     }
-    const auto risk = [&] {
-        const auto base = std::clamp(option.immediateDeathChance.value_or(0), 0.0, 1.0);
-        if (!has_identity(state, actor, "warrior")) return base;
-        return std::max(0.0, 1 - (1 - base) * (1 + .15 * (whole(actor.stats.intelligence) + equipped(state, actor, "abacus"))));
-    };
-    const auto quotedRisk = risk();
+    const auto quotedRisk = immediate_risk(state, actor, option);
     auto& account = state.hot.rulesetId ? *civ.prestige : actor.prestige;
     if (price > account) return {"insufficientPrestige"};
     account -= price;
@@ -770,7 +772,7 @@ ActionResult commit_node_choice(RuntimeState& state, Vassal& actor, Node& node, 
         return {"unsupportedVassalNodeEffect"};
     }
     const bool dangerous = std::max(option.baseDanger.value_or(0), option.immediateDeathChance.value_or(0)) > 0;
-    const bool failed = dangerous && roll(state) < (state.compiledContent->values.lifeMapGenerator.design.enabled ? quotedRisk : risk());
+    const bool failed = dangerous && roll(state) < (state.compiledContent->values.lifeMapGenerator.design.enabled ? quotedRisk : immediate_risk(state, actor, option));
     if (failed) {
         const bool relic = node.family == "relic";
         const std::string_view cause = relic ? "relic" : "crisis";

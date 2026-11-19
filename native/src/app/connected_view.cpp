@@ -1,4 +1,5 @@
 #include "connected_view.hpp"
+#include "connected_markup.hpp"
 #include "sdl_asset_file.hpp"
 
 #include <RmlUi/Core/Elements/ElementFormControl.h>
@@ -6,7 +7,6 @@
 #include <algorithm>
 #include <array>
 #include <cmath>
-#include <cstdio>
 #include <utility>
 
 namespace waffle::connected {
@@ -14,36 +14,7 @@ namespace {
 
 using Colour = std::array<Uint8, 4>;
 
-std::string escape(std::string_view text)
-{
-    std::string result;
-    for (char c : text) {
-        switch (c) {
-            case '<': result += "&lt;"; break;
-            case '>': result += "&gt;"; break;
-            case '&': result += "&amp;"; break;
-            case '"': result += "&quot;"; break;
-            default: result += c;
-        }
-    }
-    return result;
-}
-
-std::string number(double value, int precision = 0)
-{
-    char buffer[48];
-    std::snprintf(buffer, sizeof(buffer), "%.*f", precision, value);
-    return buffer;
-}
-
-std::string button(std::string_view op, std::string_view id, std::string_view label,
-                   std::string_view classes = "decision", std::string_view help = {}, bool disabled = false)
-{
-    return "<button class=\"button " + std::string(classes) + (disabled ? " disabled" : "") +
-        "\" data-op=\"" + std::string(op) + "\" data-id=\"" + escape(id) +
-        "\" data-help=\"" + escape(help) + (disabled ? "\" disabled=\"disabled" : "") +
-        "\">" + escape(label) + "</button>";
-}
+using namespace markup;
 
 bool contains(SDL_FRect rect, SDL_FPoint p)
 {
@@ -158,6 +129,7 @@ void View::refreshShell()
     if (runRevision_ != shell_.runRevision()) {
         runRevision_ = shell_.runRevision();
         map_.reset();
+        setLifeOpen(false);
         refreshMarkers(nullptr);
         hoveredRegion_.clear();
         hoverSecond_.reset();
@@ -530,12 +502,8 @@ void View::refreshPanel(const Snapshot* snapshot)
     if (!session_.previewing()) {
         const auto& choices = snapshot->choices;
         if (!choices.empty() && choices.front().kind != Decision::reorder) {
-            constexpr std::array labels{"Choose a Vassal", "Choose a Commission", "Life Map", "Practice Reform", "", ""};
-            const auto label = std::string_view(labels[static_cast<std::size_t>(choices.front().kind)]);
-            if (!label.empty()) html += "<p class=\"quiet rule\">" + std::string(label) + "</p>";
-            for (std::size_t i = 0; i < choices.size(); ++i)
-                html += button("choice", std::to_string(i), choices[i].label, "decision",
-                    session_.busy() ? "Another decision is being applied." : "", session_.busy());
+            const auto label = choices.front().kind == Decision::chooseVassal ? "Choose a Vassal" : "Open Life Map";
+            html += button("life-toggle", {}, label, "decision primary", "Read the Chronicle and choose your next action.");
         } else if (editable && !selection_.card) {
             html += "<p class=\"quiet rule\">Practice Reform · Select a Practice to reorder it.</p>";
         }
@@ -604,7 +572,12 @@ void View::refresh()
     const auto* snapshot = session_.opening() ? nullptr : session_.displayed();
     if (session_.error() != lastError_) {
         lastError_ = session_.error();
-        if (!lastError_.empty()) notify(lastError_, true);
+        if (!lastError_.empty()) {
+            const auto split = lastError_.find(": ");
+            if (pendingAction_ == "life" && split != std::string::npos)
+                notify(actionReason(lastError_.substr(split + 2)), true);
+            else notify(lastError_, true);
+        }
     }
     if (!pendingAction_.empty() && !session_.busy()) {
         if (session_.generation() != pendingGeneration_) {
@@ -614,6 +587,8 @@ void View::refresh()
                 show(element("reform-dialog"), false);
                 dialogClosedAt_ = 0;
                 notify("Practice Reform complete. Updating the forecast.");
+            } else if (pendingAction_ == "life") {
+                notify(lifeFeedback_ + ".");
             } else {
                 notify("Decision recorded.");
             }
@@ -650,7 +625,8 @@ void View::refresh()
             bindings_.DirtyVariable("clock");
         }
     }
-    if (map_.animate(now_, reduced_) || markersDirty_) {
+    if (snapshot && lifeOpen_) refreshLife(*snapshot);
+    if (!lifeOpen_ && (map_.animate(now_, reduced_) || markersDirty_)) {
         positionMarkers();
         markersDirty_ = false;
     }
@@ -661,6 +637,7 @@ void View::refresh()
         if (disabled) button.SetAttribute("disabled", "");
         else button.RemoveAttribute("disabled");
     };
+    setDisabled("life-toggle", !snapshot);
     setDisabled("save-game", session_.busy() || !session_.liveSnapshot());
     setDisabled("title-game", session_.busy());
     if (loading != loadingVisible_) {
@@ -791,13 +768,14 @@ void View::drawFrame()
     colour(renderer_, {22, 24, 20, 255});
     SDL_RenderClear(renderer_);
     const auto screen = shell_.screen();
-    if (const auto* snapshot = session_.displayed(); snapshot && !session_.opening() &&
+    if (const auto* snapshot = session_.displayed(); !lifeOpen_ && snapshot && !session_.opening() &&
         (screen == Screen::game || screen == Screen::save)) {
         map_.draw(renderer_, bounds("map"), *snapshot, session_.shapes(), selection_.region, hoveredRegion_,
             drag_ == Drag::map && !moved_, now_, reduced_);
         for (const auto& [anchor, label] : markerLeaders_)
             line(renderer_, anchor, label, {199, 175, 120, 255});
     }
+    if (lifeOpen_ && (screen == Screen::game || screen == Screen::save)) drawLifePaths();
     SDL_SetRenderDrawBlendMode(renderer_, SDL_BLENDMODE_BLEND_PREMULTIPLIED);
     context_.Render();
     SDL_SetRenderDrawBlendMode(renderer_, SDL_BLENDMODE_NONE);
