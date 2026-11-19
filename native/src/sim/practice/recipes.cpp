@@ -722,7 +722,7 @@ bool attempt(RuntimeState& state, Candidate candidate, Activation activation, bo
     // Full-map scheduled conditions do not read staffing. If Stock planning
     // also has no staff-sensitive modifier, wait until the inputs pass.
     const bool deferWorker = !parent && state.hot.rulesetId && !has_modifiers(state, site, staffStockModifiers);
-    auto worker = deferWorker ? Assignment{} : workers(state, site)[slot.slot];
+    auto worker = deferWorker ? Assignment{} : worker_for_slot(state, site, slot.slot);
     if (parent) {
         if (state.practiceCharge[index.value] < threshold(state, site, def, worker.scholar)) return false;
         if (already) {
@@ -779,7 +779,7 @@ bool attempt(RuntimeState& state, Candidate candidate, Activation activation, bo
     thread_local StockPlan stock;
     plan_stock_into(stock, state, site, t.view(def.consume), t.view(def.require_), &slot, worker.scholar, localOnly);
     if (!stock.ok) return fail(v.unmetCondition, stock.missing);
-    if (deferWorker) worker = workers(state, site)[slot.slot];
+    if (deferWorker) worker = worker_for_slot(state, site, slot.slot);
     if (def.mode == Mode::charge) {
         const auto effects = t.view(def.effects);
         if (std::ranges::any_of(effects, [](const auto& effect) { return opcode(effect) == EffectOp::generateStock; })) {

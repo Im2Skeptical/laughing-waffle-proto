@@ -18,6 +18,14 @@ enum class EventKind : std::uint8_t {
     dischargeBlocked, cascadeSafetyCap, count,
 };
 
+struct Assignment {
+    std::uint32_t tokens{};
+    double effective{};
+    bool scholar{};
+};
+
+using Assignments = std::array<Assignment, 5>;
+
 struct Candidate {
     runtime::SiteId site;
     std::uint32_t slot;

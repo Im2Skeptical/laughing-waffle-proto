@@ -33,6 +33,7 @@ struct PopulationTotals {
 using FactionPopulationTotal = runtime::Entry<runtime::FactionId, double>;
 
 struct SiteIndex {
+    std::optional<practice::Assignments> staffing;
     std::array<PopulationTotals, 2> byResidency;
     runtime::Range<FactionPopulationTotal> byAllegiance;
     runtime::Range<FactionPopulationTotal> allegianceStorage;
