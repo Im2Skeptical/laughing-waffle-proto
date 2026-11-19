@@ -2609,7 +2609,8 @@
         "charge": { "type": "integer", "optional": false, "nullable": false },
         "work": { "type": "integer", "optional": false, "nullable": false },
         "instanceId": { "type": "string", "optional": true, "nullable": false },
-        "allegiance": { "type": "string", "optional": true, "nullable": false }
+        "allegiance": { "type": "string", "optional": true, "nullable": false },
+        "targetRegionId": { "type": "string", "optional": true, "nullable": false }
       },
       "note": "An empty slot is an array null. Influence slots may omit stock. The serializer appends tier when it is nullish. Observed multiple insertion orders with the same field set."
     },
@@ -3129,6 +3130,7 @@
         "practiceId": { "type": "string", "optional": true, "nullable": false },
         "amount": { "type": "integer", "optional": false, "nullable": false },
         "traits": { "type": "StringArray", "optional": false, "nullable": false },
+        "substitution": { "type": "StringArray", "optional": true, "nullable": false },
         "paymentFor": { "type": "string", "optional": true, "nullable": false },
         "marketStockId": { "type": "string", "optional": true, "nullable": false },
         "label": { "type": "string", "optional": true, "nullable": false },

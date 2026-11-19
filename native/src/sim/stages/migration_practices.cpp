@@ -1,12 +1,12 @@
 #include "sim/stages/entries.hpp"
+#include "sim/practice/practice.hpp"
 
 namespace waffle::sim::stages {
 
-bool migration_practices(RuntimeState&, StageContext&)
+bool migration_practices(RuntimeState& state, StageContext&)
 {
-    // N03e-3: run scheduled Migration recipes here with the previous moon
-    // header. Natural departures and their reports belong to Stage::migration.
-    return false;
+    practice::activate(state, content::Activation::migration);
+    return true;
 }
 
 }

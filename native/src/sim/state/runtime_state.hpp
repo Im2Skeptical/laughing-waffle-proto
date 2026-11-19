@@ -3,6 +3,7 @@
 #include "sim/state/rows.generated.hpp"
 #include "sim/settlement/migration.hpp"
 #include "sim/settlement/migration_reservation.hpp"
+#include "sim/practice/runtime.hpp"
 
 #include <memory>
 
@@ -82,6 +83,7 @@ struct RuntimeState {
     std::vector<double> practiceCharge;
     std::vector<std::uint64_t> jointCounts;
     std::vector<runtime::PracticeEventPayload> eventPayloads;
+    runtime::HistoryPayload pendingPracticePayload;
     runtime::ColdTables cold;
     runtime::HistoryTables histories;
     RuntimeIndexes indexes;
@@ -94,6 +96,9 @@ struct RuntimeState {
     settlement::MigrationReservationCache migrationReservations;
     PopulationVocabulary populationVocabulary;
     settlement::MigrationCache migration;
+    practice::Vocabulary practiceVocabulary;
+    practice::ListenerIndex practiceListeners;
+    practice::RecipeStorage practiceRecipeStorage;
     // The browser omits this latch on export and clears it on import.
     bool seasonChanged{};
     // Derived from tSec and immutable settings. Zero triggers calculation.

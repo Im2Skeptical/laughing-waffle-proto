@@ -35,12 +35,12 @@ file(WRITE "${stale_green_before}" "${stale_green}")
 execute_process(COMMAND "${parity}" stage --stage prelude --before "${stale_green_before}" --after "${after}"
 	COMMAND_ERROR_IS_FATAL ANY)
 
-execute_process(COMMAND "${parity}" stage --stage seasonal_practices --before "${after}" --after "${after}"
+execute_process(COMMAND "${parity}" stage --stage vassal_check --before "${after}" --after "${after}"
 	RESULT_VARIABLE status OUTPUT_VARIABLE difference ERROR_VARIABLE error)
 if(NOT status EQUAL 3 OR NOT difference MATCHES "not ported")
 	message(FATAL_ERROR "expected an unported stage, got ${status} ${difference} ${error}")
 endif()
-execute_process(COMMAND "${parity}" stage --stage seasonal_practices --before "${after}" --after "${mismatch}"
+execute_process(COMMAND "${parity}" stage --stage vassal_check --before "${after}" --after "${mismatch}"
 	RESULT_VARIABLE status OUTPUT_VARIABLE difference ERROR_VARIABLE error)
 if(NOT status EQUAL 1 OR NOT difference MATCHES "not ported")
 	message(FATAL_ERROR "expected an unported stage mismatch, got ${status} ${difference} ${error}")

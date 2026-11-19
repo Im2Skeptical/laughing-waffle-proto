@@ -1,11 +1,12 @@
 #include "sim/stages/entries.hpp"
+#include "sim/practice/practice.hpp"
 
 namespace waffle::sim::stages {
 
-bool final_flush(RuntimeState&, StageContext&)
+bool final_flush(RuntimeState& state, StageContext&)
 {
-    // TODO: Pending events, reactions and journals.
-    return false;
+    practice::drain(state);
+    return true;
 }
 
 }

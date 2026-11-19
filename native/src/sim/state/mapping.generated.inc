@@ -756,6 +756,7 @@ PracticeSlot Mapping<PracticeSlot>::read(Import& codec, const browser::PracticeS
     result.work = codec.read<double>(source.work, property_path(path, "work"));
     result.instanceId = codec.read<std::optional<InstanceId>>(source.instanceId, property_path(path, "instanceId"));
     result.allegiance = codec.read<std::optional<FactionId>>(source.allegiance, property_path(path, "allegiance"));
+    result.targetRegionId = codec.read<std::optional<RegionId>>(source.targetRegionId, property_path(path, "targetRegionId"));
     return result;
 }
 
@@ -769,6 +770,7 @@ browser::PracticeSlot Mapping<PracticeSlot>::write(const Export& codec, const Pr
     codec.write(result.work, source.work);
     codec.write(result.instanceId, source.instanceId);
     codec.write(result.allegiance, source.allegiance);
+    codec.write(result.targetRegionId, source.targetRegionId);
     return result;
 }
 
@@ -1373,6 +1375,7 @@ StockProvider Mapping<StockProvider>::read(Import& codec, const browser::StockPr
     result.practiceId = codec.read<std::optional<PracticeId>>(source.practiceId, property_path(path, "practiceId"));
     result.amount = codec.read<double>(source.amount, property_path(path, "amount"));
     result.traits = codec.read<Range<TraitId>>(source.traits, property_path(path, "traits"));
+    result.substitution = codec.read<std::optional<Range<TraitId>>>(source.substitution, property_path(path, "substitution"));
     result.paymentFor = codec.read<std::optional<SymbolId>>(source.paymentFor, property_path(path, "paymentFor"));
     result.marketStockId = codec.read<std::optional<MarketStockId>>(source.marketStockId, property_path(path, "marketStockId"));
     result.label = codec.read<std::optional<SymbolId>>(source.label, property_path(path, "label"));
@@ -1389,6 +1392,7 @@ browser::StockProvider Mapping<StockProvider>::write(const Export& codec, const 
     codec.write(result.practiceId, source.practiceId);
     codec.write(result.amount, source.amount);
     codec.write(result.traits, source.traits);
+    codec.write(result.substitution, source.substitution);
     codec.write(result.paymentFor, source.paymentFor);
     codec.write(result.marketStockId, source.marketStockId);
     codec.write(result.label, source.label);

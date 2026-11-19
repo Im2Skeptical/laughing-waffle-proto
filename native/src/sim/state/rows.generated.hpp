@@ -237,6 +237,7 @@ struct PracticeSlot {
     double work{};
     std::optional<InstanceId> instanceId{};
     std::optional<FactionId> allegiance{};
+    std::optional<RegionId> targetRegionId{};
     std::uint32_t slot{}, version{};
 };
 
@@ -465,6 +466,7 @@ struct StockProvider {
     std::optional<PracticeId> practiceId{};
     double amount{};
     Range<TraitId> traits{};
+    std::optional<Range<TraitId>> substitution{};
     std::optional<SymbolId> paymentFor{};
     std::optional<MarketStockId> marketStockId{};
     std::optional<SymbolId> label{};
