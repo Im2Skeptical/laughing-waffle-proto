@@ -103,8 +103,24 @@
     - Pixel app validation is **pending by Cam's choice**: the phone is in
       daily use. The APK and `benchmark-android-timegraph.ps1` are ready for
       a later session.
-  - N04h Life Map and Shop flows on the N04f components (plus map-label
-    decluttering): sol 6.2 worker on `t3/native-life-map-shop`.
+  - N04h Life Map and Shop flows: merged from 7342ce36.
+    - Covers Vassal selection and reroll, the Life Map route, node
+      decisions with cost, risk and outcome, succession, and the Shop
+      (placement preview, slot unlocks, roads, itemized checkout,
+      unavailable reasons). Map labels are now collision-aware.
+    - Supervisor audit of the 148-line `sim/vassal` change:
+      - pure extractions (`immediate_risk`, `mortality_at`, `next_unlock`);
+      - `purchase()` fills a quote receipt before the unchanged
+        affordability checks (55 rejections still match);
+      - the read-only `quote_shop` dry-runs on a state copy only when
+        rebuilding a live, actionable shop view, never while scrubbing.
+    - Supervisor re-run: 50/50 CTests and the connected smoke on MSVC and
+      clang, 30 windows with zero masks, and 252 replay checkpoints.
+      `npm run verify` passed after `npm ci` and the `check:docs` link fix.
+  - N04i forecast and timegraph experience: sol 6.2 worker on
+    `t3/native-forecast-experience`.
+  - N04j settlement view depth: sol 6.2 worker on
+    `t3/native-settlement-view`.
   - Disk: C: fell to 2.2 GB free. The supervisor deleted `native/build`
     in 39 merged worker worktrees (49.2 GB), keeping worktrees, branches
     and artifacts. C: then had 59.5 GB free.
