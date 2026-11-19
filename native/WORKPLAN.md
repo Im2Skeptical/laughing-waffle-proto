@@ -62,8 +62,21 @@
     - The desktop dream target is met. Pixel 6 is unmeasured.
   - N04b forecast memory accounting and the Android timegraph harness:
     sol 6.2 worker on `t3/native-timegraph-memory`.
-  - N03f L2b remaining action kinds: sol 6.2 worker on
-    `t3/native-actions-remaining`.
+  - N03f L2b remaining action kinds: merged from a75f3478 (259987e0).
+    - The `parity_run` option conflict was resolved by keeping both
+      `--rejections` and `--timegraph-hashes`.
+    - Supervisor re-run: 42/42 CTests on MSVC and clang, 829/829 pairs,
+      30 windows with zero masks, and the New Game checks.
+    - Replay: 33 journals and 242 browser checkpoints in all three modes,
+      plus 55 rejection probes with no state change, on both compilers.
+    - The schema relaxations (optional intervention `targetRegionId`/`tier`,
+      shop `inventoryIndex`) come from browser-captured states that round-trip.
+    - The legacy hub override and pre-v52 regional actions stay with the
+      native save integration owner.
+    - Browser defect found: Campaign conquest that restores a ruin mid-turn
+      leaves no Moon-turn report row, so Housing throws at `housing.js:65`.
+      It is present on main v1.1.78. A sol 6.2 project thread owns the
+      browser fix and PR, which needs Cam's merge authorization.
   - N03e-3q pass 4: merged from 83cac22d.
     - The supervisor audited the staffing-cache invalidation (ledger
       reindex, `rebuild_listeners`, the `sitesDirty` bypass) and Birth's
