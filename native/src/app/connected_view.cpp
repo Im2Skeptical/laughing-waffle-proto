@@ -129,6 +129,7 @@ void View::refreshShell()
     if (runRevision_ != shell_.runRevision()) {
         runRevision_ = shell_.runRevision();
         map_.reset();
+        resetGraph();
         setLifeOpen(false);
         refreshMarkers(nullptr);
         hoveredRegion_.clear();
@@ -652,114 +653,15 @@ void View::refresh()
         if (!loading) map_.reveal(now_);
         loadingVisible_ = loading;
     }
-    const auto& chart = session_.chart();
-    const bool scrubEnabled = !loading && !busy_ && chart.through.has_value();
-    element("plot").SetClass("unavailable", !scrubEnabled);
-    const auto coverage = session_.coverage();
-    const bool forecasting = coverage && (coverage->completion == timegraph::Completion::running ||
-        chart.through != coverage->publishedThrough);
-    const auto percentage = coverage && chart.through && coverage->target > coverage->start
-        ? std::clamp(static_cast<double>(*chart.through - coverage->start) /
-            static_cast<double>(coverage->target - coverage->start), 0., 1.) * 100 : 0;
-    if (loading) {
-        const auto progress = number(percentage, 1) + "%";
-        if (progress != currentProgress_) {
-            currentProgress_ = progress;
-            bindings_.DirtyVariable("progress");
-        }
-    }
-    std::string status;
-    if (loading && !session_.error().empty()) status = session_.error();
-    else if (const auto requested = session_.requested()) {
-        const auto label = *requested < session_.liveSnapshot()->second ? "History preview · " : "Forecast preview · ";
-        status = label + std::to_string(*requested) + " s";
-        if (!session_.previewReady()) status += " · Restoring";
-        else if (forecasting) status += " · Forecast " + number(percentage) + "%";
-    }
-    else if (session_.busy() && !loading) status = pendingAction_ == "reform" ? "Applying reform" : "Applying decision";
-    else if (forecasting) status = (loading ? "" : "Live · ") + std::string("Forecasting ") +
-        (percentage < 1 ? "<1" : number(percentage)) + "%";
-    else if (chart.through) status = "Live · " + std::to_string(session_.liveSnapshot()->second) + " s";
-    else status = "Preparing the forecast";
-    if (status != currentStatus_) {
-        currentStatus_ = status;
-        bindings_.DirtyVariable("status");
-    }
+    refreshGraph(loading);
     const bool failed = loading && !session_.error().empty();
     if (failed != loadingFailed_) {
         element("loading-title").SetInnerRML(failed ? "Could not open the run" : "Preparing the forecast");
         loadingFailed_ = failed;
     }
-    const auto start = chart.through ? std::to_string(chart.start) + " s" : "";
-    const auto end = chart.through ? std::to_string(chart.end) + " s" : "";
-    if (start != currentAxisStart_) element("axis-start").SetInnerRML(currentAxisStart_ = start);
-    if (end != currentAxisEnd_) element("axis-end").SetInnerRML(currentAxisEnd_ = end);
     if (!notice_.empty() && !noticeError_ && now_ >= noticeUntil_) notify("");
     refreshReadout();
     refreshHelp();
-}
-
-void View::drawGraph()
-{
-    if (loadingVisible_) return;
-    const auto area = plot();
-    const SDL_Rect clip{static_cast<int>(area.x), static_cast<int>(area.y), static_cast<int>(area.w), static_cast<int>(area.h)};
-    SDL_SetRenderClipRect(renderer_, &clip);
-    colour(renderer_, previewing_ ? Colour{20, 30, 34, 255} : Colour{26, 27, 22, 255});
-    SDL_RenderFillRect(renderer_, &area);
-    const auto& chart = session_.chart();
-    if (!chart.through) {
-        SDL_SetRenderClipRect(renderer_, nullptr);
-        return;
-    }
-    const auto end = xAt(*chart.through);
-    const auto fill = [&](SDL_FRect rect, Colour ink) {
-        colour(renderer_, ink);
-        SDL_RenderFillRect(renderer_, &rect);
-    };
-    const auto height = area.h - 9;
-    const auto published = end - area.x;
-    fill({area.x, area.y, published, height}, previewing_ ? Colour{31, 48, 56, 255} : Colour{41, 45, 31, 255});
-    fill({area.x, area.y + height + 3, area.w, 4}, {67, 61, 48, 255});
-    fill({area.x, area.y + height + 3, published, 4}, {186, 155, 96, 255});
-    for (int step = 0; step <= 2; ++step) {
-        const auto y = area.y + (height - 1) * step / 2.f;
-        line(renderer_, {area.x, y}, {area.x + area.w, y},
-            previewing_ ? Colour{54, 68, 73, 255} : Colour{68, 65, 49, 255});
-    }
-    std::array<SDL_FPoint, Chart::width * 2> points;
-    std::array<SDL_FRect, Chart::width> ranges;
-    int count = 0, rangeCount = 0;
-    const auto px = [&](float value) { return area.y + height - 2 - (height - 4) * value / chart.peak; };
-    for (std::size_t i = 0; i < chart.population.size(); ++i) {
-        const auto& band = chart.population[i];
-        if (!band.count) continue;
-        const float x = std::min(end, area.x + area.w * static_cast<float>(i) / (Chart::width - 1));
-        if (band.low != band.high) ranges[rangeCount++] = {x, px(band.high), 1.f, px(band.low) - px(band.high)};
-        points[count++] = {x, px(band.first)};
-        if (band.first != band.last) points[count++] = {x, px(band.last)};
-    }
-    colour(renderer_, previewing_ ? Colour{101, 143, 153, 255} : Colour{116, 145, 103, 255});
-    if (rangeCount) SDL_RenderFillRects(renderer_, ranges.data(), rangeCount);
-    colour(renderer_, previewing_ ? Colour{155, 203, 211, 255} : Colour{188, 204, 139, 255});
-    SDL_RenderLines(renderer_, points.data(), count);
-    const auto grip = [&](Second second, Colour ink, bool active) {
-        const auto x = xAt(second);
-        line(renderer_, {x, area.y}, {x, area.y + area.h}, ink);
-        const float size = active && drag_ == Drag::graph ? 16.f : 12.f;
-        const auto left = std::clamp(x - size / 2, area.x, area.x + area.w - size);
-        const auto y = area.y + height - 3;
-        fill({left, y, size, 12}, {20, 22, 18, 255});
-        fill({left + 1, y + 1, size - 2, 10}, ink);
-        for (int offset : {-2, 1}) fill({left + size / 2 + offset, y + 3, 1, 6}, {53, 52, 39, 255});
-    };
-    if (const auto* live = session_.liveSnapshot()) grip(live->second, {236, 196, 118, 255}, !previewing_);
-    if (const auto requested = session_.requested()) grip(*requested, {162, 216, 232, 255}, true);
-    if (hoverSecond_ && drag_ != Drag::graph) {
-        const auto x = xAt(*hoverSecond_);
-        line(renderer_, {x, area.y}, {x, area.y + height}, {144, 151, 126, 255});
-    }
-    SDL_SetRenderClipRect(renderer_, nullptr);
 }
 
 void View::prepareFrame()
@@ -788,31 +690,6 @@ void View::drawFrame()
     SDL_SetRenderDrawBlendMode(renderer_, SDL_BLENDMODE_NONE);
     SDL_SetRenderClipRect(renderer_, nullptr);
     if (screen == Screen::game) drawGraph();
-}
-
-bool View::scrubAt(float x)
-{
-    if (shell_.screen() != Screen::game || session_.busy() || session_.opening() || !session_.chart().through) return false;
-    selection_.destination.reset();
-    return session_.scrub(secondAt(x));
-}
-
-Second View::secondAt(float x) const
-{
-    const auto area = plot();
-    const auto& chart = session_.chart();
-    const float ratio = std::clamp((x - area.x) / std::max(1.f, area.w), 0.f, 1.f);
-    const auto second = chart.start + static_cast<Second>(std::llround(ratio * static_cast<double>(chart.end - chart.start)));
-    return std::min(second, chart.through.value_or(chart.start));
-}
-
-float View::xAt(Second second) const
-{
-    const auto area = plot();
-    const auto& chart = session_.chart();
-    const auto span = std::max<Second>(1, chart.end - chart.start);
-    const auto part = std::clamp(second, chart.start, chart.end) - chart.start;
-    return area.x + area.w * static_cast<float>(static_cast<double>(part) / static_cast<double>(span));
 }
 
 }

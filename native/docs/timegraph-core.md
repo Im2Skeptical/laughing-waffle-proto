@@ -60,9 +60,12 @@ resistance, Monster count and Prestige. Civilization population, Stock and
 Housing fold player-held detailed regions in authored order. The per-region
 record holds population, Food, Currency, Housing, holder support, Unrest,
 Holding Force, Required Force, and villager/stranger population, free
-workers, Faith and Happiness. Civilization-wide series also serve the local
-graph. Rich tooltips and inspection come from restore. At 20 regions the
-typed payload is 2,728 B per second on Windows x64.
+workers, Faith and Happiness. The N04i header also carries population-weighted
+Faith and Happiness, controlled-region count, a territory ownership signature
+and counts of deaths, migration movements and Monster raids at that second.
+The chronicle payload is derived at publication and is outside the save schema
+and original serial-oracle hash. At 20 regions the typed payload is 2,752 B per
+second on Windows x64. Full inspection comes from restore.
 
 Anchor the starting second, each 64-second boundary relative to the start,
 and the final second if off-stride and storage permits. Hold value snapshots

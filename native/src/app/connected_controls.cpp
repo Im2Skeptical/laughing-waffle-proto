@@ -4,7 +4,6 @@
 #include <RmlUi/Core/Elements/ElementFormControl.h>
 #include <algorithm>
 #include <cmath>
-#include <numeric>
 #include <utility>
 
 namespace waffle::connected {
@@ -43,45 +42,6 @@ void View::notify(std::string text, bool error)
     show(node, !notice_.empty());
 }
 
-void View::refreshReadout()
-{
-    auto& node = element("readout");
-    const auto second = drag_ == Drag::graph ? session_.requested() : hoverSecond_;
-    const auto& chart = session_.chart();
-    const auto* displayed = session_.displayed();
-    const bool available = !loadingVisible_ && chart.through && second && displayed;
-    if (!available) {
-        if (!currentReadout_.empty()) {
-            show(node, false);
-            currentReadout_.clear();
-        }
-        return;
-    }
-    std::string text = std::to_string(*second) + " s";
-    if (displayed->second == *second) {
-        const auto pop = std::accumulate(displayed->regions.begin(), displayed->regions.end(), 0.,
-            [](double total, const Region& region) { return total + region.population; });
-        text += " · " + std::to_string(std::llround(pop)) + " residents";
-    } else {
-        const auto fraction = static_cast<double>(*second - chart.start) / std::max<Second>(1, chart.end - chart.start);
-        const auto band = static_cast<std::size_t>(std::clamp(std::llround(fraction * (Chart::width - 1)),
-            0LL, static_cast<long long>(Chart::width - 1)));
-        if (chart.population[band].count) {
-            const auto& sample = chart.population[band];
-            text += " · " + std::to_string(std::llround(sample.low));
-            if (sample.low != sample.high) text += "–" + std::to_string(std::llround(sample.high));
-            text += " residents in band";
-        }
-    }
-    if (currentReadout_ != text) {
-        node.SetInnerRML(currentReadout_ = std::move(text));
-        show(node, true);
-    }
-    const auto maxX = bounds("timegraph").w - 210;
-    const auto x = std::clamp(xAt(*second) - bounds("timegraph").x - 40, 4.f, std::max(4.f, maxX));
-    node.SetProperty("left", std::to_string(static_cast<int>(x)) + "px");
-}
-
 void View::refreshHelp()
 {
     bool focusHelp = false;
@@ -92,11 +52,12 @@ void View::refreshHelp()
         focusHelp = true;
     }
     std::string text;
-    if (touch_ && pointerDown_ && !moved_ && drag_ != Drag::graph && now_ - pressedAt_ >= helpDelay)
+    if (touch_ && pointerDown_ && !moved_ && (drag_ != Drag::graph || (graphPin_ && eventAt(pressed_))) &&
+        now_ - pressedAt_ >= helpDelay)
         longPress_ = true;
     const bool showHelp = (drag_ == Drag::none || !moved_) &&
         (focusHelp || longPress_ || (!touch_ && !pointerDown_ && now_ - hoveredAt_ >= helpDelay));
-    if (showHelp && drag_ != Drag::graph && !hoverSecond_) {
+    if (showHelp && drag_ != Drag::graph && currentReadout_.empty()) {
         while (target && !target->HasAttribute("data-help")) target = target->GetParentNode();
         if (target) text = target->GetAttribute<Rml::String>("data-help", "");
         if (target == &element("map") && !focusHelp && !hoveredRegion_.empty() && session_.displayed()) {
@@ -219,8 +180,10 @@ void View::returnToTitle()
 
 void View::returnLive()
 {
-    if (!session_.previewing()) return;
+    if (const auto* live = session_.liveSnapshot()) focusSecond(live->second);
     hoverSecond_.reset();
+    graphPin_.reset();
+    if (!session_.previewing()) return;
     selection_.destination.reset();
     session_.live();
     notify("Returned to Live.");
@@ -312,14 +275,8 @@ bool View::key(SDL_Event event)
             const auto area = bounds("map");
             map_.zoom(key == SDLK_MINUS ? -1.f : 1.f, {area.x + area.w / 2, area.y + area.h / 2}, area);
         }
-    } else if (focus == &element("plot") && (key == SDLK_LEFT || key == SDLK_RIGHT)) {
-        const auto& chart = session_.chart();
-        if (chart.through && session_.liveSnapshot()) {
-            const auto at = session_.requested().value_or(session_.liveSnapshot()->second);
-            const Second step = event.key.mod & SDL_KMOD_SHIFT ? 32 : 1;
-            const auto to = key == SDLK_LEFT ? at - std::min(step, at) : at + step;
-            if (session_.scrub(to)) selection_.destination.reset();
-        }
+    } else if (focus == &element("plot") || focus == &element("graph-overview")) {
+        graphKey(key, event.key.mod);
     }
     return true;
 }
@@ -366,9 +323,13 @@ void View::pointer(const SDL_Event& event)
             hoveredRegion_ = std::move(hovered);
             markersDirty_ = true;
         }
-        hoverSecond_ = game && !touch_ && session_.chart().through && contains(plot(), pointer_)
+        hoverSecond_ = game && !touch_ && session_.browseThrough() && contains(plot(), pointer_) &&
+            graphWindow_.at((pointer_.x - plot().x) / std::max(1.f, plot().w)) <= *session_.browseThrough()
             ? std::optional(secondAt(pointer_.x)) : std::nullopt;
-        if (drag_ == Drag::graph) scrubAt(pointer_.x);
+        if (drag_ == Drag::graph) {
+            moved_ |= std::hypot(pointer_.x - pressed_.x, pointer_.y - pressed_.y) > 5;
+            if (moved_ || !graphPin_) scrubAt(pointer_.x);
+        } else if (drag_ == Drag::overview) panGraph(pointer_.x);
         else if (drag_ == Drag::map) {
             moved_ |= std::hypot(pointer_.x - pressed_.x, pointer_.y - pressed_.y) > 4;
             if (moved_) {
@@ -399,13 +360,22 @@ void View::pointer(const SDL_Event& event)
             moved_ = longPress_ = false;
             pressedAt_ = SDL_GetTicks();
             pressed_ = last_ = pointer_;
+            graphPin_.reset();
             context_.ProcessMouseMove(static_cast<int>(pointer_.x), static_cast<int>(pointer_.y), 0);
             if (game && (!dialog_ || confirmation_ == Confirmation::reform) &&
-                contains(plot(), pointer_) && !session_.opening() && !session_.busy() && session_.chart().through) {
+                contains(plot(), pointer_) && !session_.opening() && !session_.busy() && session_.browseThrough()) {
                 if (dialog_) closeConfirmation();
                 element("plot").Focus();
                 drag_ = Drag::graph;
-                scrubAt(pointer_.x);
+                if (const auto* marker = eventAt(pointer_)) graphPin_ = marker->second;
+                const auto* live = session_.liveSnapshot();
+                if (!graphPin_ && live && std::abs(xAt(live->second) - pointer_.x) <= 5.f &&
+                    pointer_.y >= plot().y + plot().h - 13.f) graphPin_ = live->second;
+                if (!graphPin_) scrubAt(pointer_.x);
+            } else if (game && !dialog_ && !session_.opening() && contains(bounds("graph-overview"), pointer_)) {
+                drag_ = Drag::overview;
+                element("graph-overview").Focus();
+                panGraph(pointer_.x);
             } else if (game && !lifeOpen_ && !dialog_ && contains(bounds("map"), pointer_) &&
                        !contains(bounds("map-tools"), pointer_) && !session_.opening()) {
                 element("map").Focus();
@@ -437,7 +407,9 @@ void View::pointer(const SDL_Event& event)
                 if (!moved_ && !longPress_)
                     if (auto selected = hit(pointer_)) selectRegion(std::move(*selected));
             } else if (drag_ == Drag::graph) {
-                scrubAt(pointer_.x);
+                releaseGraph();
+            } else if (drag_ == Drag::overview) {
+                panGraph(pointer_.x);
             } else {
                 if (longPress_ || (moved_ && drag_ != Drag::none)) context_.ProcessMouseLeave();
                 context_.ProcessMouseButtonUp(0, 0);
@@ -460,7 +432,9 @@ void View::pointer(const SDL_Event& event)
     if (event.type == SDL_EVENT_MOUSE_WHEEL && drag_ == Drag::none && !dialog_) {
         const SDL_FPoint at{event.wheel.mouse_x, event.wheel.mouse_y};
         const auto area = bounds("map");
-        if (game && !lifeOpen_ && contains(area, at) && !session_.opening()) map_.zoom(event.wheel.y, at, area);
+        if (game && contains(plot(), at) && !session_.opening() && event.wheel.y != 0)
+            zoomGraph(std::pow(1.65, -event.wheel.y), graphWindow_.at((at.x - plot().x) / plot().w));
+        else if (game && !lifeOpen_ && contains(area, at) && !session_.opening()) map_.zoom(event.wheel.y, at, area);
         else context_.ProcessMouseWheel({-event.wheel.x, -event.wheel.y}, 0);
     }
     if (!pointerDown_ && event.type == SDL_EVENT_MOUSE_MOTION) {
@@ -616,6 +590,8 @@ void View::activate(Rml::Element& control)
     } else if (op == "zoom-in" || op == "zoom-out") {
         const auto area = bounds("map");
         map_.zoom(op == "zoom-in" ? 1.f : -1.f, {area.x + area.w / 2, area.y + area.h / 2}, area);
+    } else if (op.starts_with("graph-")) {
+        activateGraph(op);
     } else if (op == "live") {
         returnLive();
     } else if (op == "card") {

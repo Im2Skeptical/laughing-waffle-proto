@@ -20,6 +20,14 @@ struct SiteSummary {
     std::array<ClassSeries, 2> residency;
 };
 
+// Presentation-only values alongside the original serial-oracle series.
+struct ChronicleSummary {
+    float faith{}, happiness{};
+    std::uint32_t controlledRegions{}, controlSignature{};
+    std::uint16_t deaths{}, migrations{}, raids{};
+    friend bool operator==(const ChronicleSummary&, const ChronicleSummary&) = default;
+};
+
 struct SummaryHeader {
     double second{}, year{};
     double population{}, food{}, currency{}, housing{};
@@ -28,6 +36,7 @@ struct SummaryHeader {
     double lossSecond{-1}, lossYear{}, currentVassalResolutionSecond{-1}, latestVassalEndSecond{};
     sim::runtime::VassalId currentVassal;
     std::optional<sim::browser::RunEndReason> terminal;
+    ChronicleSummary chronicle;
 };
 
 static_assert(sizeof(SiteSummary) == 128);

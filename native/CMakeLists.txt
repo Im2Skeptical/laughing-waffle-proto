@@ -38,6 +38,15 @@ add_subdirectory(src/timegraph)
 add_subdirectory(src/bench)
 
 if(NOT ANDROID)
+	add_executable(waffle_forecast_chart_test src/tests/forecast_chart_test.cpp src/ui/forecast_chart.cpp)
+	target_link_libraries(waffle_forecast_chart_test PRIVATE waffle_timegraph)
+	target_include_directories(waffle_forecast_chart_test PRIVATE src)
+	target_compile_features(waffle_forecast_chart_test PRIVATE cxx_std_20)
+	if(MINGW)
+		target_link_options(waffle_forecast_chart_test PRIVATE -static)
+	endif()
+	add_test(NAME forecast_chart_envelopes COMMAND waffle_forecast_chart_test envelopes)
+	add_test(NAME forecast_chart_chronicle COMMAND waffle_forecast_chart_test chronicle)
 	add_test(NAME stage_parity COMMAND "${CMAKE_COMMAND}"
 		"-Dparity=$<TARGET_FILE:waffle_parity>"
 		"-Dfixture=${CMAKE_CURRENT_SOURCE_DIR}/reference/fixtures/stages/seed-1/1"
@@ -69,6 +78,7 @@ set(WAFFLE_DEMO_SOURCES
 set(WAFFLE_CONNECTED_SOURCES
 	src/app/connected_art.cpp
 	src/app/connected_controls.cpp
+	src/app/connected_graph.cpp
 	src/app/connected_life_view.cpp
 	src/app/connected_map.cpp
 	src/app/connected_main.cpp
@@ -80,6 +90,7 @@ set(WAFFLE_CONNECTED_SOURCES
 	src/app/sdl_asset_file.cpp
 	src/app/sdl_rml_renderer.cpp
 	src/ui/connected_model.cpp
+	src/ui/forecast_chart.cpp
 	src/ui/life_map.cpp
 )
 

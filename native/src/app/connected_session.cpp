@@ -1,6 +1,7 @@
 #include "connected_session.hpp"
 
 #include "sdl_asset_file.hpp"
+#include "sim/content/compiled_content.hpp"
 #include "sim/world/generate.hpp"
 #include "sim/world/new_game.hpp"
 #include "sim/world/topology.hpp"
@@ -209,19 +210,6 @@ Snapshot snapshot(const RuntimeState& state, bool live)
     return result;
 }
 
-void addPoint(Chart& chart, Second second, float value)
-{
-    const auto span = std::max<Second>(1, chart.end - chart.start);
-    const auto bin = std::min(Chart::width - 1, static_cast<std::size_t>((second - chart.start) * (Chart::width - 1) / span));
-    auto& band = chart.population[bin];
-    if (!band.count) band.first = band.low = band.high = value;
-    band.last = value;
-    band.low = std::min(band.low, value);
-    band.high = std::max(band.high, value);
-    ++band.count;
-    chart.peak = std::max(chart.peak, value);
-}
-
 }
 
 void Session::open(const Launch& launch)
@@ -230,7 +218,7 @@ void Session::open(const Launch& launch)
     auto previous = std::move(run_);
     live();
     chart_ = {};
-    samples_.clear();
+    previousChart_ = {};
     error_.clear();
     opening_ = true;
     job_ = std::async(std::launch::async, [this, launch, previous = std::move(previous)] {
@@ -288,16 +276,19 @@ void Session::resume()
     suspended_ = false;
     if (!run_) return;
     auto run = std::make_shared<Run>(*run_);
+    run->divergence.reset();
     run->generation = forecast_.start(*run->base, run->journal, run->snapshot.second + run->horizon);
     run_ = std::move(run);
-    resetChart();
+    chart_ = {};
+    previousChart_ = {};
 }
 
 void Session::close()
 {
     suspend();
     run_.reset();
-    resetChart();
+    chart_ = {};
+    previousChart_ = {};
     suspended_ = false;
     opening_ = true;
     error_.clear();
@@ -313,7 +304,8 @@ bool Session::save(const SaveSlots& slots, Slot slot) const
 void Session::transact(std::vector<sim::Action> actions, bool resolve)
 {
     error_.clear();
-    job_ = std::async(std::launch::async, [this, previous = run_, actions = std::move(actions), resolve] {
+    job_ = std::async(std::launch::async, [this, previous = run_, retain = chart_.through,
+                                           actions = std::move(actions), resolve] {
         auto live = std::make_shared<RuntimeState>(*previous->live);
         auto journal = previous->journal.to_json().as_array();
         for (const auto& command : actions) {
@@ -342,7 +334,9 @@ void Session::transact(std::vector<sim::Action> actions, bool resolve)
         run->shapes = previous->shapes;
         run->horizon = previous->horizon;
         run->snapshot = snapshot(*run->live, true);
-        run->generation = forecast_.start(*run->base, run->journal, run->snapshot.second + run->horizon);
+        run->divergence = previous->snapshot.second;
+        run->generation = forecast_.start(*run->base, run->journal, run->snapshot.second + run->horizon,
+            timegraph::BoundaryActions::pending, retain && *retain > *run->divergence ? retain : std::nullopt);
         return std::shared_ptr<const Run>(std::move(run));
     });
 }
@@ -418,15 +412,20 @@ void Session::update()
     if (suspended_) return;
     if (ready(job_)) {
         try {
-            run_ = job_.get();
+            auto next = job_.get();
+            previousChart_ = next->divergence && chart_.through && *chart_.through > *next->divergence
+                ? std::move(chart_) : Chart{};
+            chart_ = {};
+            run_ = std::move(next);
             live();
-            resetChart(chart_.end);
         } catch (const std::exception& failure) {
             error_ = failure.what();
             opening_ = false;
         }
     }
     summaryMs_ = 0;
+    if (busy()) return;
+    updatePreview();
     if (const auto info = coverage()) {
         const auto start = Clock::now();
         readChart(*info);
@@ -436,66 +435,106 @@ void Session::update()
             if (chart_.through == info->publishedThrough) opening_ = false;
         }
     }
-    if (ready(restore_)) {
-        auto result = restore_.get();
-        if (result.generation != generation() || result.second != requested_) return;
-        if (result.status == timegraph::RestoreStatus::ready) {
-            previewState_ = std::move(*result.state);
-            preview_ = snapshot(*previewState_, false);
-            ++viewRevision_;
-        } else {
-            live();
-            error_ = result.error.empty() ? "That second is unavailable" : result.error;
-        }
+}
+
+void Session::updatePreview()
+{
+    if (!ready(restore_)) return;
+    auto result = restore_.get();
+    if (result.generation != requestedGeneration_ || result.second != requested_) return;
+    if (result.status == timegraph::RestoreStatus::ready) {
+        previewState_ = std::move(*result.state);
+        preview_ = snapshot(*previewState_, false);
+        previewGeneration_ = result.generation;
+        ++viewRevision_;
+    } else {
+        live();
+        error_ = result.error.empty() ? "That second is unavailable" : result.error;
     }
 }
 
-void Session::resetChart(Second end)
+std::optional<Second> Session::divergence() const
 {
-    chart_ = {};
-    samples_.clear();
-    if (run_) {
-        chart_.start = static_cast<Second>(run_->base->hot.tSec);
-        chart_.end = end > chart_.start ? end : run_->snapshot.second + run_->horizon;
-    }
+    return run_ ? run_->divergence : std::nullopt;
+}
+
+std::optional<Second> Session::browseThrough() const
+{
+    return std::max(chart_.through, previousChart_.through);
+}
+
+void Session::clearComparison()
+{
+    if (!previousChart_.generation || busy()) return;
+    // The next forecast transaction retires the worker's retained anchors.
+    // Dropping the presentation cache here keeps their teardown off the UI thread.
+    previousChart_ = {};
 }
 
 void Session::readChart(const timegraph::Coverage& info)
 {
+    if (chart_.generation != info.generation) chart_.begin(info);
     if (!info.publishedThrough || chart_.through == info.publishedThrough) return;
     sites_.resize(headers_.size() * info.regions);
-    auto next = info.start + samples_.size();
+    auto next = chart_.through ? *chart_.through + 1 : info.start;
     // Leave layout, drawing and input a predictable share of every frame.
     for (int page = 0; page < 8 && next <= *info.publishedThrough; ++page) {
         const auto count = forecast_.readSummaries(info.generation, next, headers_, sites_);
         if (!count) break;
-        for (std::size_t i = 0; i < count; ++i) {
-            const auto pop = static_cast<float>(headers_[i].population);
-            samples_.push_back(pop);
-            addPoint(chart_, next++, pop);
-        }
-        chart_.through = next - 1;
+        for (std::size_t i = 0; i < count; ++i)
+            chart_.append(headers_[i], std::span(sites_).subspan(i * info.regions, info.regions));
+        next += count;
     }
-    if (chart_.through && (*chart_.through > chart_.end ||
-        (chart_.through == info.publishedThrough && info.completion != timegraph::Completion::running))) {
-        const auto end = info.completion == timegraph::Completion::running
-            ? std::min(info.target, chart_.start + 2 * (chart_.end - chart_.start))
-            : std::max(chart_.start + 1, *chart_.through);
-        if (end == chart_.end) return;
-        chart_.end = end;
-        chart_.population = {};
-        chart_.peak = 1;
-        for (std::size_t i = 0; i < samples_.size(); ++i) addPoint(chart_, chart_.start + i, samples_[i]);
+}
+
+std::size_t Session::readPlot(timegraph::GenerationId id, std::size_t scope, Second first,
+                              std::span<SeriesValues> values)
+{
+    const auto& source = id == chart_.generation ? chart_ : previousChart_;
+    if (!run_ || id != source.generation || !source.through || first > *source.through) return 0;
+    const auto regions = run_->snapshot.regions.size();
+    if (scope > regions) return 0;
+    const auto limit = std::min<std::size_t>(values.size(), *source.through - first + 1);
+    sites_.resize(headers_.size() * regions);
+    std::size_t read = 0;
+    while (read < limit) {
+        const auto count = forecast_.readSummaries(id, first + read,
+            std::span(headers_).first(std::min(headers_.size(), limit - read)), sites_);
+        if (!count) break;
+        for (std::size_t i = 0; i < count; ++i)
+            values[read + i] = plotValues(headers_[i], scope ? &sites_[i * regions + scope - 1] : nullptr);
+        read += count;
     }
+    return read;
+}
+
+std::array<Second, 4> Session::calendarSteps() const
+{
+    if (!run_) return {1, 6, 8, 32};
+    const auto& settings = run_->base->compiledContent->settings();
+    const auto phase = static_cast<Second>(std::max(1., std::floor(settings.phaseDurationSec)));
+    const auto duration = run_->base->hot.seasonDurationSec;
+    const auto season = std::isfinite(duration) && duration >= 1 && duration == std::floor(duration)
+        ? static_cast<Second>(duration) : 8;
+    return {1, 6 * phase, season, season * std::max<Second>(1, run_->base->hot.seasons.size())};
 }
 
 bool Session::scrub(Second second)
 {
-    if (!run_ || opening_ || busy() || suspended_ || !chart_.through) return false;
-    second = std::clamp(second, chart_.start, *chart_.through);
-    if (requested_ == second) return false;
+    if (!run_ || opening_ || busy() || suspended_ || !browseThrough()) return false;
+    auto id = generation();
+    if (previousChart_.through > chart_.through && divergence() && second >= *divergence() &&
+        (!chart_.through || second > *chart_.through)) {
+        second = std::min(second, *previousChart_.through);
+        id = previousChart_.generation;
+    } else {
+        if (!chart_.through) return false;
+        second = std::clamp(second, chart_.start, *chart_.through);
+    }
+    if (requested_ == second && requestedGeneration_ == id) return false;
     requested_ = second;
-    restore_ = forecast_.stateAtSecond(generation(), second);
+    requestedGeneration_ = id;
+    restore_ = forecast_.stateAtSecond(id, second);
     return true;
 }
 

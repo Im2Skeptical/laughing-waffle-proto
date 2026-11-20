@@ -20,6 +20,8 @@ public:
     bool input(SDL_Event event);
     bool scrubAt(float x);
     SDL_FRect plot() const;
+    TimeWindow graphWindow() const { return graphWindow_; }
+    double graphSampleMs() const { return graphSampleMs_; }
     void cancelInput();
     void releaseTerrain() { map_.invalidateTerrain(); }
     void syncWindow();
@@ -49,7 +51,17 @@ private:
     void positionMarkers();
     void refreshHelp();
     void refreshReadout();
+    void refreshGraph(bool loading);
     void drawGraph();
+    void resetGraph();
+    bool activateGraph(std::string_view op);
+    void graphKey(SDL_Keycode key, SDL_Keymod modifiers);
+    void zoomGraph(double factor, Second anchor);
+    void panGraph(float x);
+    void focusSecond(Second second);
+    void jumpEvent(bool next);
+    const ChronicleEvent* eventAt(SDL_FPoint point) const;
+    void releaseGraph();
     void selectRegion(std::string region);
     void navigateMap(SDL_Keycode key);
     void reviewReform();
@@ -92,6 +104,30 @@ private:
     std::string selectedRegion_;
     std::optional<std::size_t> selectedCard_, staged_, dropTarget_;
     std::optional<Second> hoverSecond_;
+    struct ExactPlot {
+        timegraph::GenerationId generation{};
+        std::size_t scope{}, count{};
+        Second first{};
+        std::array<SeriesValues, Chart::exactSeconds + 1> rows;
+    };
+    ExactPlot exactCurrent_, exactPrevious_;
+    TimeWindow graphWindow_, graphBounds_;
+    timegraph::GenerationId graphGeneration_{};
+    Second graphLive_{}, graphOldLive_{};
+    Uint64 graphChangedAt_{};
+    std::optional<Second> graphPin_;
+    std::optional<Second> readoutSecond_;
+    std::size_t graphGroup_{}, graphScope_{}, readoutScope_{};
+    std::size_t graphPresentedGroup_ = ~std::size_t{};
+    timegraph::GenerationId readoutGeneration_{};
+    SeriesValues readoutValues_{};
+    bool readoutExact_{}, localGraph_{}, graphZoomed_{}, graphWorking_{}, comparisonVisible_{};
+    std::string graphScopeLabel_, graphComparisonLabel_;
+    std::array<std::vector<Column>, 4> graphColumns_;
+    std::vector<Column> overviewColumns_;
+    std::vector<std::size_t> eventPins_;
+    std::vector<SDL_Vertex> graphInk_;
+    double graphSampleMs_{};
     bool loadingVisible_{true}, loadingFailed_{};
     bool opening_{}, busy_{}, previewing_{}, markersDirty_{true};
     bool markerSizesDirty_{};
@@ -110,7 +146,7 @@ private:
     std::optional<LifeCommand> lifeConfirm_;
     RegionalMap map_;
     SDL_FPoint pointer_{}, last_{}, pressed_{};
-    enum class Drag { none, map, graph, card, panel, shell, lifePanel, lifeOffers, pinch };
+    enum class Drag { none, map, graph, overview, card, panel, shell, lifePanel, lifeOffers, pinch };
     float density_ = 1;
     Drag drag_ = Drag::none;
     std::size_t draggedCard_{};

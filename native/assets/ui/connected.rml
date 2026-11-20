@@ -31,11 +31,28 @@
   <div id="life-inspector" class="panel"></div>
 </div>
 <div id="timegraph" class="panel">
-  <div id="graph-caption">Civilization Population</div>
+  <div id="graph-series">
+    <button id="graph-scope" class="tab" data-op="graph-scope" data-help="Switch between all your holdings and the selected settlement.">Civilization</button>
+    <button id="graph-people" class="tab on" data-op="graph-people" data-help="Population and Food.">People</button>
+    <button id="graph-belief" class="tab" data-op="graph-belief" data-help="Population-weighted Faith and Happiness.">Belief</button>
+    <button id="graph-stock" class="tab" data-op="graph-stock" data-help="Food and Currency Stock.">Stock</button>
+    <button id="graph-realm" class="tab" data-op="graph-realm" data-help="Civilization Prestige and controlled regions.">Realm</button>
+    <button id="graph-chaos" class="tab" data-op="graph-chaos" data-help="Civilization Chaos and Monster count.">Chaos</button>
+  </div>
+  <div id="graph-navigation">
+    <button id="graph-prev" class="button" data-op="graph-prev" aria-label="Previous event" data-help="Previous event (Page Up).">‹ Event</button>
+    <button id="graph-next" class="button" data-op="graph-next" aria-label="Next event" data-help="Next event (Page Down).">Event ›</button>
+    <button id="graph-out" class="button" data-op="graph-out" aria-label="Zoom time out" data-help="Zoom time out. Drag the overview to pan.">−</button>
+    <button id="graph-in" class="button" data-op="graph-in" aria-label="Zoom time in" data-help="Zoom time in. Scroll over the chart to zoom around the pointer.">+</button>
+    <button id="live" class="tab on" data-op="live" data-help="Return to committed time (Home).">Live</button>
+  </div>
+  <div id="graph-labels" class="quiet"><div id="graph-label-one"></div><div id="graph-label-two"></div></div>
+  <div id="plot" role="slider" aria-label="Forecast time" data-help="Arrow keys step one second. Hold Shift for a moon, Ctrl for a season, or Alt for a year."></div>
+  <div id="axis-start" class="quiet"></div>
+  <div id="graph-overview" role="group" aria-label="Forecast overview" data-help="Drag to pan the forecast."></div>
+  <div id="axis-end" class="quiet"></div>
   <div id="graph-status" class="quiet">{{status}}</div>
-  <button id="live" class="tab on" data-op="live" data-help="Return to committed time.">Live</button>
-  <div id="plot" role="slider" aria-label="Population time" data-help="Drag to inspect a second. Use the arrow keys for single seconds."></div>
-  <div id="axis-start" class="quiet"></div><div id="axis-end" class="quiet"></div>
+  <div id="graph-comparison" class="quiet"></div>
   <div id="readout" class="tooltip"></div>
 </div>
 <div id="opening" class="dialog">
