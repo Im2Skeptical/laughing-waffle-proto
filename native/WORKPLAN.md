@@ -2,6 +2,46 @@
 
 ## Handoff
 
+- **Paused 20 Nov 2026 at Cam's request. No workers are running.**
+  - On `main` (v1.1.81, at Cam's direction: direct to main, history kept,
+    no PR):
+    - the native simulation port, exact at GameState v53 against browser
+      9123ed72, with MSVC, clang and Android (Pixel 6 Pro) hash agreement;
+    - the headless forecast timegraph;
+    - the connected Windows game: title, save slots, map, settlements,
+      Practice Reform, Life Map, Shop, and the N04i forecast experience.
+    The same tip is pushed as `t3/native-rebuild-planning`.
+  - Verification at pause, on MSVC and clang:
+    - 52/52 CTests and the connected smoke;
+    - 30 windows / 153 comparisons with zero masks;
+    - 34 journals / 252 replay checkpoints;
+    - `npm run verify` and `check:docs`;
+    - CI Verify on the first native main commit dc273658.
+  - Resume points:
+    1. **N04j settlement view depth** (`t3/native-settlement-view`
+       ac34b5a3, pushed, not merged; branched before N04i).
+       - Overview, Moon, Structures and Practices tabs work and follow the
+         displayed second.
+       - Its checks pass, but frame p99 is about 0.25 ms over the control
+         (2.77 MSVC / 2.60 clang). Profile RmlUi layout cost, then merge
+         over N04i.
+       - Resume steps are in its N04j section on that branch.
+    2. **Pixel app validation** is pending while Cam uses the phone. The
+       APK builds with `native/tools/bootstrap-android.ps1`, and
+       `native/tools/benchmark-android-timegraph.ps1` runs the device
+       session. Stop the HiSuite service first.
+    3. **Proposal awaiting Cam:** sparse event records (Vassal outcome
+       codes, migration origin and destination) for richer timegraph
+       marker tooltips. This would change what forecasts store.
+    4. **Optional:** rule-level performance options are on hold. The
+       desktop and Pixel targets are met, so these are not needed.
+  - Notes for whoever resumes:
+    - Disk: C: once ran out. Delete `native/build` in merged worker
+      worktrees when space is low.
+    - The Node 24 Windows preview test in `npm run verify` is flaky.
+      Re-run it once before treating a failure as real.
+- History below this line predates the pause.
+
 - State, 19 Nov 2026: the wave that resumed from e6cef481 is merged into
   `t3/native-rebuild-planning` (local, not pushed). Every tick stage is
   ported, including all of Vassal. Native New Game builds second-zero
