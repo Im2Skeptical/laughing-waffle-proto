@@ -74,6 +74,7 @@ set(WAFFLE_CONNECTED_SOURCES
 	src/app/connected_main.cpp
 	src/app/connected_save.cpp
 	src/app/connected_session.cpp
+	src/app/connected_settlement_view.cpp
 	src/app/connected_shell.cpp
 	src/app/connected_smoke.cpp
 	src/app/connected_view.cpp
@@ -81,8 +82,8 @@ set(WAFFLE_CONNECTED_SOURCES
 	src/app/sdl_rml_renderer.cpp
 	src/ui/connected_model.cpp
 	src/ui/life_map.cpp
-)
 	src/ui/settlement_model.cpp
+)
 
 if(ANDROID)
 	# SDL's Android activity dlsyms SDL_main from libmain.so. The desktop
@@ -159,6 +160,8 @@ else()
 		add_test(NAME connected_slice_smoke COMMAND waffle_native_game --smoke --seed 42)
 		add_test(NAME connected_interaction_smoke COMMAND waffle_native_game --interaction-smoke --seed 42)
 		add_test(NAME connected_interaction_compact COMMAND waffle_native_game --interaction-smoke --seed 42 --size 640 360)
+		add_test(NAME connected_settlement_desktop COMMAND waffle_native_game --settlement-smoke --seed 42)
+		add_test(NAME connected_settlement_compact COMMAND waffle_native_game --settlement-smoke --seed 42 --size 640 360)
 		set_tests_properties(connected_interaction_smoke connected_interaction_compact PROPERTIES TIMEOUT 60
 			ENVIRONMENT "SDL_VIDEODRIVER=dummy;SDL_RENDER_DRIVER=software")
 		find_program(WAFFLE_LIFE_TEST_NODE NAMES node)

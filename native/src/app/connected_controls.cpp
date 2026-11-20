@@ -242,7 +242,7 @@ bool View::back()
     else if (lifeOpen_) setLifeOpen(false);
     else if (selection_.destination && pendingAction_ != "reform") selection_.destination.reset();
     else if (pendingAction_ == "reform") return true;
-    else if (selection_.card) selection_.card.reset();
+    else if (backSettlement()) return true;
     else if (!selection_.region.empty()) {
         selection_.select({});
         map_.overview();
@@ -306,6 +306,7 @@ bool View::key(SDL_Event event)
         }
     }
     if (!down || dialog_) return true;
+    if (keySettlement(key, focus)) return true;
     if (focus == &element("map")) {
         if (key == SDLK_LEFT || key == SDLK_RIGHT || key == SDLK_UP || key == SDLK_DOWN) navigateMap(key);
         if (key == SDLK_PLUS || key == SDLK_EQUALS || key == SDLK_MINUS) {
@@ -382,7 +383,7 @@ void View::pointer(const SDL_Event& event)
                 !dropTarget_ && std::abs(pointer_.y - pressed_.y) > 1.4f * std::abs(pointer_.x - pressed_.x))
                 drag_ = Drag::panel;
             if ((drag_ == Drag::panel || drag_ == Drag::shell || drag_ == Drag::lifePanel || drag_ == Drag::lifeOffers) && moved_) {
-                auto& panel = element(drag_ == Drag::panel ? "panel" : drag_ == Drag::lifePanel ? "life-inspector" : drag_ == Drag::lifeOffers ? "life-chart" : "shell-panel");
+                auto& panel = element(drag_ == Drag::panel ? "settlement-scroll" : drag_ == Drag::lifePanel ? "life-inspector" : drag_ == Drag::lifeOffers ? "life-chart" : "shell-panel");
                 panel.SetScrollTop(panel.GetScrollTop() + last_.y - pointer_.y);
             }
             last_ = pointer_;
@@ -417,7 +418,7 @@ void View::pointer(const SDL_Event& event)
                 const auto* snapshot = session_.displayed();
                 const auto* site = selection_.selected(snapshot);
                 if (!dialog_ && touch_) {
-                    if (game && !lifeOpen_ && contains(bounds("panel"), pointer_)) drag_ = Drag::panel;
+                    if (game && !lifeOpen_ && contains(bounds("settlement-scroll"), pointer_)) drag_ = Drag::panel;
                     if (game && lifeOpen_ && contains(bounds("life-inspector"), pointer_)) drag_ = Drag::lifePanel;
                     if (game && lifeOpen_ && life_.shop && !lifeRoute_ && contains(bounds("life-chart"), pointer_))
                         drag_ = Drag::lifeOffers;
@@ -591,6 +592,7 @@ void View::activate(Rml::Element& control)
     const auto id = control.GetAttribute<Rml::String>("data-id", "");
     if (dialog_ && op != "back" && op != "confirm") return;
     if (op.starts_with("life-")) activateLife(op, id);
+    else if (op.starts_with("settlement-")) activateSettlement(op, id);
     else if (op == "start" && shell_.screen() == Screen::title) startFromSeed();
     else if (op == "continue" && shell_.screen() == Screen::title) shell_.continueGame();
     else if (op == "load" && shell_.screen() == Screen::title) shell_.show(Screen::load);

@@ -125,31 +125,49 @@ SettlementOverview overview(const RuntimeState& state, const Region& region, con
         overflow > 0, region.housing > 0 ? region.population / region.housing : (overflow > 0 ? 1. : 0.)});
     result.economy.push_back({"currency", "Currency", units(region.currency), ""});
 
-    struct StockGroup { std::string traits; double local{}, linked{}, market{}; };
+    struct StockGroup { std::string traits; double local{}, linked{}, market{}; bool hosted{}; };
     std::vector<StockGroup> groups;
+    const auto groupFor = [&](auto traits) -> StockGroup& {
+        std::vector<std::string_view> tags;
+        for (const auto trait : traits) tags.push_back(state.name(trait));
+        std::ranges::sort(tags);
+        std::string label;
+        for (const auto tag : tags) {
+            if (!label.empty()) label += " / ";
+            label += tag;
+        }
+        auto group = std::ranges::find(groups, label, &StockGroup::traits);
+        if (group == groups.end()) group = groups.insert(groups.end(), {std::move(label)});
+        return *group;
+    };
+    double market = 0;
     for (const auto& source : stock::stock_sources(state, site, false)) {
         if (source.traits.empty()) continue;
-        std::vector<std::string_view> tags;
-        for (const auto trait : source.traits) tags.push_back(state.name(trait));
-        std::ranges::sort(tags);
-        std::string traits;
-        for (const auto tag : tags) {
-            if (!traits.empty()) traits += " / ";
-            traits += tag;
+        if (source.priced && !site.neutral) {
+            market += source.remaining;
+            continue;
         }
-        auto group = std::ranges::find(groups, traits, &StockGroup::traits);
-        if (group == groups.end()) group = groups.insert(groups.end(), {std::move(traits)});
-        if (source.priced || site.neutral) group->market += source.remaining;
-        else if (source.region == site.regionId) group->local += source.remaining;
-        else group->linked += source.remaining;
+        auto& group = groupFor(source.traits);
+        if (site.neutral) group.market += source.remaining;
+        else if (source.region == site.regionId) group.local += source.remaining;
+        else group.linked += source.remaining;
+    }
+    if (!site.neutral) for (const auto index : local.practiceSlots.slots) {
+        if (!index || state.practiceStock[index.value].value_or(0) > 0) continue;
+        const auto& def = stock::definition(state, state.tables.at(index).practiceId);
+        const auto traits = state.compiledContent->tables.view(def.stockTraits);
+        if (!traits.empty()) groupFor(traits).hosted = true;
     }
     std::ranges::sort(groups, {}, &StockGroup::traits);
     for (const auto& group : groups) {
         const auto available = group.local + group.linked;
         const auto detail = available > 0 ? units(group.local) + " local · " + units(group.linked) + " linked" : "";
-        if (available > 0) result.economy.push_back({"stock-" + group.traits, group.traits, units(available), detail});
+        if (available > 0 || group.hosted)
+            result.economy.push_back({"stock-" + group.traits, group.traits, units(available), detail});
         if (group.market > 0) result.economy.push_back({"market-" + group.traits, group.traits, units(group.market), "Priced market Stock"});
     }
+    if (market > 0)
+        result.economy.push_back({"market-stock", "Market offers", units(market), "Priced separately"});
 
     const auto holder = stock::holder(state, site.regionId);
     const auto* control = local.control ? &*local.control : nullptr;
