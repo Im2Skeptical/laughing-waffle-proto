@@ -4,6 +4,7 @@
 #include "timegraph/forecast.hpp"
 #include "ui/connected_model.hpp"
 #include "ui/life_map.hpp"
+#include "ui/settlement_model.hpp"
 
 #include <chrono>
 #include <filesystem>
@@ -44,6 +45,8 @@ public:
     bool choose(const Choice& choice);
     bool submit(const LifeCommand& command);
     LifeReading lifeMap(bool detail) const;
+    SettlementReading settlement(const Region& region, SettlementTab tab,
+        std::optional<std::size_t> slot) const;
     bool reorder(std::string_view region, std::size_t from, std::size_t to);
     bool scrub(Second second);
     void live();
@@ -67,6 +70,7 @@ public:
     // Test-only reads. The preview digest is from the same state that fed the view.
     std::uint64_t displayedDigest() const;
     std::uint64_t replayDigest(Second second) const;
+    sim::RuntimeState replayStateForTest(Second second) const;
     std::size_t actionCount() const { return run_->journal.entries().size(); }
     bool suspended() const { return suspended_; }
 

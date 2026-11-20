@@ -82,6 +82,7 @@ set(WAFFLE_CONNECTED_SOURCES
 	src/ui/connected_model.cpp
 	src/ui/life_map.cpp
 )
+	src/ui/settlement_model.cpp
 
 if(ANDROID)
 	# SDL's Android activity dlsyms SDL_main from libmain.so. The desktop

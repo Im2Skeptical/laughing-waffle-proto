@@ -30,7 +30,8 @@ struct Region {
     std::string id, name, settlement;
     Holder holder{Holder::neutral};
     std::uint8_t biome{};
-    double population{}, food{}, currency{};
+    double population{}, food{}, currency{}, housing{};
+    double loyalSharePercent{}, holdingForce{}, requiredForce{};
     std::array<Card, 5> cards;
     bool hasSite{}, detailed{};
 };
