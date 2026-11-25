@@ -56,7 +56,12 @@ void RegionalMap::prepareTextures(SDL_Renderer* renderer, SDL_FRect area)
         dirty_ = true;
     }
     if (!baked_) return;
-    if (terrain_ && area.w == lodWidth_ && area.h == lodHeight_ && camera_.zoom == lodZoom_) return;
+    if (terrainReady() && area.w == lodWidth_ && area.h == lodHeight_ && camera_.zoom == lodZoom_) {
+        prepareTerrainComposite(renderer);
+        return;
+    }
+    terrainComposite_.reset();
+    compositeAttempted_ = false;
     const auto x = area.w * camera_.zoom * .94 * (baked_->max[0] - baked_->min[0]) / baked_->full.width;
     const auto y = area.h * camera_.zoom * .84 * (baked_->max[1] - baked_->min[1]) / (baked_->full.height / 2);
     const auto lod = std::clamp(-std::log2(std::min(x, y)), 0., 4.);
@@ -65,7 +70,10 @@ void RegionalMap::prepareTextures(SDL_Renderer* renderer, SDL_FRect area)
     lodHeight_ = area.h;
     lodZoom_ = camera_.zoom;
     lodBlend_ = static_cast<float>(lod - level);
-    if (terrain_ && terrainLod_ == level && (lodBlend_ == 0 || terrainCoarse_)) return;
+    if (terrain_ && terrainLod_ == level && (lodBlend_ == 0 || terrainCoarse_)) {
+        prepareTerrainComposite(renderer);
+        return;
+    }
     const auto start = SDL_GetTicksNS();
     const auto upload = [&](const MapPixels& image) {
         auto* texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA32, SDL_TEXTUREACCESS_STATIC,
@@ -90,7 +98,36 @@ void RegionalMap::prepareTextures(SDL_Renderer* renderer, SDL_FRect area)
     terrainLod_ = level;
     textureBytes_ = baked_->level(level).rgba.size() + art_->towns.pixels.rgba.size();
     if (terrainCoarse_) textureBytes_ += baked_->level(level + 1).rgba.size();
+    prepareTerrainComposite(renderer);
     uploadMs_ = static_cast<double>(SDL_GetTicksNS() - start) / 1e6;
+    dirty_ = true;
+}
+
+void RegionalMap::prepareTerrainComposite(SDL_Renderer* renderer)
+{
+    if (compositeAttempted_ || !terrainCoarse_ || lodBlend_ == 0 || camera_.zoom != target_.zoom) return;
+    compositeAttempted_ = true;
+    const auto& fine = baked_->level(terrainLod_);
+    const auto& coarse = baked_->level(terrainLod_ + 1);
+    auto* previous = SDL_GetRenderTarget(renderer);
+    decltype(terrainComposite_) composed(SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA32,
+        SDL_TEXTUREACCESS_TARGET, fine.width, fine.height), SDL_DestroyTexture);
+    if (!composed || !SDL_SetRenderTarget(renderer, composed.get())) return;
+    SDL_SetTextureAlphaModFloat(terrain_.get(), 1);
+    SDL_SetTextureAlphaModFloat(terrainCoarse_.get(), lodBlend_);
+    for (const int layer : {0, 1}) {
+        const SDL_FRect fineRect{0, layer * fine.height * .5f, static_cast<float>(fine.width), fine.height * .5f};
+        const SDL_FRect coarseRect{0, layer * coarse.height * .5f, static_cast<float>(coarse.width), coarse.height * .5f};
+        SDL_RenderTexture(renderer, terrain_.get(), &fineRect, &fineRect);
+        SDL_RenderTexture(renderer, terrainCoarse_.get(), &coarseRect, &fineRect);
+    }
+    SDL_SetRenderTarget(renderer, previous);
+    SDL_SetTextureScaleMode(composed.get(), SDL_SCALEMODE_LINEAR);
+    SDL_SetTextureBlendMode(composed.get(), SDL_BLENDMODE_BLEND);
+    terrainComposite_ = std::move(composed);
+    terrain_.reset();
+    terrainCoarse_.reset();
+    textureBytes_ = fine.rgba.size() + art_->towns.pixels.rgba.size();
     dirty_ = true;
 }
 
@@ -112,6 +149,8 @@ void RegionalMap::invalidateTerrain()
 {
     terrain_.reset();
     terrainCoarse_.reset();
+    terrainComposite_.reset();
+    compositeAttempted_ = false;
     terrainLod_ = -1;
     towns_.reset();
     atmosphere_.release();
@@ -450,7 +489,7 @@ void RegionalMap::buildOverlay(SDL_FRect area, const Snapshot& snapshot, const s
         const auto tint = chosen || hot ? withAlpha(gold, hot && pressed ? .30f : chosen ? .18f : .11f)
                                         : withAlpha(faction, region.control * .45f);
         if (baked_ && region.creep > 0.f) {
-            const auto coarse = region.creep * lodBlend_;
+            const auto coarse = terrainComposite_ ? 0.f : region.creep * lodBlend_;
             const auto fine = coarse < 1 ? (region.creep - coarse) / (1 - coarse) : 0.f;
             const auto vertex = [&](Point p) {
                 return SDL_Vertex{at(p), {1, 1, 1, fine},
@@ -622,14 +661,15 @@ void RegionalMap::draw(SDL_Renderer* renderer, SDL_FRect area, const Snapshot& s
     SDL_RenderFillRect(renderer, &area);
     SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
     SDL_FRect destination{};
-    if (terrain_) {
+    auto* terrain = terrainComposite_ ? terrainComposite_.get() : terrain_.get();
+    if (terrain) {
         const auto origin = project(baked_->min, area), end = project(baked_->max, area);
         destination = {origin.x, origin.y, end.x - origin.x, end.y - origin.y};
         const auto& pixels = baked_->level(terrainLod_);
         const SDL_FRect source{0, 0, static_cast<float>(pixels.width), pixels.height * .5f};
-        SDL_SetTextureAlphaModFloat(terrain_.get(), reveal);
-        SDL_RenderTexture(renderer, terrain_.get(), &source, &destination);
-        if (terrainCoarse_ && lodBlend_ > 0) {
+        SDL_SetTextureAlphaModFloat(terrain, reveal);
+        SDL_RenderTexture(renderer, terrain, &source, &destination);
+        if (!terrainComposite_ && terrainCoarse_ && lodBlend_ > 0) {
             const auto& coarse = baked_->level(terrainLod_ + 1);
             const SDL_FRect crop{0, 0, static_cast<float>(coarse.width), coarse.height * .5f};
             SDL_SetTextureAlphaModFloat(terrainCoarse_.get(), lodBlend_ * reveal);
@@ -649,8 +689,8 @@ void RegionalMap::draw(SDL_Renderer* renderer, SDL_FRect area, const Snapshot& s
         drawnCamera_ = camera_;
         dirty_ = false;
     }
-    if (terrain_ && !occupation_.empty())
-        SDL_RenderGeometry(renderer, terrain_.get(), occupation_.data(), static_cast<int>(occupation_.size()), nullptr, 0);
+    if (terrain && !occupation_.empty())
+        SDL_RenderGeometry(renderer, terrain, occupation_.data(), static_cast<int>(occupation_.size()), nullptr, 0);
     if (terrainCoarse_ && !occupationCoarse_.empty())
         SDL_RenderGeometry(renderer, terrainCoarse_.get(), occupationCoarse_.data(), static_cast<int>(occupationCoarse_.size()), nullptr, 0);
     const auto* vertices = &mesh_;
@@ -662,7 +702,7 @@ void RegionalMap::draw(SDL_Renderer* renderer, SDL_FRect area, const Snapshot& s
     SDL_RenderGeometry(renderer, nullptr, vertices->data(), static_cast<int>(vertices->size()), nullptr, 0);
     if (towns_ && !buildings_.empty())
         SDL_RenderGeometry(renderer, towns_.get(), buildings_.data(), static_cast<int>(buildings_.size()), nullptr, 0);
-    if (terrain_) atmosphere_.drawSky(renderer, destination);
+    if (terrain) atmosphere_.drawSky(renderer, destination);
     SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_NONE);
     SDL_SetRenderClipRect(renderer, nullptr);
 }

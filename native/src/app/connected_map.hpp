@@ -42,7 +42,7 @@ public:
     double bakeMs() const { return baked_ ? baked_->bakeMs : 0.; }
     double uploadMs() const { return uploadMs_; }
     std::size_t textureBytes() const { return textureBytes_ + atmosphere_.textureBytes(); }
-    bool terrainReady() const { return terrain_ && towns_; }
+    bool terrainReady() const { return (terrain_ || terrainComposite_) && towns_; }
     bool transitioning() const { return changedAt_.has_value(); }
 
 private:
@@ -64,6 +64,7 @@ private:
     void buildOverlay(SDL_FRect area, const Snapshot& snapshot, const std::vector<RegionShape>& shapes,
         std::string_view selected, std::string_view hovered, bool pressed, float progress);
     void prepareTextures(SDL_Renderer* renderer, SDL_FRect area);
+    void prepareTerrainComposite(SDL_Renderer* renderer);
     void limitCamera();
     void triangle(SDL_FPoint a, SDL_FPoint b, SDL_FPoint c, SDL_FColor ink);
     void triangle(SDL_FPoint a, SDL_FPoint b, SDL_FPoint c, SDL_FColor ca, SDL_FColor cb, SDL_FColor cc);
@@ -96,8 +97,10 @@ private:
     MapAtmosphere atmosphere_;
     std::unique_ptr<SDL_Texture, decltype(&SDL_DestroyTexture)> terrain_{nullptr, SDL_DestroyTexture};
     std::unique_ptr<SDL_Texture, decltype(&SDL_DestroyTexture)> terrainCoarse_{nullptr, SDL_DestroyTexture};
+    std::unique_ptr<SDL_Texture, decltype(&SDL_DestroyTexture)> terrainComposite_{nullptr, SDL_DestroyTexture};
     std::unique_ptr<SDL_Texture, decltype(&SDL_DestroyTexture)> towns_{nullptr, SDL_DestroyTexture};
     int terrainLod_{-1};
+    bool compositeAttempted_{};
     float lodBlend_{}, lodZoom_{}, lodWidth_{}, lodHeight_{};
     double uploadMs_{};
     std::size_t textureBytes_{};
