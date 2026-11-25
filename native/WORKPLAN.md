@@ -4,24 +4,31 @@
 
 - **Resumed 25 Nov 2026.** Cam benched the browser performance backport and the
   laptop worker setup (the laptop keeps sleeping). Native app work continues.
-  - On `main` (v1.1.82), direct to main with history kept:
+  - On `main` (v1.1.83), direct to main with history kept:
     - N04j settlement inspection (Overview, Moon, Structures, Practices). The
       supervisor restored the late restore poll so scrubs present in the
       requesting frame (see N04j).
     - N04k living map: the browser's approved illustrated atlas (terrain kit,
       water, roads, Crown cities, Creep), live easing, and interaction states.
+    - N04m settlement crests and map readouts (v1.1.83): workers, Prestige,
+      allegiance with shield and sword, Force, Crown, Unrest, Monster Strength
+      and repel, Stock coverage exceptions and transfer packets.
   - Verification of the merged tip, on MSVC and clang:
-    - 54/54 CTests, the connected smoke, both settlement smoke sizes and the
-      shell captures;
+    - 56/56 CTests, the connected smoke, the settlement and crest smokes at
+      both sizes, and the shell captures;
     - 30 windows / 153 comparisons with zero masks;
     - 34 journals / 252 replay checkpoints;
     - `npm run verify` and `check:docs`.
-  - Wave in progress, from this tip:
-    - N04l, atlas fidelity and atmosphere (the N04k fidelity gaps, plus water,
-      clouds, fog and graphics switches);
-    - N04m, settlement crests and map readouts (Prestige, allegiance, Force,
-      Unrest, Monster Strength, Stock coverage, transfer packets).
+  - In progress: N04l, atlas fidelity and atmosphere (the N04k fidelity gaps,
+    plus water, clouds, fog and graphics switches). It branched from 93e5e0ca,
+    before N04m.
   - Still open:
+    - Settlement Overview inconsistency: in the seed-42 monster-held Southern
+      Forest at s 1584, the panel says 0 residents (`region.population`)
+      while the Villagers row shows 24 (detailed `populationByClass`). See
+      `artifacts/n04m/after/1120x640/08-monster-repel.png` on the N04m
+      worktree. Check what the browser shows for monster-held sites, then
+      align the view.
     - Pixel validation is pending while Cam uses the phone. Build with
       `native/tools/bootstrap-android.ps1`, run
       `native/tools/benchmark-android-timegraph.ps1`, and stop HiSuite first.
