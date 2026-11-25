@@ -6,6 +6,7 @@
 #include <SDL3/SDL.h>
 #include <future>
 #include <memory>
+#include <span>
 #include <string_view>
 
 namespace waffle::connected {
@@ -16,6 +17,7 @@ public:
         Uint64 now{}, revision{};
         bool reduced{}, live{};
         MapGraphics graphics{};
+        std::span<const std::size_t> garrisonTargets{};
     };
     struct Hit {
         std::size_t region;
@@ -80,6 +82,7 @@ private:
     Camera camera_, target_;
     Uint64 lastFrame_{}, revealedAt_{};
     std::vector<std::vector<Point>> borders_;
+    std::vector<std::size_t> garrisonTargets_;
     std::vector<SDL_Vertex> mesh_;
     std::vector<SDL_Vertex> faded_, occupation_, occupationCoarse_, buildings_;
     std::vector<Territory> from_, ink_, incoming_;

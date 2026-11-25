@@ -87,7 +87,73 @@ Census census(const RuntimeState& state, const PopulationClass& population, cons
     return result;
 }
 
-SettlementOverview overview(const RuntimeState& state, const Region& region, const Site& site)
+std::string practiceName(const RuntimeState& state, PracticeId id)
+{
+    const auto key = state.name(id);
+    const auto& definitions = state.content->config.gamepieces.practices;
+    const auto found = std::ranges::find(definitions, key, &sim::browser::GamepiecesPractices::value_type::first);
+    return found != definitions.end() ? found->second.label : std::string(key);
+}
+
+std::string marketTerms(const NeutralStock& offer)
+{
+    return units(offer.price) + " Currency / unit · Restocks " + units(offer.replenishment) + " each Food phase";
+}
+
+StorefrontReading storefront(const RuntimeState& state, const NeutralMarket& market)
+{
+    StorefrontReading result{title(state.cold.at(market.template_.row).get()), market.defense};
+    for (const auto& offer : state.tables.view(market.stocks)) {
+        result.offers.push_back({std::string(state.name(offer.id)), state.cold.at(offer.label.row).get(),
+            units(offer.stock) + " / " + units(offer.capacity),
+            names(state, state.tables.view(offer.traits)) + " · " + marketTerms(offer)});
+    }
+    return result;
+}
+
+const char* garrisonReason(sim::territory::GarrisonTarget status)
+{
+    using Target = sim::territory::GarrisonTarget;
+    switch (status) {
+    case Target::eligible: return "";
+    case Target::noSettlement: return "No active settlement";
+    case Target::notAllied: return "Outside your holdings";
+    case Target::notConnected: return "No connecting road";
+    case Target::noSupportingStructure: return "A supporting Structure is required";
+    }
+    return "";
+}
+
+std::optional<GarrisonReading> garrisonChoices(const RuntimeState& state, const Site& site,
+    const sim::territory::Force& military)
+{
+    const auto source = site.regionId;
+    if (!sim::territory::can_assign_garrison(state, source)) return {};
+    const auto& garrison = site.detailedState.garrison;
+    const auto assigned = garrison && garrison->supportTargetRegionId.has_key() ?
+        garrison->supportTargetRegionId.value().value_or(RegionId{}) : RegionId{};
+    const auto neighbors = sim::territory::neighbors(state, source);
+    const auto eligibility = [&](RegionId target) { return sim::territory::garrison_target(state, site, target); };
+    using Target = sim::territory::GarrisonTarget;
+    if (!assigned && std::ranges::none_of(neighbors, [&](RegionId id) { return eligibility(id) == Target::eligible; }))
+        return {};
+    GarrisonReading reading{assigned ? std::string(state.topology->region_name(assigned)) : "Local",
+        military.defense, military.force, military.warriors};
+    reading.choices.reserve(neighbors.size() + 1);
+    reading.choices.push_back({{}, "Local support", {}, source.value, military.defense, !assigned});
+    for (const auto target : neighbors) {
+        const auto reason = eligibility(target);
+        const auto defense = reason == Target::eligible ?
+            sim::territory::military(state, target, state.practiceVocabulary.player).defense : 0.;
+        reading.choices.push_back({std::string(state.name(target)), std::string(state.topology->region_name(target)),
+            garrisonReason(reason), target.value, defense, assigned == target});
+    }
+    std::stable_partition(reading.choices.begin() + 1, reading.choices.end(),
+        [](const auto& choice) { return choice.reason.empty(); });
+    return reading;
+}
+
+SettlementOverview overview(const RuntimeState& state, const Region& region, const Site& site, std::string_view stockDetail)
 {
     SettlementOverview result;
     const auto& local = site.detailedState;
@@ -95,10 +161,10 @@ SettlementOverview overview(const RuntimeState& state, const Region& region, con
     result.census = {census(state, local.populationByClass.villager, pop[0]),
                      census(state, local.populationByClass.stranger, pop[1])};
 
-    std::string mealDetail = site.neutral ? "Priced market supply" : "No meal recorded";
+    std::string mealDetail = "No meal recorded";
     bool shortage = false;
     std::optional<double> mealFill;
-    if (local.lastMeal && !site.neutral) {
+    if (local.lastMeal) {
         const auto& meal = state.tables.at(*local.lastMeal);
         result.meal = {static_cast<Second>(meal.tSec), meal.demand, meal.consumed, meal.ratio,
             meal.byClass.villager.ratio, meal.byClass.stranger.ratio};
@@ -107,14 +173,14 @@ SettlementOverview overview(const RuntimeState& state, const Region& region, con
         mealDetail = (shortage ? "Last meal short · " : "Last meal met · ") +
             demand(meal.consumed, meal.demand) + " at " + second(meal.tSec);
     }
-    if (local.lastMoonResult && !site.neutral) {
+    if (local.lastMoonResult) {
         const auto& moon = state.tables.at(*local.lastMoonResult);
         if (moon.housing && moon.faith) {
             const auto& lastHousing = state.tables.at(*moon.housing);
             if (lastHousing.overflow > 0) result.housingMoodCap = mood(state, lastHousing.happinessCap);
         }
     }
-    if (!site.neutral && region.population > 0 && region.food <= 0) {
+    if (region.population > 0 && region.food <= 0) {
         mealDetail = "No local reserve · " + mealDetail;
         shortage = true;
     }
@@ -125,7 +191,7 @@ SettlementOverview overview(const RuntimeState& state, const Region& region, con
         overflow > 0, region.housing > 0 ? region.population / region.housing : (overflow > 0 ? 1. : 0.)});
     result.economy.push_back({"currency", "Currency", units(region.currency), ""});
 
-    struct StockGroup { std::string traits; double local{}, linked{}, market{}; bool hosted{}; };
+    struct StockGroup { std::string traits, sources; double local{}, linked{}; };
     std::vector<StockGroup> groups;
     const auto groupFor = [&](auto traits) -> StockGroup& {
         std::vector<std::string_view> tags;
@@ -140,34 +206,51 @@ SettlementOverview overview(const RuntimeState& state, const Region& region, con
         if (group == groups.end()) group = groups.insert(groups.end(), {std::move(label)});
         return *group;
     };
+    std::string offers;
     double market = 0;
+    const auto detailTraits = stockDetail.starts_with("stock-") ? stockDetail.substr(6) : std::string_view{};
+    const auto addProvider = [&](StockGroup& group, RegionId host, PracticeId practice, double amount) {
+        if (group.traits != detailTraits) return;
+        if (!group.sources.empty()) group.sources += '\n';
+        group.sources += practiceName(state, practice) + " · " + std::string(state.topology->region_name(host)) +
+            " · " + units(amount);
+    };
     for (const auto& source : stock::stock_sources(state, site, false)) {
         if (source.traits.empty()) continue;
-        if (source.priced && !site.neutral) {
+        if (source.priced) {
+            if (stockDetail == "market-stock") {
+                const auto& offer = state.tables.at(source.market);
+                if (!offers.empty()) offers += '\n';
+                offers += state.cold.at(offer.label.row).get() + " · " + std::string(state.topology->region_name(source.region)) +
+                    " · " + units(offer.stock) + " / " + units(offer.capacity) + " (" +
+                    names(state, state.tables.view(offer.traits)) + ") · " + marketTerms(offer);
+            }
             market += source.remaining;
             continue;
         }
+        if (!source.practice) continue;
         auto& group = groupFor(source.traits);
-        if (site.neutral) group.market += source.remaining;
-        else if (source.region == site.regionId) group.local += source.remaining;
+        if (source.region == site.regionId) group.local += source.remaining;
         else group.linked += source.remaining;
+        addProvider(group, source.region, state.tables.at(source.practice).practiceId, source.remaining);
     }
-    if (!site.neutral) for (const auto index : local.practiceSlots.slots) {
+    for (const auto index : local.practiceSlots.slots) {
         if (!index || state.practiceStock[index.value].value_or(0) > 0) continue;
-        const auto& def = stock::definition(state, state.tables.at(index).practiceId);
+        const auto practice = state.tables.at(index).practiceId;
+        const auto& def = stock::definition(state, practice);
         const auto traits = state.compiledContent->tables.view(def.stockTraits);
-        if (!traits.empty()) groupFor(traits).hosted = true;
+        if (!traits.empty()) addProvider(groupFor(traits), site.regionId, practice, 0.);
     }
     std::ranges::sort(groups, {}, &StockGroup::traits);
-    for (const auto& group : groups) {
+    for (auto& group : groups) {
         const auto available = group.local + group.linked;
-        const auto detail = available > 0 ? units(group.local) + " local · " + units(group.linked) + " linked" : "";
-        if (available > 0 || group.hosted)
-            result.economy.push_back({"stock-" + group.traits, group.traits, units(available), detail});
-        if (group.market > 0) result.economy.push_back({"market-" + group.traits, group.traits, units(group.market), "Priced market Stock"});
+        const auto detail = units(group.local) + " local · " + units(group.linked) + " linked";
+        result.economy.push_back({"stock-" + group.traits, group.traits, units(available), detail, false, {},
+            std::move(group.sources)});
     }
     if (market > 0)
-        result.economy.push_back({"market-stock", "Market offers", units(market), "Priced separately"});
+        result.economy.push_back({"market-stock", "Market offers", units(market), "Purchased with local Currency",
+            false, {}, std::move(offers)});
 
     const auto holder = stock::holder(state, site.regionId);
     const auto* control = local.control ? &*local.control : nullptr;
@@ -195,17 +278,20 @@ SettlementOverview overview(const RuntimeState& state, const Region& region, con
         const auto& garrison = *local.garrison;
         unsupplied = garrison.supplied == false;
         if (garrison.supplied) supply = unsupplied ? "Unsupplied" : "Supplied";
-        if (garrison.required) supply += " · " + demand(garrison.paid.value_or(0), *garrison.required) + " Arms paid";
+        if (garrison.required) supply += " · " + demand(garrison.paid.value_or(0), *garrison.required) + " Edible paid";
         if (garrison.supportTargetRegionId.has_key())
             if (const auto target = garrison.supportTargetRegionId.value())
                 supply += " · supports " + std::string(state.topology->region_name(*target));
     }
     const auto upkeep = sim::practice::garrison_upkeep_cost(state, site);
     if ((!local.garrison || !local.garrison->required) && upkeep > 0)
-        supply += " · " + units(upkeep) + " Arms upkeep";
-    if (!control || !control->claimant) supply += " · No claimant";
+        supply += " · " + units(upkeep) + " Edible upkeep";
+    if (military.sentWarriors > 0) supply += " · " + units(military.sentWarriors) + " sent";
+    if (military.received > 0) supply += " · " + units(military.received) + " Force received";
     result.control.push_back({"garrison", "Garrison", units(military.warriors) + " Warriors",
-        supply + " · " + units(military.defense) + " Defense", unsupplied});
+        supply, unsupplied});
+    result.control.push_back({"defense", "Defense", units(military.defense), units(military.force) + " holding Force"});
+    result.garrison = garrisonChoices(state, site, military);
     return result;
 }
 
@@ -308,12 +394,8 @@ std::string cost(const RuntimeState& state, const content::StockInput& input)
 std::string providerName(const RuntimeState& state, const StockProvider& receipt)
 {
     std::string result;
-    if (receipt.practiceId) {
-        const auto& definitions = state.content->config.gamepieces.practices;
-        const auto it = std::ranges::find(definitions, state.name(*receipt.practiceId),
-            &sim::browser::GamepiecesPractices::value_type::first);
-        if (it != definitions.end()) result = it->second.label;
-    } else if (receipt.label) result = state.name(*receipt.label);
+    if (receipt.practiceId) result = practiceName(state, *receipt.practiceId);
+    else if (receipt.label) result = state.name(*receipt.label);
     if (result.empty()) result = "Stock";
     return result + " · " + std::string(state.topology->region_name(receipt.regionId));
 }
@@ -541,21 +623,25 @@ StructureReading readSettlementStructures(const RuntimeState& state, const Site&
 }
 
 SettlementReading readSettlement(const RuntimeState& state, const Region& region,
-    SettlementTab tab, std::optional<std::size_t> slot)
+    SettlementTab tab, std::optional<std::size_t> slot, std::string_view stockDetail)
 {
     SettlementReading result;
     const auto key = state.find_id<RegionId>(region.id);
     if (!key || key.value >= state.indexes.sitesByRegion.size()) return result;
-    const auto id = state.indexes.sitesByRegion[key.value];
-    if (!id) return result;
-    const auto& site = sim::settlement::site_at(state, id);
+    const auto* detailed = sim::settlement::detailed_site(state, key);
+    if (!detailed) return result;
+    const auto& site = *detailed;
+    if (site.neutral) {
+        result.storefront = storefront(state, state.tables.at(*site.neutral));
+        return result;
+    }
     switch (tab) {
-        case SettlementTab::overview: result.overview = overview(state, region, site); break;
+        case SettlementTab::overview: result.overview = overview(state, region, site, stockDetail); break;
         case SettlementTab::moon: result.moon = moon(state, site); break;
         case SettlementTab::structures: result.structures = readSettlementStructures(state, site); break;
         case SettlementTab::practices: {
             const auto& slots = site.detailedState.practiceSlots.slots;
-            if (!site.neutral && slot && *slot < slots.size() && slots[*slot])
+            if (slot && *slot < slots.size() && slots[*slot])
                 result.practice = readSettlementPractice(state, site, slots[*slot]);
             break;
         }
