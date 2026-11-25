@@ -78,6 +78,8 @@ set(WAFFLE_DEMO_SOURCES
 set(WAFFLE_CONNECTED_SOURCES
 	src/app/connected_art.cpp
 	src/app/connected_controls.cpp
+	src/app/connected_crest_art.cpp
+	src/app/connected_crests.cpp
 	src/app/connected_graph.cpp
 	src/app/connected_life_view.cpp
 	src/app/connected_map.cpp
@@ -95,6 +97,7 @@ set(WAFFLE_CONNECTED_SOURCES
 	src/app/sdl_asset_file.cpp
 	src/app/sdl_rml_renderer.cpp
 	src/ui/connected_model.cpp
+	src/ui/crest_model.cpp
 	src/ui/forecast_chart.cpp
 	src/ui/life_map.cpp
 	src/ui/settlement_model.cpp
@@ -177,8 +180,10 @@ else()
 		add_test(NAME connected_interaction_compact COMMAND waffle_native_game --interaction-smoke --seed 42 --size 640 360)
 		add_test(NAME connected_settlement_desktop COMMAND waffle_native_game --settlement-smoke --seed 42)
 		add_test(NAME connected_settlement_compact COMMAND waffle_native_game --settlement-smoke --seed 42 --size 640 360)
+		add_test(NAME connected_crests_desktop COMMAND waffle_native_game --crest-smoke --seed 42)
+		add_test(NAME connected_crests_compact COMMAND waffle_native_game --crest-smoke --seed 42 --size 640 360)
 		set_tests_properties(connected_interaction_smoke connected_interaction_compact
-			connected_settlement_desktop connected_settlement_compact PROPERTIES TIMEOUT 60
+			connected_settlement_desktop connected_settlement_compact connected_crests_desktop connected_crests_compact PROPERTIES TIMEOUT 60
 			ENVIRONMENT "SDL_VIDEODRIVER=dummy;SDL_RENDER_DRIVER=software")
 		find_program(WAFFLE_LIFE_TEST_NODE NAMES node)
 		if(WAFFLE_LIFE_TEST_NODE)
@@ -217,5 +222,5 @@ if(TARGET waffle_native_game)
 	target_compile_features(waffle_native_game PRIVATE cxx_std_20)
 	target_include_directories(waffle_native_game PRIVATE src)
 	target_link_libraries(waffle_native_game PRIVATE waffle_timegraph waffle_demo_probe
-		${WAFFLE_SDL_TARGET} waffle_png_headers webp)
+		${WAFFLE_SDL_TARGET} waffle_png_headers webp Freetype::Freetype)
 endif()

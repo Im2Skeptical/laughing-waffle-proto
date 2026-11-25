@@ -204,6 +204,7 @@ Copy-Item -LiteralPath (Join-Path $native "reference\fixtures\seed-1\state-0.jso
 $artPaths = foreach ($sheet in @("full-map-content-prototype", "settlement-pieces-0", "settlement-pieces-1", "settlement-pieces-2")) {
 	foreach ($extension in @("json", "png")) { "images/sprite-sheets/$sheet.$extension" }
 }
+$artPaths += 'images/sprite-sheets/resource-language.json', 'images/sprite-sheets/resource-language.png'
 $artPaths += @(
     "images/dark-fantasy/vassal-class-v1/scholar-founder.png",
     "images/dark-fantasy/vassal-class-v1/warrior-founder.png"

@@ -229,6 +229,9 @@ Snapshot snapshot(const RuntimeState& state, bool live)
     }
     for (const auto& road : state.tables.view(state.hot.world.connections))
         result.roads.emplace_back(road.regionAId.value, road.regionBId.value);
+    const auto crestStart = Clock::now();
+    result.crests = readCrests(state);
+    result.crestModelMs = std::chrono::duration<double, std::milli>(Clock::now() - crestStart).count();
     if (live) decisions(result, state);
     return result;
 }

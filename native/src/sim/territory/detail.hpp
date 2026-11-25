@@ -52,6 +52,11 @@ struct Resistance {
     double total{}, loyal{}, units{};
 };
 
+inline constexpr double retaining_share = .70;
+inline constexpr double repel_strength_gain = 1;
+inline bool defense_holds(double defense, double strength) { return defense > 0 && defense >= strength; }
+RegionId expansion_target(const RuntimeState& state, RegionId source);
+
 using SupportVisitor = void (*)(RegionId, double, void*);
 
 Resistance resistance(const RuntimeState& state, const Site& site, FactionId holder);

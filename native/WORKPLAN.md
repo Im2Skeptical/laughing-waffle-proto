@@ -4180,6 +4180,101 @@ stages the same WebP images, and Pixel memory and frame timing remain untested.
 The runner and raw JSON are `artifacts/n04k/run-paired.ps1` and
 `artifacts/n04k/paired-illustrated/`.
 
+### N04m - Settlement crests and map readouts
+
+On `t3/native-settlement-crests` from `93e5e0ca`. The native atlas shows
+worker counts, ownership, and active territorial Prestige at overview scale.
+Full crests add muted potential Prestige and the allegiance bar. Held regions
+show the Force shield at the current threshold and the sword at the zero-Force
+threshold. The Crown capital's finial follows its shield. Unrest shows the
+remaining years, and Monster badges show Strength, the next target and its
+Defense, and retained repel feedback. Mouse hover and touch hold explain the
+readouts. Keyboard focus and presses have distinct outlines and fills.
+
+The crest scale is fixed within each window size. Each unselected settlement
+discloses its full crest when its footprint fits inside its region. This lets
+the compact atlas disclose wider regions while narrow ones keep their compact
+crests. The selected crest stays full at overview scale. The N04h label layout reserves
+crest and Stock badge footprints alongside the map controls and legend.
+Live changes ease on the same 265 ms interval as the map. A scrub cancels the
+easing and draws the exact restored crest and map together. Motion Off snaps
+Live readings too.
+
+[The crest read model](src/ui/crest_model.cpp) reads the immutable displayed state. Stock coverage
+uses installed recipes, eligible local and road-connected holders, and market
+and allegiance rules. Selected settlements disclose exceptions. Transfer
+packets use the retained Stock journal plus the Meal and current Moon migration
+records, and follow the baked route where one is available. A Stock batch
+overwritten on the following second cannot be recovered from that snapshot.
+The browser recovers that tail by fetching and replaying an earlier boundary.
+Native uses the retained records to preserve the scrub budget. Forecast storage,
+RNG, save schema and simulation behavior are unchanged.
+
+#### Reproduction
+
+```powershell
+. native/tools/env.ps1
+foreach ($preset in 'optimized', 'optimized-clang') {
+    Push-Location native
+    cmake --preset $preset
+    cmake --build --preset $preset
+    ctest --preset $preset --output-on-failure
+    Pop-Location
+    $game = "native/build/$preset/waffle_native_game.exe"
+    $parity = "native/build/$preset/src/sim/waffle_parity.exe"
+    & $game --smoke --seed 42
+    & $game --settlement-smoke --seed 42 --size 1120 640
+    & $game --settlement-smoke --seed 42 --size 640 360
+    & $game --crest-smoke --seed 42 --size 1120 640
+    & $game --crest-smoke --seed 42 --size 640 360
+    node native/reference/step-windows.mjs $parity
+    node native/reference/replay-windows.mjs $parity
+}
+```
+
+The crest smoke compares the displayed readings with independently rebuilt
+seed-42 state. At second 0 it checks player holding R12, Crown capital R10,
+unheld R04 and Monster region R16. It checks a retained transfer at second 1,
+Unrest in R20 at second 966, and the R16 repel at second 1584. Both sizes drive
+SDL mouse, keyboard and finger input. The browser captures use ordinary New
+Game with the seed set to 42. Captures and selector evidence are in
+`artifacts/n04m/browser-seed-42/` and `artifacts/n04m/browser-oracle.json`.
+The control captures are in
+`artifacts/n04m/before/`, and the candidate captures are in `artifacts/n04m/after/`.
+
+Both Windows presets passed 56/56 CTests. Each matched 153 step comparisons
+across 30 windows with zero masks, plus 252 browser checkpoints across 34
+journals in three replay modes and 55 unchanged rejections. The explicit
+connected and settlement smokes and the repository's `npm run verify` passed.
+
+#### Performance
+
+Nine alternating `--size 1120 640 --bench 2400 <json> --long-benchmark` pairs
+compared the final MSVC build with an unmodified build of `93e5e0ca`.
+Windows x64, i9-10900K, RTX 3080, Direct3D 11, vsync off. All 18 runs
+published through second 32,192. The table gives the median of each per-run
+percentile. Control spread is the median absolute difference between
+successive control runs.
+
+| Metric | Control p50 / p95 / p99 (ms) | N04m p50 / p95 / p99 (ms) |
+| --- | --- | --- |
+| Frame | 2.085 / 2.471 / 2.841 | 2.095 / 2.509 / 2.971 |
+| Loaded scrub to present | 2.089 / 2.471 / 2.957 | 2.098 / 2.533 / 3.011 |
+| Crest model per scrub | | 0.025 / 0.028 / 0.042 |
+
+Frame p99 stayed inside the 0.167 ms control spread. The paired p99 delta
+was −0.040 ms. The 1,262 loaded candidate scrubs had a one-frame p99, matching
+control, and all presented within two frames. Loaded scrub wall-clock p99 was
+0.054 ms higher by the per-run medians. The paired delta was +0.153 ms against
+0.145 ms control spread. The raw runs and runner are
+`artifacts/n04m/paired-release/` and `artifacts/n04m/run-paired.ps1`.
+
+**Cross-runtime handoff.** Both runtimes can read atlas values from a just-restored
+snapshot and draw them with the map. Native avoids a second restore for recent
+transfer packets, using the same journal the browser reads while scrub traffic
+is suppressed. Consecutive Stock batches reproduce the retained-data gap.
+Physical-device input and frame measurements remain open.
+
 ## N05 - Iteration and installed profiles (pending N04)
 
 Finish development, performance and full-art installed profiles sharing the same
