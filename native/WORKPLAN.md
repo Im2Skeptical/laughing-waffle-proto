@@ -4,7 +4,7 @@
 
 - **Resumed 25 Nov 2026.** Cam benched the browser performance backport and the
   laptop worker setup (the laptop keeps sleeping). Native app work continues.
-  - On `main` (v1.1.83), direct to main with history kept:
+  - On `main` (v1.1.84), direct to main with history kept:
     - N04j settlement inspection (Overview, Moon, Structures, Practices). The
       supervisor restored the late restore poll so scrubs present in the
       requesting frame (see N04j).
@@ -13,28 +13,33 @@
     - N04m settlement crests and map readouts (v1.1.83): workers, Prestige,
       allegiance with shield and sword, Force, Crown, Unrest, Monster Strength
       and repel, Stock coverage exceptions and transfer packets.
+    - N04l atlas fidelity and atmosphere (v1.1.84): relief joins, foundation
+      exclusions, transition profiles, scenery scatter, five terrain LODs,
+      and a Graphics menu (fog, clouds, cloud shadows, wisps, water animation).
+      Bake is about 0.55 s on a background worker.
   - Verification of the merged tip, on MSVC and clang:
-    - 56/56 CTests, the connected smoke, the settlement and crest smokes at
-      both sizes, and the shell captures;
+    - 56/56 CTests, the connected smoke, the settlement, crest and
+      interaction smokes at both sizes, and the shell captures;
     - 30 windows / 153 comparisons with zero masks;
     - 34 journals / 252 replay checkpoints;
     - `npm run verify` and `check:docs`.
-  - In progress: N04l, atlas fidelity and atmosphere (the N04k fidelity gaps,
-    plus water, clouds, fog and graphics switches). It branched from 93e5e0ca,
-    before N04m.
+  - Coverage inventory (`native/docs/coverage-inventory.md`, N06) is on main.
+    Its proposed order drives the next waves: run time and outcome, Shop
+    transactions, the Vassal sequence, territory inspection, Research and card
+    consequences, then time inspection controls.
   - Still open:
-    - Settlement Overview inconsistency: in the seed-42 monster-held Southern
-      Forest at s 1584, the panel says 0 residents (`region.population`)
-      while the Villagers row shows 24 (detailed `populationByClass`). See
-      `artifacts/n04m/after/1120x640/08-monster-repel.png` on the N04m
-      worktree. Check what the browser shows for monster-held sites, then
-      align the view.
+    - Ruin presentation: a monster-held ruin (seed 42, Southern Forest,
+      s 1584) shows 0 residents beside a dormant Villager ledger of 24. The
+      browser shows the Monster and its Strength instead. The fix is
+      specified in the coverage inventory and assigned to the territory item.
     - Pixel validation is pending while Cam uses the phone. Build with
       `native/tools/bootstrap-android.ps1`, run
       `native/tools/benchmark-android-timegraph.ps1`, and stop HiSuite first.
     - The sparse event-records proposal still awaits Cam.
     - Rule-level performance options stay on hold.
-  - Notes: delete `native/build` in merged worker worktrees when C: runs low.
+  - Notes: the `--capture DIR` shell smoke expects a fresh directory. An
+    existing save in slot 1 fails it with "Manual save did not return to the
+    game". Delete `native/build` in merged worker worktrees when C: runs low.
     The Node 24 preview test in `npm run verify` is flaky, so re-run it once.
 - History below this line predates the 25 Nov resume.
 
