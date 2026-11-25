@@ -190,6 +190,10 @@ Snapshot snapshot(const RuntimeState& state, bool live)
         region.population = data.population;
         region.food = data.food;
         region.currency = data.currency;
+        region.housing = data.housing;
+        region.loyalSharePercent = data.loyalSharePercent;
+        region.holdingForce = data.holdingForce;
+        region.requiredForce = data.requiredForce;
         result.regions.push_back(std::move(region));
     }
     for (const auto& site : state.tables.view(state.hot.world.sites)) {
@@ -554,9 +558,20 @@ std::uint64_t Session::displayedDigest() const
 
 std::uint64_t Session::replayDigest(Second second) const
 {
+    return sim::state_digest(replayStateForTest(second));
+}
+
+sim::RuntimeState Session::replayStateForTest(Second second) const
+{
     auto result = sim::rebuildStateAtSecond(*run_->base, run_->journal, static_cast<double>(second));
     if (!result.result) throw std::runtime_error("Replay oracle failed: " + std::string(result.result.reason));
-    return sim::state_digest(*result.state);
+    return std::move(*result.state);
+}
+
+SettlementReading Session::settlement(const Region& region, SettlementTab tab,
+    std::optional<std::size_t> slot) const
+{
+    return readSettlement(previewState_ ? *previewState_ : *run_->live, region, tab, slot);
 }
 
 std::vector<double> Session::benchmarkReconstruction(std::span<const Second> targets)

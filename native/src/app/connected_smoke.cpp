@@ -28,6 +28,7 @@ struct InteractionProbe {
     const SmokeFrame& present;
 
     void lifeMap(Session& session, const SaveSlots& store, const std::filesystem::path& shop);
+    void settlement(Session& session);
     bool reduced() const { return view.document_->IsClassSet("reduce-motion"); }
 
     Rml::Element& control(const char* selector)
@@ -350,6 +351,7 @@ void smoke(Session& session, Selection& selection, const SmokeFrame& frame, View
         frame("02-settlement");
         if (view) {
             InteractionProbe probe{*view, frame};
+            probe.click("[data-op=settlement-tab][data-id='3']");
             probe.click("[data-op=card][data-id='0']");
             require(selection.card == 0, "Card click did not open Practice inspection");
             probe.touchHelp();
@@ -435,6 +437,169 @@ void smoke(Session& session, Selection& selection, const SmokeFrame& frame, View
         require(probe.reduced(), "Motion toggle did not update the presentation");
         probe.click("#motion");
     }
+}
+
+void InteractionProbe::settlement(Session& session)
+{
+    const auto tab = [&](unsigned index) {
+        return "[data-op=settlement-tab][data-id='" + std::to_string(index) + "']";
+    };
+    const auto checkOverview = [&](const sim::RuntimeState& state) {
+        using namespace sim::runtime;
+        const auto regionId = state.find_id<RegionId>(view.selection_.region);
+        const auto sites = state.tables.view(state.hot.world.sites);
+        const auto site = std::ranges::find(sites, regionId, &Site::regionId);
+        require(site != sites.end() && view.settlementReading_.overview.has_value(), "Census missing");
+        const auto& local = site->detailedState;
+        const auto& reading = *view.settlementReading_.overview;
+        const auto independentCount = [&](const auto& classRow, const Census& actual) {
+            double elders = 0, scholars = static_cast<double>(classRow.specialists.scholar.adults + classRow.specialists.scholar.children);
+            for (const auto& cohort : state.tables.view(classRow.eldersByAge)) elders += cohort.count;
+            for (const auto& cohort : state.tables.view(classRow.specialists.scholar.eldersByAge)) scholars += cohort.count;
+            return actual.children == classRow.children && actual.adults == classRow.adults &&
+                actual.elders == elders && actual.scholars == scholars;
+        };
+        require(independentCount(local.populationByClass.villager, reading.census[0]) &&
+            independentCount(local.populationByClass.stranger, reading.census[1]), "Overview census differs from replay");
+        require(reading.meal.has_value() == local.lastMeal.has_value(), "Overview meal presence differs");
+        if (local.lastMeal) {
+            const auto& expected = state.tables.at(*local.lastMeal);
+            require(reading.meal->consumed == expected.consumed && reading.meal->demand == expected.demand &&
+                reading.meal->second == expected.tSec, "Overview meal differs from replay");
+        }
+        require(view.settlementReadSecond_ == state.hot.tSec &&
+            view.element("settlement-time").GetInnerRML().ends_with(std::to_string(view.settlementReadSecond_.value())),
+            "Settlement reading and displayed clock disagree");
+        const auto& capacities = state.content->migration.structureHousing;
+        double capacity = 0;
+        for (const auto& cell : state.tables.view(local.structureSlots.origins))
+            if (!cell.construction)
+                capacity += std::floor(capacities[cell.structureId.value] * (1 + .25 * std::max(0., cell.qualityBonus.value_or(0))));
+        require(view.selection_.selected(session.displayed())->housing == capacity, "Overview housing differs from replay");
+        return local;
+    };
+
+    waitFor(session, [&] { return !session.opening(); }, present);
+    selectCapital(session, view.selection_);
+    present("01-overview-live");
+    const auto capital = view.selection_.region;
+    const auto live = session.displayed()->second;
+    checkOverview(session.replayStateForTest(live));
+
+    auto& overviewBody = view.element("settlement-scroll");
+    overviewBody.Focus(true);
+    key(SDLK_PAGEDOWN);
+    present(nullptr);
+    require(view.context_.GetFocusElement() == &overviewBody && overviewBody.IsPseudoClassSet("focus-visible"),
+        "Overview scroll area did not retain keyboard focus");
+    require(overviewBody.GetScrollHeight() <= overviewBody.GetClientHeight() || overviewBody.GetScrollTop() > 0,
+        "Keyboard could not scroll the Overview");
+    control(tab(1).c_str()).Focus(true);
+    auto* structureTab = &control(tab(2).c_str());
+    key(SDLK_RIGHT);
+    present("01b-tab-focus");
+    require(view.settlementTab_ == SettlementTab::structures &&
+        view.context_.GetFocusElement() == structureTab && structureTab->IsPseudoClassSet("focus-visible") &&
+        structureTab->GetAttribute<Rml::String>("aria-selected", "") == "true",
+        "Keyboard did not select Structures and keep its tab focused");
+    const auto& board = *view.settlementReading_.structures;
+    require(board.capacity > 0 && board.occupied > 0 && !board.buildings.empty(), "Capital construction board is empty");
+    const auto building = "[data-op=settlement-building][data-id='" + std::to_string(board.buildings.front().origin) + "']";
+    const auto at = center(control(building.c_str()));
+    finger(SDL_EVENT_FINGER_DOWN, 1, at);
+    finger(SDL_EVENT_FINGER_UP, 1, at);
+    present("02-structure-inspection");
+    require(view.building_.has_value() && !control("#structure-inspector").GetInnerRML().empty(),
+        "Touch did not inspect a structure");
+    key(SDLK_ESCAPE);
+    present(nullptr);
+    require(!view.building_ && view.settlementTab_ == SettlementTab::structures, "Escape did not close structure inspection");
+    view.element("map").Focus(true);
+    for (const auto direction : {SDLK_LEFT, SDLK_RIGHT, SDLK_UP, SDLK_DOWN}) {
+        key(direction);
+        present(nullptr);
+        if (view.selection_.region != capital) break;
+    }
+    require(view.selection_.region != capital && view.settlementTab_ == SettlementTab::structures,
+        "Selecting another region did not preserve the settlement tab");
+    view.selectRegion(capital);
+    present(nullptr);
+    click(tab(3).c_str());
+    click("[data-op=card][data-id='0']");
+    pointer(SDL_EVENT_MOUSE_MOTION, {5, 5});
+    present("03-practice-board");
+    require(view.settlementReading_.practice.has_value(), "Practice details missing");
+    control("#inspector h3").ScrollIntoView(Rml::ScrollAlignment::Start);
+    present("04-practice-inspection");
+    key(SDLK_ESCAPE);
+    present(nullptr);
+    require(!view.selection_.card && view.settlementTab_ == SettlementTab::practices, "Escape did not close Practice inspection");
+
+    click(tab(0).c_str());
+    const auto target = std::min<Second>(live + 108, *session.chart().through);
+    require(target > live, "Settlement smoke lacks future coverage");
+    scrub(target, SDL_EVENT_FINGER_DOWN);
+    scrub(target, SDL_EVENT_FINGER_UP);
+    waitFor(session, [&] { return session.previewReady(); }, present);
+    require(session.displayed()->second == target && session.displayedDigest() == session.replayDigest(target),
+        "Settlement preview differs from authoritative replay");
+    const auto replay = session.replayStateForTest(target);
+    const auto local = checkOverview(replay);
+    require(view.document_->QuerySelector(".reading-changed"), "Scrubbed values did not highlight changes");
+    present("05-overview-preview");
+    view.element("settlement-scroll").SetScrollTop(view.element("settlement-scroll").GetScrollHeight());
+    present("05b-overview-ledgers");
+    click(tab(1).c_str());
+    const auto& moon = view.settlementReading_.moon;
+    require(moon && moon->phases.size() == 6, "Moon preview lacks the six phase readings");
+    const auto& civilization = replay.hot.civilization;
+    const auto& expectedMoon = civilization.currentMoonTurn ? civilization.currentMoonTurn : civilization.lastMoonTurn;
+    require(expectedMoon && moon->index == expectedMoon->moonIndex && moon->started == expectedMoon->startedSec,
+        "Displayed Moon differs from replay");
+    present("06-moon-report");
+    view.element("settlement-scroll").SetScrollTop(view.element("settlement-scroll").GetScrollHeight());
+    present("06b-moon-later-phases");
+    click(tab(3).c_str());
+    click("[data-op=card][data-id='0']");
+    const auto& practice = view.settlementReading_.practice;
+    const auto slot = local.practiceSlots.slots[0].value;
+    require(practice && practice->stock == replay.practiceStock[slot] &&
+        (!practice->chargeMode || practice->charge == replay.practiceCharge[slot]), "Practice Stock or Charge differs from replay");
+    require(!view.document_->QuerySelector("[data-op=stage]"), "Preview exposed a Practice Reform command");
+    control("#inspector h3").ScrollIntoView(Rml::ScrollAlignment::Start);
+    present("07-practice-preview");
+    const auto& regions = session.displayed()->regions;
+    const auto charged = std::ranges::find_if(regions, [](const auto& region) {
+        return std::ranges::any_of(region.cards, [](const auto& card) { return card.mode == "Charge"; });
+    });
+    if (charged != regions.end()) {
+        const auto card = std::ranges::find(charged->cards, "Charge", &Card::mode) - charged->cards.begin();
+        view.selectRegion(charged->id);
+        present(nullptr);
+        click(("[data-op=card][data-id='" + std::to_string(card) + "']").c_str());
+        const auto& charge = view.settlementReading_.practice;
+        const auto regionId = replay.find_id<sim::runtime::RegionId>(charged->id);
+        const auto sites = replay.tables.view(replay.hot.world.sites);
+        const auto site = std::ranges::find(sites, regionId, &sim::runtime::Site::regionId);
+        require(site != sites.end(), "Charge Practice has no settlement in replay");
+        const auto chargeSlot = site->detailedState.practiceSlots.slots[card].value;
+        require(charge && charge->threshold >= 1 && charge->charge == replay.practiceCharge[chargeSlot],
+            "Charge inspector omitted the threshold or disagrees with the preview");
+        control("#inspector h3").ScrollIntoView(Rml::ScrollAlignment::Start);
+        present("08-charge-inspection");
+        control("[data-reading=practice-charge]").ScrollIntoView(Rml::ScrollAlignment::Start);
+        present("08b-charge-meter");
+    }
+    key(SDLK_ESCAPE);
+    present(nullptr);
+    require(!session.previewing() && session.displayed()->second == live, "Escape did not return to Live");
+    std::printf("Settlement smoke passed: four tabs, touch and keyboard, structure and Practice inspection, authoritative residents, meal, Moon and Stock at s %llu.\n",
+        static_cast<unsigned long long>(target));
+}
+
+void settlementSmoke(Session& session, View& view, const SmokeFrame& frame)
+{
+    InteractionProbe{view, frame}.settlement(session);
 }
 
 void InteractionProbe::shell(Session& session, const SaveSlots& store)

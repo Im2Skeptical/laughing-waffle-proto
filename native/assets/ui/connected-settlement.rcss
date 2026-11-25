@@ -1,0 +1,115 @@
+/* Settlement inspection */
+.settlement-selected #map { width: 47%; }
+.settlement-selected #panel { left: 50%; }
+#panel { overflow: hidden; }
+#panel-content { position: relative; height: 100%; }
+#settlement-time {
+  position: absolute; top: 0; right: 0; width: 32%; font-size: 13dp;
+  color: #e0bb79; text-align: right; white-space: nowrap;
+}
+#settlement-time.preview-time { color: #b7d9e6; }
+#settlement-scroll { position: absolute; top: 30dp; left: 0; right: 0; bottom: 0; overflow-y: auto; overflow-x: hidden; }
+/* Reserve the Overview's rail so RmlUi can format the ledgers in one pass. */
+#settlement-scroll.overview-scroll { overflow-y: scroll; }
+#settlement-scroll.has-settlement-tabs { tab-index: auto; border: 1dp transparent; }
+#settlement-scroll.has-settlement-tabs:focus-visible { border-color: #fff0b9 #b7965d #b7965d #fff0b9; }
+.settlement-selected #settlement-scroll { top: 90dp; }
+.settlement-name { max-width: 68%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.settlement-location { margin: 1dp 0 8dp; }
+.settlement-tabs { display: flex; gap: 5dp; margin-bottom: 2dp; }
+.settlement-tab {
+  flex: 1; min-width: 0; padding: 0 2dp; height: 37dp; line-height: 36dp;
+  text-align: center; font-size: 14dp; white-space: nowrap; border-bottom-width: 2dp;
+}
+.settlement-tab.on { border-bottom-color: #ebc578; color: #ffedbd; }
+.settlement-tab.on:hover { background-color: #4a3f2c; }
+.settlement-tab:focus-visible { border-color: #fff0b9 #cba770 #cba770 #fff0b9; color: #fff6df; }
+.settlement-tab:active, .settlement-tab.key-down { border-color: #ffe195; background-color: #655031; }
+.settlement-tab.on:active, .settlement-tab.on.key-down { background-color: #655031; }
+.empty-reading { margin: 12dp 2dp; color: #c7bda7; }
+.settlement-columns { padding: 8dp 0; overflow: hidden; }
+.settlement-column { float: left; width: 32%; margin-right: 2%; }
+.settlement-control { margin-right: 0; }
+.settlement-group, .moon-report {
+  background-color: #292820; border: 1dp #50452f; padding: 5dp 8dp; margin-bottom: 7dp;
+}
+.settlement-group h3, .moon-heading h3, .piece-inspection h3 {
+  margin: 0; font-size: 16dp; color: #edcb88; font-weight: bold;
+}
+.resident-total { font-size: 27dp; color: #f5e3bd; margin: 3dp 0 0; }
+.resident-total span { font-size: 13dp; color: #c7bda7; }
+.resident-total .resident-number { font-size: 27dp; color: #f5e3bd; margin-right: 5dp; }
+.ledger-row { border-top: 1dp #514735; padding: 4dp 0; }
+.settlement-columns .ledger-row { padding: 3dp 0; }
+.settlement-group h3 + .ledger-row, .moon-report .ledger-row:first-child { border-top-color: transparent; }
+.settlement-columns .ledger-row:first-child { border-top-color: transparent; }
+.ledger-row:hover .ledger-line { color: #fff0cf; }
+.ledger-line { font-size: 14dp; }
+.ledger-line span { display: inline-block; width: 47%; vertical-align: top; }
+.ledger-line .ledger-value { width: 53%; }
+.ledger-value { color: #eedbb4; font-weight: bold; text-align: right; }
+.ledger-detail { margin-top: 1dp; }
+.elder-ages { color: #b6ad94; }
+.ledger-warning .ledger-value, .ledger-warning .ledger-detail { color: #ffc1ac; }
+.settlement-meter {
+  height: 5dp; margin: 3dp 0; background-color: #161a15; overflow: hidden;
+}
+.settlement-meter div { float: left; height: 100%; background-color: #9fac73; }
+.settlement-meter .younger { background-color: #d4b278; }
+.settlement-meter .adult { background-color: #9fac73; }
+.settlement-meter .elder { background-color: #9d98ac; }
+.ledger-warning .settlement-meter div { background-color: #bd7967; }
+@keyframes settlement-value {
+  from { background-color: #63543c; }
+  to { background-color: transparent; }
+}
+.reading-changed { animation: 0.38s quadratic-out settlement-value; }
+.settlement-columns .reading-changed { animation: none; background-color: #423b2c; }
+.reduce-motion .reading-changed { animation: none; background-color: #423b2c; }
+.settlement-columns .reading-hidden { display: none; }
+.moon-heading { display: flex; align-items: baseline; justify-content: space-between; margin: 8dp 0 4dp; }
+.construction-board { display: flex; gap: 3dp; margin: 7dp 0 9dp; }
+.construction-empty, .building {
+  display: block; position: relative; flex: 1; min-width: 0; height: 74dp; padding: 0;
+}
+.construction-empty {
+  border: 1dp #635841; background-color: #21231c;
+}
+.construction-empty span, .cell-number {
+  position: absolute; top: 3dp; left: 3dp; padding: 0 2dp; color: #f0d9a4; font-size: 12dp;
+  background-color: #201d15dd; pointer-events: none;
+}
+.building { background-color: #483c29; }
+.building:hover { background-color: #5d4b31; }
+.building-warning { border-color: #c88977; }
+.building.chosen { border-color: #ebc578; }
+.building:focus-visible { border-color: #fff0b9 #cba770 #cba770 #fff0b9; }
+.building:active, .building.key-down { border-color: #ffe195; }
+.building-art { position: absolute; top: 0; left: 0; right: 0; bottom: 0; pointer-events: none; }
+.building-silhouette {
+  position: absolute; top: 19%; left: 27%; width: 46%; height: 38%;
+  border: 2dp #887457; border-bottom: 4dp #887457; background-color: #29291f; pointer-events: none;
+}
+.building-label {
+  position: absolute; left: 0; bottom: 0; right: 0; padding: 2dp;
+  font-size: 12dp; text-align: center; background-color: #201d15ed; pointer-events: none;
+}
+.building.chosen .building-label { background-color: #584427f5; color: #ffedbd; }
+.building:active .building-label, .building.key-down .building-label { background-color: #655031; }
+.piece-inspection { border-top: 1dp #706045; padding-top: 7dp; margin-bottom: 5dp; }
+.piece-inspection .rule { margin: 3dp 0 7dp; }
+.settlement-help { display: flex; gap: 5dp; margin: 6dp 0; }
+.term { padding: 2dp 6dp; font-size: 13dp; color: #d7c28d; }
+
+@media (max-width: 820px) {
+  .settlement-selected #map { width: 42%; }
+  .settlement-selected #panel { left: 46%; }
+  .settlement-selected #settlement-scroll { top: 87dp; }
+  .settlement-location { margin-bottom: 5dp; }
+  .settlement-tab { height: 39dp; line-height: 38dp; }
+  .settlement-column { width: 49%; }
+  .settlement-column:nth-child(2) { margin-right: 0; }
+  .settlement-control { clear: both; width: 100%; }
+  .settlement-group, .moon-report { padding: 4dp 5dp; }
+  .construction-empty, .building { height: 58dp; }
+}

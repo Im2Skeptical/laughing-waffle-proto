@@ -25,7 +25,7 @@ using waffle::core::json::Value;
 
 struct Options {
     Launch launch;
-    bool smoke{}, interactionSmoke{}, direct{}, record{};
+    bool smoke{}, interactionSmoke{}, settlementSmoke{}, direct{}, record{};
     std::filesystem::path lifeShop;
     unsigned frames{};
     int width = 1120, height = 640;
@@ -47,6 +47,7 @@ bool parse(int argc, char** argv, Options& options)
         if (arg == "--smoke") options.smoke = true;
         else if (arg == "--interaction-smoke") options.interactionSmoke = true;
         else if (arg == "--record") options.record = true;
+        else if (arg == "--settlement-smoke") options.settlementSmoke = true;
         else if (arg == "--life-smoke" && i + 1 < argc) options.lifeShop = std::filesystem::u8path(argv[++i]);
         else if (arg == "--size" && i + 2 < argc) {
             if (!parseNumber(argv[++i], options.width) || !parseNumber(argv[++i], options.height) ||
@@ -66,7 +67,8 @@ bool parse(int argc, char** argv, Options& options)
             if (i + 1 < argc && !std::string_view(argv[i + 1]).starts_with("--")) options.report = argv[++i];
         } else return false;
     }
-    return !(options.frames && (options.smoke || options.interactionSmoke || !options.lifeShop.empty() || !options.capture.empty())) &&
+    return !(options.frames && (options.smoke || options.interactionSmoke || options.settlementSmoke ||
+        !options.lifeShop.empty() || !options.capture.empty())) &&
         (!options.record || (options.interactionSmoke && !options.capture.empty())) &&
         (!options.launch.longBenchmark || (options.frames && options.launch.save.empty()));
 }
@@ -211,17 +213,10 @@ Value stats(const std::vector<double>& samples)
         {"p99", Value(data.p99)}, {"max", Value(data.max)}});
 }
 
-void paint(View& view, Session& session, waffle::DemoClock& clock, Uint64 start)
+void paint(View& view, waffle::DemoClock& clock, Uint64 start)
 {
     clock.seconds = elapsed(start) / 1000;
     view.prepareFrame();
-    if (session.previewing() && !session.previewReady()) {
-        // A restore can finish while RmlUi lays out the frame. Pick it up
-        // before drawing, without waiting on the worker or skipping a present.
-        const auto revision = session.viewRevision();
-        session.updatePreview();
-        if (session.viewRevision() != revision) view.prepareFrame();
-    }
     view.drawFrame();
 }
 
@@ -232,7 +227,7 @@ void benchmark(SDL_Renderer* renderer, SdlRmlRenderer& bridge, View& view, Sessi
 #if defined(__ANDROID__)
         SDL_PumpEvents();
 #endif
-        paint(view, session, clock, start);
+        paint(view, clock, start);
         check(SDL_RenderPresent(renderer), SDL_GetError());
     };
     waitFor(session, [&] { return !session.opening(); }, [&](const char*) { present(); });
@@ -259,7 +254,7 @@ void benchmark(SDL_Renderer* renderer, SdlRmlRenderer& bridge, View& view, Sessi
     selection.card.reset();
 
     std::vector<double> frames, renders, summaries, decimations, restoreRender, visible, scrubFrames;
-    std::vector<double> loadedVisible, loadedFrames;
+    std::vector<double> loadedVisible, loadedFrames, settlementModel;
     std::vector<Second> targets;
     std::optional<Uint64> input;
     bool inputLoaded = false;
@@ -306,6 +301,7 @@ void benchmark(SDL_Renderer* renderer, SdlRmlRenderer& bridge, View& view, Sessi
         }
         if (input && session.previewReady()) {
             targets.push_back(session.displayed()->second);
+            settlementModel.push_back(view.settlementModelMs());
             restoreRender.push_back(elapsed(renderStart, end));
             visible.push_back(elapsed(*input, end));
             scrubFrames.push_back(frame - inputFrame + 1.);
@@ -349,6 +345,7 @@ void benchmark(SDL_Renderer* renderer, SdlRmlRenderer& bridge, View& view, Sessi
         {"reconstruction_plus_render_ms", stats(restoreRender)},
         {"scrub_to_present_ms", stats(visible)}, {"scrub_to_present_frames", stats(scrubFrames)},
         {"loaded_scrub_to_present_ms", stats(loadedVisible)}, {"loaded_scrub_to_present_frames", stats(loadedFrames)},
+        {"settlement_model_ms_per_scrub", stats(settlementModel)},
         {"working_set_bytes", Value(static_cast<double>(process.working_set.value_or(0)))},
         {"private_bytes", Value(static_cast<double>(process.private_bytes.value_or(0)))},
         {"forecast_charged_bytes", Value(static_cast<double>(session.storage().chargedBytes()))},
@@ -376,13 +373,13 @@ int run(const Options& options)
     }
     Session session;
     Selection selection;
-    if (options.smoke && !options.interactionSmoke && options.lifeShop.empty() && options.capture.empty()) {
+    if (options.smoke && !options.interactionSmoke && !options.settlementSmoke && options.lifeShop.empty() && options.capture.empty()) {
         session.open(options.launch);
         smoke(session, selection, {});
         return 0;
     }
     const bool lifeSmoke = !options.lifeShop.empty();
-    const bool scripted = options.interactionSmoke || lifeSmoke;
+    const bool scripted = options.interactionSmoke || options.settlementSmoke || lifeSmoke;
     const bool automated = !options.capture.empty() || scripted || options.frames;
     waffle::SdlAssetFile files;
     System system;
@@ -433,7 +430,7 @@ int run(const Options& options)
     graphics.bridge->SetPreparedAtlas({art.width, art.height}, std::move(art.rgba));
     View view(*context, graphics.renderer, session, selection, shell, std::move(art));
     const auto present = [&] {
-        paint(view, session, system.clock, start);
+        paint(view, system.clock, start);
         check(graphics.bridge->error().empty() && system.clock.last_error.empty(),
             graphics.bridge->error() + system.clock.last_error);
         check(SDL_RenderPresent(graphics.renderer), SDL_GetError());
@@ -468,14 +465,14 @@ int run(const Options& options)
                 for (int frame = 0; frame < 18; ++frame) {
                     session.update();
                     if (recordActive) {
-                        paint(view, session, system.clock, start);
+                        paint(view, system.clock, start);
                         captureMotion();
                         check(SDL_RenderPresent(graphics.renderer), SDL_GetError());
                     } else present();
                     SDL_Delay(17);
                 }
             }
-            paint(view, session, system.clock, start);
+            paint(view, system.clock, start);
             captureMotion();
             if (capture && !options.capture.empty()) saveFrame(options.capture + "/" + capture + ".png");
             check(graphics.bridge->error().empty() && system.clock.last_error.empty(),
@@ -484,6 +481,7 @@ int run(const Options& options)
             if (label == "08-return-to-live") recordActive = false;
         };
         if (lifeSmoke) lifeMapSmoke(session, view, frame, store, options.lifeShop);
+        else if (options.settlementSmoke) settlementSmoke(session, view, frame);
         else {
             smoke(session, selection, frame, &view);
             shellSmoke(session, view, frame, store);
@@ -538,7 +536,7 @@ int main(int argc, char** argv)
     Options options;
     if (!parse(argc, argv, options)) {
         std::fputs("Usage: waffle_native_game [--seed N | --load browser.json] [--size WIDTH HEIGHT] "
-                   "[--smoke | --interaction-smoke | --life-smoke FIXTURE_DIR | --save-smoke DIR | --capture DIR [--record] | --bench FRAMES [JSON] [--long-benchmark]]\n", stderr);
+                   "[--smoke | --interaction-smoke | --settlement-smoke | --life-smoke FIXTURE_DIR | --save-smoke DIR | --capture DIR [--record] | --bench FRAMES [JSON] [--long-benchmark]]\n", stderr);
         return 2;
     }
     try {
