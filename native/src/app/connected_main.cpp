@@ -25,7 +25,7 @@ using waffle::core::json::Value;
 
 struct Options {
     Launch launch;
-    bool smoke{}, interactionSmoke{}, settlementSmoke{}, direct{}, record{};
+    bool smoke{}, interactionSmoke{}, settlementSmoke{}, direct{}, record{}, noMapEffects{};
     std::filesystem::path lifeShop;
     unsigned frames{};
     int width = 1120, height = 640;
@@ -45,6 +45,7 @@ bool parse(int argc, char** argv, Options& options)
     for (int i = 1; i < argc; ++i) {
         const std::string_view arg = argv[i];
         if (arg == "--smoke") options.smoke = true;
+        else if (arg == "--no-map-effects") options.noMapEffects = true;
         else if (arg == "--interaction-smoke") options.interactionSmoke = true;
         else if (arg == "--record") options.record = true;
         else if (arg == "--settlement-smoke") options.settlementSmoke = true;
@@ -70,7 +71,8 @@ bool parse(int argc, char** argv, Options& options)
     return !(options.frames && (options.smoke || options.interactionSmoke || options.settlementSmoke ||
         !options.lifeShop.empty() || !options.capture.empty())) &&
         (!options.record || (options.interactionSmoke && !options.capture.empty())) &&
-        (!options.launch.longBenchmark || (options.frames && options.launch.save.empty()));
+        (!options.launch.longBenchmark || (options.frames && options.launch.save.empty())) &&
+        (!options.noMapEffects || options.frames);
 }
 
 struct Graphics {
@@ -440,6 +442,7 @@ int run(const Options& options)
     auto art = preparingArt.get();
     graphics.bridge->SetPreparedAtlas({art.width, art.height}, std::move(art.rgba));
     View view(*context, graphics.renderer, session, selection, shell, std::move(art));
+    if (options.noMapEffects) view.setMapGraphics(stillMap);
     const auto present = [&] {
         paint(view, system.clock, start);
         check(graphics.bridge->error().empty() && system.clock.last_error.empty(),
@@ -547,7 +550,7 @@ int main(int argc, char** argv)
     Options options;
     if (!parse(argc, argv, options)) {
         std::fputs("Usage: waffle_native_game [--seed N | --load browser.json] [--size WIDTH HEIGHT] "
-                   "[--smoke | --interaction-smoke | --settlement-smoke | --life-smoke FIXTURE_DIR | --save-smoke DIR | --capture DIR [--record] | --bench FRAMES [JSON] [--long-benchmark]]\n", stderr);
+                   "[--smoke | --interaction-smoke | --settlement-smoke | --life-smoke FIXTURE_DIR | --save-smoke DIR | --capture DIR [--record] | --bench FRAMES [JSON] [--long-benchmark] [--no-map-effects]]\n", stderr);
         return 2;
     }
     try {

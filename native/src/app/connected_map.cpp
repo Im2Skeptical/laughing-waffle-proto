@@ -52,14 +52,20 @@ void RegionalMap::prepareTextures(SDL_Renderer* renderer, SDL_FRect area)
 {
     if (!baked_ && pendingTerrain_.valid() &&
         pendingTerrain_.wait_for(std::chrono::seconds(0)) == std::future_status::ready) {
-        baked_ = pendingTerrain_.get();
+        baked_ = std::make_shared<const MapTerrain>(pendingTerrain_.get());
         dirty_ = true;
     }
     if (!baked_) return;
-    // Hysteresis keeps a wheel ease from repeatedly changing texture levels.
-    const auto score = area.w * camera_.zoom;
-    const bool compact = score < (compact_ ? 475.f : 415.f);
-    if (terrain_ && towns_ && compact == compact_) return;
+    if (terrain_ && area.w == lodWidth_ && area.h == lodHeight_ && camera_.zoom == lodZoom_) return;
+    const auto x = area.w * camera_.zoom * .94 * (baked_->max[0] - baked_->min[0]) / baked_->full.width;
+    const auto y = area.h * camera_.zoom * .84 * (baked_->max[1] - baked_->min[1]) / (baked_->full.height / 2);
+    const auto lod = std::clamp(-std::log2(std::min(x, y)), 0., 4.);
+    const auto level = static_cast<int>(lod);
+    lodWidth_ = area.w;
+    lodHeight_ = area.h;
+    lodZoom_ = camera_.zoom;
+    lodBlend_ = static_cast<float>(lod - level);
+    if (terrain_ && terrainLod_ == level && (lodBlend_ == 0 || terrainCoarse_)) return;
     const auto start = SDL_GetTicksNS();
     const auto upload = [&](const MapPixels& image) {
         auto* texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA32, SDL_TEXTUREACCESS_STATIC,
@@ -73,11 +79,17 @@ void RegionalMap::prepareTextures(SDL_Renderer* renderer, SDL_FRect area)
         SDL_SetTextureBlendMode(texture, SDL_BLENDMODE_BLEND);
         return texture;
     };
-    const auto& pixels = compact ? baked_->compact : baked_->full;
-    terrain_.reset(upload(pixels));
+    if (level != terrainLod_) {
+        if (level == terrainLod_ + 1 && terrainCoarse_) terrain_ = std::move(terrainCoarse_);
+        else if (level + 1 == terrainLod_) terrainCoarse_ = std::move(terrain_);
+        else { terrain_.reset(); terrainCoarse_.reset(); }
+    }
+    if (!terrain_) terrain_.reset(upload(baked_->level(level)));
+    if (lodBlend_ > 0 && !terrainCoarse_) terrainCoarse_.reset(upload(baked_->level(level + 1)));
     if (!towns_) towns_.reset(upload(art_->towns.pixels));
-    compact_ = compact;
-    textureBytes_ = pixels.rgba.size() + art_->towns.pixels.rgba.size();
+    terrainLod_ = level;
+    textureBytes_ = baked_->level(level).rgba.size() + art_->towns.pixels.rgba.size();
+    if (terrainCoarse_) textureBytes_ += baked_->level(level + 1).rgba.size();
     uploadMs_ = static_cast<double>(SDL_GetTicksNS() - start) / 1e6;
     dirty_ = true;
 }
@@ -99,7 +111,10 @@ void RegionalMap::reset()
 void RegionalMap::invalidateTerrain()
 {
     terrain_.reset();
+    terrainCoarse_.reset();
+    terrainLod_ = -1;
     towns_.reset();
+    atmosphere_.release();
     textureBytes_ = 0;
 }
 
@@ -362,40 +377,48 @@ void RegionalMap::settlement(SDL_FPoint p, float size, const Territory& territor
     }
 }
 
+void RegionalMap::sprite(const MapRect& source, SDL_FPoint lo, SDL_FPoint hi, float alpha, bool mirror)
+{
+    const auto& atlas = art_->towns.pixels;
+    const auto footprint = std::max(.001f, std::min((hi.x - lo.x) / source.w, (hi.y - lo.y) / source.h));
+    const auto level = std::clamp(static_cast<int>(std::lround(-std::log2(footprint))), 0, 4);
+    const auto& frame = art_->townLevels.at({source.x, source.y})[level];
+    auto u = static_cast<float>(frame.x) / atlas.width, ur = static_cast<float>(frame.x + frame.w) / atlas.width;
+    const auto v = static_cast<float>(frame.y) / atlas.height, vb = static_cast<float>(frame.y + frame.h) / atlas.height;
+    if (mirror) std::swap(u, ur);
+    const SDL_FColor ink{1, 1, 1, alpha};
+    const SDL_Vertex a{lo, ink, {u, v}}, b{{hi.x, lo.y}, ink, {ur, v}},
+        c{{lo.x, hi.y}, ink, {u, vb}}, d{hi, ink, {ur, vb}};
+    buildings_.insert(buildings_.end(), {a, b, c, c, b, d});
+}
+
 void RegionalMap::buildings(SDL_FRect area, std::size_t index, Point anchor,
     const Territory& territory)
 {
     if (!baked_) return;
     const auto& plan = baked_->sites[index];
-    const auto& atlas = art_->towns.pixels;
-    const auto quad = [&](const MapRect& frame, SDL_FPoint lo, SDL_FPoint hi, float alpha) {
-        const auto u = static_cast<float>(frame.x) / atlas.width, v = static_cast<float>(frame.y) / atlas.height;
-        const auto ur = static_cast<float>(frame.x + frame.w) / atlas.width;
-        const auto vb = static_cast<float>(frame.y + frame.h) / atlas.height;
-        const auto ink = SDL_FColor{1, 1, 1, alpha};
-        const SDL_Vertex a{lo, ink, {u, v}}, b{{hi.x, lo.y}, ink, {ur, v}},
-            c{{lo.x, hi.y}, ink, {u, vb}}, d{hi, ink, {ur, vb}};
-        buildings_.insert(buildings_.end(), {a, b, c, c, b, d});
-    };
     if (territory.creep < 1.f && !plan.buildings.empty()) {
         const auto alpha = territory.presence * (1.f - territory.creep);
         for (const auto& piece : plan.buildings) {
             const auto size = .86 + territory.scale * .020; // Live growth preserves the seeded town plan.
             const auto lo = project({piece.at[0] - piece.width * size * .5, piece.at[1] - piece.height * size}, area);
             const auto hi = project({piece.at[0] + piece.width * size * .5, piece.at[1]}, area);
-            if (piece.frame == piece.market) quad(piece.frame, lo, hi, alpha);
+            if (piece.frame == piece.market) sprite(piece.frame, lo, hi, alpha);
             else {
-                if (territory.market < 1.f) quad(piece.frame, lo, hi, alpha * (1.f - territory.market));
-                if (territory.market > 0.f) quad(piece.market, lo, hi, alpha * territory.market);
+                if (territory.market < 1.f) sprite(piece.frame, lo, hi, alpha * (1.f - territory.market));
+                if (territory.market > 0.f) sprite(piece.market, lo, hi, alpha * territory.market);
             }
         }
     }
-    if (territory.creep > 0.f) {
-        const auto& frame = art_->towns.frame(camera_.zoom < 1.55f ? "monster/2" : camera_.zoom < 2.6f ? "monster/1" : "monster/0");
+    if (territory.creep > 0.f || (plan.buildings.empty() && territory.presence > 0.f)) {
         const auto radius = std::max(plan.radiusX, .017);
         const auto height = std::max(plan.radiusY, .031);
-        quad(frame, project({anchor[0] - radius, anchor[1] - height}, area),
-            project({anchor[0] + radius, anchor[1] + height * .35}, area), territory.creep * territory.presence);
+        const auto lod = camera_.zoom < 1.55f ? "/2" : camera_.zoom < 2.6f ? "/1" : "/0";
+        const auto kind = territory.creep > 0.f ? "monster" : territory.market > .5f ? "neutral" : "player";
+        const auto& frame = art_->towns.frame(std::string(kind) + lod);
+        sprite(frame, project({anchor[0] - radius, anchor[1] - height}, area),
+            project({anchor[0] + radius, anchor[1] + height * .35}, area),
+            (territory.creep > 0.f ? territory.creep : 1.f) * territory.presence);
     }
 }
 
@@ -404,9 +427,19 @@ void RegionalMap::buildOverlay(SDL_FRect area, const Snapshot& snapshot, const s
 {
     mesh_.clear();
     occupation_.clear();
+    occupationCoarse_.clear();
     buildings_.clear();
     const auto at = [&](Point p) { return project(p, area); };
     const auto paint = [&](std::size_t i) { return changedAt_ ? blend(from_[i], ink_[i], t) : ink_[i]; };
+    if (baked_) for (const auto& strip : baked_->bones) {
+        const auto alpha = paint(strip.region).creep - (strip.neighbor < 0 ? 0.f : paint(strip.neighbor).creep);
+        if (alpha <= 0) continue;
+        for (const auto& rib : strip.pieces) {
+            const auto lo = at({rib.at[0] - rib.width * .5, rib.at[1] - rib.height});
+            const auto hi = at({rib.at[0] + rib.width * .5, rib.at[1]});
+            sprite(rib.frame, lo, hi, alpha, rib.mirror);
+        }
+    }
     for (std::size_t i = 0; i < shapes.size(); ++i) {
         const auto region = paint(i);
         const auto& id = snapshot.regions[i].id;
@@ -417,8 +450,10 @@ void RegionalMap::buildOverlay(SDL_FRect area, const Snapshot& snapshot, const s
         const auto tint = chosen || hot ? withAlpha(gold, hot && pressed ? .30f : chosen ? .18f : .11f)
                                         : withAlpha(faction, region.control * .45f);
         if (baked_ && region.creep > 0.f) {
+            const auto coarse = region.creep * lodBlend_;
+            const auto fine = coarse < 1 ? (region.creep - coarse) / (1 - coarse) : 0.f;
             const auto vertex = [&](Point p) {
-                return SDL_Vertex{at(p), {1, 1, 1, region.creep},
+                return SDL_Vertex{at(p), {1, 1, 1, fine},
                     {static_cast<float>((p[0] - baked_->min[0]) / (baked_->max[0] - baked_->min[0])),
                     .5f + .5f * static_cast<float>((p[1] - baked_->min[1]) / (baked_->max[1] - baked_->min[1]))}};
             };
@@ -427,6 +462,12 @@ void RegionalMap::buildOverlay(SDL_FRect area, const Snapshot& snapshot, const s
             for (const auto& point : shapes[i].outline) {
                 const auto next = vertex(point);
                 occupation_.insert(occupation_.end(), {hub, previous, next});
+                if (coarse > 0) {
+                    for (auto v : {hub, previous, next}) {
+                        v.color.a = coarse;
+                        occupationCoarse_.push_back(v);
+                    }
+                }
                 previous = next;
             }
         }
@@ -580,13 +621,23 @@ void RegionalMap::draw(SDL_Renderer* renderer, SDL_FRect area, const Snapshot& s
     SDL_SetRenderDrawColorFloat(renderer, sea_.r, sea_.g, sea_.b, 1);
     SDL_RenderFillRect(renderer, &area);
     SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
+    SDL_FRect destination{};
     if (terrain_) {
         const auto origin = project(baked_->min, area), end = project(baked_->max, area);
-        const SDL_FRect destination{origin.x, origin.y, end.x - origin.x, end.y - origin.y};
-        const auto& pixels = compact_ ? baked_->compact : baked_->full;
+        destination = {origin.x, origin.y, end.x - origin.x, end.y - origin.y};
+        const auto& pixels = baked_->level(terrainLod_);
         const SDL_FRect source{0, 0, static_cast<float>(pixels.width), pixels.height * .5f};
         SDL_SetTextureAlphaModFloat(terrain_.get(), reveal);
         SDL_RenderTexture(renderer, terrain_.get(), &source, &destination);
+        if (terrainCoarse_ && lodBlend_ > 0) {
+            const auto& coarse = baked_->level(terrainLod_ + 1);
+            const SDL_FRect crop{0, 0, static_cast<float>(coarse.width), coarse.height * .5f};
+            SDL_SetTextureAlphaModFloat(terrainCoarse_.get(), lodBlend_ * reveal);
+            SDL_RenderTexture(renderer, terrainCoarse_.get(), &crop, &destination);
+        }
+        atmosphere_.update(renderer, art_, baked_, geography_->seed, snapshot.second, display.now,
+            display.graphics, display.reduced);
+        atmosphere_.drawWater(renderer, destination);
     }
     if (dirty_ || changedAt_ || !sameArea(area, drawnArea_) || camera_ != drawnCamera_ ||
         selected_ != selected || hovered_ != hovered || pressed_ != pressed) {
@@ -600,6 +651,8 @@ void RegionalMap::draw(SDL_Renderer* renderer, SDL_FRect area, const Snapshot& s
     }
     if (terrain_ && !occupation_.empty())
         SDL_RenderGeometry(renderer, terrain_.get(), occupation_.data(), static_cast<int>(occupation_.size()), nullptr, 0);
+    if (terrainCoarse_ && !occupationCoarse_.empty())
+        SDL_RenderGeometry(renderer, terrainCoarse_.get(), occupationCoarse_.data(), static_cast<int>(occupationCoarse_.size()), nullptr, 0);
     const auto* vertices = &mesh_;
     if (reveal < 1.f) {
         faded_ = mesh_;
@@ -609,6 +662,7 @@ void RegionalMap::draw(SDL_Renderer* renderer, SDL_FRect area, const Snapshot& s
     SDL_RenderGeometry(renderer, nullptr, vertices->data(), static_cast<int>(vertices->size()), nullptr, 0);
     if (towns_ && !buildings_.empty())
         SDL_RenderGeometry(renderer, towns_.get(), buildings_.data(), static_cast<int>(buildings_.size()), nullptr, 0);
+    if (terrain_) atmosphere_.drawSky(renderer, destination);
     SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_NONE);
     SDL_SetRenderClipRect(renderer, nullptr);
 }

@@ -204,7 +204,8 @@ bool View::back()
     } else if (dialog_) {
         shell_.cancelOverwrite();
         closeConfirmation();
-    } else if (shell_.screen() == Screen::load) shell_.show(Screen::title);
+    } else if (graphicsOpen_) showGraphics(false);
+    else if (shell_.screen() == Screen::load) shell_.show(Screen::title);
     else if (shell_.screen() == Screen::save) shell_.show(Screen::game);
     else if (shell_.screen() == Screen::title) return false;
     else if (noticeError_) notify("");
@@ -408,7 +409,7 @@ void View::pointer(const SDL_Event& event)
             } else {
                 const auto* snapshot = session_.displayed();
                 const auto* site = selection_.selected(snapshot);
-                if (!dialog_ && touch_) {
+                if (!dialog_ && touch_ && !(graphicsOpen_ && contains(bounds("map-graphics"), pointer_))) {
                     if (game && !lifeOpen_ && contains(bounds("settlement-scroll"), pointer_)) drag_ = Drag::panel;
                     if (game && lifeOpen_ && contains(bounds("life-inspector"), pointer_)) drag_ = Drag::lifePanel;
                     if (game && lifeOpen_ && life_.shop && !lifeRoute_ && contains(bounds("life-chart"), pointer_))
@@ -416,7 +417,8 @@ void View::pointer(const SDL_Event& event)
                     if (!game && contains(bounds("shell-panel"), pointer_)) drag_ = Drag::shell;
                 }
                 if (const auto slot = game && !lifeOpen_ ? cardAt(pointer_) : std::nullopt;
-                    !dialog_ && slot && snapshot && !selection_.destination && canStage(*snapshot, site)) {
+                    !dialog_ && slot && snapshot && !selection_.destination && canStage(*snapshot, site) &&
+                    !(graphicsOpen_ && contains(bounds("map-graphics"), pointer_))) {
                     auto* card = element("board").GetChild(static_cast<int>(*slot));
                     draggedCard_ = card->GetAttribute<int>("data-id", static_cast<int>(*slot));
                     if (!site->cards[draggedCard_].id.empty()) drag_ = Drag::card;
@@ -592,12 +594,41 @@ void View::ProcessEvent(Rml::Event& event)
     if (isControl(target)) activate(*target);
 }
 
+void View::showGraphics(bool open)
+{
+    graphicsOpen_ = open;
+    show(element("map-graphics"), open);
+    auto& button = element("graphics");
+    button.SetClass("on", open);
+    button.SetAttribute("aria-expanded", open ? "true" : "false");
+    if (!open) button.Focus();
+}
+
 void View::activate(Rml::Element& control)
 {
     const auto op = control.GetAttribute<Rml::String>("data-op", "");
     const auto id = control.GetAttribute<Rml::String>("data-id", "");
     if (dialog_ && op != "back" && op != "confirm") return;
-    if (op.starts_with("life-")) activateLife(op, id);
+    if (op == "graphics") showGraphics(!graphicsOpen_);
+    else if (op.starts_with("graphics-")) {
+        struct Setting { std::string_view op; const char* label; bool MapGraphics::*value; };
+        constexpr std::array settings{
+            Setting{"graphics-fog", "Fog", &MapGraphics::fog},
+            Setting{"graphics-clouds", "Clouds", &MapGraphics::clouds},
+            Setting{"graphics-shadows", "Cloud shadows", &MapGraphics::shadows},
+            Setting{"graphics-wisps", "Wisps", &MapGraphics::wisps},
+            Setting{"graphics-water", "Water animation", &MapGraphics::water}
+        };
+        const auto setting = std::ranges::find(settings, op, &Setting::op);
+        if (setting != settings.end()) {
+            auto& enabled = graphics_.*setting->value;
+            enabled = !enabled;
+            control.SetClass("on", enabled);
+            control.SetAttribute("aria-pressed", enabled ? "true" : "false");
+            control.SetInnerRML(std::string(setting->label) + (enabled ? " On" : " Off"));
+        }
+    }
+    else if (op.starts_with("life-")) activateLife(op, id);
     else if (op.starts_with("settlement-")) activateSettlement(op, id);
     else if (op == "start" && shell_.screen() == Screen::title) startFromSeed();
     else if (op == "continue" && shell_.screen() == Screen::title) shell_.continueGame();
@@ -619,7 +650,7 @@ void View::activate(Rml::Element& control)
         document_->SetClass("reduce-motion", reduced_);
         control.SetClass("on", reduced_);
         control.SetAttribute("aria-pressed", reduced_ ? "true" : "false");
-        control.SetAttribute("data-help", reduced_ ? "Restore camera and interface motion." : "Reduce camera and interface motion.");
+        control.SetAttribute("data-help", reduced_ ? "Restore camera, interface and map motion." : "Reduce camera, interface and map motion.");
         control.SetInnerRML(reduced_ ? "Motion Reduced" : "Motion On");
     } else if (op == "zoom-in" || op == "zoom-out") {
         const auto area = bounds("map");

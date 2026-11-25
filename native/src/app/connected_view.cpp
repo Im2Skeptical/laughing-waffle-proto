@@ -60,7 +60,21 @@ View::View(Rml::Context& context, SDL_Renderer* renderer, Session& session, Sele
     directory.resize(directory.find_last_of('/') + 1);
     rml.replace(rml.find(styles), styles.size(), "<style>" + waffle::readAsset((directory + "interaction.rcss").c_str()) +
         waffle::readAsset((directory + "connected-layout.rcss").c_str()) +
-        waffle::readAsset((directory + "connected-settlement.rcss").c_str()) + "</style>");
+        waffle::readAsset((directory + "connected-settlement.rcss").c_str()) + R"(
+        #map-graphics { display: none; position: absolute; z-index: 2; right: 2%; top: 12%; width: 200dp; padding: 10dp; }
+        #map-graphics .toggle { display: block; width: 100%; box-sizing: border-box; text-align: left;
+            height: 32dp; margin-top: 3dp; }
+        </style>)");
+    rml.insert(rml.find("    <button id=\"life-toggle\""),
+        R"(<button id="graphics" class="toggle" data-op="graphics" aria-expanded="false">Graphics</button>)");
+    rml.insert(rml.find("<div id=\"opening\""), R"(
+        <div id="map-graphics" class="panel" role="group" aria-label="Map graphics">
+            <button id="graphics-fog" class="toggle on" data-op="graphics-fog" aria-pressed="true">Fog On</button>
+            <button id="graphics-clouds" class="toggle on" data-op="graphics-clouds" aria-pressed="true">Clouds On</button>
+            <button id="graphics-shadows" class="toggle on" data-op="graphics-shadows" aria-pressed="true">Cloud shadows On</button>
+            <button id="graphics-wisps" class="toggle on" data-op="graphics-wisps" aria-pressed="true">Wisps On</button>
+            <button id="graphics-water" class="toggle on" data-op="graphics-water" aria-pressed="true">Water animation On</button>
+        </div>)");
     constexpr std::string_view marker = "<!-- atlas styles -->";
     rml.replace(rml.find(marker), marker.size(), art.css);
     rml.insert(rml.find("</body>"),
@@ -152,6 +166,7 @@ void View::refreshShell()
     auto& overlay = element("shell");
     auto& panel = element("shell-panel");
     if (shownScreen_ != screen) {
+        if (graphicsOpen_) showGraphics(false);
         if (dialogClosedAt_) {
             show(element("reform-dialog"), false);
             dialogClosedAt_ = 0;
@@ -554,7 +569,7 @@ void View::drawFrame()
         const auto mapStart = measureMapDraw_ ? SDL_GetTicksNS() : 0;
         map_.draw(renderer_, bounds("map"), *snapshot, session_.shapes(), selection_.region, hoveredRegion_,
             drag_ == Drag::map && !moved_ && pressedRegion_ == hoveredRegion_,
-            {now_, session_.viewRevision(), reduced_, !session_.previewing() && drag_ != Drag::graph});
+            {now_, session_.viewRevision(), reduced_, !session_.previewing() && drag_ != Drag::graph, graphics_});
         if (mapStart) mapDrawMs_ = static_cast<double>(SDL_GetTicksNS() - mapStart) / 1e6;
         for (const auto& [anchor, label] : markerLeaders_)
             line(renderer_, anchor, label, {199, 175, 120, 255});

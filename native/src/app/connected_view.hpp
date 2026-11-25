@@ -30,6 +30,7 @@ public:
     std::size_t mapTextureBytes() const { return map_.textureBytes(); }
     bool terrainReady() const { return map_.terrainReady(); }
     void measureMapDraw() { measureMapDraw_ = true; }
+    void setMapGraphics(MapGraphics graphics) { graphics_ = graphics; }
     bool liveMapTransitioning() const { return map_.transitioning(); }
     void cancelInput();
     void releaseTerrain() { map_.invalidateTerrain(); }
@@ -90,6 +91,7 @@ private:
     void closeConfirmation();
     void returnToTitle();
     void activate(Rml::Element& control);
+    void showGraphics(bool open);
     void notify(std::string text, bool error = false);
     void returnLive();
     bool back();
@@ -137,6 +139,8 @@ private:
     std::uint64_t shellRevision_ = ~std::uint64_t{};
     std::uint64_t runRevision_{};
     std::optional<Screen> shownScreen_;
+    MapGraphics graphics_;
+    bool graphicsOpen_{};
     Confirmation confirmation_ = Confirmation::reform;
     Rml::ObserverPtr<Rml::Element> dialogOpener_;
     std::string selectedRegion_;
