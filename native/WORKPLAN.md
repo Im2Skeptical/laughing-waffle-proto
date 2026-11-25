@@ -4412,6 +4412,108 @@ the weather raster to a padded viewport first, then measure coarse
 surfaces, cloud sampling at lower resolution, and fewer resident artwork
 levels if memory or frame cost calls for it.
 
+### N04o - Complete Shop transactions
+
+Implementation on `t3/complete-shop-transactions` from `095521cb`. Open
+**Life Map**, enter Practice Reform or Public Works, and choose a specialty.
+Drag an offer or a board card onto a highlighted destination, or activate the
+source and then the slot with a tap, Enter or Space. Practice offers support
+insertion and specific replacement. The draft shows pending construction,
+removed cards and the updated checkout quote. Select a removed card and an
+available destination to recover it. A staged receipt can be returned, and
+**Undo last edit** restores the setup before the most recent edit.
+
+Review shows the full cost before submitting. Back returns to the draft and
+**Clear draft** returns to the board and specialty at the original Live
+boundary. The app validates edits on a detached simulation copy. A single
+worker transaction validates and applies the staged browser journal payloads
+at the held second. Rejection preserves the draft, Live state, journal and
+forecast generation. The sim supplies read-only Practice and Structure board
+queries. RNG, rule dispatch, schema and replay are unchanged.
+
+The Life Map smoke uses the ordinary seed-42 Shop and browser fixtures for
+Practice purchase, a paid Structure with relocation and demolition, slot
+unlock and Currency rejection. The fixtures retain the original browser
+payloads and run their checkout batches at a single second. The smoke compares
+the UI journal, authoritative native replay and browser checkout state.
+
+#### Windows verification
+
+Run from the worktree root with the toolchain junction in place.
+
+```powershell
+. native/tools/env.ps1
+node native/reference/trace.mjs
+node native/src/tests/life_ui_fixture.mjs artifacts/n04o/exhibits
+foreach ($preset in 'optimized', 'optimized-clang') {
+    Push-Location native
+    cmake --preset $preset
+    cmake --build --preset $preset --parallel 5
+    ctest --preset $preset --output-on-failure
+    Pop-Location
+    $game = "native/build/$preset/waffle_native_game.exe"
+    $parity = "native/build/$preset/src/sim/waffle_parity.exe"
+    & $game --smoke --seed 42
+    foreach ($width in 1120,640) {
+        $height = if ($width -eq 1120) { 640 } else { 360 }
+        & $game --settlement-smoke --seed 42 --size $width $height
+        & $game --crest-smoke --seed 42 --size $width $height
+        & $game --interaction-smoke --seed 42 --size $width $height
+        & $game --seed 42 --size $width $height --capture "artifacts/n04o/$preset-capture-$width"
+        & $game --life-smoke artifacts/n04o/exhibits --seed 42 --size $width $height
+    }
+    node native/reference/step-windows.mjs $parity
+    node native/reference/replay-windows.mjs $parity
+}
+```
+
+Both presets passed 56/56 CTests, the seed-42 smoke, the settlement, crest and
+interaction smokes at both sizes, and both shell captures. The Life Map smoke
+passed at 1120 × 640 and 640 × 360 with mouse drag, keyboard activation and
+SDL finger input. It checks cancel, invalid drop, rejected payment and failed
+atomic checkout, then compares all four reference checkouts. Step parity
+passed 30 windows and 153 comparisons with zero masks. Replay matched 34
+journals, 18 action kinds and 252 checkpoints in three modes, plus 55
+rejections. Physical Android input and performance remain open.
+
+Use fresh directories for captures. Shop screenshots are in
+`artifacts/n04o/before-1120`, `artifacts/n04o/before-640`,
+`artifacts/n04o/verified-1120` and `artifacts/n04o/verified-640`.
+The paired captures use `07-shop.png` for the opening layout and
+`10-staged-purchase.png` for the staged board. The updated captures also show
+Practice replacement in `04a-practice-replacement.png`, an active drag in
+`16-structure-drag.png` and the full price in `09-purchase-confirmation.png`.
+
+#### Frame measurements
+
+Windows x64, i9-10900K, RTX 3080, SDL Direct3D 11, vsync off. Build
+the control from `095521cb` in each preset. Alternate control-first and
+candidate-first pairs of the following command, using a separate JSON path
+for each run.
+
+```powershell
+& $game --size 1120 640 --bench 2400 $json --long-benchmark
+```
+
+All runs reached second 32,192. Entries are the medians of the per-run
+percentiles. Spread is the median absolute difference between consecutive
+control runs.
+
+| Preset and metric | Control p50 / p95 / p99 (ms) | Candidate p50 / p95 / p99 (ms) | Control spread p50 / p95 / p99 (ms) |
+| --- | --- | --- | --- |
+| MSVC repeat, frame | 2.948 / 4.123 / 4.214 | 2.813 / 3.914 / 4.260 | 0.525 / 0.444 / 0.295 |
+| MSVC repeat, loaded scrub to present | 2.958 / 4.129 / 4.307 | 2.828 / 3.914 / 4.260 | 0.537 / 0.430 / 0.295 |
+| Clang, frame | 1.947 / 2.385 / 2.845 | 1.908 / 2.292 / 2.640 | 0.082 / 0.474 / 0.664 |
+| Clang, loaded scrub to present | 1.947 / 2.385 / 2.845 | 1.913 / 2.292 / 2.742 | 0.092 / 0.474 / 0.664 |
+
+The first seven MSVC pairs had lower candidate p99 medians (3.775 ms
+against 3.944 ms for both metrics) and a +1.010 ms median paired p99
+delta. In the 11-pair repeat, the paired p99 delta was +0.138 ms for both
+metrics, within the 0.295 ms control spread. The seven Clang pairs had a
++0.213 ms paired p99 delta within the 0.664 ms spread. Loaded scrubs took at
+most two frames. The raw reports are in `artifacts/n04o/paired` and
+`artifacts/n04o/paired-repeat`.
+
 ## N05 - Iteration and installed profiles (pending N04)
 
 Finish development, performance and full-art installed profiles sharing the same
