@@ -313,6 +313,28 @@ void synchronize_sites(RuntimeState& state)
     practice::rebuild_listeners(state);
 }
 
+bool can_assign_garrison(const RuntimeState& state, RegionId source)
+{
+    return state.hot.rulesetId && settlement::detailed_site(state, source) &&
+        region_at(state, source).controller == state.practiceVocabulary.player;
+}
+
+GarrisonTarget garrison_target(const RuntimeState& state, const Site& source, RegionId target)
+{
+    if (!target || !settlement::detailed_site(state, target)) return GarrisonTarget::noSettlement;
+    if (region_at(state, target).controller != state.practiceVocabulary.player) return GarrisonTarget::notAllied;
+    if (!practice::detail::has(neighbors(state, source.regionId), target) ||
+        !practice::detail::has(roads(state, source.regionId), target)) return GarrisonTarget::notConnected;
+    using content::ModifierKind;
+    constexpr auto kinds = content::mask_bit(ModifierKind::networkGarrison) | content::mask_bit(ModifierKind::occupation);
+    for (const auto& mod : practice::detail::modifiers(state, source, kinds)) {
+        if (mod.def->kind == ModifierKind::networkGarrison ||
+            (mod.def->kind == ModifierKind::occupation && mod.def->adjacent.value_or(false)))
+            return GarrisonTarget::eligible;
+    }
+    return GarrisonTarget::noSupportingStructure;
+}
+
 SiteId first_player_site(const RuntimeState& state)
 {
     for (const auto id : settlement::detailed_sites(state)) {

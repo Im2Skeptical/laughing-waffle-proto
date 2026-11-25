@@ -57,6 +57,10 @@ inline constexpr double repel_strength_gain = 1;
 inline bool defense_holds(double defense, double strength) { return defense > 0 && defense >= strength; }
 RegionId expansion_target(const RuntimeState& state, RegionId source);
 
+enum class GarrisonTarget { eligible, noSettlement, notAllied, notConnected, noSupportingStructure };
+bool can_assign_garrison(const RuntimeState& state, RegionId source);
+GarrisonTarget garrison_target(const RuntimeState& state, const Site& source, RegionId target);
+
 using SupportVisitor = void (*)(RegionId, double, void*);
 
 Resistance resistance(const RuntimeState& state, const Site& site, FactionId holder);
