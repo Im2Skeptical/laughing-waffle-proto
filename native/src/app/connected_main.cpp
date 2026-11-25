@@ -245,17 +245,18 @@ void benchmark(SDL_Renderer* renderer, SdlRmlRenderer& bridge, View& view, Sessi
     view.scrubAt(warm.x + warm.w * .75f);
     waitFor(session, [&] { return session.previewReady(); }, [&](const char*) { present(); });
     session.live();
+    // Cold terrain preparation is reported separately from loaded scrubs.
     waitFor(session, [&] {
         const auto coverage = session.coverage();
         return coverage && coverage->completion != waffle::timegraph::Completion::running &&
-            session.chart().through == coverage->publishedThrough;
+            session.chart().through == coverage->publishedThrough && view.terrainReady();
     }, [&](const char*) { present(); });
     selection.stage(session.displayed(), 1);
     check(session.reorder(selection.region, *selection.card, *selection.destination), "Could not start benchmark Practice action");
     selection.destination.reset();
     selection.card.reset();
 
-    std::vector<double> frames, renders, summaries, decimations, restoreRender, visible, scrubFrames;
+    std::vector<double> frames, renders, summaries, decimations, restoreRender, visible, scrubFrames, loadedMapDraw;
     std::vector<double> loadedVisible, loadedFrames, settlementModel;
     std::vector<Second> targets;
     std::optional<Uint64> input;
@@ -265,6 +266,8 @@ void benchmark(SDL_Renderer* renderer, SdlRmlRenderer& bridge, View& view, Sessi
     Second lastTarget = 0;
     const auto generation = session.generation();
     const auto forecastStarted = SDL_GetTicksNS();
+    const auto terrainReadyAtStart = view.terrainReady();
+    view.measureMapDraw();
     for (; frame < options.frames; ++frame) {
         const auto frameStart = SDL_GetTicksNS();
         const auto coverage = session.coverage();
@@ -298,6 +301,7 @@ void benchmark(SDL_Renderer* renderer, SdlRmlRenderer& bridge, View& view, Sessi
         if (forecasting) {
             frames.push_back(elapsed(frameStart, end));
             renders.push_back(elapsed(renderStart, end));
+            loadedMapDraw.push_back(view.mapDrawMs());
             decimations.push_back(view.graphSampleMs());
             if (session.chart().through != summaryBefore) summaries.push_back(summaryMs);
         }
@@ -331,7 +335,6 @@ void benchmark(SDL_Renderer* renderer, SdlRmlRenderer& bridge, View& view, Sessi
     // Time cached map submission separately, with the forecast and timed scrubs complete.
     std::vector<double> mapDraw;
     mapDraw.reserve(240);
-    view.measureMapDraw();
     for (int i = 0; i < 240; ++i) {
         present();
         mapDraw.push_back(view.mapDrawMs());
@@ -351,6 +354,8 @@ void benchmark(SDL_Renderer* renderer, SdlRmlRenderer& bridge, View& view, Sessi
         {"summary_batches", Value(static_cast<double>(summaries.size()))},
         {"frame_ms", stats(frames)}, {"summary_transfer_ms", stats(summaries)},
         {"terrain_bake_ms", Value(view.terrainBakeMs())}, {"steady_map_draw_ms", stats(mapDraw)},
+        {"terrain_ready_before_timed_run", Value(terrainReadyAtStart)},
+        {"loaded_map_draw_ms", stats(loadedMapDraw)},
         {"terrain_upload_ms", Value(view.terrainUploadMs())},
         {"map_texture_bytes", Value(static_cast<double>(view.mapTextureBytes()))},
         {"graph_decimation_ms", stats(decimations)},
