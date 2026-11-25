@@ -68,7 +68,8 @@ View::View(Rml::Context& context, SDL_Renderer* renderer, Session& session, Sele
     document_ = context.LoadDocumentFromMemory(rml, "connected.rml");
     if (!document_) throw std::runtime_error("Could not load the connected view");
     element("panel-content").SetInnerRML(
-        "<div id=\"settlement-head\"></div><div id=\"settlement-time\"></div><div id=\"settlement-scroll\"></div>");
+        "<div id=\"settlement-head\"></div><div id=\"settlement-time\"></div>"
+        "<div id=\"settlement-scroll\" role=\"tabpanel\"></div>");
 #if defined(__ANDROID__)
     document_->SetClass("touch-screen", true);
 #endif
@@ -418,7 +419,6 @@ void View::refresh()
         dialogClosedAt_ = 0;
     }
     if (shell_.screen() == Screen::title || shell_.screen() == Screen::load) {
-        refreshHelp();
         return;
     }
     const auto* snapshot = session_.opening() ? nullptr : session_.displayed();
@@ -501,21 +501,33 @@ void View::refresh()
         if (!loading) map_.reveal(now_);
         loadingVisible_ = loading;
     }
-    refreshGraph(loading);
     const bool failed = loading && !session_.error().empty();
     if (failed != loadingFailed_) {
         element("loading-title").SetInnerRML(failed ? "Could not open the run" : "Preparing the forecast");
         loadingFailed_ = failed;
     }
     if (!notice_.empty() && !noticeError_ && now_ >= noticeUntil_) notify("");
-    refreshReadout();
-    refreshHelp();
 }
 
 void View::prepareFrame()
 {
     now_ = SDL_GetTicks();
     refresh();
+    // Give a pending restore the rest of the frame's preparatory work to
+    // finish. Update the seek labels only after this poll, so a ready snapshot
+    // can replace the transient request before those labels trigger layout.
+    if (session_.previewing() && !session_.previewReady()) {
+        context_.Update();
+        const auto revision = session_.viewRevision();
+        session_.updatePreview();
+        if (session_.viewRevision() != revision) refresh();
+    }
+    if (shell_.screen() != Screen::title && shell_.screen() != Screen::load) {
+        refreshSettlementTime();
+        refreshGraph(loadingVisible_);
+        refreshReadout();
+    }
+    refreshHelp();
     context_.Update();
 }
 

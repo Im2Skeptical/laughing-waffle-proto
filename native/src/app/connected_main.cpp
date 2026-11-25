@@ -213,17 +213,10 @@ Value stats(const std::vector<double>& samples)
         {"p99", Value(data.p99)}, {"max", Value(data.max)}});
 }
 
-void paint(View& view, Session& session, waffle::DemoClock& clock, Uint64 start)
+void paint(View& view, waffle::DemoClock& clock, Uint64 start)
 {
     clock.seconds = elapsed(start) / 1000;
     view.prepareFrame();
-    if (session.previewing() && !session.previewReady()) {
-        // A restore can finish while RmlUi lays out the frame. Pick it up
-        // before drawing, without waiting on the worker or skipping a present.
-        const auto revision = session.viewRevision();
-        session.updatePreview();
-        if (session.viewRevision() != revision) view.prepareFrame();
-    }
     view.drawFrame();
 }
 
@@ -234,7 +227,7 @@ void benchmark(SDL_Renderer* renderer, SdlRmlRenderer& bridge, View& view, Sessi
 #if defined(__ANDROID__)
         SDL_PumpEvents();
 #endif
-        paint(view, session, clock, start);
+        paint(view, clock, start);
         check(SDL_RenderPresent(renderer), SDL_GetError());
     };
     waitFor(session, [&] { return !session.opening(); }, [&](const char*) { present(); });
@@ -437,7 +430,7 @@ int run(const Options& options)
     graphics.bridge->SetPreparedAtlas({art.width, art.height}, std::move(art.rgba));
     View view(*context, graphics.renderer, session, selection, shell, std::move(art));
     const auto present = [&] {
-        paint(view, session, system.clock, start);
+        paint(view, system.clock, start);
         check(graphics.bridge->error().empty() && system.clock.last_error.empty(),
             graphics.bridge->error() + system.clock.last_error);
         check(SDL_RenderPresent(graphics.renderer), SDL_GetError());
@@ -472,14 +465,14 @@ int run(const Options& options)
                 for (int frame = 0; frame < 18; ++frame) {
                     session.update();
                     if (recordActive) {
-                        paint(view, session, system.clock, start);
+                        paint(view, system.clock, start);
                         captureMotion();
                         check(SDL_RenderPresent(graphics.renderer), SDL_GetError());
                     } else present();
                     SDL_Delay(17);
                 }
             }
-            paint(view, session, system.clock, start);
+            paint(view, system.clock, start);
             captureMotion();
             if (capture && !options.capture.empty()) saveFrame(options.capture + "/" + capture + ".png");
             check(graphics.bridge->error().empty() && system.clock.last_error.empty(),

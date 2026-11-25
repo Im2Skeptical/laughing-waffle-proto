@@ -350,7 +350,8 @@ std::string View::structureBoard(const StructureReading* board)
         if (building_ == cell) html += " chosen";
         if (b.warning) html += " building-warning";
         html += "\" style=\"flex-grow:" + std::to_string(b.width) + ";\" data-op=\"settlement-building\" data-id=\"" +
-            std::to_string(cell) + "\" data-help=\"" + escape(b.name + " · " + b.status) + "\">";
+            std::to_string(cell) + "\" aria-pressed=\"" + (building_ == cell ? "true" : "false") +
+            "\" data-help=\"" + escape(b.name + " · " + b.status) + "\">";
         if (art != sprites_.end())
             html += "<div class=\"building-art\" style=\"decorator:image(" + art->second + " cover);\"></div>";
         else html += "<div class=\"building-silhouette\"></div>";
@@ -373,11 +374,12 @@ void View::refreshPanel(const Snapshot* snapshot)
     const bool readingChanged = !sameReading || settlementReadRevision_ != session_.viewRevision();
     auto& head = element("settlement-head");
     auto& body = element("settlement-scroll");
-    auto& time = element("settlement-time");
     if (!sameRegion) {
         building_.reset();
         markersDirty_ = true;
     }
+    if (document_->IsClassSet("settlement-selected") != (site != nullptr))
+        markerSizesDirty_ = true;
     document_->SetClass("settlement-selected", site != nullptr);
     if (site && snapshot && readingChanged) {
         const auto start = std::chrono::steady_clock::now();
@@ -390,12 +392,6 @@ void View::refreshPanel(const Snapshot* snapshot)
         settlementReadSecond_.reset();
         settlementReading_ = {};
     }
-    const auto nextTime = site ? (session_.previewing() ?
-        (session_.previewReady() ? "Preview · s " + std::to_string(snapshot->second) :
-            "Restoring · showing s " + std::to_string(snapshot->second)) :
-        "Live · s " + std::to_string(snapshot->second)) : "";
-    if (nextTime != settlementTime_) time.SetInnerRML(settlementTime_ = nextTime);
-    time.SetClass("preview-time", session_.previewing());
     if (site && !readingChanged && settlementTab_ != SettlementTab::practices)
         return;
 
@@ -411,12 +407,12 @@ void View::refreshPanel(const Snapshot* snapshot)
         header = "<h2 class=\"settlement-name\">" + escape(name) + "</h2><p class=\"quiet settlement-location\">" +
             (name != site->name ? escape(site->name) + " · " : "") + holder + "</p>";
         if (site->hasSite) {
-            header += "<div class=\"settlement-tabs\" role=\"tablist\" aria-label=\"Settlement sections\">";
+            header += "<div id=\"settlement-tabs\" class=\"settlement-tabs\" role=\"tablist\" aria-label=\"Settlement sections\">";
             for (std::size_t i = 0; i < tabNames.size(); ++i) {
-                const bool selected = static_cast<std::size_t>(settlementTab_) == i;
-                header += "<button class=\"tab settlement-tab" + std::string(selected ? " on" : "") +
-                    "\" role=\"tab\" aria-selected=\"" + (selected ? "true" : "false") +
-                    "\" data-op=\"settlement-tab\" data-id=\"" + std::to_string(i) + "\">" + tabNames[i] + "</button>";
+                const auto index = std::to_string(i);
+                header += "<button class=\"tab settlement-tab\" role=\"tab\" aria-controls=\"settlement-scroll\""
+                    " id=\"settlement-tab-" + index + "\" data-op=\"settlement-tab\" data-id=\"" +
+                    index + "\">" + tabNames[i] + "</button>";
             }
             header += "</div>";
         }
@@ -464,9 +460,26 @@ void View::refreshPanel(const Snapshot* snapshot)
     }
     const auto scroll = body.GetScrollTop();
     const bool tabChanged = renderedSettlementTab_ != settlementTab_;
+    const bool headerChanged = settlementHeader_ != header;
     const bool remount = panelMarkup_ != html;
-    if (remount) for (auto& ledger : overviewRows_) ledger.clear();
+    if (remount) {
+        body.SetClass("overview-scroll", settlementReading_.overview.has_value());
+        for (auto& ledger : overviewRows_) ledger.clear();
+    }
     replace(context_, head, settlementHeader_, std::move(header), !dialog_);
+    if (headerChanged || tabChanged) {
+        auto* tabs = document_->GetElementById("settlement-tabs");
+        body.SetClass("has-settlement-tabs", tabs != nullptr);
+        if (tabs) {
+            for (int i = 0; i < tabs->GetNumChildren(); ++i) {
+                auto& tab = *tabs->GetChild(i);
+                const bool selected = static_cast<int>(settlementTab_) == i;
+                tab.SetClass("on", selected);
+                tab.SetAttribute("aria-selected", selected ? "true" : "false");
+                if (selected) body.SetAttribute("aria-labelledby", tab.GetId());
+            }
+        } else body.RemoveAttribute("aria-labelledby");
+    }
     replace(context_, body, panelMarkup_, std::move(html), !dialog_);
     const bool comparable = sameReading && before && settlementReadSecond_ != before;
     if (site && settlementReading_.overview) syncOverview(*site, *settlementReading_.overview, comparable);
@@ -489,11 +502,28 @@ void View::refreshPanel(const Snapshot* snapshot)
     settlementDirty_ = false;
 }
 
+void View::refreshSettlementTime()
+{
+    const auto* snapshot = session_.displayed();
+    std::string text;
+    if (snapshot && document_->IsClassSet("settlement-selected")) {
+        const char* mode = !session_.previewing() ? "Live" : !session_.previewReady() ? "Showing" :
+            session_.previousPreview() ? "Previous" : "Preview";
+        text = std::string(mode) + " · s " + std::to_string(snapshot->second);
+    }
+    auto& time = element("settlement-time");
+    if (text != settlementTime_) time.SetInnerRML(settlementTime_ = std::move(text));
+    time.SetClass("preview-time", session_.previewing());
+}
+
 void View::activateSettlement(std::string_view op, const std::string& id)
 {
     if (op == "settlement-tab") {
-        settlementTab_ = static_cast<SettlementTab>(std::stoul(id));
-        settlementDirty_ = true;
+        const auto next = static_cast<SettlementTab>(std::stoul(id));
+        if (next != settlementTab_) {
+            settlementTab_ = next;
+            settlementDirty_ = true;
+        }
     } else if (op == "settlement-building") {
         building_ = std::stoul(id);
         settlementDirty_ = true;

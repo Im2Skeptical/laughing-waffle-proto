@@ -486,16 +486,22 @@ void InteractionProbe::settlement(Session& session)
     const auto live = session.displayed()->second;
     checkOverview(session.replayStateForTest(live));
 
-    control(tab(0).c_str()).Focus(true);
+    auto& overviewBody = view.element("settlement-scroll");
+    overviewBody.Focus(true);
     key(SDLK_PAGEDOWN);
     present(nullptr);
-    auto& overviewBody = view.element("settlement-scroll");
+    require(view.context_.GetFocusElement() == &overviewBody && overviewBody.IsPseudoClassSet("focus-visible"),
+        "Overview scroll area did not retain keyboard focus");
     require(overviewBody.GetScrollHeight() <= overviewBody.GetClientHeight() || overviewBody.GetScrollTop() > 0,
         "Keyboard could not scroll the Overview");
     control(tab(1).c_str()).Focus(true);
+    auto* structureTab = &control(tab(2).c_str());
     key(SDLK_RIGHT);
-    present(nullptr);
-    require(view.settlementTab_ == SettlementTab::structures, "Keyboard did not open Structures");
+    present("01b-tab-focus");
+    require(view.settlementTab_ == SettlementTab::structures &&
+        view.context_.GetFocusElement() == structureTab && structureTab->IsPseudoClassSet("focus-visible") &&
+        structureTab->GetAttribute<Rml::String>("aria-selected", "") == "true",
+        "Keyboard did not select Structures and keep its tab focused");
     const auto& board = *view.settlementReading_.structures;
     require(board.capacity > 0 && board.occupied > 0 && !board.buildings.empty(), "Capital construction board is empty");
     const auto building = "[data-op=settlement-building][data-id='" + std::to_string(board.buildings.front().origin) + "']";

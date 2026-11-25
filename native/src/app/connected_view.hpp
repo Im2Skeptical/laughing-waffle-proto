@@ -41,6 +41,7 @@ private:
     void refreshShell();
     void refresh();
     void refreshPanel(const Snapshot* snapshot);
+    void refreshSettlementTime();
     bool backSettlement();
     bool keySettlement(SDL_Keycode key, Rml::Element* focus);
     void syncOverview(const Region& region, const SettlementOverview& reading, bool comparable);
