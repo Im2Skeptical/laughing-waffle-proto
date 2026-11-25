@@ -100,6 +100,15 @@ FetchContent_MakeAvailable(stb)
 add_library(waffle_png_headers INTERFACE)
 target_include_directories(waffle_png_headers SYSTEM INTERFACE "${stb_SOURCE_DIR}")
 
+# The connected atlas reads the browser's approved WebP sheets directly.
+waffle_pinned_url(WAFFLE_WEBP_URL "libwebp-1.6.0.tar.gz" "https://storage.googleapis.com/downloads.webmproject.org/releases/webp/libwebp-1.6.0.tar.gz")
+foreach(component ANIM_UTILS EXTRAS CWEBP DWEBP GIF2WEBP IMG2WEBP VWEBP WEBPINFO WEBPMUX)
+	set(WEBP_BUILD_${component} OFF CACHE BOOL "" FORCE)
+endforeach()
+FetchContent_Declare(webp URL "${WAFFLE_WEBP_URL}"
+	URL_HASH SHA256=e4ab7009bf0629fd11982d4c2aa83964cf244cffba7347ecd39019a9e38c4564)
+FetchContent_MakeAvailable(webp)
+
 set(WAFFLE_LATO_PATH "${rmlui_SOURCE_DIR}/Samples/assets/LatoLatin-Regular.ttf")
 set(WAFFLE_FONT_LICENSE "${rmlui_SOURCE_DIR}/Samples/assets/LICENSE.txt")
 if(NOT EXISTS "${WAFFLE_LATO_PATH}")

@@ -210,6 +210,11 @@ $artPaths += @(
 )
 $artPaths += Get-ChildItem -LiteralPath (Join-Path $repo "images/dark-fantasy/heirlooms-v1") -File -Filter "*.png" |
     ForEach-Object { "images/dark-fantasy/heirlooms-v1/$($_.Name)" }
+$mapArtRoot = "images/dark-fantasy/map-generation-prototype/assets/runtime"
+$artPaths += foreach ($atlas in @("terrain-kit-v1", "monster-ground-v1", "relief-v1", "settlement-buildings-v1", "crown-modular-v1", "landmarks-v1")) {
+    foreach ($extension in @("json", "webp")) { "$mapArtRoot/$atlas.$extension" }
+}
+$artPaths += "$mapArtRoot/bank-profiles-v1.webp"
 foreach ($art in $artPaths) {
 	$destination = Join-Path $assets $art
 	New-Item -ItemType Directory -Force -Path (Split-Path -Parent $destination) | Out-Null

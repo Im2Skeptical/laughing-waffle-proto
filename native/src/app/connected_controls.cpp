@@ -63,7 +63,14 @@ void View::refreshHelp()
         if (target == &element("map") && !focusHelp && !hoveredRegion_.empty() && session_.displayed()) {
             const auto& regions = session_.displayed()->regions;
             const auto region = std::ranges::find(regions, hoveredRegion_, &Region::id);
-            if (region != regions.end()) text = region->name + " · " + region->settlement;
+            if (region != regions.end()) {
+                constexpr std::array labels{"Your holding", "Crown holding", "Unheld", "Creep"};
+                text = region->name;
+                if (!region->settlement.empty() && region->settlement != region->name) text += " · " + region->settlement;
+                text += " · ";
+                text += labels[static_cast<std::size_t>(region->holder)];
+                if (region->hasSite) text += " · " + std::to_string(std::llround(region->population)) + " residents";
+            }
         }
     }
     auto& node = element("help");
@@ -311,6 +318,26 @@ bool View::input(SDL_Event event)
     return true;
 }
 
+void View::hoverMap(SDL_FPoint point)
+{
+    auto next = drag_ == Drag::map && !moved_ ? pressedRegion_ : drag_ == Drag::none ? hit(point).value_or("") : "";
+    if (next == hoveredRegion_) return;
+    hoveredRegion_ = std::move(next);
+    markersDirty_ = true;
+}
+
+void View::refreshMapCursor()
+{
+    SDL_Cursor* next = nullptr;
+    if (!touch_ && !dialog_ && !lifeOpen_ && shell_.screen() == Screen::game) {
+        if (drag_ == Drag::map && moved_) next = mapPan_.get();
+        else if (!hoveredRegion_.empty()) next = mapHand_.get();
+    }
+    if (mapCursor_ == next) return;
+    SDL_SetCursor(next ? next : SDL_GetDefaultCursor());
+    mapCursor_ = next;
+}
+
 void View::pointer(const SDL_Event& event)
 {
     const bool game = shell_.screen() == Screen::game;
@@ -318,12 +345,6 @@ void View::pointer(const SDL_Event& event)
         pointer_ = {event.motion.x, event.motion.y};
         hoveredAt_ = SDL_GetTicks();
         const auto map = bounds("map");
-        auto hovered = game && !lifeOpen_ && !dialog_ && contains(map, pointer_) && !contains(bounds("map-tools"), pointer_)
-            ? hit(pointer_).value_or("") : "";
-        if (hovered != hoveredRegion_) {
-            hoveredRegion_ = std::move(hovered);
-            markersDirty_ = true;
-        }
         hoverSecond_ = game && !touch_ && session_.browseThrough() && contains(plot(), pointer_) &&
             graphWindow_.at((pointer_.x - plot().x) / std::max(1.f, plot().w)) <= *session_.browseThrough()
             ? std::optional(secondAt(pointer_.x)) : std::nullopt;
@@ -361,6 +382,7 @@ void View::pointer(const SDL_Event& event)
             moved_ = longPress_ = false;
             pressedAt_ = SDL_GetTicks();
             pressed_ = last_ = pointer_;
+            pressedRegion_.clear();
             graphPin_.reset();
             context_.ProcessMouseMove(static_cast<int>(pointer_.x), static_cast<int>(pointer_.y), 0);
             if (game && (!dialog_ || confirmation_ == Confirmation::reform) &&
@@ -382,8 +404,7 @@ void View::pointer(const SDL_Event& event)
                 element("map").Focus();
                 drag_ = Drag::map;
                 map_.beginPan();
-                hoveredRegion_ = hit(pointer_).value_or("");
-                markersDirty_ = true;
+                pressedRegion_ = hit(pointer_).value_or("");
             } else {
                 const auto* snapshot = session_.displayed();
                 const auto* site = selection_.selected(snapshot);
@@ -405,8 +426,10 @@ void View::pointer(const SDL_Event& event)
         } else if (pointerDown_) {
             pointerDown_ = false;
             if (drag_ == Drag::map) {
-                if (!moved_ && !longPress_)
-                    if (auto selected = hit(pointer_)) selectRegion(std::move(*selected));
+                const auto distance = std::hypot(pointer_.x - pressed_.x, pointer_.y - pressed_.y);
+                if (!moved_ && !longPress_ && distance <= 4.f && !pressedRegion_.empty())
+                    selectRegion(pressedRegion_);
+                pressedRegion_.clear();
             } else if (drag_ == Drag::graph) {
                 releaseGraph();
             } else if (drag_ == Drag::overview) {
@@ -442,6 +465,12 @@ void View::pointer(const SDL_Event& event)
         touch_ = event.motion.which == SDL_TOUCH_MOUSEID;
         longPress_ = false;
     }
+    if (touch_ && !pointerDown_) {
+        markersDirty_ |= !hoveredRegion_.empty();
+        hoveredRegion_.clear();
+        longPress_ = false;
+    } else hoverMap(pointer_);
+    refreshMapCursor();
     const auto target = drag_ == Drag::card && moved_ ? cardAt(pointer_) : std::nullopt;
     if (target != dropTarget_ || event.type == SDL_EVENT_MOUSE_BUTTON_UP) {
         dropTarget_ = target;
@@ -466,6 +495,8 @@ void View::cancelInput()
     drag_ = Drag::none;
     markersDirty_ |= !hoveredRegion_.empty();
     hoveredRegion_.clear();
+    pressedRegion_.clear();
+    refreshMapCursor();
     hoverSecond_.reset();
     dropTarget_.reset();
     if (auto* board = document_->GetElementById("board")) {
@@ -508,6 +539,7 @@ void View::touch(const SDL_TouchFingerEvent& event)
             drag_ = Drag::pinch;
             moved_ = true;
             longPress_ = false;
+            hoverMap(point);
         }
         return;
     }

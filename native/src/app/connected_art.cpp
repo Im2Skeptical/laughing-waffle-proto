@@ -1,4 +1,5 @@
 #include "connected_art.hpp"
+#include "connected_map_art.hpp"
 #include "core/json.hpp"
 #include "sdl_asset_file.hpp"
 
@@ -83,6 +84,7 @@ Artwork prepareArtwork()
             std::to_string(titleWidth) + "px " + std::to_string(titleHeight) + "px;";
     }
     art.css += "}</style>";
+    art.map = prepareMapArtwork();
     return art;
 }
 

@@ -81,6 +81,10 @@ set(WAFFLE_CONNECTED_SOURCES
 	src/app/connected_graph.cpp
 	src/app/connected_life_view.cpp
 	src/app/connected_map.cpp
+	src/app/connected_map_art.cpp
+	src/app/connected_map_roads.cpp
+	src/app/connected_map_sites.cpp
+	src/app/connected_terrain.cpp
 	src/app/connected_main.cpp
 	src/app/connected_save.cpp
 	src/app/connected_session.cpp
@@ -213,5 +217,5 @@ if(TARGET waffle_native_game)
 	target_compile_features(waffle_native_game PRIVATE cxx_std_20)
 	target_include_directories(waffle_native_game PRIVATE src)
 	target_link_libraries(waffle_native_game PRIVATE waffle_timegraph waffle_demo_probe
-		${WAFFLE_SDL_TARGET} waffle_png_headers)
+		${WAFFLE_SDL_TARGET} waffle_png_headers webp)
 endif()

@@ -33,7 +33,16 @@ struct RegionalWorld {
 };
 
 using RegionalOutlines = std::array<std::vector<std::array<double, 2>>, regional_region_count>;
-RegionalWorld generate_regional_world(std::uint32_t seed, RegionalOutlines* outlines = nullptr);
+struct RegionalEdgeInk {
+    enum class Kind { frontier, exterior, river, ridge };
+    Kind kind;
+    std::vector<std::array<double, 2>> points;
+    int neighbor{-1}, worldSide{-1};
+};
+using RegionalEdgeInks = std::array<std::vector<RegionalEdgeInk>, regional_region_count>;
+RegionalWorld generate_regional_world(std::uint32_t seed, RegionalOutlines* outlines = nullptr,
+                                      RegionalEdgeInks* edgeInk = nullptr,
+                                      std::array<bool, 4>* oceanSides = nullptr);
 std::optional<std::uint32_t> generated_regional_seed(std::string_view definitionId);
 
 }

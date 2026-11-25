@@ -40,7 +40,8 @@ public:
 
     const Snapshot* displayed() const { return preview_ ? &*preview_ : liveSnapshot(); }
     const Snapshot* liveSnapshot() const { return run_ ? &run_->snapshot : nullptr; }
-    const std::vector<RegionShape>& shapes() const { return *run_->shapes; }
+    const std::vector<RegionShape>& shapes() const { return run_->geography->shapes; }
+    std::shared_ptr<const MapGeography> mapGeography() const { return run_ ? run_->geography : nullptr; }
     const Chart& chart() const { return chart_; }
     const Chart& previousChart() const { return previousChart_; }
     std::optional<Second> divergence() const;
@@ -72,7 +73,7 @@ public:
 private:
     struct Run {
         std::shared_ptr<const sim::RuntimeState> base, live;
-        std::shared_ptr<const std::vector<RegionShape>> shapes;
+        std::shared_ptr<const MapGeography> geography;
         sim::ActionJournal journal;
         timegraph::GenerationId generation{};
         Snapshot snapshot;

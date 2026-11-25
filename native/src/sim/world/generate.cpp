@@ -490,7 +490,8 @@ std::optional<std::uint32_t> generated_regional_seed(std::string_view definition
     return seed;
 }
 
-RegionalWorld generate_regional_world(std::uint32_t seed, RegionalOutlines* outlines)
+RegionalWorld generate_regional_world(std::uint32_t seed, RegionalOutlines* outlines, RegionalEdgeInks* edgeInk,
+                                      std::array<bool, 4>* oceanSides)
 {
     // The definition generator has its own streams. Only the shared-edge
     // outlines and centroids feed gameplay; island contours and surroundings
@@ -499,6 +500,10 @@ RegionalWorld generate_regional_world(std::uint32_t seed, RegionalOutlines* outl
     auto oceanRng = core::create_rng(js::to_int32(seed ^ 0x537a91u));
     const int firstOcean = static_cast<int>(core::rng_next_int(oceanRng, 0, 3));
     const int oceanCount = static_cast<int>(core::rng_next_int(oceanRng, 1, 2));
+    if (oceanSides) {
+        oceanSides->fill(false);
+        for (int i = 0; i < oceanCount; ++i) (*oceanSides)[(firstOcean + i) % 4] = true;
+    }
     const std::array phases{core::rng_next_float(oceanRng) * pi * 2, core::rng_next_float(oceanRng) * pi * 2};
     auto regions = footprint(rng, phases);
     auto geometry = make_edges(regions);
@@ -506,6 +511,19 @@ RegionalWorld generate_regional_world(std::uint32_t seed, RegionalOutlines* outl
     build_geography(geometry, firstOcean, oceanCount, rng);
     assign_biomes(regions, geometry.edges, rng, seed);
     shape_outlines(geometry, regions, rng);
+
+    if (edgeInk) {
+        for (auto& edges : *edgeInk) edges.clear();
+        using Kind = RegionalEdgeInk::Kind;
+        for (const auto& edge : geometry.edges) {
+            const auto neighbor = edge.regions.size() == 2 ? edge.regions[1] : -1;
+            auto& ink = (*edgeInk)[edge.regions.front()].emplace_back(RegionalEdgeInk{
+                edge.feature == river ? Kind::river : edge.feature == ridge ? Kind::ridge :
+                    neighbor < 0 ? Kind::exterior : Kind::frontier, {}, neighbor, edge.worldSide});
+            ink.points.reserve(edge.points.size());
+            for (const auto point : edge.points) ink.points.push_back({point.x, point.y});
+        }
+    }
 
     RegionalWorld world;
     world.definitionId = "regional-v2:" + std::to_string(seed);

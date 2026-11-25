@@ -24,6 +24,13 @@ public:
     SDL_FRect plot() const;
     TimeWindow graphWindow() const { return graphWindow_; }
     double graphSampleMs() const { return graphSampleMs_; }
+    double mapDrawMs() const { return mapDrawMs_; }
+    double terrainBakeMs() const { return map_.bakeMs(); }
+    double terrainUploadMs() const { return map_.uploadMs(); }
+    std::size_t mapTextureBytes() const { return map_.textureBytes(); }
+    bool terrainReady() const { return map_.terrainReady(); }
+    void measureMapDraw() { measureMapDraw_ = true; }
+    bool liveMapTransitioning() const { return map_.transitioning(); }
     void cancelInput();
     void releaseTerrain() { map_.invalidateTerrain(); }
     void syncWindow();
@@ -36,6 +43,8 @@ private:
     Rml::Element& element(const char* id) const { return *document_->GetElementById(id); }
     SDL_FRect bounds(const char* id) const;
     std::optional<std::string> hit(SDL_FPoint point) const;
+    void hoverMap(SDL_FPoint point);
+    void refreshMapCursor();
     std::optional<std::size_t> cardAt(SDL_FPoint point) const;
     bool canStage(const Snapshot& snapshot, const Region* site) const;
     void refreshShell();
@@ -121,6 +130,7 @@ private:
     std::uint64_t settlementReadRevision_{};
     double settlementModelMs_{};
     bool settlementDirty_{true};
+    std::string pressedRegion_;
     std::uint64_t revision_ = ~std::uint64_t{};
     std::uint64_t pendingGeneration_{};
     Uint64 now_{}, noticeUntil_{}, pressedAt_{}, hoveredAt_{}, dialogClosedAt_{};
@@ -160,6 +170,7 @@ private:
     bool opening_{}, busy_{}, previewing_{}, markersDirty_{true};
     bool markerSizesDirty_{};
     std::vector<std::pair<SDL_FPoint, SDL_FPoint>> markerLeaders_;
+    std::vector<std::pair<SDL_FRect, std::size_t>> markerTargets_;
     bool reduced_{}, dialog_{}, noticeError_{}, touch_{}, longPress_{}, pointerDown_{};
     SDL_Keycode keyDown_{};
     Rml::ObserverPtr<Rml::Element> keyControl_;
@@ -173,6 +184,11 @@ private:
     std::vector<std::size_t> heirloomPicks_;
     std::optional<LifeCommand> lifeConfirm_;
     RegionalMap map_;
+    std::unique_ptr<SDL_Cursor, decltype(&SDL_DestroyCursor)> mapHand_{nullptr, SDL_DestroyCursor};
+    std::unique_ptr<SDL_Cursor, decltype(&SDL_DestroyCursor)> mapPan_{nullptr, SDL_DestroyCursor};
+    SDL_Cursor* mapCursor_{};
+    double mapDrawMs_{};
+    bool measureMapDraw_{};
     SDL_FPoint pointer_{}, last_{}, pressed_{};
     enum class Drag { none, map, graph, overview, card, panel, shell, lifePanel, lifeOffers, pinch };
     float density_ = 1;

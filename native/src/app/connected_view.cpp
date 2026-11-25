@@ -44,7 +44,7 @@ void show(Rml::Element& element, bool visible)
 View::View(Rml::Context& context, SDL_Renderer* renderer, Session& session, Selection& selection, Shell& shell,
            Artwork art)
     : context_(context), renderer_(renderer), session_(session), selection_(selection), shell_(shell),
-      sprites_(std::move(art.sprites))
+      sprites_(std::move(art.sprites)), map_(std::move(art.map))
 {
     if (!Rml::LoadFontFace(WAFFLE_CONNECTED_FONT, "Lato", Rml::Style::FontStyle::Normal,
             Rml::Style::FontWeight::Auto, true))
@@ -75,11 +75,14 @@ View::View(Rml::Context& context, SDL_Renderer* renderer, Session& session, Sele
 #endif
     document_->AddEventListener(Rml::EventId::Click, this);
     document_->Show(Rml::ModalFlag::None, Rml::FocusFlag::Document);
+    mapHand_.reset(SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_POINTER));
+    mapPan_.reset(SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_MOVE));
     syncWindow();
 }
 
 View::~View()
 {
+    if (mapCursor_) SDL_SetCursor(SDL_GetDefaultCursor());
     document_->RemoveEventListener(Rml::EventId::Click, this);
     document_->Close();
     context_.RemoveDataModel("connected");
@@ -155,6 +158,7 @@ void View::refreshShell()
         }
         hoverSecond_.reset();
         hoveredRegion_.clear();
+        refreshMapCursor();
         shownScreen_ = screen;
         show(overlay, !game);
         show(element("play"), game || screen == Screen::save);
@@ -245,22 +249,12 @@ void View::refreshShell()
 std::optional<std::string> View::hit(SDL_FPoint point) const
 {
     const auto* view = session_.displayed();
-    if (!view || session_.opening()) return {};
+    if (!view || session_.opening() || shell_.screen() != Screen::game || lifeOpen_ || dialog_) return {};
     const auto map = bounds("map");
-    const auto& shapes = session_.shapes();
-    for (std::size_t i = 0; i < shapes.size(); ++i) {
-        const auto& polygon = shapes[i].outline;
-        if (polygon.size() < 3) continue;
-        bool inside = false;
-        auto a = map_.project(polygon.back(), map);
-        for (const auto& vertex : polygon) {
-            const auto b = map_.project(vertex, map);
-            if ((a.y > point.y) != (b.y > point.y) && point.x < (b.x - a.x) * (point.y - a.y) / (b.y - a.y) + a.x)
-                inside = !inside;
-            a = b;
-        }
-        if (inside) return view->regions[i].id;
-    }
+    if (!contains(map, point) || contains(bounds("map-tools"), point) || contains(bounds("legend"), point)) return {};
+    for (const auto& [label, index] : markerTargets_)
+        if (index < view->regions.size() && contains(label, point)) return view->regions[index].id;
+    if (const auto target = map_.hit(point, map, *view, session_.shapes())) return view->regions[target->region].id;
     return {};
 }
 
@@ -305,6 +299,7 @@ void View::refreshMarkers(const Snapshot* snapshot)
     auto& markers = element("markers");
     if (!snapshot) {
         markerLeaders_.clear();
+        markerTargets_.clear();
         if (markers.HasChildNodes()) markers.SetInnerRML("");
         return;
     }
@@ -344,6 +339,7 @@ void View::positionMarkers()
     const auto area = bounds("map");
     const auto& shapes = session_.shapes();
     markerLeaders_.clear();
+    markerTargets_.clear();
     std::vector<SDL_FRect> placed;
     placed.reserve(markers.GetNumChildren() + 2);
     const auto reserve = [&](const char* id) {
@@ -385,6 +381,7 @@ void View::positionMarkers()
                         return false;
                     marker.SetProperty("left", number(x) + "px");
                     marker.SetProperty("top", number(y) + "px");
+                    markerTargets_.emplace_back(SDL_FRect{area.x + x, area.y + y, size.x, size.y}, index);
                     placed.push_back(box);
                     const SDL_FPoint from{area.x + anchorX, area.y + anchorY};
                     const SDL_FPoint to{area.x + std::clamp(anchorX, x, x + size.x),
@@ -421,6 +418,7 @@ void View::refresh()
     if (shell_.screen() == Screen::title || shell_.screen() == Screen::load) {
         return;
     }
+    if (const auto* live = session_.liveSnapshot()) map_.prepare(session_.mapGeography(), *live);
     const auto* snapshot = session_.opening() ? nullptr : session_.displayed();
     if (session_.error() != lastError_) {
         lastError_ = session_.error();
@@ -553,8 +551,11 @@ void View::drawFrame()
     const auto screen = shell_.screen();
     if (const auto* snapshot = session_.displayed(); !lifeOpen_ && snapshot && !session_.opening() &&
         (screen == Screen::game || screen == Screen::save)) {
+        const auto mapStart = measureMapDraw_ ? SDL_GetTicksNS() : 0;
         map_.draw(renderer_, bounds("map"), *snapshot, session_.shapes(), selection_.region, hoveredRegion_,
-            drag_ == Drag::map && !moved_, now_, reduced_);
+            drag_ == Drag::map && !moved_ && pressedRegion_ == hoveredRegion_,
+            {now_, session_.viewRevision(), reduced_, !session_.previewing() && drag_ != Drag::graph});
+        if (mapStart) mapDrawMs_ = static_cast<double>(SDL_GetTicksNS() - mapStart) / 1e6;
         for (const auto& [anchor, label] : markerLeaders_)
             line(renderer_, anchor, label, {199, 175, 120, 255});
     }
