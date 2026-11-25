@@ -45,6 +45,7 @@ public:
 
 private:
     friend struct InteractionProbe;
+    friend class CrestLayer;
     static constexpr SDL_FColor sea_{.16f, .25f, .31f, 1};
     struct Camera {
         float zoom = 1, x{}, y{};

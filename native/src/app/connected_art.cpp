@@ -1,4 +1,5 @@
 #include "connected_art.hpp"
+#include "connected_crests.hpp"
 #include "connected_map_art.hpp"
 #include "core/json.hpp"
 #include "sdl_asset_file.hpp"
@@ -85,6 +86,7 @@ Artwork prepareArtwork()
     }
     art.css += "}</style>";
     art.map = prepareMapArtwork();
+    art.crests = prepareCrestArtwork();
     return art;
 }
 

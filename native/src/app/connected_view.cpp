@@ -44,7 +44,7 @@ void show(Rml::Element& element, bool visible)
 View::View(Rml::Context& context, SDL_Renderer* renderer, Session& session, Selection& selection, Shell& shell,
            Artwork art)
     : context_(context), renderer_(renderer), session_(session), selection_(selection), shell_(shell),
-      sprites_(std::move(art.sprites)), map_(std::move(art.map))
+      sprites_(std::move(art.sprites)), map_(std::move(art.map)), crests_(std::move(art.crests))
 {
     if (!Rml::LoadFontFace(WAFFLE_CONNECTED_FONT, "Lato", Rml::Style::FontStyle::Normal,
             Rml::Style::FontWeight::Auto, true))
@@ -135,6 +135,7 @@ void View::refreshShell()
     if (runRevision_ != shell_.runRevision()) {
         runRevision_ = shell_.runRevision();
         map_.reset();
+        crests_.reset();
         resetGraph();
         setLifeOpen(false);
         refreshMarkers(nullptr);
@@ -252,6 +253,7 @@ std::optional<std::string> View::hit(SDL_FPoint point) const
     if (!view || session_.opening() || shell_.screen() != Screen::game || lifeOpen_ || dialog_) return {};
     const auto map = bounds("map");
     if (!contains(map, point) || contains(bounds("map-tools"), point) || contains(bounds("legend"), point)) return {};
+    if (const auto* crest = crests_.hit(point)) return view->regions[crest->region].id;
     for (const auto& [label, index] : markerTargets_)
         if (index < view->regions.size() && contains(label, point)) return view->regions[index].id;
     if (const auto target = map_.hit(point, map, *view, session_.shapes())) return view->regions[target->region].id;
@@ -300,6 +302,7 @@ void View::refreshMarkers(const Snapshot* snapshot)
     if (!snapshot) {
         markerLeaders_.clear();
         markerTargets_.clear();
+        markerPositions_.clear();
         if (markers.HasChildNodes()) markers.SetInnerRML("");
         return;
     }
@@ -308,6 +311,7 @@ void View::refreshMarkers(const Snapshot* snapshot)
         for (const auto& region : snapshot->regions)
             markup += "<div class=\"marker\">" + escape(regionLabel(region)) + "</div>";
         markers.SetInnerRML(markup);
+        markerPositions_.assign(snapshot->regions.size(), {-1.f, -1.f});
         markersDirty_ = markerSizesDirty_ = true;
     }
     for (std::size_t i = 0; i < snapshot->regions.size(); ++i) {
@@ -325,6 +329,7 @@ void View::refreshMarkers(const Snapshot* snapshot)
         }
         markersDirty_ |= change("selected", region.id == selection_.region);
     }
+    markersDirty_ |= crests_.needsLayout(*snapshot, selection_.region);
 }
 
 void View::positionMarkers()
@@ -340,16 +345,12 @@ void View::positionMarkers()
     const auto& shapes = session_.shapes();
     markerLeaders_.clear();
     markerTargets_.clear();
-    std::vector<SDL_FRect> placed;
-    placed.reserve(markers.GetNumChildren() + 2);
-    const auto reserve = [&](const char* id) {
-        auto rect = bounds(id);
-        rect.x -= area.x;
-        rect.y -= area.y;
-        placed.push_back(rect);
-    };
-    reserve("legend");
-    reserve("map-tools");
+    auto& placed = mapObstacles_;
+    placed.clear();
+    placed.reserve(markers.GetNumChildren() * 2 + 2);
+    placed.push_back(bounds("legend"));
+    placed.push_back(bounds("map-tools"));
+    crests_.position(map_, area, *snapshot, shapes, selection_.region, hoveredRegion_, density_, placed);
     const auto priority = [&](const Region& region) {
         if (region.id == selection_.region) return 0;
         if (region.id == hoveredRegion_) return 1;
@@ -376,11 +377,13 @@ void View::positionMarkers()
                     const float x = std::clamp(anchorX - size.x / 2 + offsetX, 2.f, area.w - size.x - 2);
                     const float y = std::clamp(anchorY + offsetY, 2.f, area.h - size.y - 2);
                     const float padding = tier < 2 ? 2.f : 4.f * density_;
-                    const SDL_FRect box{x - padding, y - padding, size.x + 2 * padding, size.y + 2 * padding};
+                    const SDL_FRect box{area.x + x - padding, area.y + y - padding, size.x + 2 * padding, size.y + 2 * padding};
                     if (std::ranges::any_of(placed, [&](const auto& other) { return SDL_HasRectIntersectionFloat(&box, &other); }))
                         return false;
-                    marker.SetProperty("left", number(x) + "px");
-                    marker.SetProperty("top", number(y) + "px");
+                    auto& previous = markerPositions_[index];
+                    if (previous.x != x) marker.SetProperty(Rml::PropertyId::Left, Rml::Property(x, Rml::Unit::PX));
+                    if (previous.y != y) marker.SetProperty(Rml::PropertyId::Top, Rml::Property(y, Rml::Unit::PX));
+                    previous = {x, y};
                     markerTargets_.emplace_back(SDL_FRect{area.x + x, area.y + y, size.x, size.y}, index);
                     placed.push_back(box);
                     const SDL_FPoint from{area.x + anchorX, area.y + anchorY};
@@ -452,6 +455,7 @@ void View::refresh()
     if (revision_ != session_.viewRevision() || opening_ != session_.opening() || busy_ != session_.busy() ||
         previewing_ != session_.previewing() || selectedRegion_ != selection_.region ||
         selectedCard_ != selection_.card || staged_ != selection_.destination || settlementDirty_) {
+        markerSizesDirty_ |= selectedRegion_.empty() != selection_.region.empty();
         if (selectedRegion_ != selection_.region && snapshot && !selection_.region.empty()) {
             const auto chosen = std::ranges::find(snapshot->regions, selection_.region, &Region::id);
             if (chosen != snapshot->regions.end())
@@ -552,9 +556,11 @@ void View::drawFrame()
     if (const auto* snapshot = session_.displayed(); !lifeOpen_ && snapshot && !session_.opening() &&
         (screen == Screen::game || screen == Screen::save)) {
         const auto mapStart = measureMapDraw_ ? SDL_GetTicksNS() : 0;
-        map_.draw(renderer_, bounds("map"), *snapshot, session_.shapes(), selection_.region, hoveredRegion_,
-            drag_ == Drag::map && !moved_ && pressedRegion_ == hoveredRegion_,
-            {now_, session_.viewRevision(), reduced_, !session_.previewing() && drag_ != Drag::graph});
+        const RegionalMap::Display display{now_, session_.viewRevision(), reduced_, !session_.previewing() && drag_ != Drag::graph};
+        const bool pressed = drag_ == Drag::map && !moved_ && pressedRegion_ == hoveredRegion_;
+        map_.draw(renderer_, bounds("map"), *snapshot, session_.shapes(), selection_.region, hoveredRegion_, pressed, display);
+        crests_.draw(renderer_, map_, *snapshot, session_.shapes(), hoveredRegion_, pressed,
+            element("map").IsPseudoClassSet("focus-visible"), display);
         if (mapStart) mapDrawMs_ = static_cast<double>(SDL_GetTicksNS() - mapStart) / 1e6;
         for (const auto& [anchor, label] : markerLeaders_)
             line(renderer_, anchor, label, {199, 175, 120, 255});

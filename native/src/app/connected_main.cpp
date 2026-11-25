@@ -25,7 +25,7 @@ using waffle::core::json::Value;
 
 struct Options {
     Launch launch;
-    bool smoke{}, interactionSmoke{}, settlementSmoke{}, direct{}, record{};
+    bool smoke{}, interactionSmoke{}, settlementSmoke{}, crestSmoke{}, direct{}, record{};
     std::filesystem::path lifeShop;
     unsigned frames{};
     int width = 1120, height = 640;
@@ -48,6 +48,7 @@ bool parse(int argc, char** argv, Options& options)
         else if (arg == "--interaction-smoke") options.interactionSmoke = true;
         else if (arg == "--record") options.record = true;
         else if (arg == "--settlement-smoke") options.settlementSmoke = true;
+        else if (arg == "--crest-smoke") options.crestSmoke = true;
         else if (arg == "--life-smoke" && i + 1 < argc) options.lifeShop = std::filesystem::u8path(argv[++i]);
         else if (arg == "--size" && i + 2 < argc) {
             if (!parseNumber(argv[++i], options.width) || !parseNumber(argv[++i], options.height) ||
@@ -67,7 +68,7 @@ bool parse(int argc, char** argv, Options& options)
             if (i + 1 < argc && !std::string_view(argv[i + 1]).starts_with("--")) options.report = argv[++i];
         } else return false;
     }
-    return !(options.frames && (options.smoke || options.interactionSmoke || options.settlementSmoke ||
+    return !(options.frames && (options.smoke || options.interactionSmoke || options.settlementSmoke || options.crestSmoke ||
         !options.lifeShop.empty() || !options.capture.empty())) &&
         (!options.record || (options.interactionSmoke && !options.capture.empty())) &&
         (!options.launch.longBenchmark || (options.frames && options.launch.save.empty()));
@@ -254,7 +255,7 @@ void benchmark(SDL_Renderer* renderer, SdlRmlRenderer& bridge, View& view, Sessi
     selection.card.reset();
 
     std::vector<double> frames, renders, summaries, decimations, restoreRender, visible, scrubFrames;
-    std::vector<double> loadedVisible, loadedFrames, settlementModel;
+    std::vector<double> loadedVisible, loadedFrames, settlementModel, crestModel;
     std::vector<Second> targets;
     std::optional<Uint64> input;
     bool inputLoaded = false;
@@ -302,6 +303,7 @@ void benchmark(SDL_Renderer* renderer, SdlRmlRenderer& bridge, View& view, Sessi
         if (input && session.previewReady()) {
             targets.push_back(session.displayed()->second);
             settlementModel.push_back(view.settlementModelMs());
+            crestModel.push_back(session.displayed()->crestModelMs);
             restoreRender.push_back(elapsed(renderStart, end));
             visible.push_back(elapsed(*input, end));
             scrubFrames.push_back(frame - inputFrame + 1.);
@@ -357,6 +359,7 @@ void benchmark(SDL_Renderer* renderer, SdlRmlRenderer& bridge, View& view, Sessi
         {"scrub_to_present_ms", stats(visible)}, {"scrub_to_present_frames", stats(scrubFrames)},
         {"loaded_scrub_to_present_ms", stats(loadedVisible)}, {"loaded_scrub_to_present_frames", stats(loadedFrames)},
         {"settlement_model_ms_per_scrub", stats(settlementModel)},
+        {"crest_model_ms_per_scrub", stats(crestModel)},
         {"working_set_bytes", Value(static_cast<double>(process.working_set.value_or(0)))},
         {"private_bytes", Value(static_cast<double>(process.private_bytes.value_or(0)))},
         {"forecast_charged_bytes", Value(static_cast<double>(session.storage().chargedBytes()))},
@@ -384,13 +387,13 @@ int run(const Options& options)
     }
     Session session;
     Selection selection;
-    if (options.smoke && !options.interactionSmoke && !options.settlementSmoke && options.lifeShop.empty() && options.capture.empty()) {
+    if (options.smoke && !options.interactionSmoke && !options.settlementSmoke && !options.crestSmoke && options.lifeShop.empty() && options.capture.empty()) {
         session.open(options.launch);
         smoke(session, selection, {});
         return 0;
     }
     const bool lifeSmoke = !options.lifeShop.empty();
-    const bool scripted = options.interactionSmoke || options.settlementSmoke || lifeSmoke;
+    const bool scripted = options.interactionSmoke || options.settlementSmoke || options.crestSmoke || lifeSmoke;
     const bool automated = !options.capture.empty() || scripted || options.frames;
     waffle::SdlAssetFile files;
     System system;
@@ -493,6 +496,7 @@ int run(const Options& options)
         };
         if (lifeSmoke) lifeMapSmoke(session, view, frame, store, options.lifeShop);
         else if (options.settlementSmoke) settlementSmoke(session, view, frame);
+        else if (options.crestSmoke) crestSmoke(session, view, frame);
         else {
             smoke(session, selection, frame, &view);
             shellSmoke(session, view, frame, store);
@@ -547,7 +551,7 @@ int main(int argc, char** argv)
     Options options;
     if (!parse(argc, argv, options)) {
         std::fputs("Usage: waffle_native_game [--seed N | --load browser.json] [--size WIDTH HEIGHT] "
-                   "[--smoke | --interaction-smoke | --settlement-smoke | --life-smoke FIXTURE_DIR | --save-smoke DIR | --capture DIR [--record] | --bench FRAMES [JSON] [--long-benchmark]]\n", stderr);
+                   "[--smoke | --interaction-smoke | --settlement-smoke | --crest-smoke | --life-smoke FIXTURE_DIR | --save-smoke DIR | --capture DIR [--record] | --bench FRAMES [JSON] [--long-benchmark]]\n", stderr);
         return 2;
     }
     try {

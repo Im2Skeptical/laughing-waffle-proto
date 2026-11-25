@@ -3,6 +3,7 @@
 #include "connected_shell.hpp"
 #include "connected_art.hpp"
 #include "connected_map.hpp"
+#include "connected_crests.hpp"
 #include "ui/demo_probe.hpp"
 
 #include <SDL3/SDL.h>
@@ -32,7 +33,7 @@ public:
     void measureMapDraw() { measureMapDraw_ = true; }
     bool liveMapTransitioning() const { return map_.transitioning(); }
     void cancelInput();
-    void releaseTerrain() { map_.invalidateTerrain(); }
+    void releaseTerrain() { map_.invalidateTerrain(); crests_.release(); }
     void syncWindow();
     void ProcessEvent(Rml::Event& event) override;
     double settlementModelMs() const { return settlementModelMs_; }
@@ -171,6 +172,8 @@ private:
     bool markerSizesDirty_{};
     std::vector<std::pair<SDL_FPoint, SDL_FPoint>> markerLeaders_;
     std::vector<std::pair<SDL_FRect, std::size_t>> markerTargets_;
+    std::vector<Rml::Vector2f> markerPositions_;
+    std::vector<SDL_FRect> mapObstacles_;
     bool reduced_{}, dialog_{}, noticeError_{}, touch_{}, longPress_{}, pointerDown_{};
     SDL_Keycode keyDown_{};
     Rml::ObserverPtr<Rml::Element> keyControl_;
@@ -184,6 +187,7 @@ private:
     std::vector<std::size_t> heirloomPicks_;
     std::optional<LifeCommand> lifeConfirm_;
     RegionalMap map_;
+    CrestLayer crests_;
     std::unique_ptr<SDL_Cursor, decltype(&SDL_DestroyCursor)> mapHand_{nullptr, SDL_DestroyCursor};
     std::unique_ptr<SDL_Cursor, decltype(&SDL_DestroyCursor)> mapPan_{nullptr, SDL_DestroyCursor};
     SDL_Cursor* mapCursor_{};

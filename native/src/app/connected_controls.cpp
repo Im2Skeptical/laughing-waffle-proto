@@ -45,6 +45,8 @@ void View::notify(std::string text, bool error)
 void View::refreshHelp()
 {
     bool focusHelp = false;
+    bool crestHelp = false;
+    std::optional<SDL_FPoint> crestAnchor;
     auto* target = context_.GetHoverElement();
     auto* focus = context_.GetFocusElement();
     if (!pointerDown_ && focus && focus->IsPseudoClassSet("focus-visible")) {
@@ -55,9 +57,20 @@ void View::refreshHelp()
     if (touch_ && pointerDown_ && !moved_ && (drag_ != Drag::graph || (graphPin_ && eventAt(pressed_))) &&
         now_ - pressedAt_ >= helpDelay)
         longPress_ = true;
-    const bool showHelp = (drag_ == Drag::none || !moved_) &&
-        (focusHelp || longPress_ || (!touch_ && !pointerDown_ && now_ - hoveredAt_ >= helpDelay));
-    if (showHelp && drag_ != Drag::graph && currentReadout_.empty()) {
+    const bool pointerHelp = longPress_ || (!touch_ && !pointerDown_ && now_ - hoveredAt_ >= helpDelay);
+    const bool showHelp = (drag_ == Drag::none || !moved_) && (focusHelp || pointerHelp);
+    if (showHelp && drag_ != Drag::graph && !lifeOpen_ && !dialog_ && shell_.screen() == Screen::game) {
+        const auto position = longPress_ ? pressed_ : pointer_;
+        const auto* crest = pointerHelp && !hoveredRegion_.empty() ? crests_.hit(position) : nullptr;
+        if (crest) focusHelp = false;
+        else if (focusHelp && focus == &element("map")) crest = crests_.focus();
+        if (crest && session_.displayed()) {
+            text = crests_.help(*session_.displayed(), *crest);
+            crestHelp = !text.empty();
+            if (focusHelp) crestAnchor = SDL_FPoint{crest->box.x + crest->box.w, crest->box.y + crest->box.h / 2};
+        }
+    }
+    if (!crestHelp && showHelp && drag_ != Drag::graph && currentReadout_.empty()) {
         while (target && !target->HasAttribute("data-help")) target = target->GetParentNode();
         if (target) text = target->GetAttribute<Rml::String>("data-help", "");
         if (target == &element("map") && !focusHelp && !hoveredRegion_.empty() && session_.displayed()) {
@@ -74,16 +87,19 @@ void View::refreshHelp()
         }
     }
     auto& node = element("help");
+    if (node.IsClassSet("crest-help") != crestHelp) node.SetClass("crest-help", crestHelp);
     if (currentHelp_ != text) {
         node.SetInnerRML(Rml::StringUtilities::EncodeRml(currentHelp_ = text));
         show(node, !text.empty());
     }
     if (!text.empty()) {
         const auto safe = bounds("safe-content");
-        const auto at = focusHelp ? target->GetAbsoluteOffset(Rml::BoxArea::Border) : Rml::Vector2f(pointer_.x, pointer_.y);
-        const auto x = std::clamp(at.x - safe.x + 8, 3.f, std::max(3.f, safe.w - 254.f * density_));
+        const auto at = crestAnchor ? Rml::Vector2f(crestAnchor->x, crestAnchor->y) :
+            focusHelp && target ? target->GetAbsoluteOffset(Rml::BoxArea::Border) : Rml::Vector2f(pointer_.x, pointer_.y);
+        const auto x = std::clamp(at.x - safe.x + 8, 3.f, std::max(3.f, safe.w - (crestHelp ? 330.f : 254.f) * density_));
         auto y = at.y - safe.y + (focusHelp ? -40.f : 16.f);
-        if (y > safe.h - 55.f * density_) y = at.y - safe.y - 45.f;
+        if (crestHelp) y = std::min(y, safe.h - 140.f * density_);
+        else if (y > safe.h - 55.f * density_) y = at.y - safe.y - 45.f;
         node.SetProperty("left", std::to_string(static_cast<int>(x)) + "px");
         node.SetProperty("top", std::to_string(static_cast<int>(std::max(3.f, y))) + "px");
     }
@@ -296,7 +312,7 @@ bool View::input(SDL_Event event)
     if (event.type == SDL_EVENT_TEXT_INPUT) context_.ProcessTextInput(event.text.text);
     if (event.type == SDL_EVENT_WINDOW_PIXEL_SIZE_CHANGED || event.type == SDL_EVENT_WINDOW_SAFE_AREA_CHANGED ||
         event.type == SDL_EVENT_WINDOW_DISPLAY_SCALE_CHANGED) syncWindow();
-    if (event.type == SDL_EVENT_RENDER_DEVICE_RESET || event.type == SDL_EVENT_RENDER_TARGETS_RESET) map_.invalidateTerrain();
+    if (event.type == SDL_EVENT_RENDER_DEVICE_RESET || event.type == SDL_EVENT_RENDER_TARGETS_RESET) releaseTerrain();
     if (event.type == SDL_EVENT_WINDOW_FOCUS_LOST || event.type == SDL_EVENT_WINDOW_MOUSE_LEAVE) {
         if (!pointerDown_ || event.type == SDL_EVENT_WINDOW_FOCUS_LOST) {
             cancelInput();

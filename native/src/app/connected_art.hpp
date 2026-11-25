@@ -8,6 +8,7 @@
 namespace waffle::connected {
 
 struct MapArtwork;
+struct CrestArtwork;
 
 struct Artwork {
     std::string css;
@@ -15,6 +16,7 @@ struct Artwork {
     std::vector<unsigned char> rgba;
     int width{}, height{};
     std::shared_ptr<const MapArtwork> map;
+    std::shared_ptr<const CrestArtwork> crests;
 };
 
 Artwork prepareArtwork();

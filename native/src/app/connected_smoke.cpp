@@ -1,6 +1,8 @@
 #include "connected_smoke.hpp"
 #include "connected_view.hpp"
 #include "sdl_asset_file.hpp"
+#include "sim/practice/stock.hpp"
+#include "sim/territory/detail.hpp"
 
 #include <algorithm>
 #include <cmath>
@@ -29,6 +31,7 @@ struct InteractionProbe {
 
     void lifeMap(Session& session, const SaveSlots& store, const std::filesystem::path& shop);
     void settlement(Session& session);
+    void crests(Session& session);
     bool reduced() const { return view.document_->IsClassSet("reduce-motion"); }
 
     Rml::Element& control(const char* selector)
@@ -778,6 +781,206 @@ void InteractionProbe::settlement(Session& session)
 void settlementSmoke(Session& session, View& view, const SmokeFrame& frame)
 {
     InteractionProbe{view, frame}.settlement(session);
+}
+
+void InteractionProbe::crests(Session& session)
+{
+    using namespace sim::runtime;
+    using Part = CrestLayer::Part;
+    const auto index = [&](std::string_view id) {
+        const auto& rows = session.displayed()->regions;
+        const auto row = std::ranges::find(rows, id, &Region::id);
+        require(row != rows.end(), "Seed-42 crest fixture is missing a region");
+        return static_cast<std::size_t>(row - rows.begin());
+    };
+    const auto at = [&](std::string_view id, Part part) {
+        const auto i = index(id);
+        const auto& targets = view.crests_.targets_;
+        const auto target = std::ranges::find_if(targets, [&](const auto& hit) { return hit.region == i && hit.part == part; });
+        if (target == targets.end()) throw std::runtime_error("Crest " + std::string(id) + " has no visible hit area for part " +
+            std::to_string(static_cast<int>(part)));
+        const auto box = target->box;
+        const SDL_FPoint center{box.x + box.w / 2, box.y + box.h / 2};
+        require(view.crests_.hit(center) == &*target, "Crest readout hit area overlaps another target");
+        return center;
+    };
+    const auto restore = [&](Second second) {
+        require(session.scrub(second), "Could not request the crest fixture second");
+        waitFor(session, [&] { return session.previewReady(); }, present);
+        require(session.displayed()->second == second && view.crests_.revision_ == session.viewRevision() &&
+            view.crests_.second_ == second && !view.crests_.changedAt_ &&
+            session.displayedDigest() == session.replayDigest(second), "Crest did not snap on the restored frame");
+        return session.replayStateForTest(second);
+    };
+    const auto town = [&](const sim::RuntimeState& state, std::string_view id, CrestControl control) {
+        const auto i = index(id);
+        const auto& row = session.displayed()->crests.regions[i];
+        const auto& region = state.tables.view(state.hot.world.regions)[i];
+        const auto* site = sim::territory::site_at_region(state, region.id);
+        require(row.town && site && row.control == control, "Town crest control disagrees with the fixture");
+        const auto& people = site->detailedState.populationByClass;
+        double adults = 0, residents = 0, workers = 0;
+        const auto& settings = state.compiledContent->settings();
+        for (const auto* cohort : {&people.villager, &people.stranger}) {
+            adults = cohort->adults;
+            for (const auto& elders : state.tables.view(cohort->eldersByAge)) adults += elders.count;
+            residents += adults + cohort->children;
+            workers += std::floor(adults / std::max(1., settings.populationPerToken));
+        }
+        double assigned = 0;
+        for (const auto& slot : sim::practice::detail::workers(state, *site)) assigned += slot.tokens;
+        const auto factions = sim::settlement::faction_totals(state, site->id);
+        const auto count = [&](auto id) {
+            const auto found = std::ranges::find_if(factions, [&](const auto& entry) { return entry.key == id; });
+            return found == factions.end() ? 0. : found->value;
+        };
+        const auto free = count(state.practiceVocabulary.player), crown = count(state.practiceVocabulary.external);
+        require(row.allegiance == std::array{free, crown, residents - free - crown} && row.assigned == assigned &&
+            row.workers == std::max(assigned, workers) && row.prestige == std::floor(residents / 20.), "Crest counts differ from replay");
+        require(row.income == (region.controller == state.practiceVocabulary.player), "Prestige activity differs from replay");
+        if (row.held) {
+            const auto military = sim::territory::military(state, region.id, region.controller);
+            const auto resistance = sim::territory::resistance(state, *site, region.controller);
+            const auto pressure = residents * resistance.units / (residents - resistance.loyal) / 10.;
+            const auto limit = .7 / (1. + military.force / pressure);
+            require(row.force == military.force && row.zeroForceShare == .7 &&
+                std::abs(row.minimumShare - limit) < 1e-12 && row.minimumLoyal == std::ceil(residents * limit - 1e-9),
+                "Force shield or sword differs from rebuilt state");
+        } else require(row.minimumShare == 0 && row.zeroForceShare == 0, "An unheld crest has holding markers");
+        if (control == CrestControl::unrest) {
+            const auto& episode = *site->detailedState.control->unrest;
+            require(row.unrestYears == (episode.untilSec - state.hot.tSec) / (4 * settings.seasonDurationSec) &&
+                row.unrestChaos == settings.unrestChaosPerYear, "Unrest years or Chaos differs from replay");
+        }
+    };
+    const auto monster = [&](const sim::RuntimeState& state, std::string_view id, std::string_view target) {
+        const auto& row = session.displayed()->crests.regions[index(id)];
+        const auto regions = state.tables.view(state.hot.world.regions);
+        const auto expected = regions[index(id)].monster->defense;
+        const auto& destination = regions[index(target)];
+        const auto defense = sim::territory::military(state, destination.id, destination.controller).defense;
+        require(row.monster && row.monster->strength == expected && row.monster->target == index(target) &&
+            row.monster->defense == defense && row.monster->willBeRepelled == (defense > 0 && defense >= expected),
+            "Monster attack readout differs from rebuilt state");
+        return *row.monster;
+    };
+
+    waitFor(session, [&] { return !session.opening(); }, present);
+    present("01-overview");
+    const auto opening = session.replayStateForTest(0);
+    town(opening, "R12", CrestControl::supported);
+    town(opening, "R10", CrestControl::supported);
+    town(opening, "R04", CrestControl::unheld);
+    monster(opening, "R16", "R08");
+    require(session.displayed()->crests.regions[index("R10")].crown, "Opening Crown crest has no capital finial");
+    require(std::ranges::none_of(view.crests_.expanded_, std::identity{}), "Overview unexpectedly disclosed full crests");
+    const auto playerRegion = index("R12");
+    const auto area = view.bounds("map");
+    const auto playerAnchor = view.map_.project(session.shapes()[playerRegion].label, area);
+    view.map_.zoom(12, playerAnchor, area);
+    view.map_.animate(SDL_GetTicks(), true);
+    view.markersDirty_ = true;
+    present("01b-unselected-zoom");
+    require(view.crests_.expanded_[playerRegion], "An unselected crest did not disclose when its region fit");
+    at("R12", Part::allegiance);
+    view.map_.overview();
+    view.map_.animate(SDL_GetTicks(), true);
+    view.markersDirty_ = true;
+    present(nullptr);
+
+    const auto worker = at("R12", Part::workers);
+    pointer(SDL_EVENT_MOUSE_MOTION, worker);
+    SDL_Delay(460);
+    present("02-workers-hover");
+    if (view.hoveredRegion_ != "R12" || view.currentHelp_.find("1 assigned, 0 unused") == std::string::npos) {
+        const auto* target = view.crests_.hit(view.pointer_);
+        throw std::runtime_error("Worker help mismatch. Region " + view.hoveredRegion_ + ", part " +
+            (target ? std::to_string(static_cast<int>(target->part)) : "none") + ", dwell " +
+            std::to_string(view.now_ - view.hoveredAt_) + " ms, tooltip: " + view.currentHelp_);
+    }
+    pointer(SDL_EVENT_MOUSE_BUTTON_DOWN, worker);
+    present(nullptr);
+    require(view.crests_.pressed_ && view.selection_.region.empty(), "Crest press feedback did not precede activation");
+    pointer(SDL_EVENT_MOUSE_BUTTON_UP, worker);
+    present(nullptr);
+    require(view.selection_.region == "R12", "Releasing the crest did not select its region");
+    view.map_.overview();
+    view.map_.animate(SDL_GetTicks(), true);
+    view.markersDirty_ = true;
+    pointer(SDL_EVENT_MOUSE_MOTION, {1, 1});
+    view.element("motion").Focus();
+    view.element("map").Focus(true);
+    present("03-held-selected");
+    require(!view.crests_.placements_.empty() && view.crests_.placements_.front().full && view.map_.camera_.zoom == 1,
+        "Selected crest lost full disclosure at overview scale");
+    require(view.crests_.focused_, "Selected crest did not show keyboard focus");
+    at("R12", Part::stock);
+    pointer(SDL_EVENT_MOUSE_MOTION, {1, 1});
+    view.element("motion").Focus();
+    view.selectRegion("R10");
+    present("04-crown-selected");
+    at("R10", Part::crown);
+    view.selectRegion("R04");
+    present("05-unheld-selected");
+    at("R04", Part::prestige);
+
+    view.selectRegion("R20");
+    town(restore(966), "R20", CrestControl::unrest);
+    present("06-unrest-preview");
+    const auto unrest = at("R20", Part::allegiance);
+    finger(SDL_EVENT_FINGER_DOWN, 1, unrest);
+    SDL_Delay(460);
+    present("07-unrest-touch-help");
+    require(view.longPress_ && view.currentHelp_.find("10 years remaining") != std::string::npos,
+        "Touch did not expose the Unrest explanation");
+    finger(SDL_EVENT_FINGER_UP, 1, unrest);
+
+    view.selectRegion("R16");
+    const auto repelledState = restore(1584);
+    const auto repelled = monster(repelledState, "R16", "R08");
+    const auto& event = *repelledState.hot.civilization.chaos.lastMonsterSpawn;
+    require(repelled.repelGain == *event.strengthAfter - *event.strengthBefore && repelled.strength == 3,
+        "Restored repel feedback differs from the retained attack outcome");
+    present("08-monster-repel");
+    const auto badge = at("R16", Part::monster);
+    pointer(SDL_EVENT_MOUSE_MOTION, badge);
+    SDL_Delay(460);
+    present(nullptr);
+    require(view.currentHelp_.find("Monster Strength 3") != std::string::npos, "Mouse did not expose Monster Strength help");
+    finger(SDL_EVENT_FINGER_DOWN, 1, badge);
+    SDL_Delay(460);
+    present("09-monster-touch-help");
+    require(view.longPress_ && view.currentHelp_.find("Last: Repelled") != std::string::npos,
+        "Touch did not expose the Monster's attack and repel help");
+    finger(SDL_EVENT_FINGER_UP, 1, badge);
+    require(view.selection_.region == "R16", "Touch inspection changed selection");
+
+    restore(1);
+    require(!session.displayed()->crests.transfers.empty(), "A retained Stock transfer did not reach the atlas");
+    present("10-transfer-preview");
+
+    // Use view-only samples to check the motion endpoints independently of
+    // how far a particular live action advances time.
+    const auto first = *session.displayed();
+    auto next = first;
+    const auto player = index("R12");
+    ++next.second;
+    next.crests.regions[player].workers += 9;
+    CrestLayer animation(view.crests_.artwork_);
+    animation.update(first, {1000, 1, false, true});
+    animation.update(next, {1010, 2, false, true});
+    require(animation.changedAt_ == 1010 && animation.at(player, 0).workers == first.crests.regions[player].workers &&
+        animation.at(player, .5f).workers == first.crests.regions[player].workers + 4.5,
+        "Live crests did not ease from the previously displayed value");
+    animation.update(next, {1020, 2, true, true});
+    require(!animation.changedAt_ && animation.at(player, 1).workers == next.crests.regions[player].workers,
+        "Disabling Motion did not snap a Live crest");
+    std::printf("Crest smoke passed: seed 42, held/unheld/Monster at s 0, transfer at s 1, Unrest at s 966, repel at s 1584.\n");
+}
+
+void crestSmoke(Session& session, View& view, const SmokeFrame& frame)
+{
+    InteractionProbe{view, frame}.crests(session);
 }
 
 void InteractionProbe::shell(Session& session, const SaveSlots& store)
