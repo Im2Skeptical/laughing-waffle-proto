@@ -3962,6 +3962,93 @@ every published instant for readout and restoration while its wide draw
 visits a bounded number of bands. The Windows frame and memory measurements
 describe this runtime and the recorded seed-1 workload.
 
+### N04j - Settlement inspection
+
+Implemented on `t3/native-settlement-view` from `6c2ddd26`. Scope is the
+selected settlement panel. Overview shows the residency and age census,
+specialists, happiness and faith, meal sufficiency, housing, Stock, Currency
+and territorial control. Moon shows the local result of each of the six
+phases, including the food, migration and death breakdowns. Structures map
+construction footprints to art tiles and show build progress, base modifiers
+and upkeep. The Practices inspector shows staffing, Charge and Discharge,
+recipe providers and the latest retained activation or block. Scheduled
+attempts that produce no trace have a current input/status reading.
+
+The tabs keep their selection across regions. Arrow keys move between tabs,
+Page Up and Page Down scroll, and Escape backs out of the inspection. The
+panel remains beside the atlas and above the timegraph at both desktop sizes.
+It reads only the displayed snapshot, retains rows while scrubbing the
+Overview, and highlights changed readings. Practice Reform stays on Live.
+
+#### Verification
+
+From the worktree root after linking `native/.tools` as a junction:
+
+```powershell
+. native/tools/env.ps1
+foreach ($preset in @('optimized', 'optimized-clang')) {
+    Push-Location native
+    cmake --preset $preset
+    cmake --build --preset $preset
+    ctest --preset $preset --output-on-failure
+    Pop-Location
+    & "native/build/$preset/waffle_native_game.exe" --smoke --seed 42
+    node native/reference/step-windows.mjs "native/build/$preset/src/sim/waffle_parity.exe"
+    node native/reference/replay-windows.mjs "native/build/$preset/src/sim/waffle_parity.exe"
+}
+& native/build/optimized/waffle_native_game.exe --settlement-smoke --seed 42 --size 1120 640 --capture artifacts/n04j/1120x640
+& native/build/optimized/waffle_native_game.exe --settlement-smoke --seed 42 --size 640 360 --capture artifacts/n04j/640x360
+```
+
+The settlement smoke uses desktop mouse, keyboard and SDL finger events. It
+checks tab persistence, scroll, both inspectors and read-only scrubbing. At
+second 108 it compares residents, specialists, meals, housing, Moon, Stock
+and Charge against independently rebuilt state. Physical device tests were
+out of scope.
+
+Both optimized presets built and passed all 52 CTests and the seed-42 smoke
+(Live second 148, restored second 227). Step parity covered 30 windows and
+153 comparisons with zero masks. Replay parity covered 34 journals,
+252 checkpoints in three modes and 55 rejections on both compilers.
+`npm run check:docs` passed.
+
+#### Frame measurements
+
+Use `waffle_native_game.exe --bench 2400 <json> --long-benchmark`. The benchmark
+keeps the Overview open and scrubs published coverage during the replacement
+forecast, which reaches second 32,192. It times the selected view-model read
+separately from layout and presentation.
+
+Five alternating candidate/control pairs per preset ran at 1120 × 640 on
+Windows with Direct3D 11 and vsync off. The control was `6c2ddd26`; the
+Clang control reused the existing build of that revision. Every run reached
+the forecast horizon. Times are medians of the per-run percentiles.
+
+| Preset | Control p50 / p95 / p99 (ms) | N04j p50 / p95 / p99 (ms) | View model p50 / p95 / p99 per scrub (ms) |
+| --- | --- | --- | --- |
+| optimized | 1.240 / 1.718 / 2.517 | 1.977 / 2.481 / 2.768 | 0.018 / 0.025 / 0.032 |
+| optimized-clang | 1.091 / 1.831 / 2.357 | 1.624 / 2.092 / 2.595 | 0.014 / 0.017 / 0.021 |
+
+All 1,320 candidate scrubs started during forecasting presented within two
+harness frames. Raw reports are in `artifacts/n04j/paired-final/`. Captures
+for both sizes, including the preview reports and Charge inspector, are in
+`artifacts/n04j/1120x640/` and `artifacts/n04j/640x360/`. The N04h captures
+are in `artifacts/n04j/before-1120/` and `artifacts/n04j/before-640/`.
+
+#### Paused
+
+The desktop panel and scripted coverage are implemented. Frame p99 is
+0.252 ms above the fresh MSVC control and 0.238 ms above the fresh Clang
+control. It remains above the archived 2.5 ms comparison. On resume, profile
+RmlUi layout during Overview refresh, where the intermediate profile spent
+roughly 1 ms per sampled frame. Keep the read model and replay contract intact,
+then rerun both preset checks and the alternating benchmark if the layout
+changes. Review the 640 × 360 captures for scroll and focus after that change.
+
+The same separation applies to browser inspection. Presentation can retain
+ledger rows and update displayed values from the restored snapshot. These
+measurements cover native Windows layout and input only.
+
 ## N05 - Iteration and installed profiles (pending N04)
 
 Finish development, performance and full-art installed profiles sharing the same

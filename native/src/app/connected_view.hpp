@@ -8,6 +8,8 @@
 #include <SDL3/SDL.h>
 #include <map>
 
+namespace Rml { class ElementText; }
+
 namespace waffle::connected {
 
 class View final : public Rml::EventListener {
@@ -26,6 +28,7 @@ public:
     void releaseTerrain() { map_.invalidateTerrain(); }
     void syncWindow();
     void ProcessEvent(Rml::Event& event) override;
+    double settlementModelMs() const { return settlementModelMs_; }
 
 private:
     friend struct InteractionProbe;
@@ -38,6 +41,12 @@ private:
     void refreshShell();
     void refresh();
     void refreshPanel(const Snapshot* snapshot);
+    bool backSettlement();
+    bool keySettlement(SDL_Keycode key, Rml::Element* focus);
+    void syncOverview(const Region& region, const SettlementOverview& reading, bool comparable);
+    void activateSettlement(std::string_view op, const std::string& id);
+    std::string practiceBoard(const Snapshot& snapshot, const Region& site, bool editable) const;
+    std::string structureBoard(const StructureReading* structures);
     void refreshLife(const Snapshot& snapshot);
     void setLifeOpen(bool open);
     void activateLife(std::string_view op, const std::string& id);
@@ -92,7 +101,25 @@ private:
     std::string currentClock_, currentStatus_, currentAxisStart_, currentAxisEnd_, currentProgress_ = "0%";
     std::string panelMarkup_, currentReadout_, currentHelp_;
     std::string notice_, lastError_, pendingAction_, hoveredRegion_;
-    std::string lastStats_, lastPracticeValues_;
+    std::string settlementHeader_, settlementTime_;
+    SettlementTab settlementTab_{SettlementTab::overview};
+    SettlementTab renderedSettlementTab_{SettlementTab::overview};
+    std::optional<std::size_t> building_;
+    SettlementReading settlementReading_;
+    struct LedgerRow {
+        Rml::Element* node{};
+        Rml::Element* meter{};
+        std::array<Rml::ElementText*, 5> text{};
+        std::array<int, 3> widths{-1, -1, -1};
+        bool warning{}, highlighted{};
+    };
+    std::array<std::map<std::string, LedgerRow, std::less<>>, 5> overviewRows_;
+    std::map<std::string, std::string, std::less<>> panelValues_;
+    std::optional<Second> settlementReadSecond_;
+    std::uint64_t settlementReadGeneration_{};
+    std::uint64_t settlementReadRevision_{};
+    double settlementModelMs_{};
+    bool settlementDirty_{true};
     std::uint64_t revision_ = ~std::uint64_t{};
     std::uint64_t pendingGeneration_{};
     Uint64 now_{}, noticeUntil_{}, pressedAt_{}, hoveredAt_{}, dialogClosedAt_{};

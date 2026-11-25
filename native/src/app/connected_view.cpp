@@ -33,7 +33,6 @@ void line(SDL_Renderer* renderer, SDL_FPoint a, SDL_FPoint b, Colour ink)
 }
 
 constexpr std::array<const char*, 4> holderClass{"player", "crown", "neutral", "monster"};
-constexpr std::array holders{"Your holding", "Crown holding", "Unheld", "Creep"};
 
 void show(Rml::Element& element, bool visible)
 {
@@ -60,13 +59,16 @@ View::View(Rml::Context& context, SDL_Renderer* renderer, Session& session, Sele
     std::string directory = WAFFLE_CONNECTED_RML;
     directory.resize(directory.find_last_of('/') + 1);
     rml.replace(rml.find(styles), styles.size(), "<style>" + waffle::readAsset((directory + "interaction.rcss").c_str()) +
-        waffle::readAsset((directory + "connected-layout.rcss").c_str()) + "</style>");
+        waffle::readAsset((directory + "connected-layout.rcss").c_str()) +
+        waffle::readAsset((directory + "connected-settlement.rcss").c_str()) + "</style>");
     constexpr std::string_view marker = "<!-- atlas styles -->";
     rml.replace(rml.find(marker), marker.size(), art.css);
     rml.insert(rml.find("</body>"),
         "<div style=\"position:absolute;width:1px;height:1px;decorator:image(card0 fill);\"></div>");
     document_ = context.LoadDocumentFromMemory(rml, "connected.rml");
     if (!document_) throw std::runtime_error("Could not load the connected view");
+    element("panel-content").SetInnerRML(
+        "<div id=\"settlement-head\"></div><div id=\"settlement-time\"></div><div id=\"settlement-scroll\"></div>");
 #if defined(__ANDROID__)
     document_->SetClass("touch-screen", true);
 #endif
@@ -135,6 +137,9 @@ void View::refreshShell()
         hoveredRegion_.clear();
         hoverSecond_.reset();
         pendingAction_.clear();
+        settlementTab_ = SettlementTab::overview;
+        building_.reset();
+        settlementDirty_ = true;
         notify("");
     }
 
@@ -261,7 +266,7 @@ std::optional<std::string> View::hit(SDL_FPoint point) const
 std::optional<std::size_t> View::cardAt(SDL_FPoint point) const
 {
     const auto* board = document_->GetElementById("board");
-    if (!board || !contains(bounds("panel"), point)) return {};
+    if (!board || !contains(bounds("settlement-scroll"), point)) return {};
     for (int i = 0; i < board->GetNumChildren(); ++i) {
         auto* card = board->GetChild(i);
         const auto offset = card->GetAbsoluteOffset(Rml::BoxArea::Border);
@@ -405,163 +410,6 @@ void View::positionMarkers()
     }
 }
 
-void View::refreshPanel(const Snapshot* snapshot)
-{
-    auto& content = element("panel-content");
-    if (!snapshot) {
-        if (!panelMarkup_.empty()) {
-            panelMarkup_.clear();
-            lastStats_.clear();
-            lastPracticeValues_.clear();
-            content.SetInnerRML("");
-        }
-        return;
-    }
-    std::string html;
-    std::string stats, values;
-    const auto* site = selection_.selected(snapshot);
-    const bool editable = canStage(*snapshot, site);
-    const bool showStage = selection_.destination && (editable || pendingAction_ == "reform");
-    if (!site) {
-        html = "<h2>Settlements</h2><p class=\"quiet rule\">Select a region to view its settlement.</p>";
-    } else {
-        const auto holder = static_cast<std::size_t>(site->holder);
-        html = "<h2>" + escape(site->name) + "</h2><p class=\"quiet\">" + holders[holder];
-        if (site->hasSite) html += " · " + escape(site->settlement);
-        html += "</p>";
-        if (site->hasSite) {
-            html += "<p id=\"site-stats\" class=\"stats\"></p>";
-            stats = "<span class=\"gold\">" + number(site->population) + "</span> residents &nbsp; · &nbsp; " +
-                number(site->food, 1) + " Food &nbsp; · &nbsp; " + number(site->currency, 1) + " Currency";
-        }
-        if (site->detailed) {
-            html += "<div id=\"board\">";
-            for (std::size_t i = 0; i < site->cards.size(); ++i) {
-                auto shown = i;
-                if (showStage && selection_.card) {
-                    const auto from = *selection_.card, to = *selection_.destination;
-                    if (i == to) shown = from;
-                    else if (from < to && i >= from && i < to) shown = i + 1;
-                    else if (from > to && i > to && i <= from) shown = i - 1;
-                }
-                const auto& card = site->cards[shown];
-                const bool placed = !card.id.empty();
-                html += "<button class=\"card";
-                if (!placed) html += " empty disabled";
-                if (selection_.card == shown) html += " chosen";
-                if (showStage && selection_.destination == i) html += " staged";
-                const auto help = placed ? card.name + " · " + card.mode : card.locked ? "This slot is locked." : "No Practice is installed in this slot.";
-                html += "\" data-op=\"card\" data-locked=\"" + std::string(card.locked ? "true" : "false") +
-                    "\" data-id=\"" + std::to_string(shown) + "\" data-help=\"" +
-                    escape(help) + (placed ? "\"" : "\" disabled=\"disabled\"") + ">";
-                if (const auto art = sprites_.find(card.id); art != sprites_.end())
-                    html += "<div class=\"card-art\" style=\"decorator:image(" + art->second + " fill);\"></div>";
-                html += "<div class=\"card-slot\">" + std::to_string(i + 1) + "</div>";
-                if (showStage && selection_.destination == i) html += "<div class=\"staged-mark\">Staged</div>";
-                html += "<div class=\"card-name\">" + escape(placed ? card.name : card.locked ? "Locked" : "Empty") +
-                    "</div></button>";
-            }
-            html += "</div>";
-            if (selection_.card && !site->cards[*selection_.card].id.empty()) {
-                const auto& card = site->cards[*selection_.card];
-                if (showStage) {
-                    html += "<div class=\"reform-controls\"><p class=\"pending\">Staged move to slot " +
-                        std::to_string(*selection_.destination + 1);
-                    if (snapshot->shopSeconds) html += " · " + std::to_string(*snapshot->shopSeconds) + " seconds";
-                    html += "</p>";
-                    const bool applying = pendingAction_ == "reform";
-                    html += button("review", {}, applying ? "Applying reform" : "Review reform",
-                        applying ? "decision primary busy" : "decision primary", "Review the time cost before committing.", applying);
-                    html += button("undo", {}, "Undo", "decision", "Restore the committed order.", applying);
-                    html += "</div>";
-                } else if (editable) {
-                    html += "<div class=\"reform-controls\">";
-                    for (const int step : {-1, 1}) {
-                        const auto next = static_cast<int>(*selection_.card) + step;
-                        const bool outside = next < 0 || next >= static_cast<int>(site->cards.size());
-                        const bool locked = !outside && site->cards[static_cast<std::size_t>(next)].locked;
-                        html += button("stage", std::to_string(next), step < 0 ? "Move left" : "Move right", "decision",
-                            outside ? "This Practice is at the edge of the board." : locked ? "The destination slot is locked." :
-                            "Stage this move.", outside || locked);
-                    }
-                    html += "</div>";
-                }
-                html += "<div id=\"inspector\"><h2>" + escape(card.name) + "</h2><p class=\"quiet\">" +
-                    escape(card.quality) + " · " + escape(card.mode);
-                if (!card.tags.empty()) html += " · " + escape(card.tags);
-                html += "</p><p class=\"rule\">" + escape(card.rule) + "</p>";
-                html += "<div id=\"practice-values\"></div>";
-                if (card.workerCapacity > 0) values += "<p class=\"quiet rule\">Worker capacity " + number(card.workerCapacity) + "</p>";
-                if (card.stock) values += "<p class=\"quiet rule\">Stock " + number(*card.stock, 1) + "</p>";
-                if (card.mode == "Charge") values += "<p class=\"quiet rule\">Charge " + number(card.charge, 1) + "</p>";
-                if (session_.previewing()) {
-                    html += "<p class=\"quiet rule\">Preview is read-only. Return to Live to make decisions.</p>";
-                }
-                html += "</div>";
-            }
-        } else if (site->hasSite) {
-            html += "<p class=\"quiet rule\">Market settlement</p>";
-        }
-    }
-    if (!session_.previewing()) {
-        const auto& choices = snapshot->choices;
-        if (!choices.empty() && choices.front().kind != Decision::reorder) {
-            const auto label = choices.front().kind == Decision::chooseVassal ? "Choose a Vassal" : "Open Life Map";
-            html += button("life-toggle", {}, label, "decision primary", "Read the Chronicle and choose your next action.");
-        } else if (editable && !selection_.card) {
-            html += "<p class=\"quiet rule\">Practice Reform · Select a Practice to reorder it.</p>";
-        }
-    }
-    const bool remount = html != panelMarkup_;
-    const bool sameRegion = selectedRegion_ == selection_.region;
-    if (remount) {
-        auto& panel = element("panel");
-        const auto scroll = panel.GetScrollTop();
-        auto* focus = context_.GetFocusElement();
-        auto* ancestor = focus;
-        while (ancestor && ancestor != &content) ancestor = ancestor->GetParentNode();
-        const bool restoreFocus = ancestor && focus->IsPseudoClassSet("focus-visible") && !dialog_;
-        const auto op = focus ? focus->GetAttribute<Rml::String>("data-op", "") : "";
-        const auto id = focus ? focus->GetAttribute<Rml::String>("data-id", "") : "";
-        content.SetInnerRML(panelMarkup_ = std::move(html));
-        content.SetClass("enter", !sameRegion);
-        if (auto* inspector = document_->GetElementById("inspector"))
-            inspector->SetClass("enter", selectedCard_ != selection_.card);
-        if (sameRegion) panel.SetScrollTop(scroll);
-        else panel.SetScrollTop(0);
-        if (restoreFocus && !op.empty()) {
-            Rml::ElementList controls;
-            content.QuerySelectorAll(controls, "button");
-            Rml::Element* next = nullptr;
-            for (auto* control : controls) {
-                if (control->HasAttribute("disabled")) continue;
-                const auto operation = control->GetAttribute<Rml::String>("data-op", "");
-                if (operation == op && control->GetAttribute<Rml::String>("data-id", "") == id) {
-                    next = control;
-                    break;
-                }
-                if (!next || operation == "review" || operation == "choice" ||
-                    (op == "review" && operation == "stage")) next = control;
-            }
-            if (next) next->Focus(true);
-        }
-    }
-    const auto updateValues = [&](const char* target, const std::string& value, std::string& previous, bool comparable) {
-        const bool changed = value != previous;
-        if (!remount && !changed) return;
-        if (auto* node = document_->GetElementById(target)) {
-            node->SetInnerRML(value);
-            if (changed && comparable && !previous.empty() && !session_.previewing() && !previewing_) {
-                node->SetClass("value-change", false);
-                node->SetClass("value-change", true);
-            }
-        }
-        previous = value;
-    };
-    updateValues("site-stats", stats, lastStats_, sameRegion);
-    updateValues("practice-values", values, lastPracticeValues_, sameRegion && selectedCard_ == selection_.card);
-}
-
 void View::refresh()
 {
     refreshShell();
@@ -605,7 +453,7 @@ void View::refresh()
     }
     if (revision_ != session_.viewRevision() || opening_ != session_.opening() || busy_ != session_.busy() ||
         previewing_ != session_.previewing() || selectedRegion_ != selection_.region ||
-        selectedCard_ != selection_.card || staged_ != selection_.destination) {
+        selectedCard_ != selection_.card || staged_ != selection_.destination || settlementDirty_) {
         if (selectedRegion_ != selection_.region && snapshot && !selection_.region.empty()) {
             const auto chosen = std::ranges::find(snapshot->regions, selection_.region, &Region::id);
             if (chosen != snapshot->regions.end())

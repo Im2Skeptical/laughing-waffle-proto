@@ -194,7 +194,7 @@ $assetDir = Join-Path $assets "ui"
 $rmlSource = Join-Path $native "assets\ui\connected.rml"
 New-Item -ItemType Directory -Force -Path $assetDir | Out-Null
 Copy-Item -LiteralPath $rmlSource -Destination (Join-Path $assetDir "connected.rml") -Force
-foreach ($style in @("interaction.rcss", "connected-layout.rcss")) {
+foreach ($style in @("interaction.rcss", "connected-layout.rcss", "connected-settlement.rcss")) {
     Copy-Item -LiteralPath (Join-Path $native "assets\ui\$style") -Destination (Join-Path $assetDir $style) -Force
 }
 $gameAssets = Join-Path $assets "game"
@@ -223,7 +223,7 @@ if ($LASTEXITCODE -ne 0) { throw "font extract failed" }
 Copy-Item -LiteralPath (Join-Path $fontStage "RmlUi-6.3\Samples\assets\LatoLatin-Regular.ttf") -Destination (Join-Path $assetDir "LatoLatin-Regular.ttf") -Force
 Copy-Item -LiteralPath (Join-Path $fontStage "RmlUi-6.3\Samples\assets\LICENSE.txt") -Destination (Join-Path $assetDir "FONT-LICENSE.txt") -Force
 Remove-LocalTree $fontStage
-foreach ($name in @("connected.rml", "interaction.rcss", "connected-layout.rcss", "LatoLatin-Regular.ttf", "FONT-LICENSE.txt")) {
+foreach ($name in @("connected.rml", "interaction.rcss", "connected-layout.rcss", "connected-settlement.rcss", "LatoLatin-Regular.ttf", "FONT-LICENSE.txt")) {
 	$item = Get-Item -LiteralPath (Join-Path $assetDir $name)
 	if ($item.Length -lt 32) { throw "asset too small: $($item.FullName)" }
 }
@@ -314,6 +314,7 @@ $required = @(
 	(Join-Path $inspectDir "assets\ui\connected.rml"),
 	(Join-Path $inspectDir "assets\ui\interaction.rcss"),
 	(Join-Path $inspectDir "assets\ui\connected-layout.rcss"),
+	(Join-Path $inspectDir "assets\ui\connected-settlement.rcss"),
 	(Join-Path $inspectDir "assets\game\opening.json"),
 	(Join-Path $inspectDir "assets\ui\LatoLatin-Regular.ttf"),
 	(Join-Path $inspectDir "assets\ui\FONT-LICENSE.txt"),
