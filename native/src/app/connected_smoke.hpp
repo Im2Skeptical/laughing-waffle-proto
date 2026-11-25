@@ -17,6 +17,8 @@ void smoke(Session& session, Selection& selection, const SmokeFrame& frame, View
 void shellSmoke(Session& session, View& view, const SmokeFrame& frame, const SaveSlots& store);
 void settlementSmoke(Session& session, View& view, const SmokeFrame& frame);
 void crestSmoke(Session& session, View& view, const SmokeFrame& frame);
+void territorySmoke(Session& session, View& view, const SmokeFrame& frame, const SaveSlots& store,
+                    const std::filesystem::path& fixture);
 void lifeMapSmoke(Session& session, View& view, const SmokeFrame& frame, const SaveSlots& store,
                   const std::filesystem::path& shop);
 void saveSmoke(const Launch& launch, const std::filesystem::path& directory);

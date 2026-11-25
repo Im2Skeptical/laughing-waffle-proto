@@ -4412,6 +4412,103 @@ the weather raster to a padded viewport first, then measure coarse
 surfaces, cloud sampling at lower resolution, and fewer resident artwork
 levels if memory or frame cost calls for it.
 
+### N04p - Actionable territorial inspection
+
+Implemented on `t3/territorial-inspection` from `095521cb`. Open a home
+settlement with eligible support and select **Garrison support** in Overview.
+The chooser shows the current assignment, local Defense and holding Force,
+neighbor Defense, and why unavailable neighbors are disabled. Eligible
+neighbors are outlined on the atlas and can be selected there or in the
+panel. The confirmation dispatches `settlementAssignGarrison` at the held
+second with `regionId` and `targetRegionId`. Recalling support sends JSON
+`null` for the target. Validation is shared with the existing action.
+
+The two chevrons or `[` and `]` cycle through the viewed home settlements
+in world order and preserve the selected tab and plot scope. Stock by Trait
+discloses the named local and linked providers. Priced offers list Stock,
+capacity, price and replenishment in the Overview and neutral storefronts.
+Explicit ruin mode hides the active census, economy and boards. The ruin
+landing shows the Monster's Strength, next target, Defense and retained repel
+when occupied, and identifies the cleared site until it is restored.
+Simulation rules, RNG, save schema, graph metrics and cohorts are unchanged.
+
+**Cross-runtime handoff.** The seed-42 s 1584 reproduction in the
+[coverage inventory](docs/coverage-inventory.md#southern-forest-population-finding)
+is now covered by the connected smoke. The browser replay fixture also checks
+eligibility and a Campaign-restored site. The native smoke saves the live
+garrison journal and verifies both the browser-shaped payload and restored
+digest. The read model uses the displayed snapshot directly during restore.
+
+#### Verification
+
+From the repository root with the shared toolchain junction in place. Use a
+fresh `$out` directory for the shell captures. Generate the full reference
+corpus with `node native/reference/trace.mjs` or reuse captures from the
+matching browser baseline.
+
+```powershell
+. native/tools/env.ps1
+$out = (New-Item -ItemType Directory "artifacts/n04p/check-$([DateTime]::UtcNow.Ticks)").FullName
+node native/reference/territory-ui-fixture.mjs "$out/territory-save.json"
+foreach ($preset in 'optimized', 'optimized-clang') {
+    Push-Location native
+    cmake --preset $preset
+    cmake --build --preset $preset
+    ctest --preset $preset --output-on-failure
+    Pop-Location
+    $game = "native/build/$preset/waffle_native_game.exe"
+    $parity = "native/build/$preset/src/sim/waffle_parity.exe"
+    & $game --smoke --seed 42
+    foreach ($size in @(@(1120, 640), @(640, 360))) {
+        $w = $size[0]; $h = $size[1]
+        & $game --settlement-smoke --seed 42 --size $w $h
+        & $game --crest-smoke --seed 42 --size $w $h
+        & $game --interaction-smoke --seed 42 --size $w $h
+        & $game --territory-smoke "$out/territory-save.json" --seed 42 --size $w $h --capture "$out/${preset}-territory-$w"
+        & $game --seed 42 --size $w $h --capture "$out/${preset}-shell-$w"
+    }
+    node native/reference/step-windows.mjs $parity
+    node native/reference/replay-windows.mjs $parity
+}
+npm run verify
+```
+
+On each optimized preset, 56/56 CTests passed along with the connected smoke,
+all four interaction smokes and both shell captures. Step parity passed 30
+windows with 153 comparisons and zero masks. Replay matched 34 journals,
+252 browser checkpoints in three replay modes and 55 rejection probes.
+`npm run verify` passed.
+
+Screenshots for the comparison use `artifacts/n04p/before-crest-{desktop,compact}/08-monster-repel.png`
+and `artifacts/n04p/final-territory-optimized-{desktop,compact}/03-monster-ruin.png`.
+The same territory directories include the named providers, priced offers,
+storefront, restored settlement, support chooser, confirmation and result.
+Touch coverage uses SDL finger events on Windows at both sizes. Physical
+Pixel validation remains open.
+
+#### Frame measurements
+
+Windows x64, i9-10900K, RTX 3080, Direct3D 11, MSVC `optimized`, 1120×640.
+The control was built from `095521cb`. Run both executables with
+`--size 1120 640 --bench 2400 <json> --long-benchmark`. Seven pairs alternated
+which build ran first. Each loaded forecast reached second 32,192. Values
+are the medians of per-run percentiles in milliseconds.
+
+| Reading | Control p50 / p95 / p99 | N04p p50 / p95 / p99 |
+| --- | ---: | ---: |
+| Frame | 2.558 / 3.515 / 4.075 | 2.669 / 3.687 / 4.338 |
+| Loaded scrub to present | 2.561 / 3.515 / 4.075 | 2.670 / 3.687 / 4.338 |
+
+Median paired deltas were +0.165 / +0.046 / +0.436 ms for frames and
++0.168 / +0.046 / +0.436 ms for loaded scrubs. Control spreads, measured as
+median absolute differences between successive control runs, were
+0.411 / 0.592 / 0.618 ms and 0.409 / 0.564 / 0.618 ms respectively.
+Every final loaded scrub presented in one harness frame. The first paired
+series had a p99 delta outside the control spread. Moving Stock details
+to an on-demand read reduced median settlement model p95 from 0.055 to
+0.036 ms. The runner and reports are in `artifacts/n04p/run-paired.ps1` and
+`artifacts/n04p/paired-final/`.
+
 ## N05 - Iteration and installed profiles (pending N04)
 
 Finish development, performance and full-art installed profiles sharing the same

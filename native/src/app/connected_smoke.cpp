@@ -32,6 +32,7 @@ struct InteractionProbe {
     void lifeMap(Session& session, const SaveSlots& store, const std::filesystem::path& shop);
     void settlement(Session& session);
     void crests(Session& session);
+    void territory(Session& session, const SaveSlots& store, const std::filesystem::path& fixture);
     bool reduced() const { return view.document_->IsClassSet("reduce-motion"); }
 
     Rml::Element& control(const char* selector)
@@ -852,6 +853,183 @@ void InteractionProbe::settlement(Session& session)
 void settlementSmoke(Session& session, View& view, const SmokeFrame& frame)
 {
     InteractionProbe{view, frame}.settlement(session);
+}
+
+void InteractionProbe::territory(Session& session, const SaveSlots& store, const std::filesystem::path& fixture)
+{
+    using namespace sim::runtime;
+    using core::json::Value;
+    const auto idle = [&] { waitFor(session, [&] { return !session.opening() && !session.busy(); }, present); };
+    const auto pick = [&](const char* id) {
+        view.selectRegion(id);
+        present(nullptr);
+        const auto* selected = view.selection_.selected(session.displayed());
+        require(selected && selected->id == id, "Territory fixture is missing the selected region");
+        return *selected;
+    };
+    const auto restore = [&](Second second) {
+        require(session.scrub(second), "Could not request territory fixture second");
+        waitFor(session, [&] { return session.previewReady(); }, present);
+        require(session.displayed()->second == second && view.settlementReadRevision_ == session.viewRevision() &&
+            session.displayedDigest() == session.replayDigest(second), "Territory panel missed the authoritative restore");
+    };
+    const auto tap = [&](const char* selector) {
+        auto& button = control(selector);
+        button.ScrollIntoView(Rml::ScrollAlignment::Nearest);
+        present(nullptr);
+        const auto at = center(button);
+        finger(SDL_EVENT_FINGER_DOWN, 1, at);
+        finger(SDL_EVENT_FINGER_UP, 1, at);
+        present(nullptr);
+    };
+    const auto checkRuin = [&](std::string_view heading) {
+        require(view.selection_.selected(session.displayed())->ruin && !view.settlementReading_.overview &&
+            !view.document_->GetElementById("settlement-tabs") && !view.document_->GetElementById("overview-total") &&
+            view.panelMarkup_.find(heading) != std::string::npos, "Ruin exposed an active settlement readout");
+    };
+
+    idle();
+    waitFor(session, [&] { return view.terrainReady(); }, present);
+    pick("R12");
+    const auto& economy = view.settlementReading_.overview->economy;
+    const auto hosted = std::ranges::find_if(economy, [](const auto& row) {
+        return row.key.starts_with("stock-") && row.detail.find("1 linked") != std::string::npos;
+    });
+    require(hosted != economy.end() && hosted->sources.empty(), "Hosted Stock fixture did not show linked providers");
+    const auto providers = "[data-op=settlement-stock][data-id='" + hosted->key + "']";
+    click(providers.c_str());
+    const auto named = control("#stock-drilldown .stock-source-list").GetInnerRML();
+    require(named.find("Central Plains") != std::string::npos && named.find('\n') != std::string::npos,
+        "Hosted Stock omitted the named provider breakdown");
+    present("01a-hosted-providers");
+    click("[data-op=settlement-stock-back]");
+    click("[data-op=settlement-stock][data-id='market-stock']");
+    require(control("#stock-drilldown .stock-source-list").GetInnerRML().find("Currency / unit") != std::string::npos,
+        "Stock disclosure did not show named offers");
+    present("01-stock-sources");
+    pick("R04");
+    const auto& market = view.settlementReading_.storefront;
+    require(market && market->identity == "Grain Village" && !market->offers.empty() &&
+        market->offers.front().value.find('/') != std::string::npos &&
+        market->offers.front().detail.find("each Food phase") != std::string::npos,
+        "Neutral storefront omitted its identity, capacity or replenishment");
+    present("02-neutral-storefront");
+
+    pick("R16");
+    restore(1584);
+    checkRuin("Monster-held ruin · Strength 3");
+    require(view.panelMarkup_.find("Repelled") != std::string::npos &&
+        view.panelMarkup_.find("Next attack target") != std::string::npos &&
+        view.selection_.selected(session.displayed())->population == 0, "Ruin threat or graph population changed");
+    const auto at1584 = session.replayStateForTest(1584);
+    const auto* ruin = sim::territory::site_at_region(at1584, at1584.find_id<RegionId>("R16"));
+    require(ruin->detailedState.populationByClass.villager.children == 6 &&
+        ruin->detailedState.populationByClass.villager.adults == 18, "Ruin lost the dormant census");
+    present("03-monster-ruin");
+
+    view.shell_.open({.save = fixture});
+    idle();
+    waitFor(session, [&] { return view.terrainReady(); }, present);
+    require(session.liveSnapshot() && session.liveSnapshot()->second == 9, "Prepared territory run did not open");
+    const auto restored = pick("R12");
+    require(restored.detailed && !restored.ruin && restored.population > 0 && view.settlementReading_.overview &&
+        view.document_->GetElementById("settlement-tabs") && view.document_->GetElementById("overview-total"),
+        "Conquered ruin did not restore its active census and boards");
+    present("04-restored-settlement");
+    restore(0);
+    checkRuin("Unrestored ruin");
+    present("05-cleared-ruin");
+    click("#live");
+
+    pick("R16");
+    click("[data-op=settlement-tab][data-id='3']");
+    click("#graph-scope");
+    const auto oldScope = view.localGraph_;
+    tap("[data-op=settlement-cycle][data-id=next]");
+    require(view.selection_.region == "R09" && view.settlementTab_ == SettlementTab::practices &&
+        oldScope && view.localGraph_ && view.graphScopeLabel_ == view.selection_.selected(session.displayed())->name,
+        "Touch settlement cycle lost world order, tab or plot scope");
+    key(SDLK_LEFTBRACKET);
+    present(nullptr);
+    require(view.selection_.region == "R16" && view.settlementTab_ == SettlementTab::practices,
+        "Keyboard settlement cycle did not wrap in reverse");
+    click("[data-op=settlement-cycle][data-id=next]");
+    require(view.selection_.region == "R09", "Mouse settlement cycle did not select the next holding");
+    key(SDLK_LEFTBRACKET);
+    present(nullptr);
+    click("[data-op=settlement-tab][data-id='0']");
+
+    control("[data-op=settlement-garrison]").Focus(true);
+    key(SDLK_RETURN);
+    present(nullptr);
+    const auto& choices = view.settlementReading_.overview->garrison->choices;
+    const auto legal = std::ranges::find(choices, "R09", &GarrisonChoice::id);
+    require(legal != choices.end() && legal->reason.empty() &&
+        std::ranges::find(view.map_.garrisonTargets_, legal->region) != view.map_.garrisonTargets_.end(),
+        "Legal garrison target was not highlighted");
+    const auto live = session.replayStateForTest(9);
+    require(legal->defense == sim::territory::military(live, live.find_id<RegionId>("R09"),
+        live.practiceVocabulary.player).defense, "Garrison chooser Defense differs from replay");
+    const auto* ally = "[data-op=settlement-garrison-target][data-id=R09]";
+    require(view.context_.GetFocusElement() == &control(ally), "Keyboard focus did not enter the garrison choices");
+    const auto invalid = std::ranges::find_if(choices, [](const auto& choice) { return !choice.reason.empty(); });
+    require(invalid != choices.end(), "Missing an ineligible garrison target");
+    const auto invalidControl = "[data-op=settlement-garrison-target][data-id='" + invalid->id + "']";
+    require(control(invalidControl.c_str()).HasAttribute("disabled") &&
+        view.panelMarkup_.find(invalid->reason) != std::string::npos, "Ineligible garrison target has no disabled reason");
+    const auto startingActions = session.actionCount();
+    tap(invalidControl.c_str());
+    require(!view.dialog_ && session.actionCount() == startingActions, "Touch on ineligible target submitted an action");
+
+    view.element("settlement-scroll").SetScrollTop(0);
+    present("06-garrison-choices");
+    control(ally).Focus(true);
+    key(SDLK_RETURN);
+    present("07-garrison-confirm");
+    require(view.dialog_ && session.actionCount() == startingActions, "Garrison choice skipped confirmation");
+    key(SDLK_ESCAPE);
+    present(nullptr);
+    require(view.garrisonChoosing_ && !view.dialog_ && session.actionCount() == startingActions,
+        "Cancel committed or discarded the garrison chooser");
+    click(ally);
+    tap("#dialog-confirm");
+    idle();
+
+    const auto verifyAssignment = [&](std::size_t expectedCount, const char* target) {
+        const auto second = session.displayed()->second;
+        require(second == 9 && expectedCount == session.actionCount() &&
+            session.displayedDigest() == session.replayDigest(second), "Applied support diverges from authoritative replay");
+        require(session.save(store, Slot::first), "Could not inspect the UI journal");
+        const auto save = readNativeSave(store.path(Slot::first));
+        const auto& entry = save.journal.entries().back();
+        const auto* source = entry.payload.find("regionId");
+        const auto* destination = entry.payload.find("targetRegionId");
+        require(entry.tSec == second && entry.kind == "settlementAssignGarrison" && source &&
+            source->as_string() == "R16" && destination && (target ? destination->as_string() == target :
+            destination->kind() == Value::Kind::null), "Garrison journal payload differs from the browser action");
+        const auto* guard = sim::settlement::detailed_site(save.live, save.live.find_id<RegionId>("R16"));
+        const auto& assigned = guard->detailedState.garrison->supportTargetRegionId;
+        require(assigned.has_key() && (target ? assigned.value() == save.live.find_id<RegionId>(target) :
+            !assigned.value()), "The restored garrison disagrees with its journal");
+    };
+    verifyAssignment(startingActions + 1, "R09");
+    require(view.map_.garrisonTargets_.empty() && view.settlementReading_.overview->garrison->supported != "Local",
+        "Committed assignment left highlights or failed to update the Overview");
+    present("08-support-assigned");
+    click("[data-op=settlement-garrison]");
+    tap("[data-op=settlement-garrison-target][data-id='']");
+    control("#dialog-confirm").Focus(true);
+    key(SDLK_RETURN);
+    idle();
+    verifyAssignment(startingActions + 2, nullptr);
+    require(view.settlementReading_.overview->garrison->supported == "Local", "Local support label did not return");
+    std::puts("Territory smoke passed: s 1584 ruin, restored settlement, market and Stock, cycling, disabled and legal support, local recall and replay.");
+}
+
+void territorySmoke(Session& session, View& view, const SmokeFrame& frame, const SaveSlots& store,
+                    const std::filesystem::path& fixture)
+{
+    InteractionProbe{view, frame}.territory(session, store, fixture);
 }
 
 void InteractionProbe::crests(Session& session)
