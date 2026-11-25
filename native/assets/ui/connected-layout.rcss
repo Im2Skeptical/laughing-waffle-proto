@@ -46,6 +46,27 @@ body { width: 100%; height: 100%; margin: 0; }
 #header h1 { line-height: 37dp; }
 #header-controls { position: absolute; top: 0; right: 0; display: flex; gap: 6dp; }
 #clock { color: #dfc798; padding: 8dp; white-space: nowrap; }
+#run-advance { display: none; white-space: nowrap; }
+#run-strip { display: none; position: absolute; left: 2%; right: 2%; top: 50dp; height: 37dp;
+  align-items: center; gap: 5dp; background-color: #24251e; border: 1dp #66563c; }
+.run-reading { box-sizing: border-box; padding: 1dp 5dp; line-height: 16dp;
+  font-size: 14dp; white-space: nowrap; }
+#run-calendar { width: 72dp; border-left: 2dp #c9a56a; margin-left: 4dp; }
+#run-tenures { width: 108dp; }
+#run-outcome { width: 148dp; height: 33dp; text-align: left; background-color: #30291f; }
+#run-outcome span { display: block; }
+#run-outcome.foreseen { color: #f4ce84; border-color: #987547; }
+#run-outcome.ended { color: #f4b4a3; border-color: #c38472; background-color: #382723; }
+#run-outcome:focus-visible, #run-outcome:hover { border-color: #ffe195; }
+#run-mode { flex: 1; min-width: 117dp; border-left: 1dp #66563c; color: #f4ce84; }
+#run-mode.read-only { color: #c6e9f5; border-left-color: #7ca3b4; }
+#run-range { min-width: 79dp; text-align: right; }
+#run-controls { display: flex; gap: 3dp; margin-right: 4dp; }
+#run-controls button { box-sizing: border-box; height: 32dp; min-width: 36dp; padding: 0 4dp;
+  text-align: center; line-height: 30dp; font-size: 13dp; }
+#run-controls button.on { color: #e1f5fc; border-color: #9cc6d6; background-color: #304751; }
+#run-controls button.key-down, #run-controls button:active { border-color: #ffe195; background-color: #655031; }
+#run-follow { margin-left: 4dp; min-width: 62dp; }
 
 #map { position: absolute; left: 2%; width: 56%; top: 13%; bottom: 28%; border: 1dp #877050;
   overflow: hidden; clip: always; tab-index: auto; }
@@ -109,6 +130,26 @@ body { width: 100%; height: 100%; margin: 0; }
 #graph-comparison { display: none; right: 7dp; bottom: 100%; background-color: #26231f;
   color: #cec0ad; border-left: 2dp #a89585; padding: 1dp 5dp; pointer-events: none; }
 #readout { position: absolute; display: none; bottom: 100%; width: 238dp; }
+#play #map, #play #panel, #play #life-screen { top: 93dp; }
+#outcome-overlay { display: none; position: absolute; z-index: 3; left: 0; right: 0; top: 0; bottom: 0;
+  background-color: #0b0d0be8; }
+#modal-dimmer, #reform-dialog { z-index: 4; }
+#outcome-overlay.projected { background-color: #0b0d0bbd; }
+#outcome-dialog { position: absolute; left: 25%; right: 25%; top: 21%; padding: 23dp;
+  border-top: 3dp #cb8e73; background-color: #30251f; }
+.projected #outcome-dialog { border-top-color: #c9a56a; background-color: #30291f; }
+#outcome-title { font-size: 35dp; margin: 4dp 0 7dp; }
+#outcome-cause { margin: 0 0 8dp; color: #f2c0a7; font-size: 21dp; }
+.projected #outcome-cause { color: #f4ce84; }
+#outcome-guidance { margin-top: 8dp; }
+#outcome-actions { display: flex; gap: 8dp; margin-top: 17dp; }
+#outcome-actions button { min-height: 30dp; }
+@keyframes outcome-emphasis {
+  from { opacity: .55; transform: translateY(7dp); border-top-color: #f5d1ac; }
+  to { opacity: 1; transform: translateY(0dp); border-top-color: #cb8e73; }
+}
+#outcome-dialog.emphasis { animation: .32s quadratic-out outcome-emphasis; }
+.reduce-motion #outcome-dialog.emphasis { animation: none; }
 #opening { position: absolute; left: 26%; right: 26%; top: 34%; text-align: center; }
 #opening p, #opening .progress { margin-top: 9dp; }
 #notice { position: absolute; display: none; right: 2%; bottom: 28%; width: 275dp; }
@@ -126,6 +167,16 @@ body { width: 100%; height: 100%; margin: 0; }
   .title-menu { padding: 11dp 18dp; }
   .title-menu h1 { font-size: 32dp; }
   #map { width: 51%; }
+  #header h1 { font-size: 22dp; }
+  #run-strip { gap: 2dp; }
+  #run-calendar { width: 64dp; }
+  #run-tenures { width: 100dp; }
+  #run-outcome { width: 132dp; }
+  #run-mode { min-width: 110dp; }
+  #run-range { min-width: 75dp; }
+  #run-controls { gap: 2dp; }
+  #outcome-dialog { top: 12%; left: 16%; right: 16%; padding: 18dp; }
+  #outcome-title { font-size: 30dp; }
   #panel { left: 54.5%; padding: 8dp; }
   #board { gap: 3dp; margin: 6dp 0; }
   #board .card { height: 86dp; }

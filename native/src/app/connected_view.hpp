@@ -73,6 +73,11 @@ private:
     void refreshHelp();
     void refreshReadout();
     void refreshGraph(bool loading);
+    void refreshRun();
+    void resetRun();
+    void showRunOutcome(const RunOutcome& outcome, bool projected, bool emphasis);
+    void hideRunOutcome(bool browse = false);
+    bool activateRun(std::string_view operation, std::string_view id);
     void drawGraph();
     void resetGraph();
     bool activateGraph(std::string_view op);
@@ -86,7 +91,7 @@ private:
     void selectRegion(std::string region);
     void navigateMap(SDL_Keycode key);
     void reviewReform();
-    enum class Confirmation { reform, overwrite, title, life };
+    enum class Confirmation { reform, overwrite, title, life, advanceRun, newRun };
     void confirm(Confirmation action, std::string_view title, std::string_view copy,
         std::string_view detail, std::string_view label);
     void closeConfirmation();
@@ -112,6 +117,20 @@ private:
     Shell& shell_;
     std::map<std::string, std::string, std::less<>> sprites_;
     std::string currentClock_, currentStatus_, currentAxisStart_, currentAxisEnd_, currentProgress_ = "0%";
+    std::array<std::string, 10> runLabels_;
+    struct RunHudKey {
+        std::uint64_t revision, generation;
+        std::optional<Second> through, advance;
+        std::optional<RunOutcome> outcome;
+        int rate;
+        bool preview, previous, follow, working, active, terminal;
+        friend bool operator==(const RunHudKey&, const RunHudKey&) = default;
+    };
+    std::optional<RunHudKey> runHudKey_;
+    std::optional<RunOutcome> seenOutcome_, shownOutcome_;
+    std::optional<Second> confirmedAdvance_;
+    Uint64 runFrameAt_{};
+    bool outcomeProjected_{}, runStripVisible_{};
     std::string panelMarkup_, currentReadout_, currentHelp_;
     std::string notice_, lastError_, pendingAction_, hoveredRegion_;
     std::string settlementHeader_, settlementTime_;

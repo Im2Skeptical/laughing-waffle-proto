@@ -1,5 +1,6 @@
 #include "connected_smoke.hpp"
 #include "connected_view.hpp"
+#include "core/sha256.hpp"
 #include "sdl_asset_file.hpp"
 #include "sim/practice/stock.hpp"
 #include "sim/territory/detail.hpp"
@@ -32,6 +33,7 @@ struct InteractionProbe {
     void lifeMap(Session& session, const SaveSlots& store, const std::filesystem::path& shop);
     void settlement(Session& session);
     void crests(Session& session);
+    void run(Session& session, const SaveSlots& store);
     bool reduced() const { return view.document_->IsClassSet("reduce-motion"); }
 
     Rml::Element& control(const char* selector)
@@ -1331,6 +1333,181 @@ void lifeMapSmoke(Session& session, View& view, const SmokeFrame& frame, const S
                   const std::filesystem::path& shop)
 {
     InteractionProbe{view, frame}.lifeMap(session, store, shop);
+}
+
+void InteractionProbe::run(Session& session, const SaveSlots& store)
+{
+    using sim::browser::RunEndReason;
+    waitFor(session, [&] { return !session.opening(); }, present);
+    const auto projected = session.projectedOutcome();
+    require(projected.has_value() && !session.liveSnapshot()->terminal, "Run smoke needs a future outcome");
+    const auto first = session.chart().start;
+    const auto end = projected->second;
+    const bool pending = std::ranges::any_of(session.liveSnapshot()->choices, [](const Choice& choice) {
+        return choice.kind == Decision::advance;
+    });
+    const bool fullRun = projected->reason == RunEndReason::monsterOverrun && end > first + 64;
+    const auto readyAt = [&](Second second) {
+        waitFor(session, [&] { return session.previewReady() && session.displayed()->second == second; }, present);
+    };
+    const auto tap = [&](const char* selector) {
+        const auto at = center(control(selector));
+        finger(SDL_EVENT_FINGER_DOWN, 1, at);
+        finger(SDL_EVENT_FINGER_UP, 1, at);
+        present(nullptr);
+    };
+    const auto fileDigest = [&](Slot slot) {
+        const auto path = store.path(slot).u8string();
+        return core::sha256_text(readAsset(reinterpret_cast<const char*>(path.c_str())));
+    };
+    const auto checkpoint = [&](Slot slot) {
+        view.shell_.show(Screen::save);
+        view.shell_.selectSlot(slot);
+        require(view.shell_.screen() == Screen::game, "Could not save the test frontier");
+        present(nullptr);
+        return fileDigest(slot);
+    };
+    const auto baseSave = checkpoint(Slot::first);
+    const auto baseLive = session.liveDigest();
+    const auto baseJournal = session.journalDigest();
+    require(!view.shell_.hasUnsavedProgress(), "Saved frontier is still marked unsaved");
+    view.notify("");
+    waitFor(session, [&] { return view.terrainReady(); }, present);
+    present("n04n-01-live");
+
+    click("#run-follow");
+    readyAt(end);
+    require(session.followingForecast() && !view.shownOutcome_ &&
+        control("#run-viewed").GetInnerRML().find("Forecast") != std::string::npos &&
+        control("#run-live-time").GetInnerRML().find("Read-only") != std::string::npos,
+        "Forecast follow did not enter a read-only preview");
+    require(control("#run-loss-year").GetInnerRML() == "Foreseen · Year " + std::to_string(projected->year),
+        "Forecast cause and year were not visible during scrub");
+    require(!session.advanceLive(end) && !session.submit({"vassalRerollCandidates", {}, {}}),
+        "A forecast preview accepted a Live action");
+    pointer(SDL_EVENT_MOUSE_MOTION, {2, 2});
+    present("n04n-02-forecast");
+
+    if (fullRun) {
+        scrub(end / 2, SDL_EVENT_FINGER_DOWN);
+        scrub(end / 3, SDL_EVENT_FINGER_MOTION);
+        scrub(end / 3, SDL_EVENT_FINGER_UP);
+        require(session.requested() && *session.requested() < end && !session.followingForecast(),
+            "Touch scrub did not detach from forecast follow");
+        readyAt(*session.requested());
+        const auto state = session.replayStateForTest(session.displayed()->second);
+        require(control("#run-year").GetInnerRML() == "Year " + std::to_string(static_cast<int>(state.hot.year)) &&
+            control("#run-season").GetInnerRML() == session.displayed()->season,
+            "Calendar and its displayed snapshot were out of sync");
+        click("#run-forward");
+        require(session.playbackRate() == 1, "Normal forward notch was not selected");
+        tap("#run-hold");
+        const auto hold = session.requested();
+        SDL_Delay(70);
+        present(nullptr);
+        require(!session.playbackRate() && session.requested() == hold, "Hold moved the viewed second");
+        require(session.scrub(end - 8), "Could not prepare upper playback bound");
+        readyAt(end - 8);
+        tap("#run-forward-fast");
+        waitFor(session, [&] { return !session.playbackRate() && session.previewReady(); }, present);
+        require(session.displayed()->second == end, "Forward playback crossed or missed the bound");
+        require(session.scrub(first + 8), "Could not prepare lower playback bound");
+        readyAt(first + 8);
+        control("#run-rewind-fast").Focus(true);
+        key(SDLK_RETURN);
+        waitFor(session, [&] { return !session.playbackRate() && session.previewReady(); }, present);
+        require(session.displayed()->second == first, "Rewind crossed or missed the bound");
+    } else {
+        control("#plot").Focus(true);
+        key(SDLK_LEFT);
+        readyAt(end - 1);
+        require(!session.followingForecast(), "Keyboard scrub did not detach from forecast follow");
+    }
+
+    click("#run-outcome");
+    require(view.shownOutcome_ == projected && view.outcomeProjected_ &&
+        control("#outcome-title").GetInnerRML() == "Foreseen extinction", "Projected outcome details were missing");
+    key(SDLK_ESCAPE);
+    readyAt(end);
+    click("#live");
+    require(!session.previewing() && !session.followingForecast() && session.liveDigest() == baseLive &&
+        session.journalDigest() == baseJournal && fileDigest(Slot::first) == baseSave &&
+        !view.shell_.hasUnsavedProgress(), "Browsing changed a saved frontier or journal");
+
+    if (fullRun) {
+        preparePracticeShop(session, view.selection_, present);
+        const auto& selection = view.selection_;
+        require(session.reorder(selection.region, *selection.card, *selection.destination),
+            "Could not apply the forecast-changing Practice Reform");
+        waitFor(session, [&] { return !session.busy() && session.projectedOutcome().has_value(); }, present);
+        require(session.projectedOutcome() != projected && !view.shownOutcome_ &&
+            session.liveDigest() == session.replayDigest(session.liveSnapshot()->second),
+            "Forecast or replay did not change correctly after the action");
+        present("n04n-03-revised");
+        view.shell_.open(Launch{.save = store.path(Slot::first), .nativeSave = true});
+        waitFor(session, [&] { return !session.opening(); }, present);
+        view.shell_.update();
+    }
+
+    if (!fullRun) click("#motion");
+    if (pending) {
+        click("#life-toggle");
+        click("[data-op=life-choice][data-id='0']");
+    } else {
+        click("#run-advance");
+        require(view.dialog_ && view.confirmedAdvance_ == end, "Live advance did not quote the outcome boundary");
+        tap("#dialog-confirm");
+    }
+    waitFor(session, [&] { return session.liveSnapshot()->terminal && view.shownOutcome_.has_value(); }, present);
+    const auto endingDigest = session.liveDigest();
+    require(session.liveSnapshot()->outcome == projected && !view.outcomeProjected_ &&
+        session.replayDigest(end) == endingDigest && session.journalDigest() == baseJournal &&
+        view.shell_.hasUnsavedProgress(), "Confirmed outcome differs from the forecast or authoritative replay");
+    require(control("#outcome-title").GetInnerRML() ==
+        (projected->reason == RunEndReason::tenuresExhausted ? "Dynasty complete" : "Game over"),
+        "Confirmed outcome had the wrong title");
+    require(control("#outcome-dialog").IsClassSet("emphasis") != reduced(),
+        "Outcome emphasis did not respect Motion");
+    if (projected->reason == RunEndReason::tenuresExhausted)
+        require(control("#run-tenure-count").GetInnerRML() == "Tenures 0/10" &&
+            control("#run-best").GetInnerRML().starts_with("10 used"), "Final tenure was not counted");
+    present("n04n-04-run-end");
+    tap("#outcome-browse");
+    readyAt(end);
+    key(SDLK_LEFT);
+    readyAt(end - 1);
+    require(session.displayed()->second < session.liveSnapshot()->second &&
+        !session.submit({"vassalRerollCandidates", {}, {}}), "Ended history allowed an action");
+    if (projected->reason == RunEndReason::tenuresExhausted)
+        require(control("#run-tenure-count").GetInnerRML() == "Tenures 1/10" &&
+            control("#run-best").GetInnerRML().starts_with("9 used"), "Past tenure count did not restore");
+    view.document_->Focus(false);
+    pointer(SDL_EVENT_MOUSE_MOTION, {2, 2});
+    present("n04n-05-history");
+
+    click("#run-outcome");
+    click("#outcome-new");
+    require(view.dialog_ && view.shownOutcome_, "New Game did not ask for confirmation");
+    present("n04n-06-restart-confirmation");
+    key(SDLK_ESCAPE);
+    require(view.shownOutcome_ && !view.dialog_ && session.liveDigest() == endingDigest &&
+        session.journalDigest() == baseJournal && fileDigest(Slot::first) == baseSave,
+        "Outcome browsing or cancelling restart changed the save or journal");
+    click("#outcome-new");
+    control("#dialog-confirm").Focus(true);
+    key(SDLK_RETURN);
+    waitFor(session, [&] { return !session.opening() && session.liveSnapshot() && !session.liveSnapshot()->terminal; }, present);
+    require(!view.shownOutcome_ && !session.previewing() && session.liveSnapshot()->second == 0 &&
+        session.liveSnapshot()->tenuresRemaining == 10 && !session.actionCount() &&
+        fileDigest(Slot::first) == baseSave, "Confirmed New Game did not create a fresh run");
+    std::printf("Run smoke passed: %s, year %llu, second %llu, replay/save/journal checks, confirmed restart.\n",
+        terminalText(projected->reason), static_cast<unsigned long long>(projected->year),
+        static_cast<unsigned long long>(end));
+}
+
+void runSmoke(Session& session, View& view, const SmokeFrame& frame, const SaveSlots& store)
+{
+    InteractionProbe{view, frame}.run(session, store);
 }
 
 void saveSmoke(const Launch& launch, const std::filesystem::path& directory)
