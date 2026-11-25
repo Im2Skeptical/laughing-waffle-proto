@@ -161,6 +161,7 @@ struct InteractionProbe {
     void mapInteraction(Session& session);
     void mapTransition(Session& session);
     void mapScrub(Session& session);
+    void mapGraphics(Session& session);
 
     void reform(Session& session, Selection& selection)
     {
@@ -331,8 +332,9 @@ void InteractionProbe::mapTransition(Session& session)
     require(crown != exact.regions.end(), "Opening map has no Crown art identity");
     const auto& crownPlan = map.baked_->sites[static_cast<std::size_t>(crown - exact.regions.begin())];
     require(crownPlan.buildings.size() > 3 && !map.baked_->roads.empty(), "Illustrated city or roads were not planned");
-    if (area.w < 415.f) require(map.compact_, "Compact map uploaded the full terrain level");
+    if (area.w < 415.f) require(map.terrainLod_ >= 1, "Compact map uploaded the full terrain level");
     const auto draw = [&](const Snapshot& state, RegionalMap::Display display) {
+        display.graphics = stillMap;
         SDL_SetRenderClipRect(view.renderer_, nullptr);
         SDL_RenderClear(view.renderer_);
         map.draw(view.renderer_, area, state, session.shapes(), {}, {}, false, display);
@@ -358,6 +360,8 @@ void InteractionProbe::mapTransition(Session& session)
 
 void InteractionProbe::mapScrub(Session& session)
 {
+    const auto graphics = view.graphics_;
+    view.graphics_ = stillMap;
     const auto live = session.liveSnapshot()->second;
     const auto through = *session.chart().through;
     for (const bool reduce : {false, true}) {
@@ -381,6 +385,72 @@ void InteractionProbe::mapScrub(Session& session)
         click("#live");
     }
     click("#motion");
+    view.graphics_ = graphics;
+}
+
+void InteractionProbe::mapGraphics(Session& session)
+{
+    const auto live = session.liveSnapshot()->second;
+    const auto target = std::min(live + 152, *session.chart().through);
+    scrub(target, SDL_EVENT_FINGER_DOWN);
+    scrub(target, SDL_EVENT_FINGER_UP);
+    waitFor(session, [&] { return session.previewReady(); }, present);
+    require(session.displayed()->second == target && view.graphics_ == MapGraphics{}, "Graphics should start enabled");
+    const auto before = session.displayedDigest();
+    const auto area = view.bounds("map");
+    auto& ambient = view.map_.atmosphere_;
+    waitFor(session, [&] { return ambient.sampled_ == target; }, present);
+    view.drawFrame();
+    const auto full = atlasPixels(view.renderer_, area);
+    require(ambient.water_ && ambient.sky_ && ambient.sampled_ == target, "Enabled graphics did not sample the viewed instant");
+    click("#graphics");
+    require(view.graphicsOpen_, "Could not open graphics settings");
+    const auto frame = ambient.samples_;
+    present(nullptr);
+    require(ambient.samples_ == frame, "Paused view repainted unchanged weather");
+    for (const auto* name : {"#graphics-fog", "#graphics-clouds", "#graphics-shadows", "#graphics-wisps", "#graphics-water"}) {
+        const auto previous = ambient.samples_;
+        click(name, true);
+        require(control(name).GetAttribute<Rml::String>("aria-pressed", "") == "false" &&
+            ambient.samples_ == previous + 1 && ambient.graphics_ == view.graphics_,
+            "Setting did not refresh paused weather exactly once");
+    }
+    require(view.graphics_ == stillMap && !ambient.water_ && !ambient.sky_ && ambient.sampled_ == 0,
+        "All-off graphics retained animated layers or a nonzero sample time");
+    present("n04l-graphics-off");
+    view.drawFrame();
+    const auto still = atlasPixels(view.renderer_, area);
+    require(still != full, "Graphics did not affect the map pixels");
+    click("#motion");
+    view.drawFrame();
+    require(atlasPixels(view.renderer_, area) == still, "Motion changed the phase-zero atlas");
+    for (const auto* name : {"#graphics-fog", "#graphics-clouds", "#graphics-shadows", "#graphics-wisps", "#graphics-water"})
+        click(name);
+    require(!ambient.water_ && ambient.sky_ && ambient.sampled_ == 0, "Reduced Motion left an animated phase active");
+    click("#motion");
+    click("#graphics");
+    present("n04l-graphics-on");
+    view.drawFrame();
+    require(atlasPixels(view.renderer_, area) == full, "Re-enabling graphics did not restore the exact held phase");
+    view.releaseTerrain();
+    require(!view.mapTextureBytes(), "Backgrounding retained graphics textures");
+    view.drawFrame();
+    require(atlasPixels(view.renderer_, area) == full, "Re-upload changed the restored graphics");
+    const auto sample = ambient.samples_;
+    ambient.update(view.renderer_, view.map_.art_, view.map_.baked_, session.mapGeography()->seed,
+        target + 1, ambient.lastPaint_ + 1, view.graphics_, false);
+    require(ambient.samples_ == sample && !ambient.pending_.valid(), "Weather submitted a sample within the 30 Hz interval");
+    scrub(target + 5, SDL_EVENT_FINGER_DOWN);
+    scrub(target + 5, SDL_EVENT_FINGER_UP);
+    waitFor(session, [&] { return session.previewReady() && ambient.sampled_ == target + 5; }, present);
+    scrub(target, SDL_EVENT_FINGER_DOWN);
+    scrub(target, SDL_EVENT_FINGER_UP);
+    waitFor(session, [&] { return session.previewReady() && ambient.sampled_ == target; }, present);
+    view.drawFrame();
+    require(atlasPixels(view.renderer_, area) == full, "Rewinding weather did not restore the exact held pixels");
+    require(session.displayedDigest() == before && session.displayedDigest() == session.replayDigest(target),
+        "Changing graphics altered the restored state");
+    click("#live");
 }
 
 void InteractionProbe::forecast(Session& session)
@@ -583,6 +653,7 @@ void smoke(Session& session, Selection& selection, const SmokeFrame& frame, View
         InteractionProbe probe{*view, frame};
         probe.forecast(session);
         probe.mapScrub(session);
+        probe.mapGraphics(session);
     }
     const auto liveDigest = session.displayedDigest();
     require(*session.chart().through >= liveSecond + 2, "Forecast stopped before a second can be scrubbed");

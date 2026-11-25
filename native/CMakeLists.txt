@@ -84,6 +84,7 @@ set(WAFFLE_CONNECTED_SOURCES
 	src/app/connected_life_view.cpp
 	src/app/connected_map.cpp
 	src/app/connected_map_art.cpp
+	src/app/connected_atmosphere.cpp
 	src/app/connected_map_roads.cpp
 	src/app/connected_map_sites.cpp
 	src/app/connected_terrain.cpp

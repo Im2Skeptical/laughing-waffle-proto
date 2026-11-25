@@ -28,6 +28,8 @@ struct MapAtlas {
 
 struct MapArtwork {
     MapAtlas ground, banks, monster, relief, towns;
+    std::map<std::pair<int, int>, std::array<MapRect, 5>> townLevels;
+    std::array<MapPixels, 3> clouds;
 };
 
 struct MapTerrain {
@@ -36,6 +38,7 @@ struct MapTerrain {
         Point at;
         double width, height;
         MapRect frame, market;
+        bool mirror{};
     };
     struct SitePlan {
         std::vector<SitePiece> buildings;
@@ -43,11 +46,29 @@ struct MapTerrain {
         double radiusX{}, radiusY{};
     };
     struct RoadSample { Point at; Surface surface; };
+    struct BoneStrip {
+        std::size_t region;
+        int neighbor;
+        std::vector<SitePiece> pieces;
+    };
     using Road = std::pair<std::size_t, std::size_t>;
     MapPixels full, compact; // Natural and occupied layers stacked vertically.
+    std::array<MapPixels, 3> coarse;
+    const MapPixels& level(int index) const { return index == 0 ? full : index == 1 ? compact : coarse[index - 2]; }
+    struct WeatherCell {
+        float fog{}, distance{}, edge{}, water{};
+        Surface surface{};
+        std::array<std::uint8_t, 3> colour{};
+        std::array<std::uint8_t, 3> waterIndex{}, waterStrength{};
+        std::uint8_t waterVariant{};
+    };
+    std::vector<WeatherCell> weather;
+    int weatherWidth{}, weatherHeight{};
+    Point origin; // Canonical browser world coordinates at texel two.
     Point min, max; // Projected world bounds in the normalized map coordinate space.
     std::vector<Surface> surfaces;
     std::vector<SitePlan> sites;
+    std::vector<BoneStrip> bones;
     std::map<Road, std::vector<RoadSample>> roads;
     double bakeMs{};
 

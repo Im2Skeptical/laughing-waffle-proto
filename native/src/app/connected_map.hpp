@@ -1,6 +1,7 @@
 #pragma once
 
 #include "connected_map_art.hpp"
+#include "connected_atmosphere.hpp"
 
 #include <SDL3/SDL.h>
 #include <future>
@@ -14,6 +15,7 @@ public:
     struct Display {
         Uint64 now{}, revision{};
         bool reduced{}, live{};
+        MapGraphics graphics{};
     };
     struct Hit {
         std::size_t region;
@@ -39,8 +41,8 @@ public:
               bool pressed, Display display);
     double bakeMs() const { return baked_ ? baked_->bakeMs : 0.; }
     double uploadMs() const { return uploadMs_; }
-    std::size_t textureBytes() const { return textureBytes_; }
-    bool terrainReady() const { return terrain_ && towns_; }
+    std::size_t textureBytes() const { return textureBytes_ + atmosphere_.textureBytes(); }
+    bool terrainReady() const { return (terrain_ || terrainComposite_) && towns_; }
     bool transitioning() const { return changedAt_.has_value(); }
 
 private:
@@ -63,6 +65,7 @@ private:
     void buildOverlay(SDL_FRect area, const Snapshot& snapshot, const std::vector<RegionShape>& shapes,
         std::string_view selected, std::string_view hovered, bool pressed, float progress);
     void prepareTextures(SDL_Renderer* renderer, SDL_FRect area);
+    void prepareTerrainComposite(SDL_Renderer* renderer);
     void limitCamera();
     void triangle(SDL_FPoint a, SDL_FPoint b, SDL_FPoint c, SDL_FColor ink);
     void triangle(SDL_FPoint a, SDL_FPoint b, SDL_FPoint c, SDL_FColor ca, SDL_FColor cb, SDL_FColor cc);
@@ -70,6 +73,7 @@ private:
     void settlement(SDL_FPoint point, float size, const Territory& territory, bool capital, bool selected,
         bool hovered, bool pressed);
     void buildings(SDL_FRect area, std::size_t index, Point anchor, const Territory& territory);
+    void sprite(const MapRect& frame, SDL_FPoint lo, SDL_FPoint hi, float alpha, bool mirror = false);
     static Territory blend(const Territory& from, const Territory& to, float progress);
     float progress(Uint64 now) const;
 
@@ -77,7 +81,7 @@ private:
     Uint64 lastFrame_{}, revealedAt_{};
     std::vector<std::vector<Point>> borders_;
     std::vector<SDL_Vertex> mesh_;
-    std::vector<SDL_Vertex> faded_, occupation_, buildings_;
+    std::vector<SDL_Vertex> faded_, occupation_, occupationCoarse_, buildings_;
     std::vector<Territory> from_, ink_, incoming_;
     std::vector<Road> roads_, incomingRoads_;
     std::vector<RoadInk> roadInk_;
@@ -90,10 +94,15 @@ private:
     std::shared_ptr<const MapArtwork> art_;
     std::shared_ptr<const MapGeography> geography_;
     std::future<MapTerrain> pendingTerrain_;
-    std::optional<MapTerrain> baked_;
+    std::shared_ptr<const MapTerrain> baked_;
+    MapAtmosphere atmosphere_;
     std::unique_ptr<SDL_Texture, decltype(&SDL_DestroyTexture)> terrain_{nullptr, SDL_DestroyTexture};
+    std::unique_ptr<SDL_Texture, decltype(&SDL_DestroyTexture)> terrainCoarse_{nullptr, SDL_DestroyTexture};
+    std::unique_ptr<SDL_Texture, decltype(&SDL_DestroyTexture)> terrainComposite_{nullptr, SDL_DestroyTexture};
     std::unique_ptr<SDL_Texture, decltype(&SDL_DestroyTexture)> towns_{nullptr, SDL_DestroyTexture};
-    bool compact_{};
+    int terrainLod_{-1};
+    bool compositeAttempted_{};
+    float lodBlend_{}, lodZoom_{}, lodWidth_{}, lodHeight_{};
     double uploadMs_{};
     std::size_t textureBytes_{};
 };
