@@ -386,6 +386,27 @@ LifeReading Session::lifeMap(bool detail) const
     return readLifeMap(state, !previewing(), detail);
 }
 
+ShopDraft Session::shopDraft() const
+{
+    return ShopDraft(run_ ? run_->live : nullptr);
+}
+
+std::string Session::checkout(const ShopDraft& draft, const LifeCommand& command)
+{
+    if (command.kind != "vassalConfirmLifeNode" && command.kind != "vassalRerollShop")
+        return "Choose checkout or Delve to finish editing the shop.";
+    if (previewing()) return "Return to Live to check out.";
+    if (!run_ || busy() || opening_ || suspended_) return "A decision is unavailable right now.";
+    if (!draft.belongsTo(run_->live)) return "Live has changed. Clear the draft to start from the current board.";
+    std::vector<sim::Action> actions;
+    actions.reserve(draft.commands().size() + 1);
+    for (const auto& edit : draft.commands())
+        actions.push_back(action(run_->snapshot.second, edit.kind.c_str(), edit.payload));
+    actions.push_back(action(run_->snapshot.second, command.kind.c_str(), command.payload));
+    transact(std::move(actions));
+    return {};
+}
+
 bool Session::choose(const Choice& choice)
 {
     if (!run_ || busy() || opening_ || previewing() || suspended_) return false;

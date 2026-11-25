@@ -34,4 +34,15 @@ struct ShopQuote {
 std::vector<ShopQuote> quote_shop(const RuntimeState&, const runtime::Vassal&, const browser::LifeMapNodeState&,
                                  bool validate);
 
+struct ShopPractice {
+    std::string id, receipt;
+};
+
+struct ShopPracticeBoard {
+    std::vector<ShopPractice> order;
+    std::size_t capacity{};
+};
+
+ShopPracticeBoard read_shop_practices(const RuntimeState&, const runtime::Site&, const browser::LifeMapNodeState&);
+
 }

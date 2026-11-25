@@ -92,6 +92,7 @@ set(WAFFLE_CONNECTED_SOURCES
 	src/app/connected_save.cpp
 	src/app/connected_session.cpp
 	src/app/connected_settlement_view.cpp
+	src/app/connected_shop_view.cpp
 	src/app/connected_shell.cpp
 	src/app/connected_smoke.cpp
 	src/app/connected_view.cpp

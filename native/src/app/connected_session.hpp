@@ -31,6 +31,8 @@ public:
     void updatePreview();
     bool choose(const Choice& choice);
     bool submit(const LifeCommand& command);
+    ShopDraft shopDraft() const;
+    std::string checkout(const ShopDraft&, const LifeCommand& command);
     LifeReading lifeMap(bool detail) const;
     SettlementReading settlement(const Region& region, SettlementTab tab,
         std::optional<std::size_t> slot) const;
@@ -68,6 +70,7 @@ public:
     std::uint64_t replayDigest(Second second) const;
     sim::RuntimeState replayStateForTest(Second second) const;
     std::size_t actionCount() const { return run_->journal.entries().size(); }
+    core::json::Value journalForTest() const { return run_->journal.to_json(); }
     bool suspended() const { return suspended_; }
 
 private:

@@ -958,6 +958,17 @@ ChoicePrice quote_choice(const RuntimeState& state, const runtime::Vassal& actor
         phases * state.compiledContent->settings().phaseDurationSec};
 }
 
+ShopPracticeBoard read_shop_practices(const RuntimeState& state, const runtime::Site& site,
+                                      const browser::LifeMapNodeState& node)
+{
+    const auto draft = practice_draft(state, site, node);
+    if (!draft.result) return {};
+    ShopPracticeBoard board{.capacity = draft.capacity};
+    for (const auto& slot : draft.pool)
+        board.order.push_back({std::string(slot.id), slot.incoming ? slot.incoming->offerId : std::string{}});
+    return board;
+}
+
 std::vector<ShopQuote> quote_shop(const RuntimeState& state, const runtime::Vassal& actor,
                                  const browser::LifeMapNodeState& node, bool validate)
 {

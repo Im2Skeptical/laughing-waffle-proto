@@ -65,9 +65,28 @@ private:
     void submitLife(const LifeCommand& command);
     void drawLifePaths();
     const ShopItem* selectedOffer() const;
-    const ShopSpan* selectedSpan(const ShopItem& offer) const;
-    std::string shopOffers() const;
+    using ShopControl = std::pair<std::string, std::string>;
+    struct ShopTarget {
+        ShopControl control;
+        LifeCommand command;
+        std::string consequence, reason;
+    };
+    std::string shopOffers(bool disabled) const;
     std::string shopDetail(bool disabled) const;
+    std::string shopBoard(std::string_view op, bool disabled) const;
+    std::string shopArt(std::string_view id) const;
+    std::string shopPieceControl(std::string_view op, std::string id, std::string caption,
+        const ShopPiece* piece, bool locked, bool disabled, bool continuation = false) const;
+    const ShopTarget* shopTarget(const ShopControl&) const;
+    std::optional<ShopControl> shopControlAtPointer() const;
+    void selectShopSource(ShopControl);
+    void resetShopSelection();
+    void stageShop(const LifeCommand&);
+    void submitShop(const LifeCommand&);
+    bool activateShop(std::string_view op, const std::string& id);
+    bool beginShopDrag();
+    void updateShopDrag();
+    void finishShopDrag(std::optional<ShopControl>);
     void refreshMarkers(const Snapshot* snapshot);
     void positionMarkers();
     void refreshHelp();
@@ -86,7 +105,7 @@ private:
     void selectRegion(std::string region);
     void navigateMap(SDL_Keycode key);
     void reviewReform();
-    enum class Confirmation { reform, overwrite, title, life };
+    enum class Confirmation { reform, overwrite, title, life, shop };
     void confirm(Confirmation action, std::string_view title, std::string_view copy,
         std::string_view detail, std::string_view label);
     void closeConfirmation();
@@ -185,8 +204,13 @@ private:
     std::uint64_t lifeRevision_ = ~std::uint64_t{};
     LifeReading life_;
     std::string lifeChartMarkup_, lifeInspectorMarkup_;
-    std::string lifeNode_, lifeOffer_, lifeFeedback_, lifeActionKind_;
-    std::optional<std::size_t> lifeOrigin_;
+    std::string lifeNode_, lifeFeedback_, shopNode_, shopError_;
+    ShopDraft shopDraft_;
+    ShopControl shopSource_;
+    std::vector<ShopTarget> shopTargets_;
+    std::optional<ShopControl> shopPressed_;
+    Rml::ObserverPtr<Rml::Element> shopHoveredTarget_;
+    bool shopDragStarted_{}, shopConstruction_{}, shopInsert_{}, shopFocusBoard_{};
     bool lifeRoute_{};
     std::vector<std::size_t> heirloomPicks_;
     std::optional<LifeCommand> lifeConfirm_;
@@ -198,7 +222,7 @@ private:
     double mapDrawMs_{};
     bool measureMapDraw_{};
     SDL_FPoint pointer_{}, last_{}, pressed_{};
-    enum class Drag { none, map, graph, overview, card, panel, shell, lifePanel, lifeOffers, pinch };
+    enum class Drag { none, map, graph, overview, card, panel, shell, lifePanel, lifeOffers, shop, pinch };
     float density_ = 1;
     Drag drag_ = Drag::none;
     std::size_t draggedCard_{};

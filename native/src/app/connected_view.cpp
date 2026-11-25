@@ -442,7 +442,10 @@ void View::refresh()
         lastError_ = session_.error();
         if (!lastError_.empty()) {
             const auto split = lastError_.find(": ");
-            if (pendingAction_ == "life" && split != std::string::npos)
+            if (pendingAction_ == "shop") {
+                shopError_ = split == std::string::npos ? lastError_ : actionReason(lastError_.substr(split + 2));
+                lifeDirty_ = true;
+            } else if (pendingAction_ == "life" && split != std::string::npos)
                 notify(actionReason(lastError_.substr(split + 2)), true);
             else notify(lastError_, true);
         }
@@ -455,10 +458,11 @@ void View::refresh()
                 show(element("reform-dialog"), false);
                 dialogClosedAt_ = 0;
                 notify("Practice Reform complete. Updating the forecast.");
-            } else if (pendingAction_ == "life") {
-                if (lifeActionKind_ == "vassalPurchaseShopOffer") {
-                    lifeOffer_.clear();
-                    lifeOrigin_.reset();
+            } else if (pendingAction_ == "life" || pendingAction_ == "shop") {
+                if (pendingAction_ == "shop") {
+                    shopDraft_ = session_.shopDraft();
+                    resetShopSelection();
+                    shopError_.clear();
                 }
                 notify(lifeFeedback_ + ".");
             } else {

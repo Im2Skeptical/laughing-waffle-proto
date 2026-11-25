@@ -387,6 +387,7 @@ void View::pointer(const SDL_Event& event)
             }
             last_ = pointer_;
             context_.ProcessMouseMove(static_cast<int>(pointer_.x), static_cast<int>(pointer_.y), 0);
+            if (drag_ == Drag::shop) updateShopDrag();
         }
     }
     if ((event.type == SDL_EVENT_MOUSE_BUTTON_DOWN || event.type == SDL_EVENT_MOUSE_BUTTON_UP) &&
@@ -432,6 +433,7 @@ void View::pointer(const SDL_Event& event)
                         drag_ = Drag::lifeOffers;
                     if (!game && contains(bounds("shell-panel"), pointer_)) drag_ = Drag::shell;
                 }
+                if (game && !touch_ && beginShopDrag()) drag_ = Drag::shop;
                 if (const auto slot = game && !lifeOpen_ ? cardAt(pointer_) : std::nullopt;
                     !dialog_ && slot && snapshot && !selection_.destination && canStage(*snapshot, site) &&
                     !(graphicsOpen_ && contains(bounds("map-graphics"), pointer_))) {
@@ -453,8 +455,10 @@ void View::pointer(const SDL_Event& event)
             } else if (drag_ == Drag::overview) {
                 panGraph(pointer_.x);
             } else {
+                const auto shopDrop = drag_ == Drag::shop && moved_ ? shopControlAtPointer() : std::nullopt;
                 if (longPress_ || (moved_ && drag_ != Drag::none)) context_.ProcessMouseLeave();
                 context_.ProcessMouseButtonUp(0, 0);
+                if (drag_ == Drag::shop) finishShopDrag(shopDrop);
                 if (drag_ == Drag::card && moved_) {
                     const auto* snapshot = session_.displayed();
                     if (const auto target = cardAt(pointer_); target && snapshot && canStage(*snapshot, selection_.selected(snapshot))) {
@@ -511,6 +515,7 @@ void View::cancelInput()
     if (pointerDown_) context_.ProcessMouseButtonUp(0, 0);
     pointerDown_ = longPress_ = moved_ = false;
     drag_ = Drag::none;
+    if (shopPressed_) finishShopDrag({});
     markersDirty_ |= !hoveredRegion_.empty();
     hoveredRegion_.clear();
     pressedRegion_.clear();
@@ -696,6 +701,10 @@ void View::activate(Rml::Element& control)
         else if (confirmation_ == Confirmation::title) shell_.returnToTitle();
         else if (confirmation_ == Confirmation::life) {
             if (lifeConfirm_) submitLife(*lifeConfirm_);
+            lifeConfirm_.reset();
+        }
+        else if (confirmation_ == Confirmation::shop) {
+            if (lifeConfirm_) submitShop(*lifeConfirm_);
             lifeConfirm_.reset();
         }
         else if (selection_.card && selection_.destination &&

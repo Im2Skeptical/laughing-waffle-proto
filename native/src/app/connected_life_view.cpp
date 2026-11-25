@@ -7,6 +7,7 @@ namespace waffle::connected {
 namespace {
 
 using namespace markup;
+using core::json::Value;
 using Colour = std::array<Uint8, 4>;
 
 void line(SDL_Renderer* renderer, SDL_FPoint a, SDL_FPoint b, Colour ink)
@@ -23,8 +24,9 @@ void View::setLifeOpen(bool open)
     lifeDirty_ = markersDirty_ = true;
     lifeNode_.clear();
     heirloomPicks_.clear();
-    lifeOffer_.clear();
-    lifeOrigin_.reset();
+    resetShopSelection();
+    shopDraft_ = {};
+    shopNode_.clear();
     lifeRoute_ = false;
     lifeConfirm_.reset();
     life_ = {};
@@ -82,9 +84,18 @@ void View::refreshLife(const Snapshot& snapshot)
         const bool wasShop = life_.shop.has_value();
         life_ = session_.lifeMap(true);
         lifeRevision_ = session_.viewRevision();
+        if (!readOnly && (life_.shop || life_.shopSpecialty)) {
+            if (shopDraft_.empty() || shopNode_ != life_.current) {
+                shopDraft_ = session_.shopDraft();
+                shopNode_ = life_.current;
+                shopError_.clear();
+                shopConstruction_ = life_.shop && std::ranges::any_of(life_.shop->offers, [](const ShopItem& item) {
+                    return item.kind == "structure";
+                });
+            } else life_ = shopDraft_.reading();
+        }
         if (actor != life_.actor || current != life_.current || decision != life_.decision || wasShop != life_.shop.has_value()) {
-            lifeOffer_.clear();
-            lifeOrigin_.reset();
+            resetShopSelection();
             lifeRoute_ = false;
             heirloomPicks_.clear();
             if (!life_.current.empty()) lifeNode_ = life_.current;
@@ -113,7 +124,7 @@ void View::refreshLife(const Snapshot& snapshot)
     chart.SetClass("candidates", choosing);
     chart.SetClass("shop-floor", showShop);
     std::string graph = "<h2 class=\"life-chart-title\">" + std::string(choosing ? "Choose a Vassal" : "Life Map") + "</h2>";
-    if (showShop) graph = shopOffers();
+    if (showShop) graph = shopOffers(disabled);
     else if (choosing) {
         graph += "<div class=\"life-candidates\">";
         for (std::size_t i = 0; i < life_.candidates.size(); ++i) {
@@ -222,86 +233,13 @@ void View::refreshLife(const Snapshot& snapshot)
         }
         if (next && context_.GetFocusElement() != next) next->Focus(true);
     }
-}
-
-const ShopItem* View::selectedOffer() const
-{
-    if (!life_.shop) return nullptr;
-    const auto found = std::ranges::find(life_.shop->offers, lifeOffer_, &ShopItem::id);
-    return found == life_.shop->offers.end() ? nullptr : &*found;
-}
-
-const ShopSpan* View::selectedSpan(const ShopItem& offer) const
-{
-    if (offer.spans.empty()) return nullptr;
-    if (!lifeOrigin_) return &offer.spans.front();
-    const auto found = std::ranges::find(offer.spans, *lifeOrigin_, &ShopSpan::origin);
-    return found == offer.spans.end() ? &offer.spans.front() : &*found;
-}
-
-std::string View::shopOffers() const
-{
-    const auto& shop = *life_.shop;
-    std::string html = "<div class=\"shop-heading\"><h2>" + escape(life_.decision) +
-        "</h2><p class=\"quiet\">" + escape(shop.region) + "</p></div>";
-    if (shop.offers.empty()) return html + "<p class=\"quiet\">No offers remain.</p>";
-    html += "<div class=\"shop-grid\">";
-    for (const auto& item : shop.offers) {
-        const bool chosen = item.id == lifeOffer_;
-        html += "<button class=\"button shop-offer" + std::string(chosen ? " chosen" : "") +
-            (item.reason.empty() ? "" : " blocked") + "\" data-op=\"life-offer\" data-id=\"" + escape(item.id) +
-            "\" data-help=\"" + escape(item.reason.empty() ? item.label : item.reason) +
-            "\" aria-pressed=\"" + (chosen ? "true" : "false") + "\">";
-        if (const auto art = sprites_.find(item.art); art != sprites_.end())
-            html += "<div class=\"shop-art\" style=\"decorator:image(" + art->second + " fill);\"></div>";
-        html += "<div class=\"shop-offer-text\"><div>" + escape(item.label) + "</div><p class=\"life-summary\">" +
-            escape(item.cost) + "</p>";
-        if (!item.reason.empty()) html += "<p class=\"blocked-reason\">Unavailable</p>";
-        html += "</div></button>";
-    }
-    return html + "</div>";
-}
-
-std::string View::shopDetail(bool disabled) const
-{
-    const auto& shop = *life_.shop;
-    std::string html = "<div class=\"life-brief\"><p class=\"life-summary\">" + escape(shop.funds) + "</p>" +
-        button("life-route", {}, "Life route") + button("life-board", {}, "Settlement") + "</div>";
-    if (const auto* offer = selectedOffer()) {
-        html += "<h2>" + escape(offer->label) + "</h2><p class=\"life-summary\">" + escape(offer->cost) + "</p>";
-        if (!offer->description.empty()) html += "<p class=\"quiet\">" + escape(offer->description) + "</p>";
-        if (!offer->reason.empty()) html += "<p class=\"blocked-reason\">" + escape(offer->reason) + "</p>";
-        if (const auto* span = selectedSpan(*offer)) {
-            html += "<p class=\"gold\">Construction strip</p><div class=\"shop-strip\">";
-            for (std::size_t cell = 0; cell < shop.cells.size(); ++cell) {
-                const bool inSpan = cell >= span->origin && cell < span->origin + span->width;
-                const bool valid = std::ranges::find(offer->spans, cell, &ShopSpan::origin) != offer->spans.end();
-                const auto help = "Space " + std::to_string(cell + 1) + " · " +
-                    (shop.cells[cell].empty() ? "Empty" : shop.cells[cell]);
-                html += button("life-origin", std::to_string(cell), std::to_string(cell + 1),
-                    inSpan ? "shop-cell chosen" : shop.cells[cell].empty() ? "shop-cell" : "shop-cell occupied",
-                    help, disabled || !valid);
-            }
-            html += "</div><p class=\"life-summary\">Preview · Space " + std::to_string(span->origin + 1);
-            if (span->width > 1) html += "–" + std::to_string(span->origin + span->width);
-            if (!span->replacement.empty()) html += " · Replaces " + escape(span->replacement);
-            html += "</p>";
-        }
-        html += button("life-purchase", {}, offer->reason.empty() ? "Review purchase" : "Why unavailable?",
-            offer->reason.empty() ? "decision primary" : "decision", offer->reason, disabled);
-        html += "<div class=\"life-brief\"></div>";
-    }
-    if (!shop.staged.empty()) {
-        html += "<p class=\"gold\">Staged purchases</p>";
-        for (const auto& item : shop.staged) {
-            html += "<div class=\"shop-receipt\"><div>" + escape(item.label) + "<p class=\"life-summary\">" +
-                escape(item.cost) + (item.description.empty() ? "" : " · " + escape(item.description)) + "</p></div>" +
-                button("life-undo-purchase", item.id, "Undo", "decision", "Remove " + item.label, disabled) + "</div>";
+    if (shopFocusBoard_ && !dialog_) {
+        shopFocusBoard_ = false;
+        if (auto* target = chart.QuerySelector(".valid-target:not(.chosen)")) {
+            target->Focus(true);
+            target->ScrollIntoView(Rml::ScrollAlignment::Nearest);
         }
     }
-    for (std::size_t i = 0; i < life_.choices.size(); ++i)
-        html += lifeControl(i, life_.choices[i], false, disabled);
-    return html;
 }
 
 void View::drawLifePaths()
@@ -341,7 +279,6 @@ void View::submitLife(const LifeCommand& command)
     pendingAction_ = "life";
     pendingGeneration_ = session_.generation();
     lifeFeedback_ = command.feedback;
-    lifeActionKind_ = command.kind;
     notify("");
 }
 
@@ -358,7 +295,7 @@ void View::activateLife(std::string_view op, const std::string& id)
         element("life-inspector").SetScrollTop(0);
         return;
     }
-    using core::json::Value;
+    if (activateShop(op, id)) return;
     if (op == "life-route") {
         lifeRoute_ = !lifeRoute_;
         if (life_.shop) lifeNode_ = life_.current;
@@ -367,32 +304,6 @@ void View::activateLife(std::string_view op, const std::string& id)
     } else if (op == "life-board") {
         if (const auto* view = session_.liveSnapshot(); view && !view->vassalRegion.empty()) selectRegion(view->vassalRegion);
         setLifeOpen(false);
-    } else if (op == "life-offer") {
-        lifeOffer_ = id;
-        lifeOrigin_.reset();
-        lifeDirty_ = true;
-        element("life-inspector").SetScrollTop(0);
-    } else if (op == "life-origin") {
-        lifeOrigin_ = std::stoul(id);
-        lifeDirty_ = true;
-    } else if (op == "life-purchase") {
-        const auto* offer = selectedOffer();
-        if (!offer) return;
-        if (!offer->reason.empty()) {
-            notify(offer->reason, true);
-            return;
-        }
-        lifeConfirm_ = offer->command;
-        std::string copy = "Stage this offer for checkout.";
-        if (const auto* span = selectedSpan(*offer)) {
-            lifeConfirm_->payload.emplace_back("origin", Value(double(span->origin)));
-            copy = "Place at space " + std::to_string(span->origin + 1) + ".";
-            if (!span->replacement.empty()) copy += " Replaces " + span->replacement + " at checkout.";
-        }
-        confirm(Confirmation::life, offer->label, copy, offer->cost, "Stage offer");
-    } else if (op == "life-undo-purchase" && life_.shop) {
-        const auto item = std::ranges::find(life_.shop->staged, id, &ShopItem::id);
-        if (item != life_.shop->staged.end()) submitLife(item->command);
     } else if (op == "life-reroll") {
         lifeConfirm_ = LifeCommand{"settlementRerollVassals", {}, "New candidates have arrived"};
         confirm(Confirmation::life, "Reroll candidates?", "The current candidates will leave.", "Free · unlimited", "Reroll");
@@ -422,10 +333,27 @@ void View::activateLife(std::string_view op, const std::string& id)
         if (index >= life_.choices.size()) return;
         const auto& choice = life_.choices[index];
         if (!choice.reason.empty()) {
-            notify(choice.reason, true);
+            if (life_.shop) {
+                shopError_ = choice.reason;
+                lifeDirty_ = true;
+            } else notify(choice.reason, true);
             return;
         }
-        if (inventoryChoice(choice)) {
+        if (life_.shopSpecialty && choice.command.kind == "vassalSelectLifeOption") {
+            const auto command = choice.command;
+            stageShop(command);
+        } else if (life_.shop && (choice.command.kind == "vassalConfirmLifeNode" || choice.command.kind == "vassalRerollShop")) {
+            lifeConfirm_ = choice.command;
+            const bool checkout = choice.command.kind == "vassalConfirmLifeNode";
+            const auto& shop = *life_.shop;
+            std::string summary = checkout ? "Apply the board shown in this draft." : "Refresh this shop's offers.";
+            if (checkout && !shop.discarded.empty())
+                summary += " Discard " + std::to_string(shop.discarded.size()) + (shop.discarded.size() == 1 ? " Practice." : " Practices.");
+            if (checkout && !shop.demolished.empty())
+                summary += " Demolish " + std::to_string(shop.demolished.size()) + (shop.demolished.size() == 1 ? " Structure." : " Structures.");
+            confirm(Confirmation::shop, checkout ? "Confirm checkout?" : "Delve?", summary,
+                choice.detail, checkout ? "Check out" : "Delve");
+        } else if (inventoryChoice(choice)) {
             const auto found = std::ranges::find(heirloomPicks_, index);
             if (found != heirloomPicks_.end()) heirloomPicks_.erase(found);
             else if (heirloomPicks_.size() < (life_.decision == "Heirloom vault overflow" ? 6 : 3))
