@@ -26,6 +26,8 @@ std::span<const RegionId> authored_regions(const RuntimeState& state)
     return state.topology ? state.topology->regions() : std::span<const RegionId>{};
 }
 
+}
+
 RegionId expansion_target(const RuntimeState& state, RegionId source)
 {
     if (state.hot.rulesetId && settlement::detailed_site(state, source)) return source;
@@ -39,6 +41,8 @@ RegionId expansion_target(const RuntimeState& state, RegionId source)
     return first;
 }
 
+namespace {
+
 void pressure_event(RuntimeState& state, RegionId region, SymbolId action)
 {
     EventData event{};
@@ -48,7 +52,7 @@ void pressure_event(RuntimeState& state, RegionId region, SymbolId action)
 
 void strengthen(RuntimeState& state, Region& region)
 {
-    ++region.monster->defense;
+    region.monster->defense += repel_strength_gain;
     pressure_event(state, region.id, state.territory.strengthen);
 }
 
@@ -60,7 +64,7 @@ SpawnOutcome expand(RuntimeState& state, Region& source, RegionId id)
         const auto defense = military(state, id, target.controller).defense;
         EventData event{};
         event.fields.faction = browser::OptionalNullable<FactionId>{target.controller};
-        if (defense > 0 && defense >= source.monster->defense) {
+        if (defense_holds(defense, source.monster->defense)) {
             practice::emit(state, EventKind::defenseSucceeded, id, event);
             site->detailedState.lastDefense = DetailedSettlementLastDefense{state.hot.tSec, state.territory.held, source.id};
             return SpawnOutcome::intercepted;

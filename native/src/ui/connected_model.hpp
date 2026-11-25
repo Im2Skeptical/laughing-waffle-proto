@@ -1,5 +1,7 @@
 #pragma once
 
+#include "crest_model.hpp"
+
 #include <array>
 #include <cstdint>
 #include <optional>
@@ -68,6 +70,8 @@ struct Snapshot {
     std::vector<Choice> choices;
     std::vector<Region> regions;
     std::vector<std::pair<std::size_t, std::size_t>> roads;
+    CrestAtlas crests;
+    double crestModelMs{};
 };
 
 struct Selection {

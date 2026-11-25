@@ -95,6 +95,7 @@ set(WAFFLE_CONNECTED_SOURCES
 	src/app/sdl_asset_file.cpp
 	src/app/sdl_rml_renderer.cpp
 	src/ui/connected_model.cpp
+	src/ui/crest_model.cpp
 	src/ui/forecast_chart.cpp
 	src/ui/life_map.cpp
 	src/ui/settlement_model.cpp

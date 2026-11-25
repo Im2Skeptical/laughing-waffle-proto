@@ -12,7 +12,6 @@ namespace waffle::sim::territory {
 namespace {
 
 constexpr std::string_view path = "territorial control";
-constexpr double retain = .70;
 constexpr double claim = .75;
 
 template<class K>
@@ -406,10 +405,10 @@ void resolve_control(RuntimeState& state)
             if (entry.key == holder) loyal = entry.value;
         }
         bool occupied = false;
-        if (holder != frontier && total > 0 && loyal / total < retain) {
+        if (holder != frontier && total > 0 && loyal / total < retaining_share) {
             if (loyal > 0) {
                 const auto force = military(state, site.regionId, holder).force;
-                const auto share = retain / (1 + std::max(0.0, force) / holding_pressure(resistance(state, site, holder)));
+                const auto share = retaining_share / (1 + std::max(0.0, force) / holding_pressure(resistance(state, site, holder)));
                 occupied = force > 0 && loyal >= std::max(1.0, std::ceil(total * share - 1e-9));
             }
             if (!occupied) {
