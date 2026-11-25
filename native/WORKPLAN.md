@@ -4412,6 +4412,131 @@ the weather raster to a padded viewport first, then measure coarse
 surfaces, cloud sampling at lower resolution, and fewer resident artwork
 levels if memory or frame cost calls for it.
 
+### N04n - Run time, outcome and restart
+
+The shared survival strip reads the displayed snapshot's year, season and
+tenures. It keeps the committed boundary visible alongside the viewed second
+and shows the current generation's projected cause and year. The best year
+seen during the session survives forecast replacement in presentation state.
+The strip updates in the late restore pass, along with the graph and
+settlement readout.
+
+The viewed-time transport offers Hold and symmetric ±1× and ±256× notches.
+Playback stops at the published bounds and restores through the same path as a
+drag. Follow tracks the current forecast edge. A manual seek or speed change
+detaches it, and Back to Live restores the decision boundary. The controls
+share the mouse, keyboard and SDL finger input paths.
+
+During succession, Advance Live confirms an explicit replay target. It
+advances to the foreseen end when available, or towards the next year within
+published coverage. Pending Vassal decisions use the existing resolution path.
+Only a terminal Live state presents Game over or Dynasty complete
+automatically. The player can dismiss to the history, reopen the result, or
+confirm a fresh game. The outcome entrance follows Motion. The shell tracks
+the saved second as well as the action count, so advancing without an action
+counts as unsaved progress. Simulation rules, RNG streams, schemas and action
+payloads are unchanged.
+
+#### Reproduction
+
+Use PowerShell from the worktree root after linking `native/.tools`.
+
+```powershell
+. native/tools/env.ps1
+foreach ($preset in 'optimized', 'optimized-clang') {
+    Push-Location native
+    cmake --preset $preset
+    cmake --build --preset $preset --parallel 8
+    ctest --preset $preset --output-on-failure --parallel 4
+    Pop-Location
+    $game = "native/build/$preset/waffle_native_game.exe"
+    $parity = "native/build/$preset/src/sim/waffle_parity.exe"
+    & $game --smoke --seed 42
+    node native/reference/step-windows.mjs $parity
+    node native/reference/replay-windows.mjs $parity
+    foreach ($width in 1120, 640) {
+        $height = if ($width -eq 1120) { 640 } else { 360 }
+        $shots = "artifacts/n04n/$preset-$width"
+        & $game --settlement-smoke --seed 42 --size $width $height
+        & $game --crest-smoke --seed 42 --size $width $height
+        & $game --interaction-smoke --seed 42 --size $width $height
+        & $game --seed 42 --size $width $height --capture "$shots-standard"
+        & $game --run-smoke --seed 42 --size $width $height --capture "$shots-run"
+        & $game --run-smoke --load artifacts/n04n/last-tenure.json --size $width $height
+        & $game --run-smoke --load artifacts/n04n/territorial-loss.json --size $width $height
+    }
+}
+npm run verify
+```
+
+Run `node native/reference/trace.mjs` if the pinned parity corpus is absent.
+The desktop verification used the captured corpus from a checkout at
+`095521cb` with identical browser and reference sources. Generate the two
+prepared starts from that corpus and the checked-in seed-1 opening.
+
+```powershell
+New-Item -ItemType Directory -Force artifacts/n04n | Out-Null
+@'
+const fs = require('node:fs');
+const death = JSON.parse(fs.readFileSync('artifacts/native-reference/traces/seed-1-vassal-death/state-0.json'));
+death.civilization.vassalLineage.tenuresRemaining = 1;
+fs.writeFileSync('artifacts/n04n/last-tenure.json', JSON.stringify(death));
+const territory = JSON.parse(fs.readFileSync('native/reference/fixtures/seed-1/state-0.json'));
+for (const region of territory.world.regions) {
+  if (region.controller === 'player') region.controller = 'frontier';
+}
+fs.writeFileSync('artifacts/n04n/territorial-loss.json', JSON.stringify(territory));
+'@ | node
+```
+
+Seed 42 ends by Monster overrun at Year 177, second 5634. The Practice Reform
+changes its foreseen end. The prepared final-tenure start ends at second 1
+through the Life Map Advance, and the territory start ends at second 6
+through Advance Live. The smoke compares committed states with authoritative
+replay, checks stored-file and journal digests around browsing and restart
+cancellation, and verifies that the new run starts at ten tenures.
+
+The before captures are under `artifacts/n04n/before-1120x640/` and
+`artifacts/n04n/before-640x360/`. The comparable opening and forecast views
+are `01-regional-map.png` and `n04i-03-run-end.png`. The N04n captures include
+the HUD, revised forecast, confirmed outcome, historical browsing and
+restart confirmation under `artifacts/n04n/final-run-optimized-1120x640/` and
+`artifacts/n04n/final-run-optimized-640x360/`.
+
+Both optimized presets passed 56 CTests, the connected smoke, the settlement,
+crest, interaction and run smokes at both sizes, and fresh standard captures
+at both sizes. Step parity passed 30 windows and 153 comparisons with zero
+masks per compiler. Replay parity passed 34 journals, 18 action kinds, 252
+checkpoints and 55 rejections per compiler. The Windows input runs drove
+mouse clicks, keyboard input and SDL finger events. `npm run verify` passed.
+
+#### Frame measurements
+
+Run `waffle_native_game.exe --size 1120 640 --bench 2400 <json> --long-benchmark`.
+Seven alternating runs per build compared the MSVC candidate with a fresh
+optimized `095521cb` control. Windows x64, Core i9-10900K, RTX 3080,
+Direct3D 11, vsync off. All runs reached second 32,192. The table gives the
+medians of per-run percentiles in milliseconds. Control spread is the median
+absolute difference between successive control runs.
+
+| Metric | Control p50 / p95 / p99 | Candidate p50 / p95 / p99 | Median paired delta | Control spread |
+| --- | ---: | ---: | ---: | ---: |
+| Frame time | 2.755 / 4.350 / 4.744 | 3.171 / 4.296 / 4.770 | +0.356 / +0.106 / +0.228 | 0.829 / 1.208 / 1.677 |
+| Loaded scrub to present | 2.762 / 4.350 / 4.744 | 3.172 / 4.506 / 4.909 | +0.360 / +0.106 / +0.228 | 0.828 / 1.208 / 1.677 |
+
+The median paired delta for each percentile stayed within control spread.
+Both builds observed a maximum of two harness frames from input to present.
+The late poll presents the HUD in the same frame as any restore ready at
+that poll. The runner and raw data are `artifacts/n04n/run-paired.ps1` and
+`artifacts/n04n/paired-text/`.
+
+**Cross-runtime handoff.** The native transport uses the browser's split
+between read-only viewing and explicit commitment. The survival strip shares
+the late restore pass with the graph and retains its text nodes, so it has no
+independent restore or extra layout pass. Keep the view-model snapshot and
+terminal generation together when adding readings to either runtime.
+[Timegraph guardrails](../docs/timegraph-optimisation-guardrails.md)
+
 ## N05 - Iteration and installed profiles (pending N04)
 
 Finish development, performance and full-art installed profiles sharing the same
