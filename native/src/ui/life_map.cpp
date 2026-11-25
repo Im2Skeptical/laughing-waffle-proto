@@ -180,6 +180,14 @@ std::string structureLabel(const RuntimeState& state, std::string_view id)
     return found == defs.end() ? title(id) : found->second.label;
 }
 
+ShopPiece practicePiece(const RuntimeState& state, const sim::vassal::ShopPractice& slot, std::size_t index)
+{
+    const auto& defs = state.content->config.gamepieces.practices;
+    const auto found = std::ranges::find(defs, slot.id, &sim::browser::GamepiecesPractices::value_type::first);
+    return {"practice:" + slot.id, slot.id, found == defs.end() ? title(slot.id) : found->second.label,
+        slot.receipt, index};
+}
+
 void readShop(LifeReading& view, const RuntimeState& state, const Vassal& actor,
               const sim::browser::LifeMapNodeState& node, bool actionable)
 {
@@ -191,9 +199,38 @@ void readShop(LifeReading& view, const RuntimeState& state, const Vassal& actor,
         shop.cells.resize(draft.slots.size());
         for (const auto& cell : draft.slots) {
             if (!cell) continue;
-            const auto origin = static_cast<std::size_t>(cell->placement.origin);
-            const auto width = static_cast<std::size_t>(cell->placement.width);
-            std::fill_n(shop.cells.begin() + origin, width, structureLabel(state, cell->placement.structureId));
+            const auto& placement = cell->placement;
+            const auto receipt = std::ranges::find_if(node.purchasedOffers, [&](const auto& item) {
+                return item.placement && item.placement->placementId == placement.placementId;
+            });
+            const auto origin = static_cast<std::size_t>(placement.origin);
+            const auto width = static_cast<std::size_t>(placement.width);
+            const auto label = structureLabel(state, placement.structureId);
+            std::fill_n(shop.cells.begin() + origin, width, label);
+            shop.structures.push_back({"structure:" + placement.placementId, placement.structureId, label,
+                receipt == node.purchasedOffers.end() ? "" : receipt->offerId, origin, width,
+                cell->confirmed && cell->confirmed->origin != origin});
+        }
+        for (const auto& row : state.tables.view(site->detailedState.structureSlots.origins)) {
+            const auto id = "structure:" + std::string(state.name(row.placementId));
+            if (std::ranges::find(shop.structures, id, &ShopPiece::id) != shop.structures.end()) continue;
+            const auto art = std::string(state.name(row.structureId));
+            shop.demolished.push_back({id, art, structureLabel(state, art), {}, row.origin, row.width});
+        }
+        const auto board = sim::vassal::read_shop_practices(state, *site, node);
+        shop.capacity = board.capacity;
+        shop.practices.resize(5);
+        for (std::size_t i = 0; i < board.order.size(); ++i) {
+            const auto& slot = board.order[i];
+            if (slot.id.empty()) continue;
+            auto piece = practicePiece(state, slot, i);
+            if (i < board.capacity) {
+                const auto original = site->detailedState.practiceSlots.slots[i];
+                piece.moved = original && state.name(state.tables.at(original).practiceId) != slot.id;
+                if (!original && slot.receipt.empty()) piece.moved = true;
+                shop.practices[i] = std::move(piece);
+            }
+            else shop.discarded.push_back(std::move(piece));
         }
         shop.funds = decimal(state.hot.civilization.prestige.value_or(actor.prestige)) + " Prestige · " +
             decimal(std::floor(action_stock_total(state, site, state.practiceVocabulary.currency) * 10) / 10) + " Currency";
@@ -203,6 +240,9 @@ void readShop(LifeReading& view, const RuntimeState& state, const Vassal& actor,
         const auto& change = offer.intervention;
         const auto& price = quote.price;
         ShopItem item{offer.offerId, offer.label, change.structureId.value_or(change.practiceId.value_or(""))};
+        item.kind = change.kind;
+        item.mode = change.mode;
+        item.piece = item.art;
         item.cost = shopCost(price.prestigeCost, price.currencyCost, price.monsterPressureCost, price.phaseCost * phase);
         if (!quote.reason.empty()) item.reason = actionReason(quote.reason);
         if (change.kind == "connection" && change.regionAId && change.regionBId) {
@@ -241,6 +281,9 @@ void readShop(LifeReading& view, const RuntimeState& state, const Vassal& actor,
         ShopItem staged{receipt.offerId, std::move(label)};
         staged.cost = shopCost(receipt.prestigeCost, receipt.currencyCost, receipt.monsterPressureCost, receipt.phaseCost * phase);
         const auto& change = receipt.intervention;
+        staged.kind = change.kind;
+        staged.mode = change.mode;
+        staged.piece = change.practiceId.value_or(change.structureId.value_or(""));
         if (change.kind == "connection" && change.regionAId && change.regionBId) {
             staged.label = change.mode == "add" ? "Build road" : "Remove road";
             staged.description = regionName(state, *change.regionAId) + " to " + regionName(state, *change.regionBId);
@@ -273,8 +316,9 @@ void readShop(LifeReading& view, const RuntimeState& state, const Vassal& actor,
         }
     }
     shop.total = shopCost(prestige, currency, pressure, seconds);
-    if (!shop.staged.empty()) confirm.feedback = "Shop committed · " + shop.total;
-    view.choices.push_back({shop.staged.empty() ? "Leave shop" : "Review checkout", shop.total,
+    shop.changed = !shop.staged.empty() || node.practiceDraftOrder.has_value() || node.structureDraftEdits.has_value();
+    if (shop.changed) confirm.feedback = "Shop committed · " + shop.total;
+    view.choices.push_back({shop.changed ? "Review checkout" : "Leave shop", shop.total,
         std::move(error), {}, std::move(confirm)});
     if (class_name(actor) == "scholar") {
         auto delve = nodeCommand("vassalRerollShop", node.nodeId, "Delve begun");
@@ -296,6 +340,7 @@ void activeChoices(LifeReading& view, const RuntimeState& state, const Vassal& a
 {
     if (node.contentMode == "shop") {
         if (node.shopSelection.has_key() && node.shopSelection.value() && !node.shopSelection.value()->selectedTag) {
+            view.shopSpecialty = true;
             view.decisionDetail = "Choose a specialty to reveal its offers.";
             for (const auto& option : node.shopSelection.value()->choices)
                 addChoice(view, state, {option.label, option.description, option.enabled ? "" : "Specialty unavailable.",
@@ -371,6 +416,12 @@ std::string actionReason(std::string_view code)
         {"outsideConstructionStrip", "The building extends beyond the construction strip."},
         {"stagedStructureOverlap", "That footprint overlaps a staged building."},
         {"noCompatibleSpan", "There is no compatible span in the construction strip."},
+        {"invalidPurchaseOrder", "Choose an unlocked Practice slot."},
+        {"invalidReplacement", "The Practice to replace is no longer in that slot."},
+        {"practicePrefixFull", "The staged Practices need more unlocked slots."},
+        {"practiceUnlockInUse", "A staged choice still uses this Practice slot."},
+        {"placementUnavailable", "That Structure is no longer available."},
+        {"placementLocked", "This Structure placement cannot be edited."},
         {"scholarRequired", "Only an established Scholar can Delve."},
         {"stagedPurchases", "Remove staged purchases before delving."},
         {"neutralStorefront", "A neutral storefront cannot install this card."},
@@ -496,6 +547,44 @@ LifeReading readLifeMap(const RuntimeState& state, bool actionable, bool detail)
         if (node != states.end()) activeChoices(view, state, *actor, node->second, actionable);
     }
     return view;
+}
+
+ShopDraft::ShopDraft(std::shared_ptr<const sim::RuntimeState> baseline)
+    : base_(std::move(baseline)), projected_(base_)
+{}
+
+std::string ShopDraft::check(const LifeCommand& command) const
+{
+    if (!projected_) return "The shop is no longer available.";
+    auto next = *projected_;
+    const auto result = sim::apply_action(next, {next.hot.tSec, command.kind, Value(command.payload), {}});
+    return result ? "" : actionReason(result.reason);
+}
+
+std::string ShopDraft::stage(const LifeCommand& command)
+{
+    if (!projected_) return "The shop is no longer available.";
+    auto next = std::make_shared<RuntimeState>(*projected_);
+    const auto result = sim::apply_action(*next, {next->hot.tSec, command.kind, Value(command.payload), {}});
+    if (!result) return actionReason(result.reason);
+    commands_.push_back(command);
+    projected_ = std::move(next);
+    return {};
+}
+
+bool ShopDraft::undo()
+{
+    if (empty()) return false;
+    ShopDraft restored(base_);
+    for (std::size_t i = 0; i + 1 < commands_.size(); ++i)
+        if (!restored.stage(commands_[i]).empty()) return false;
+    *this = std::move(restored);
+    return true;
+}
+
+LifeReading ShopDraft::reading() const
+{
+    return projected_ ? readLifeMap(*projected_, true, true) : LifeReading{};
 }
 
 }

@@ -1140,7 +1140,11 @@ void InteractionProbe::lifeMap(Session& session, const SaveSlots& store, const s
     };
     const auto actionControl = [&](const auto& choice) {
         const auto found = std::ranges::find_if(view.life_.choices, choice);
-        require(found != view.life_.choices.end(), "Life Map choice is missing");
+        if (found == view.life_.choices.end()) {
+            auto message = "Life Map choice is missing at " + view.life_.current + " · " + view.life_.decision;
+            for (const auto& option : view.life_.choices) message += " | " + option.label + " " + option.reason;
+            throw std::runtime_error(message);
+        }
         const auto index = found - view.life_.choices.begin();
         return "[data-op=life-choice][data-id='" + std::to_string(index) + "']";
     };
@@ -1151,6 +1155,35 @@ void InteractionProbe::lifeMap(Session& session, const SaveSlots& store, const s
     };
     const auto pickOffer = [&](const ShopItem& offer) {
         click(("[data-op=life-offer][data-id='" + offer.id + "']").c_str());
+    };
+    const auto shopControl = [](std::string_view op, std::string_view id) {
+        return "[data-op='" + std::string(op) + "'][data-id='" + std::string(id) + "']";
+    };
+    const auto tap = [&](const std::string& selector) {
+        auto& button = control(selector.c_str());
+        button.ScrollIntoView(Rml::ScrollAlignment::Nearest);
+        present(nullptr);
+        const auto at = center(button);
+        finger(SDL_EVENT_FINGER_DOWN, 1, at);
+        finger(SDL_EVENT_FINGER_UP, 1, at);
+        present(nullptr);
+    };
+    const auto drag = [&](const std::string& source, const std::string& target, const char* capture = nullptr) {
+        auto& from = control(source.c_str());
+        from.ScrollIntoView(Rml::ScrollAlignment::Nearest);
+        present(nullptr);
+        const auto start = center(from);
+        pointer(SDL_EVENT_MOUSE_BUTTON_DOWN, start);
+        pointer(SDL_EVENT_MOUSE_MOTION, {start.x + 12.f, start.y});
+        present(nullptr);
+        auto& to = control(target.c_str());
+        const auto end = center(to);
+        pointer(SDL_EVENT_MOUSE_MOTION, end);
+        require(to.IsClassSet("drop-hover"), "Mouse drag did not highlight its target");
+        if (capture) present(capture);
+        const auto at = center(control(target.c_str()));
+        pointer(SDL_EVENT_MOUSE_BUTTON_UP, at);
+        present(nullptr);
     };
     idle();
     present("01-atlas");
@@ -1193,8 +1226,64 @@ void InteractionProbe::lifeMap(Session& session, const SaveSlots& store, const s
     present("03-life-route");
     apply("[data-op=life-enter]", true);
     present("04-specialty");
-    apply(actionKind("vassalSelectLifeOption").c_str());
+    const auto beforeSpecialty = session.actionCount();
+    const auto beforeShopDigest = session.displayedDigest();
+    click(actionKind("vassalSelectLifeOption").c_str());
+    require(view.life_.shop && session.actionCount() == beforeSpecialty && session.displayedDigest() == beforeShopDigest,
+        "Specialty changed Live before checkout");
+    const auto practice = std::ranges::find_if(view.life_.shop->offers, [](const ShopItem& item) {
+        return item.kind == "practice" && item.mode == "learn" && item.reason.empty();
+    });
+    require(practice != view.life_.shop->offers.end(), "Seed 42 Shop has no Practice offer");
+    const auto practiceId = practice->piece;
+    const auto firstPractice = view.life_.shop->practices.front().id;
+    control(shopControl("life-offer", practice->id).c_str()).Focus(true);
+    key(SDLK_RETURN);
+    present(nullptr);
+    require(view.context_.GetFocusElement() == &control("[data-op=life-slot][data-id='0']"),
+        "Keyboard selection did not focus a legal destination");
+    key(SDLK_RETURN);
+    present("04a-practice-replacement");
+    require(view.life_.shop->practices.front().art == practiceId &&
+        std::ranges::find(view.life_.shop->discarded, firstPractice, &ShopPiece::id) != view.life_.shop->discarded.end(),
+        "Practice replacement did not show both cards");
+    const auto receipt = view.life_.shop->staged.front().id;
+    click(shopControl("life-receipt", receipt).c_str());
+    tap(shopControl("life-slot", "1"));
+    require(view.life_.shop->practices[1].art == practiceId, "The staged Practice did not reorder");
+    click("[data-op=life-revert]");
+    require(view.life_.shop->practices.front().art == practiceId, "Undo did not restore the staged order");
+    const auto oldPractice = view.life_.shop->practices[1].id;
+    drag(shopControl("life-slot", "1"), shopControl("life-slot", "4"));
+    require(view.life_.shop->practices[1].id == oldPractice && view.shopError_ == actionReason("invalidPurchaseOrder"),
+        "An invalid drop changed the board or hid its reason");
+    drag(shopControl("life-slot", "1"), shopControl("life-slot", "2"), "04b-practice-drag");
+    require(view.life_.shop->practices[2].id == oldPractice, "Installed Practice did not reorder");
+    click(shopControl("life-slot", "2").c_str());
+    tap("[data-op=life-scrap]");
+    require(std::ranges::find(view.life_.shop->discarded, oldPractice, &ShopPiece::id) != view.life_.shop->discarded.end(),
+        "Discard did not preserve the Practice for recovery");
+    tap(shopControl("life-recover", oldPractice));
+    tap(shopControl("life-slot", "2"));
+    require(view.life_.shop->practices[2].id == oldPractice, "Discarded Practice did not recover");
+    click(actionKind("vassalConfirmLifeNode").c_str());
+    require(view.dialog_, "Checkout review is missing");
+    key(SDLK_ESCAPE);
+    present(nullptr);
+    require(view.life_.shop->practices.front().art == practiceId && session.actionCount() == beforeSpecialty &&
+        session.displayedDigest() == beforeShopDigest, "Cancel checkout changed Live or discarded the draft");
+    click("[data-op=life-cancel-draft]");
+    require(view.life_.shopSpecialty && session.actionCount() == beforeSpecialty &&
+        session.displayedDigest() == beforeShopDigest, "Clear draft changed Live");
+    click(actionKind("vassalSelectLifeOption").c_str());
+    const auto practiceAgain = std::ranges::find(view.life_.shop->offers, practiceId, &ShopItem::piece);
+    require(practiceAgain != view.life_.shop->offers.end(), "Clear draft consumed specialty RNG from Live");
+    pickOffer(*practiceAgain);
+    click("[data-op=life-slot][data-id='0']", true);
     apply(actionKind("vassalConfirmLifeNode").c_str(), true);
+    require(session.actionCount() == beforeSpecialty + 3 &&
+        session.displayedDigest() == session.replayDigest(session.displayed()->second),
+        "Practice checkout did not journal specialty, purchase and confirmation atomically");
     require(view.life_.progress.has_value(), "Shop confirmation did not expose timed resolution");
     present("05-resolving");
     apply(actionControl([](const LifeChoice& option) { return option.command.advance; }).c_str());
@@ -1231,17 +1320,14 @@ void InteractionProbe::lifeMap(Session& session, const SaveSlots& store, const s
     const auto placed = *offer;
     pickOffer(placed);
     const auto span = placed.spans.front();
-    click(("[data-op=life-origin][data-id='" + std::to_string(span.origin) + "']").c_str(), true);
-    require(view.selectedSpan(placed) && view.selectedSpan(placed)->origin == span.origin,
-        "Highlighted construction span was incorrect");
+    const auto destination = "[data-op=life-origin][data-id='" + std::to_string(span.origin) + "']";
+    require(control(destination.c_str()).IsClassSet("valid-target"), "Construction destination is not marked");
     present("08-placement");
-    click("[data-op=life-purchase]");
-    require(view.dialog_, "Structure placement requires confirmation");
-    present("09-purchase-confirmation");
     const auto stagedGeneration = session.generation();
-    click("#dialog-confirm");
-    idle();
-    require(session.generation() > stagedGeneration && view.life_.shop->staged.size() == 1 &&
+    const auto stagedDigest = session.displayedDigest();
+    click(destination.c_str(), true);
+    require(session.generation() == stagedGeneration && session.displayedDigest() == stagedDigest &&
+        view.life_.shop->staged.size() == 1 &&
         view.life_.shop->staged.front().cost.find("Currency") != std::string::npos &&
         view.life_.shop->cells.at(span.origin) != "",
         "Staged purchase did not show its cost and placement");
@@ -1256,33 +1342,46 @@ void InteractionProbe::lifeMap(Session& session, const SaveSlots& store, const s
     const auto liveBeforeRejection = session.displayedDigest();
     const auto beforeCount = session.actionCount();
     const auto beforeGeneration = session.generation();
-    click("[data-op=life-purchase]");
-    require(view.notice_ == rejected.reason && !session.busy(), "Blocked offer did not explain its payment");
+    require(view.selectedOffer() && view.selectedOffer()->reason == rejected.reason &&
+        !session.busy(), "Blocked offer did not explain its payment");
     present("11-insufficient-currency");
-    view.submitLife(rejected.command);
+    view.stageShop(rejected.command);
+    require(view.shopError_ == rejected.reason && view.life_.shop->staged.size() == 1,
+        "Rejected edit changed the detached draft");
+    auto invalidCheckout = view.life_.choices.front().command;
+    invalidCheckout.payload.front().value = core::json::Value("stale-node");
+    view.submitShop(invalidCheckout);
     for (int attempts = 0; session.busy() && attempts < 400; ++attempts) {
         session.update();
         present(nullptr);
         SDL_Delay(1);
     }
-    require(session.error().ends_with("insufficientCurrency") && session.actionCount() == beforeCount &&
-        session.generation() == beforeGeneration && session.displayedDigest() == liveBeforeRejection,
-        "Rejected purchase changed the run or lost its reason");
+    require(session.error().ends_with("nodeUnavailable") && session.actionCount() == beforeCount &&
+        session.generation() == beforeGeneration && session.displayedDigest() == liveBeforeRejection &&
+        view.life_.shop->staged.size() == 1 && view.shopError_ == actionReason("nodeUnavailable"),
+        "Rejected checkout changed the run or lost its draft and reason");
 
     const auto unlock = std::ranges::find_if(view.life_.shop->offers, [](const ShopItem& item) {
         return item.id.starts_with("practice-slot:");
     });
     require(unlock != view.life_.shop->offers.end(), "Missing Practice slot offer");
     pickOffer(*unlock);
-    apply("[data-op=life-purchase]", true);
+    click("[data-op=life-purchase]");
     present("11a-slot-unlock");
     const auto route = std::ranges::find(view.life_.shop->offers, "legacy-route-add", &ShopItem::id);
     require(route != view.life_.shop->offers.end(), "Missing route offer");
     pickOffer(*route);
-    apply("[data-op=life-purchase]", true);
+    click("[data-op=life-purchase]");
     present("11b-connection");
     const auto roads = session.displayed()->roads.size();
-    apply(actionKind("vassalConfirmLifeNode").c_str(), true);
+    click(actionKind("vassalConfirmLifeNode").c_str());
+    require(view.dialog_ && control("#dialog-cost").GetInnerRML().find("Currency") != std::string::npos,
+        "Paid checkout review did not disclose its full cost");
+    present("09-purchase-confirmation");
+    click("#dialog-confirm");
+    idle();
+    require(session.actionCount() == beforeCount + 4 && session.generation() > beforeGeneration,
+        "Checkout did not append one complete batch");
     require(session.displayed()->roads.size() == roads + 1, "Checkout did not build the staged connection");
     const auto activeRegion = std::ranges::find(session.displayed()->regions,
         session.displayed()->vassalRegion, &Region::id);
@@ -1318,14 +1417,111 @@ void InteractionProbe::lifeMap(Session& session, const SaveSlots& store, const s
     click("#life-toggle");
     present("14-loaded");
 
+    const auto openShop = [&](const std::string& id) {
+        view.shell_.open(Launch{.save = shop / (id + ".json"), .horizon = 128});
+        idle();
+        click("#life-toggle");
+        require(view.life_.shop || view.life_.shopSpecialty, "The browser reference Shop is not reachable");
+    };
+    const auto readFixture = [&](const std::string& id) {
+        std::ifstream input(shop / (id + ".json"), std::ios::binary);
+        return core::json::parse(std::string(std::istreambuf_iterator<char>(input), {}));
+    };
+    const auto exactCheckout = [&](const std::string& id) {
+        apply(actionKind("vassalConfirmLifeNode").c_str(), true);
+        const auto frontier = session.displayed()->second;
+        require(session.displayedDigest() == session.replayDigest(frontier),
+            "Reference Shop checkout diverged from authoritative replay");
+        require(core::json::canonical_json(session.journalForTest()) ==
+            core::json::canonical_json(readFixture(id + "-journal")), "Shop action payloads differ from the browser journal");
+        const auto expected = readBrowserSave(readFixture(id + "-checked-out"));
+        require(session.displayedDigest() == sim::state_digest(expected.live),
+            "Shop checkout state differs from the browser reference");
+    };
+    const auto pick = [&](std::string_view id) {
+        click(shopControl("life-offer", id).c_str());
+    };
+    const auto slot = [&](std::size_t index) { return shopControl("life-slot", std::to_string(index)); };
+    const auto space = [&](std::size_t index) { return shopControl("life-origin", std::to_string(index)); };
+    const auto building = [&](std::string_view id) {
+        const auto found = std::ranges::find(view.life_.shop->structures, id, &ShopPiece::id);
+        require(found != view.life_.shop->structures.end(), "Expected Structure is missing from the tableau");
+        return *found;
+    };
+
+    const std::string practices = "seed-42-shops";
+    openShop(practices);
+    const auto random = actionControl([](const LifeChoice& choice) {
+        return choice.command.kind == "vassalSelectLifeOption" && choice.command.payload.front().value.as_string() == "random";
+    });
+    tap(random);
+    const std::string practiceOffer = "life-milestone-milestone-1:r0:practice:0";
+    pick(practiceOffer);
+    click(shopControl("life-insert-mode", "insert").c_str());
+    drag(shopControl("life-offer", practiceOffer), slot(0));
+    exactCheckout(practices);
+
+    const std::string structures = "action-structure-shop";
+    openShop(structures);
+    pick("life-d02-r01:r0:structure:0");
+    tap("[data-op=life-purchase]");
+    const auto reserved = std::ranges::find_if(view.life_.shop->structures, [](const ShopPiece& piece) {
+        return !piece.receipt.empty();
+    });
+    require(reserved != view.life_.shop->structures.end(), "Staged Structure is missing");
+    const auto reservation = *reserved;
+    drag(space(reservation.origin), space(5), "16-structure-drag");
+    require(building(reservation.id).origin == 5, "Reserved Structure did not move");
+    tap("[data-op=life-revert]");
+    require(building(reservation.id).origin == reservation.origin, "Undo did not restore reservation");
+    tap(space(reservation.origin));
+    tap(space(5));
+    const auto oldHousing = building("structure:R12:housing:2");
+    drag(space(oldHousing.origin), space(3));
+    const auto support = building("structure:R12:support");
+    click(space(support.origin).c_str());
+    tap("[data-op=life-scrap]");
+    require(std::ranges::find(view.life_.shop->demolished, support.id, &ShopPiece::id) != view.life_.shop->demolished.end(),
+        "Demolition is missing from the board preview");
+    tap(shopControl("life-recover", support.id));
+    tap(space(support.origin));
+    require(building(support.id).origin == support.origin, "Demolished Structure did not recover");
+    tap("[data-op=life-revert]");
+    present("17-demolition");
+    exactCheckout(structures);
+
+    const std::string unlocks = "action-shop-unlocks";
+    openShop(unlocks);
+    pick("practice-slot:4");
+    tap("[data-op=life-purchase]");
+    pick("practice-slot:5");
+    tap("[data-op=life-purchase]");
+    tap(shopControl("life-undo-purchase", "practice-slot:4"));
+    require(view.shopError_ == actionReason("practiceUnlockInUse") && view.life_.shop->capacity == 5,
+        "A rejected slot undo changed the draft");
+    tap(shopControl("life-undo-purchase", "practice-slot:5"));
+    require(view.life_.shop->capacity == 4, "Undo did not relock the Practice slot");
+    pick("practice-slot:5");
+    tap("[data-op=life-purchase]");
+    exactCheckout(unlocks);
+
+    const std::string currency = "action-shop-currency";
+    openShop(currency);
+    pick("life-d03-r03:r0:structure:1");
+    require(view.selectedOffer() && view.selectedOffer()->reason == actionReason("insufficientCurrency"),
+        "Blocked Structure did not disclose its Currency cost");
+    pick("life-d03-r03:r0:structure:0");
+    tap("[data-op=life-purchase]");
+    exactCheckout(currency);
+
     view.shell_.open(Launch{.save = shop / "retirement.json", .horizon = 128});
     idle();
     click("#life-toggle");
     require(view.life_.succession.find("retired") != std::string::npos && !view.life_.candidates.empty(),
         "Retirement did not display the successor candidates and end of tenure");
     present("15-succession");
-    std::printf("Life Map smoke passed: candidate reroll, appointment, node, placement, payment rejection, "
-        "replay scrub t=%llu, live save/load t=%llu\n",
+    std::printf("Life Map smoke passed: detached draft, cancel and rejection, mouse, keyboard and touch, "
+        "four browser reference checkouts, replay scrub t=%llu, live save/load t=%llu\n",
         static_cast<unsigned long long>(target), static_cast<unsigned long long>(second));
 }
 
