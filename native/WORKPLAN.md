@@ -4,34 +4,38 @@
 
 - **Resumed 25 Nov 2026.** Cam benched the browser performance backport and the
   laptop worker setup (the laptop keeps sleeping). Native app work continues.
-  - On `main` (v1.1.84), direct to main with history kept:
-    - N04j settlement inspection (Overview, Moon, Structures, Practices). The
-      supervisor restored the late restore poll so scrubs present in the
-      requesting frame (see N04j).
-    - N04k living map: the browser's approved illustrated atlas (terrain kit,
-      water, roads, Crown cities, Creep), live easing, and interaction states.
-    - N04m settlement crests and map readouts (v1.1.83): workers, Prestige,
-      allegiance with shield and sword, Force, Crown, Unrest, Monster Strength
-      and repel, Stock coverage exceptions and transfer packets.
-    - N04l atlas fidelity and atmosphere (v1.1.84): relief joins, foundation
-      exclusions, transition profiles, scenery scatter, five terrain LODs,
-      and a Graphics menu (fog, clouds, cloud shadows, wisps, water animation).
-      Bake is about 0.55 s on a background worker.
-  - Verification of the merged tip, on MSVC and clang:
-    - 56/56 CTests, the connected smoke, the settlement, crest and
-      interaction smokes at both sizes, and the shell captures;
+  - On `main`, direct to main with history kept:
+    - v1.1.82–1.1.84: N04j settlement inspection, N04k living map, N04m
+      settlement crests and map readouts, N04l atlas fidelity and atmosphere,
+      and the N06 coverage inventory. The supervisor restored the late restore
+      poll in N04j so scrubs present in the requesting frame.
+    - v1.1.85: the first three coverage items.
+      - N04n run time, outcome and restart: rate transport (±1×/±256×, Hold,
+        Follow, Back to Live), confirmed Live Advance, the survival strip, Game
+        over / Dynasty complete with read-only history, and confirmed New Game.
+      - N04o complete Shop transactions: a detached tableau draft with explicit
+        placement, undo, discard and recovery, and a single validated checkout.
+      - N04p territorial inspection: garrison support with shared eligibility,
+        the Monster-held ruin presentation, settlement cycling, and itemised
+        Stock and neutral storefront readouts.
+  - Verification of the v1.1.85 tip, on MSVC and clang:
+    - 56/56 CTests and the connected smoke;
+    - at both sizes: the settlement, crest, interaction, run (plus the
+      last-tenure and territorial-loss starts), Life Map/Shop and territory
+      smokes, and the shell captures;
     - 30 windows / 153 comparisons with zero masks;
     - 34 journals / 252 replay checkpoints;
     - `npm run verify` and `check:docs`.
-  - Coverage inventory (`native/docs/coverage-inventory.md`, N06) is on main.
-    Its proposed order drives the next waves: run time and outcome, Shop
-    transactions, the Vassal sequence, territory inspection, Research and card
-    consequences, then time inspection controls.
+    - Long benchmark, three runs per compiler on a quiet machine with no
+      paired control: frame p99 2.80–2.84 ms on MSVC and 2.21–2.29 ms on clang
+      (one noisy clang run reached 4.23 ms). Every scrub presented in its
+      requesting frame. Raw reports are in `artifacts/int-n04nop/bench/`.
+  - Next wave, from the coverage inventory's proposed order: the Vassal
+    decision and succession sequence, Research and card consequences, and time
+    inspection controls (Sun/Moon wheel, tenure focus, series, opt-in audio).
   - Still open:
-    - Ruin presentation: a monster-held ruin (seed 42, Southern Forest,
-      s 1584) shows 0 residents beside a dormant Villager ledger of 24. The
-      browser shows the Monster and its Strength instead. The fix is
-      specified in the coverage inventory and assigned to the territory item.
+    - Compact layout: the settlement panel's Overview button crowds the
+      Live time readout at 640×360.
     - Pixel validation is pending while Cam uses the phone. Build with
       `native/tools/bootstrap-android.ps1`, run
       `native/tools/benchmark-android-timegraph.ps1`, and stop HiSuite first.
