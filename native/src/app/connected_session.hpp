@@ -35,7 +35,7 @@ public:
     std::string checkout(const ShopDraft&, const LifeCommand& command);
     LifeReading lifeMap(bool detail) const;
     SettlementReading settlement(const Region& region, SettlementTab tab,
-        std::optional<std::size_t> slot) const;
+        std::optional<std::size_t> slot, std::string_view stockDetail = {}) const;
     bool reorder(std::string_view region, std::size_t from, std::size_t to);
     std::optional<Second> advanceTarget() const;
     bool advanceLive(Second confirmed);

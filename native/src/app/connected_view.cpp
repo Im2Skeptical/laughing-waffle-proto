@@ -446,7 +446,9 @@ void View::refresh()
             if (pendingAction_ == "shop") {
                 shopError_ = split == std::string::npos ? lastError_ : actionReason(lastError_.substr(split + 2));
                 lifeDirty_ = true;
-            } else if (pendingAction_ == "life" && split != std::string::npos)
+            } else if (pendingAction_ == "garrison" && split != std::string::npos)
+                notify("Garrison assignment is no longer available.", true);
+            else if (pendingAction_ == "life" && split != std::string::npos)
                 notify(actionReason(lastError_.substr(split + 2)), true);
             else notify(lastError_, true);
         }
@@ -459,6 +461,8 @@ void View::refresh()
                 show(element("reform-dialog"), false);
                 dialogClosedAt_ = 0;
                 notify("Practice Reform complete. Updating the forecast.");
+            } else if (pendingAction_ == "garrison") {
+                notify("Garrison support updated.");
             } else if (pendingAction_ == "life" || pendingAction_ == "shop") {
                 if (pendingAction_ == "shop") {
                     shopDraft_ = session_.shopDraft();
@@ -582,7 +586,8 @@ void View::drawFrame()
     if (const auto* snapshot = session_.displayed(); !lifeOpen_ && snapshot && !session_.opening() &&
         (screen == Screen::game || screen == Screen::save)) {
         const auto mapStart = measureMapDraw_ ? SDL_GetTicksNS() : 0;
-        const RegionalMap::Display display{now_, session_.viewRevision(), reduced_, !session_.previewing() && drag_ != Drag::graph, graphics_};
+        const RegionalMap::Display display{now_, session_.viewRevision(), reduced_,
+            !session_.previewing() && drag_ != Drag::graph, graphics_, garrisonHighlights_};
         const bool pressed = drag_ == Drag::map && !moved_ && pressedRegion_ == hoveredRegion_;
         map_.draw(renderer_, bounds("map"), *snapshot, session_.shapes(), selection_.region, hoveredRegion_, pressed, display);
         crests_.draw(renderer_, map_, *snapshot, session_.shapes(), hoveredRegion_, pressed,

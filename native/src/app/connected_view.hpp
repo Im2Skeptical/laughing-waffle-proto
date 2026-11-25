@@ -57,6 +57,9 @@ private:
     bool keySettlement(SDL_Keycode key, Rml::Element* focus);
     void syncOverview(const Region& region, const SettlementOverview& reading, bool comparable);
     void activateSettlement(std::string_view op, const std::string& id);
+    void cycleSettlement(bool next);
+    bool chooseGarrison(const std::string& id);
+    void confirmGarrison();
     std::string practiceBoard(const Snapshot& snapshot, const Region& site, bool editable) const;
     std::string structureBoard(const StructureReading* structures);
     void refreshLife(const Snapshot& snapshot);
@@ -110,7 +113,7 @@ private:
     void selectRegion(std::string region);
     void navigateMap(SDL_Keycode key);
     void reviewReform();
-    enum class Confirmation { reform, overwrite, title, life, shop, advanceRun, newRun };
+    enum class Confirmation { reform, overwrite, title, life, shop, advanceRun, newRun, garrison };
     void confirm(Confirmation action, std::string_view title, std::string_view copy,
         std::string_view detail, std::string_view label);
     void closeConfirmation();
@@ -156,6 +159,11 @@ private:
     SettlementTab settlementTab_{SettlementTab::overview};
     SettlementTab renderedSettlementTab_{SettlementTab::overview};
     std::optional<std::size_t> building_;
+    std::string stockDisclosure_, garrisonEntry_;
+    float stockScroll_{};
+    bool garrisonChoosing_{};
+    std::optional<std::string> garrisonTarget_;
+    std::vector<std::size_t> garrisonHighlights_;
     SettlementReading settlementReading_;
     struct LedgerRow {
         Rml::Element* node{};

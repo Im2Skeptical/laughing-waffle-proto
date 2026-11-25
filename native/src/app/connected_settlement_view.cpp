@@ -19,7 +19,7 @@ constexpr std::array classNames{"Villagers", "Strangers"};
 constexpr std::array overviewLedgers{"overview-population", "overview-faith", "overview-provisions", "overview-stock", "overview-control"};
 
 constexpr auto overviewLayout =
-    "<div class=\"settlement-columns\"><div class=\"settlement-column\">"
+    "<div id=\"garrison-entry\"></div><div class=\"settlement-columns\"><div class=\"settlement-column\">"
     "<div class=\"settlement-group\"><h3>Population</h3><p class=\"resident-total\">"
     "<span id=\"overview-total\" class=\"resident-number\">0</span> <span>residents</span></p>"
     "<div id=\"overview-population\"></div></div>"
@@ -64,6 +64,68 @@ std::string rows(const std::vector<Reading>& readings, Values& values, std::stri
 std::string group(std::string_view title, std::string body)
 {
     return "<div class=\"settlement-group\"><h3>" + std::string(title) + "</h3>" + body + "</div>";
+}
+
+std::string ruinLanding(const Snapshot& snapshot, const Region& site, Values& values)
+{
+    const auto i = static_cast<std::size_t>(&site - snapshot.regions.data());
+    const auto& monster = snapshot.crests.regions[i].monster;
+    if (!monster)
+        return "<div class=\"territory-landing\">" + group("Unrestored ruin",
+            "<p class=\"quiet\">The settlement lies idle until it is restored.</p>") + "</div>";
+
+    std::vector<Reading> threat;
+    if (monster->target) {
+        const auto& target = snapshot.regions[*monster->target];
+        const auto detail = monster->defense ? qty(*monster->defense) + " Defense · " +
+            (monster->willBeRepelled ? "Would repel the attack" : "Would be overrun") : "";
+        threat.push_back({"target", "Next attack target", target.name, detail});
+    } else threat.push_back({"target", "Next attack target", "None", ""});
+    if (monster->repelGain)
+        threat.push_back({"repel", "Last attack", "Repelled",
+            "+" + qty(*monster->repelGain) + " Strength at s " + qty(monster->repelSecond)});
+    const auto title = "Monster-held ruin · Strength " + qty(monster->strength);
+    return "<div class=\"territory-landing monster-landing\">" + group(title, rows(threat, values, "monster-")) + "</div>";
+}
+
+std::string storefrontLanding(const StorefrontReading& market, const Region& region, Values& values)
+{
+    const auto identity = market.identity == region.settlement ? "" : escape(market.identity) + " · ";
+    std::string readout = "<p class=\"quiet\">" + identity + qty(region.population) +
+        " residents · " + qty(market.defense) + " Defense</p>";
+    readout += rows(market.offers, values, "storefront-");
+    readout += "<p class=\"quiet\">Adjacent road-connected towns buy supplies through meals and recipes using local Currency.</p>";
+    return "<div class=\"territory-landing market-landing\">" + group("Neutral storefront", std::move(readout)) + "</div>";
+}
+
+std::string stockSources(const Reading& stock)
+{
+    return "<div id=\"stock-drilldown\" class=\"territory-landing\">" +
+        group(escape(stock.label), "<p>" + escape(stock.value + " Stock · " + stock.detail) +
+            "</p><p class=\"stock-source-list\">" + escape(stock.sources) + "</p>") + "</div>";
+}
+
+std::string garrisonPicker(const GarrisonReading& garrison)
+{
+    auto html = "<div id=\"garrison-picker\" class=\"settlement-group territory-landing\"><h3>Garrison support</h3>"
+        "<p>Assigned to " + escape(garrison.supported) + " · " + qty(garrison.defense) +
+        " local Defense · " + qty(garrison.force) + " holding Force</p>";
+    html += "<p class=\"quiet\">Choose where your garrison serves. Eligible allies are marked on the atlas.</p>";
+    if (garrison.warriors <= 0) html += "<p class=\"quiet\">No loyal Warriors are available to send.</p>";
+    html += "<div class=\"garrison-targets\">";
+    for (const auto& choice : garrison.choices) {
+        const auto detail = !choice.reason.empty() ? choice.reason : qty(choice.defense) + " current Defense";
+        const auto label = choice.name + (choice.current ? " · Assigned" : "");
+        html += "<div class=\"garrison-choice\">" + button("settlement-garrison-target", choice.id, label,
+            choice.current ? "garrison-target on" : "garrison-target", detail, choice.current || !choice.reason.empty()) +
+            "<p class=\"quiet\">" + escape(detail) + "</p></div>";
+    }
+    return html + "</div></div>";
+}
+
+bool canManageGarrison(const Session& session, const Snapshot* snapshot)
+{
+    return snapshot && !snapshot->terminal && !session.previewing() && !session.busy();
 }
 
 bool setText(Rml::ElementText& node, const std::string& text)
@@ -169,13 +231,18 @@ void View::syncOverview(const Region& region, const SettlementOverview& reading,
                 const std::string meterMarkup = age ? "<div class=\"settlement-meter reading-hidden\">"
                     "<div class=\"younger\"></div><div class=\"adult\"></div><div class=\"elder\"></div></div>" :
                     hasMeter ? "<div class=\"settlement-meter reading-hidden\"><div></div></div>" : "";
-                node->SetInnerRML("<div class=\"ledger-line\"><span>0</span><span class=\"ledger-value\">0</span></div>" +
+                const auto line = ledger == 3 ?
+                    "<button class=\"ledger-line stock-disclosure\" data-op=\"settlement-stock\" data-id=\"" +
+                        escape(value.key) + "\" data-help=\"Inspect Stock sources\">" :
+                    "<div class=\"ledger-line\">";
+                node->SetInnerRML(line + "<span>0</span><span class=\"ledger-value\">0</span>" +
+                    (ledger == 3 ? "</button>" : "</div>") +
                     meterMarkup + "<p class=\"quiet ledger-detail reading-hidden\">0</p>" +
                     (age ? "<p class=\"quiet ledger-detail reading-hidden\">0</p><p class=\"quiet elder-ages reading-hidden\">0</p>" : ""));
                 row.node = parent.InsertBefore(std::move(node), cursor);
-                auto* line = row.node->GetChild(0);
-                row.text[0] = static_cast<Rml::ElementText*>(line->GetChild(0)->GetChild(0));
-                row.text[1] = static_cast<Rml::ElementText*>(line->GetChild(1)->GetChild(0));
+                auto* label = row.node->GetChild(0);
+                row.text[0] = static_cast<Rml::ElementText*>(label->GetChild(0)->GetChild(0));
+                row.text[1] = static_cast<Rml::ElementText*>(label->GetChild(1)->GetChild(0));
                 row.meter = hasMeter ? row.node->GetChild(1) : nullptr;
                 auto* detail = row.node->GetChild(hasMeter ? 2 : 1);
                 row.text[2] = static_cast<Rml::ElementText*>(detail->GetChild(0));
@@ -188,7 +255,7 @@ void View::syncOverview(const Region& region, const SettlementOverview& reading,
             }
             cursor = row.node->GetNextSibling();
             bool changed = setText(*row.text[0], value.label);
-            changed |= setText(*row.text[1], value.value);
+            changed |= setText(*row.text[1], ledger == 3 ? value.value + " ›" : value.value);
             const auto detail = [&](std::size_t index, const std::string& text) {
                 changed |= setText(*row.text[index], text);
                 visibility(*row.text[index]->GetParentNode(), !text.empty());
@@ -376,14 +443,19 @@ void View::refreshPanel(const Snapshot* snapshot)
     auto& body = element("settlement-scroll");
     if (!sameRegion) {
         building_.reset();
+        stockDisclosure_.clear();
         markersDirty_ = true;
     }
+    const bool canManage = canManageGarrison(session_, snapshot);
+    const bool wasChoosing = document_->GetElementById("garrison-picker") != nullptr;
+    const bool wasStock = document_->GetElementById("stock-drilldown") != nullptr;
+    if (!canManage || !sameRegion || settlementTab_ != SettlementTab::overview) garrisonChoosing_ = false;
     if (document_->IsClassSet("settlement-selected") != (site != nullptr))
         markerSizesDirty_ = true;
     document_->SetClass("settlement-selected", site != nullptr);
     if (site && snapshot && readingChanged) {
         const auto start = std::chrono::steady_clock::now();
-        settlementReading_ = session_.settlement(*site, settlementTab_, selection_.card);
+        settlementReading_ = session_.settlement(*site, settlementTab_, selection_.card, stockDisclosure_);
         settlementModelMs_ = std::chrono::duration<double, std::milli>(std::chrono::steady_clock::now() - start).count();
         settlementReadSecond_ = snapshot->second;
         settlementReadGeneration_ = session_.generation();
@@ -392,21 +464,46 @@ void View::refreshPanel(const Snapshot* snapshot)
         settlementReadSecond_.reset();
         settlementReading_ = {};
     }
-    if (site && !readingChanged && settlementTab_ != SettlementTab::practices)
+    const bool actionStateChanged = busy_ != session_.busy() || previewing_ != session_.previewing();
+    if (site && !readingChanged && settlementTab_ != SettlementTab::practices &&
+        !(actionStateChanged && settlementReading_.overview && settlementReading_.overview->garrison))
         return;
 
     std::string header;
     std::string html;
     Values values;
+    garrisonHighlights_.clear();
+    const GarrisonReading* garrison = settlementReading_.overview && settlementReading_.overview->garrison ?
+        &*settlementReading_.overview->garrison : nullptr;
+    const Reading* sources = nullptr;
+    if (!stockDisclosure_.empty() && settlementReading_.overview) {
+        const auto& economy = settlementReading_.overview->economy;
+        const auto found = std::ranges::find(economy, stockDisclosure_, &Reading::key);
+        if (found != economy.end()) sources = &*found;
+    }
+    if (!sources) stockDisclosure_.clear();
+    if (!garrison) garrisonChoosing_ = false;
     if (!site) {
         header = "<h2>Settlements</h2>";
         html = "<p class=\"empty-reading\">Select a region to view its settlement.</p>";
     } else {
         const auto holder = holderNames[static_cast<std::size_t>(site->holder)];
-        const auto name = site->hasSite ? site->settlement : site->name;
-        header = "<h2 class=\"settlement-name\">" + escape(name) + "</h2><p class=\"quiet settlement-location\">" +
-            (name != site->name ? escape(site->name) + " · " : "") + holder + "</p>";
-        if (site->hasSite) {
+        const auto name = site->hasSite && !site->ruin ? site->settlement : site->name;
+        header = "<h2 class=\"settlement-name\">" + escape(name) + "</h2><div class=\"settlement-location\">"
+            "<span class=\"quiet\">" + (name != site->name ? escape(site->name) + " · " : "") + holder + "</span>";
+        const auto homes = std::ranges::count_if(snapshot->regions, [](const Region& region) {
+            return region.detailed && region.holder == Holder::player;
+        });
+        if (garrisonChoosing_ || sources) {
+            header += button(sources ? "settlement-stock-back" : "settlement-garrison-cancel",
+                {}, "‹ Overview", "settlement-back");
+        } else if (homes > 1 || (homes == 1 && (!site->detailed || site->holder != Holder::player))) {
+            header += "<div class=\"settlement-cycle\">" +
+                button("settlement-cycle", "previous", "‹", "settlement-step", "Previous home settlement [") +
+                button("settlement-cycle", "next", "›", "settlement-step", "Next home settlement ]") + "</div>";
+        }
+        header += "</div>";
+        if (site->detailed && !garrisonChoosing_ && !sources) {
             header += "<div id=\"settlement-tabs\" class=\"settlement-tabs\" role=\"tablist\" aria-label=\"Settlement sections\">";
             for (std::size_t i = 0; i < tabNames.size(); ++i) {
                 const auto index = std::to_string(i);
@@ -417,14 +514,21 @@ void View::refreshPanel(const Snapshot* snapshot)
             header += "</div>";
         }
         const auto& read = settlementReading_;
-        if (!site->hasSite) html = "<p class=\"empty-reading\">No settlement here.</p>";
+        if (site->ruin) html = ruinLanding(*snapshot, *site, values);
+        else if (read.storefront) html = storefrontLanding(*read.storefront, *site, values);
+        else if (!site->detailed) html = "<p class=\"empty-reading\">No active settlement here.</p>";
+        else if (sources) html = stockSources(*sources);
+        else if (garrisonChoosing_) {
+            html = garrisonPicker(*garrison);
+            for (const auto& choice : garrison->choices)
+                if (!choice.id.empty() && choice.reason.empty()) garrisonHighlights_.push_back(choice.region);
+        }
         else switch (settlementTab_) {
         case SettlementTab::overview:
             if (read.overview) html = overviewLayout;
             break;
         case SettlementTab::moon:
-            html = site->detailed ? moonReport(read.moon ? &*read.moon : nullptr, values) :
-                "<p class=\"empty-reading\">Market settlement. No local Moon report.</p>";
+            html = moonReport(read.moon ? &*read.moon : nullptr, values);
             break;
         case SettlementTab::structures:
             html = structureBoard(read.structures ? &*read.structures : nullptr);
@@ -441,10 +545,6 @@ void View::refreshPanel(const Snapshot* snapshot)
             }
             break;
         case SettlementTab::practices:
-            if (!site->detailed) {
-                html = "<p class=\"empty-reading\">Market settlement. No installed Practices.</p>";
-                break;
-            }
             html = practiceBoard(*snapshot, *site, canStage(*snapshot, site));
             if (selection_.card && read.practice) {
                 const auto& card = site->cards[*selection_.card];
@@ -462,9 +562,13 @@ void View::refreshPanel(const Snapshot* snapshot)
     const bool tabChanged = renderedSettlementTab_ != settlementTab_;
     const bool headerChanged = settlementHeader_ != header;
     const bool remount = panelMarkup_ != html;
+    const bool showOverview = settlementReading_.overview && !garrisonChoosing_ && !sources;
+    const auto* focus = context_.GetFocusElement();
+    const bool keyboard = focus && focus->IsPseudoClassSet("focus-visible");
     if (remount) {
-        body.SetClass("overview-scroll", settlementReading_.overview.has_value());
+        body.SetClass("overview-scroll", showOverview);
         for (auto& ledger : overviewRows_) ledger.clear();
+        garrisonEntry_.clear();
     }
     replace(context_, head, settlementHeader_, std::move(header), !dialog_);
     if (headerChanged || tabChanged) {
@@ -482,10 +586,37 @@ void View::refreshPanel(const Snapshot* snapshot)
     }
     replace(context_, body, panelMarkup_, std::move(html), !dialog_);
     const bool comparable = sameReading && before && settlementReadSecond_ != before;
-    if (site && settlementReading_.overview) syncOverview(*site, *settlementReading_.overview, comparable);
-    if (!sameRegion || tabChanged) body.SetScrollTop(0);
+    if (site && showOverview) {
+        syncOverview(*site, *settlementReading_.overview, comparable);
+        auto& entry = element("garrison-entry");
+        const auto markup = !garrison ? "" : button("settlement-garrison", {},
+            pendingAction_ == "garrison" && session_.busy() ? "Assigning garrison…" : "Garrison support · " + garrison->supported,
+            "garrison-entry", canManage ? "Choose where this garrison serves." :
+            session_.previewing() ? "Return to Live to assign support." : snapshot->terminal ? "This run has ended." :
+            "A decision is being applied.", !canManage);
+        replace(context_, entry, garrisonEntry_, markup, !dialog_);
+    }
+    if (wasChoosing != garrisonChoosing_ && keyboard && !dialog_) {
+        Rml::Element* next = nullptr;
+        if (garrisonChoosing_) {
+            const auto choice = std::ranges::find_if(garrison->choices, [](const auto& row) {
+                return !row.current && row.reason.empty();
+            });
+            if (choice != garrison->choices.end())
+                next = body.QuerySelector("[data-op=settlement-garrison-target][data-id='" + choice->id + "']");
+        } else next = body.QuerySelector("[data-op=settlement-garrison]");
+        if (next && !next->HasAttribute("disabled")) next->Focus(true);
+    }
+    if (wasStock != (sources != nullptr) && keyboard && !dialog_) {
+        auto* back = head.QuerySelector("[data-op=settlement-stock-back]");
+        if (back) back->Focus(true);
+        else body.Focus(true);
+    }
+    if (!sameRegion || tabChanged || wasChoosing != garrisonChoosing_) body.SetScrollTop(0);
+    else if (wasStock && !sources) body.SetScrollTop(stockScroll_);
+    else if (!wasStock && sources) body.SetScrollTop(0);
     else if (remount) body.SetScrollTop(scroll);
-    if (comparable && !settlementReading_.overview) {
+    if (comparable && !showOverview) {
         Rml::ElementList entries;
         body.QuerySelectorAll(entries, "[data-reading]");
         for (auto* row : entries) {
@@ -527,6 +658,26 @@ void View::activateSettlement(std::string_view op, const std::string& id)
     } else if (op == "settlement-building") {
         building_ = std::stoul(id);
         settlementDirty_ = true;
+    } else if (op == "settlement-cycle") {
+        cycleSettlement(id == "next");
+    } else if (op == "settlement-stock") {
+        stockScroll_ = element("settlement-scroll").GetScrollTop();
+        stockDisclosure_ = id;
+        settlementDirty_ = true;
+    } else if (op == "settlement-stock-back") {
+        stockDisclosure_.clear();
+        settlementDirty_ = true;
+    } else if (op == "settlement-garrison" && selectedRegion_ == selection_.region &&
+               canManageGarrison(session_, session_.displayed())) {
+        notify("");
+        garrisonChoosing_ = true;
+        settlementDirty_ = true;
+        map_.overview();
+    } else if (op == "settlement-garrison-target") {
+        chooseGarrison(id);
+    } else if (op == "settlement-garrison-cancel") {
+        garrisonChoosing_ = false;
+        settlementDirty_ = true;
     } else if (op == "settlement-help") {
         const auto text = id == "charge" ? "Charge builds on the listed trigger. It is private to this Practice." :
             id == "discharge" ? "Discharge runs the recipe automatically at threshold when its conditions are met." :
@@ -536,9 +687,69 @@ void View::activateSettlement(std::string_view op, const std::string& id)
     }
 }
 
+void View::cycleSettlement(bool next)
+{
+    const auto* snapshot = session_.displayed();
+    const auto* site = selection_.selected(snapshot);
+    if (!site) return;
+    const auto count = snapshot->regions.size();
+    auto index = static_cast<std::size_t>(site - snapshot->regions.data());
+    const auto step = next ? 1 : count - 1;
+    for (std::size_t offset = 1; offset < count; ++offset) {
+        index = (index + step) % count;
+        const auto& candidate = snapshot->regions[index];
+        if (candidate.detailed && candidate.holder == Holder::player) {
+            selectRegion(candidate.id);
+            return;
+        }
+    }
+}
+
+bool View::chooseGarrison(const std::string& id)
+{
+    if (!garrisonChoosing_ || selectedRegion_ != selection_.region || !canManageGarrison(session_, session_.displayed()) ||
+        !settlementReading_.overview || !settlementReading_.overview->garrison) return false;
+    const auto& garrison = *settlementReading_.overview->garrison;
+    const auto choice = std::ranges::find(garrison.choices, id, &GarrisonChoice::id);
+    if (choice == garrison.choices.end()) return false;
+    if (!choice->reason.empty()) {
+        notify(choice->reason + ".", true);
+        return true;
+    }
+    if (choice->current) return true;
+    garrisonTarget_ = id;
+    confirm(Confirmation::garrison, id.empty() ? "Restore local support" : "Assign garrison support",
+        id.empty() ? "Return this garrison to local duty." : "Send this garrison to " + choice->name + ".",
+        id.empty() ? qty(choice->defense) + " current local Defense" :
+            qty(garrison.defense) + " local Defense · " + qty(choice->defense) + " at " + choice->name,
+        id.empty() ? "Restore support" : "Assign support");
+    return true;
+}
+
+void View::confirmGarrison()
+{
+    if (!garrisonTarget_) return;
+    using core::json::Value;
+    const auto target = std::move(*garrisonTarget_);
+    garrisonTarget_.reset();
+    if (!garrisonChoosing_ || !canManageGarrison(session_, session_.displayed()) ||
+        !session_.submit({"settlementAssignGarrison", {{"regionId", Value(selection_.region)},
+            {"targetRegionId", target.empty() ? Value(nullptr) : Value(target)}}})) {
+        notify("Garrison assignment is unavailable in this view.", true);
+        return;
+    }
+    notify("");
+    pendingAction_ = "garrison";
+    pendingGeneration_ = session_.generation();
+    garrisonChoosing_ = false;
+    settlementDirty_ = true;
+}
+
 bool View::backSettlement()
 {
-    if (settlementTab_ == SettlementTab::practices && selection_.card) selection_.card.reset();
+    if (!stockDisclosure_.empty()) stockDisclosure_.clear();
+    else if (garrisonChoosing_) garrisonChoosing_ = false;
+    else if (settlementTab_ == SettlementTab::practices && selection_.card) selection_.card.reset();
     else if (settlementTab_ == SettlementTab::structures && building_) building_.reset();
     else if (settlementTab_ != SettlementTab::overview) settlementTab_ = SettlementTab::overview;
     else return false;
@@ -548,7 +759,12 @@ bool View::backSettlement()
 
 bool View::keySettlement(SDL_Keycode key, Rml::Element* focus)
 {
-    if (!focus || lifeOpen_ || shell_.screen() != Screen::game) return false;
+    if (lifeOpen_ || shell_.screen() != Screen::game) return false;
+    if (key == SDLK_LEFTBRACKET || key == SDLK_RIGHTBRACKET) {
+        cycleSettlement(key == SDLK_RIGHTBRACKET);
+        return true;
+    }
+    if (!focus) return false;
     auto& head = element("settlement-head");
     auto& body = element("settlement-scroll");
     auto* ancestor = focus;

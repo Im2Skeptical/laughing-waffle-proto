@@ -53,7 +53,7 @@ struct Region {
     double population{}, food{}, currency{}, housing{};
     double loyalSharePercent{}, holdingForce{}, requiredForce{};
     std::array<Card, 5> cards;
-    bool hasSite{}, detailed{}, occupied{};
+    bool hasSite{}, detailed{}, ruin{}, occupied{};
 };
 
 enum class Decision { chooseVassal, commission, enterShop, specialty, reorder, advance };

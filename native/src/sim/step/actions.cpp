@@ -19,29 +19,20 @@ ActionResult assign_garrison(RuntimeState& state, const Value& payload)
 {
     const auto player = state.practiceVocabulary.player;
     const auto source = state.find_id<RegionId>(string(payload, "regionId"));
-    auto* site = settlement::detailed_site(state, source);
-    if (!site || !state.hot.rulesetId || territory::region_at(state, source).controller != player)
+    if (!territory::can_assign_garrison(state, source))
         return {"garrisonUnavailable"};
+    auto& site = *settlement::detailed_site(state, source);
 
     std::optional<RegionId> target;
     const auto* requested = payload.find("targetRegionId");
     if (requested && requested->kind() != Kind::null) {
         const auto id = state.find_id<RegionId>(string(payload, "targetRegionId"));
-        if (!id || !settlement::detailed_site(state, id) || territory::region_at(state, id).controller != player ||
-            !practice::detail::has(territory::neighbors(state, source), id) ||
-            !practice::detail::has(territory::roads(state, source), id))
+        if (territory::garrison_target(state, site, id) != territory::GarrisonTarget::eligible)
             return {"supportTargetUnavailable"};
-        bool enabled = false;
-        using content::ModifierKind;
-        for (const auto& mod : practice::detail::modifiers(state, *site)) {
-            enabled |= mod.def->kind == ModifierKind::networkGarrison ||
-                (mod.def->kind == ModifierKind::occupation && mod.def->adjacent.value_or(false));
-        }
-        if (!enabled) return {"supportTargetUnavailable"};
         target = id;
     }
 
-    auto& garrison = site->detailedState.garrison;
+    auto& garrison = site.detailedState.garrison;
     if (!garrison) garrison.emplace().supplied = false;
     const auto assigned = target ? browser::OptionalNullable<RegionId>(*target)
                                  : browser::OptionalNullable<RegionId>(std::nullopt);

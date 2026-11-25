@@ -26,7 +26,7 @@ using waffle::core::json::Value;
 struct Options {
     Launch launch;
     bool smoke{}, interactionSmoke{}, settlementSmoke{}, crestSmoke{}, runSmoke{}, direct{}, record{}, noMapEffects{};
-    std::filesystem::path lifeShop;
+    std::filesystem::path lifeShop, territoryFixture;
     unsigned frames{};
     int width = 1120, height = 640;
     std::string capture, report;
@@ -51,6 +51,7 @@ bool parse(int argc, char** argv, Options& options)
         else if (arg == "--settlement-smoke") options.settlementSmoke = true;
         else if (arg == "--crest-smoke") options.crestSmoke = true;
         else if (arg == "--run-smoke") options.runSmoke = true;
+        else if (arg == "--territory-smoke" && i + 1 < argc) options.territoryFixture = std::filesystem::u8path(argv[++i]);
         else if (arg == "--life-smoke" && i + 1 < argc) options.lifeShop = std::filesystem::u8path(argv[++i]);
         else if (arg == "--size" && i + 2 < argc) {
             if (!parseNumber(argv[++i], options.width) || !parseNumber(argv[++i], options.height) ||
@@ -71,7 +72,7 @@ bool parse(int argc, char** argv, Options& options)
         } else return false;
     }
     return !(options.frames && (options.smoke || options.interactionSmoke || options.settlementSmoke || options.crestSmoke || options.runSmoke ||
-        !options.lifeShop.empty() || !options.capture.empty())) &&
+        !options.lifeShop.empty() || !options.territoryFixture.empty() || !options.capture.empty())) &&
         (!options.record || (options.interactionSmoke && !options.capture.empty())) &&
         (!options.launch.longBenchmark || (options.frames && options.launch.save.empty())) &&
         (!options.noMapEffects || options.frames);
@@ -395,14 +396,15 @@ int run(const Options& options)
     }
     Session session;
     Selection selection;
+    const bool territory = !options.territoryFixture.empty();
     if (options.smoke && !options.interactionSmoke && !options.settlementSmoke && !options.crestSmoke &&
-        !options.runSmoke && options.lifeShop.empty() && options.capture.empty()) {
+        !options.runSmoke && !territory && options.lifeShop.empty() && options.capture.empty()) {
         session.open(options.launch);
         smoke(session, selection, {});
         return 0;
     }
     const bool lifeSmoke = !options.lifeShop.empty();
-    const bool scripted = options.interactionSmoke || options.settlementSmoke || options.crestSmoke || options.runSmoke || lifeSmoke;
+    const bool scripted = options.interactionSmoke || options.settlementSmoke || options.crestSmoke || options.runSmoke || lifeSmoke || territory;
     const bool automated = !options.capture.empty() || scripted || options.frames;
     waffle::SdlAssetFile files;
     System system;
@@ -508,6 +510,7 @@ int run(const Options& options)
         else if (options.settlementSmoke) settlementSmoke(session, view, frame);
         else if (options.crestSmoke) crestSmoke(session, view, frame);
         else if (options.runSmoke) runSmoke(session, view, frame, store);
+        else if (territory) territorySmoke(session, view, frame, store, options.territoryFixture);
         else {
             smoke(session, selection, frame, &view);
             shellSmoke(session, view, frame, store);
@@ -562,7 +565,7 @@ int main(int argc, char** argv)
     Options options;
     if (!parse(argc, argv, options)) {
         std::fputs("Usage: waffle_native_game [--seed N | --load browser.json] [--size WIDTH HEIGHT] "
-                   "[--smoke | --interaction-smoke | --settlement-smoke | --crest-smoke | --run-smoke | --life-smoke FIXTURE_DIR | --save-smoke DIR | --capture DIR [--record] | --bench FRAMES [JSON] [--long-benchmark] [--no-map-effects]]\n", stderr);
+                   "[--smoke | --interaction-smoke | --settlement-smoke | --crest-smoke | --run-smoke | --territory-smoke SAVE_JSON | --life-smoke FIXTURE_DIR | --save-smoke DIR | --capture DIR [--record] | --bench FRAMES [JSON] [--long-benchmark] [--no-map-effects]]\n", stderr);
         return 2;
     }
     try {

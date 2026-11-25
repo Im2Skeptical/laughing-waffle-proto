@@ -234,7 +234,8 @@ Snapshot snapshot(const RuntimeState& state, bool live)
                 region.crown = CrownRank::capital;
             else if (region.settlement == "Remnant Province") region.crown = CrownRank::province;
         }
-        region.detailed = !site.neutral;
+        region.ruin = site.simulationMode == state.territory.ruin;
+        region.detailed = site.simulationMode == state.territory.detailed && !site.neutral;
         if (!region.detailed) continue;
         const auto& board = site.detailedState.practiceSlots.slots;
         for (std::size_t i = 0; i < board.size(); ++i) {
@@ -726,9 +727,9 @@ sim::RuntimeState Session::replayStateForTest(Second second) const
 }
 
 SettlementReading Session::settlement(const Region& region, SettlementTab tab,
-    std::optional<std::size_t> slot) const
+    std::optional<std::size_t> slot, std::string_view stockDetail) const
 {
-    return readSettlement(previewState_ ? *previewState_ : *run_->live, region, tab, slot);
+    return readSettlement(previewState_ ? *previewState_ : *run_->live, region, tab, slot, stockDetail);
 }
 
 std::vector<double> Session::benchmarkReconstruction(std::span<const Second> targets)

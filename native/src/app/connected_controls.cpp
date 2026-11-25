@@ -453,7 +453,8 @@ void View::pointer(const SDL_Event& event)
             pointerDown_ = false;
             if (drag_ == Drag::map) {
                 const auto distance = std::hypot(pointer_.x - pressed_.x, pointer_.y - pressed_.y);
-                if (!moved_ && !longPress_ && distance <= 4.f && !pressedRegion_.empty())
+                if (!moved_ && !longPress_ && distance <= 4.f && !pressedRegion_.empty() &&
+                    !chooseGarrison(pressedRegion_))
                     selectRegion(pressedRegion_);
                 pressedRegion_.clear();
             } else if (drag_ == Drag::graph) {
@@ -722,6 +723,7 @@ void View::activate(Rml::Element& control)
                 shell_.start("");
             }
         }
+        else if (confirmation_ == Confirmation::garrison) confirmGarrison();
         else if (confirmation_ == Confirmation::life) {
             if (lifeConfirm_) submitLife(*lifeConfirm_);
             lifeConfirm_.reset();

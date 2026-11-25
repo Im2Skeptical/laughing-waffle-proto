@@ -594,21 +594,24 @@ void RegionalMap::buildOverlay(SDL_FRect area, const Snapshot& snapshot, const s
     } else {
         for (const auto& road : roads_) drawRoad(road, 1.f);
     }
-    const auto drawHighlight = [&](std::size_t i, bool chosen) {
+    const auto drawHighlight = [&](std::size_t i, float weight, SDL_FColor color) {
         const auto& border = borders_[i];
-        const auto hot = snapshot.regions[i].id == hovered;
         auto a = at(border.back());
         for (const auto& point : border) {
             const auto b = at(point);
             stroke(a, b, 4.5f, seam);
-            stroke(a, b, hot && pressed ? 3.f : chosen ? 2.35f : 1.45f, chosen && !(hot && pressed) ? gold : ivory);
+            stroke(a, b, weight, color);
             a = b;
         }
     };
+    for (const auto i : garrisonTargets_)
+        drawHighlight(i, 3.f, {.61f, .83f, .74f, 1.f});
     for (std::size_t i = 0; i < shapes.size(); ++i)
-        if (snapshot.regions[i].id == hovered && hovered != selected) drawHighlight(i, false);
+        if (snapshot.regions[i].id == hovered && hovered != selected)
+            drawHighlight(i, pressed ? 3.f : 1.45f, ivory);
     for (std::size_t i = 0; i < shapes.size(); ++i)
-        if (snapshot.regions[i].id == selected) drawHighlight(i, true);
+        if (snapshot.regions[i].id == selected)
+            drawHighlight(i, pressed && selected == hovered ? 3.f : 2.35f, pressed && selected == hovered ? ivory : gold);
     for (std::size_t i = 0; i < shapes.size(); ++i) {
         const auto region = paint(i);
         if (region.presence <= 0.f) continue;
@@ -680,7 +683,9 @@ void RegionalMap::draw(SDL_Renderer* renderer, SDL_FRect area, const Snapshot& s
         atmosphere_.drawWater(renderer, destination);
     }
     if (dirty_ || changedAt_ || !sameArea(area, drawnArea_) || camera_ != drawnCamera_ ||
-        selected_ != selected || hovered_ != hovered || pressed_ != pressed) {
+        selected_ != selected || hovered_ != hovered || pressed_ != pressed ||
+        !std::ranges::equal(garrisonTargets_, display.garrisonTargets)) {
+        garrisonTargets_.assign(display.garrisonTargets.begin(), display.garrisonTargets.end());
         buildOverlay(area, snapshot, shapes, selected, hovered, pressed, progress(display.now));
         selected_ = selected;
         hovered_ = hovered;

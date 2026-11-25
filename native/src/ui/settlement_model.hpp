@@ -12,6 +12,7 @@ struct Reading {
     std::string key, label, value, detail;
     bool warning{};
     std::optional<double> fill;
+    std::string sources;
 };
 
 struct Census {
@@ -27,11 +28,31 @@ struct MealReading {
     double demand{}, consumed{}, ratio{}, villagerRatio{}, strangerRatio{};
 };
 
+struct GarrisonChoice {
+    std::string id, name, reason;
+    std::size_t region{};
+    double defense{};
+    bool current{};
+};
+
+struct GarrisonReading {
+    std::string supported;
+    double defense{}, force{}, warriors{};
+    std::vector<GarrisonChoice> choices;
+};
+
 struct SettlementOverview {
     std::array<Census, 2> census;
     std::optional<MealReading> meal;
     std::string housingMoodCap;
     std::vector<Reading> economy, control;
+    std::optional<GarrisonReading> garrison;
+};
+
+struct StorefrontReading {
+    std::string identity;
+    double defense{};
+    std::vector<Reading> offers;
 };
 
 struct MoonReading {
@@ -65,12 +86,13 @@ struct PracticeReading {
 
 struct SettlementReading {
     std::optional<SettlementOverview> overview;
+    std::optional<StorefrontReading> storefront;
     std::optional<MoonReading> moon;
     std::optional<StructureReading> structures;
     std::optional<PracticeReading> practice;
 };
 
 SettlementReading readSettlement(const sim::RuntimeState& state, const Region& region,
-    SettlementTab tab, std::optional<std::size_t> slot = {});
+    SettlementTab tab, std::optional<std::size_t> slot = {}, std::string_view stockDetail = {});
 
 }
