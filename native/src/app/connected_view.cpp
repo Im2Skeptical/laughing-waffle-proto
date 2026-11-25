@@ -522,13 +522,27 @@ void View::prepareFrame()
         session_.updatePreview();
         if (session_.viewRevision() != revision) refresh();
     }
-    if (shell_.screen() != Screen::title && shell_.screen() != Screen::load) {
-        refreshSettlementTime();
-        refreshGraph(loadingVisible_);
-        refreshReadout();
+    const auto refreshLabels = [&] {
+        if (shell_.screen() != Screen::title && shell_.screen() != Screen::load) {
+            refreshSettlementTime();
+            refreshGraph(loadingVisible_);
+            refreshReadout();
+        }
+        refreshHelp();
+        context_.Update();
+    };
+    refreshLabels();
+    // Last chance before drawing: a restore that finished during layout is
+    // presented this frame instead of the next. That costs a second layout on
+    // the frame where it lands, which is cheaper than a frame of scrub latency.
+    if (session_.previewing() && !session_.previewReady()) {
+        const auto revision = session_.viewRevision();
+        session_.updatePreview();
+        if (session_.viewRevision() != revision) {
+            refresh();
+            refreshLabels();
+        }
     }
-    refreshHelp();
-    context_.Update();
 }
 
 void View::drawFrame()

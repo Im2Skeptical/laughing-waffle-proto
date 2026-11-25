@@ -4049,6 +4049,26 @@ typically presents a pending restore before its worker result arrives, so
 most loaded results now appear on the second frame. The grip and restoring
 readout still update on request.
 
+**Supervisor revision: scrub latency over frame cost.** The coalesced
+frame cost one frame of scrub latency with vsync, about 16.7 ms at 60 Hz. The
+supervisor restored the late restore poll after layout. If a restore lands
+during layout, the frame refreshes and lays out again before drawing, so the
+restored values present on the frame that requested them. The reserved
+scrollbar and retained rows remain. Five fresh alternating pairs per preset
+against `fd7d581b` (`artifacts/n04j/paired-latepoll/`):
+
+| Preset | Control frame p50 / p95 / p99 (ms) | Revised frame p50 / p95 / p99 (ms) | Loaded scrub p50 / p95 / p99, control → revised (ms) | Max frames to restore |
+| --- | --- | --- | --- | --- |
+| optimized | 1.444 / 1.890 / 2.499 | 1.969 / 2.260 / 2.486 | 1.450 / 2.093 / 2.526 → 1.971 / 2.260 / 2.486 | 2 → 1 |
+| optimized-clang | 1.188 / 1.834 / 2.357 | 1.655 / 2.080 / 2.461 | 1.211 / 1.883 / 2.600 → 1.659 / 2.080 / 2.461 | 2 → 2 |
+
+The benchmark scrubs on nearly every frame, so almost every sampled frame
+pays the second layout. That accounts for the higher p50. The p99 values are
+within the control spread. Frames stay below 2.5 ms at p99, inside a 120 Hz
+frame (8.3 ms). Restored values now present in the requesting frame instead
+of the next one. The paired table above describes the worker's coalesced
+variant and is kept for reference.
+
 Three instrumented MSVC runs of the merge measured 0.963 ms median document
 layout per loaded frame, with two document layouts and four Overview scroll
 layouts on nearly every frame. A reserved vertical scrollbar removed the
