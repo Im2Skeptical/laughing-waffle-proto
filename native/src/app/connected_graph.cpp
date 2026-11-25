@@ -137,8 +137,8 @@ void View::refreshGraph(bool loading)
     const bool publishing = coverage && chart.through != coverage->publishedThrough;
     const auto* terminal = chart.terminal ? terminalText(*chart.terminal) : nullptr;
     const bool working = graphWorking_ = calculating || publishing;
-    if (live && graphGeneration_ != session_.generation()) {
-        graphOldLive_ = session_.divergence().value_or(live->second);
+    if (live && (graphGeneration_ != session_.generation() || graphLive_ != live->second)) {
+        graphOldLive_ = session_.divergence().value_or(graphLive_);
         graphLive_ = live->second;
         graphGeneration_ = session_.generation();
         graphChangedAt_ = now_;
@@ -225,10 +225,15 @@ void View::refreshGraph(bool loading)
             (*requested < live->second ? "History" : "Preview");
         status = std::string(prefix) + " · " + std::to_string(*requested) + " s";
         if (!session_.previewReady()) status += " · Restoring";
-        else if (terminal && requested == chart.through && !session_.previousPreview()) status = std::string("End · ") + terminal;
-    } else if (session_.busy() && !loading) status = pendingAction_ == "reform" ? "Applying reform" : "Applying decision";
+        else if (terminal && requested == chart.through && !session_.previousPreview())
+            status = std::string(live->terminal ? "Ended · " : "Foreseen · ") + terminal;
+    } else if (session_.busy() && !loading) {
+        if (pendingAction_ == "reform") status = "Applying reform";
+        else if (pendingAction_ == "run-advance") status = "Advancing Live";
+        else status = "Applying decision";
+    }
     else if (working) status = "Forecasting · " + (percentage < 1 ? std::string("<1") : markup::number(percentage)) + "%";
-    else if (terminal) status = std::string("Run ends · ") + terminal;
+    else if (terminal) status = std::string(live && live->terminal ? "Run ended · " : "Foreseen · ") + terminal;
     else if (coverage && *endLabel(coverage->completion)) status = endLabel(coverage->completion);
     else if (live && !loading) status = "Live · " + std::to_string(live->second) + " s";
     else status = "Preparing the forecast";
@@ -646,6 +651,10 @@ bool View::activateGraph(std::string_view op)
 void View::graphKey(SDL_Keycode key, SDL_Keymod modifiers)
 {
     if (key == SDLK_HOME) returnLive();
+    if (key == SDLK_END && session_.browseThrough() && session_.scrub(*session_.browseThrough())) {
+        selection_.destination.reset();
+        focusSecond(*session_.requested());
+    }
     if (key == SDLK_PAGEUP || key == SDLK_PAGEDOWN) jumpEvent(key == SDLK_PAGEDOWN);
     if (key == SDLK_EQUALS || key == SDLK_PLUS || key == SDLK_MINUS)
         activateGraph(key == SDLK_MINUS ? "graph-out" : "graph-in");

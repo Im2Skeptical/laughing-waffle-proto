@@ -209,7 +209,7 @@ void View::returnLive()
     if (!session_.previewing()) return;
     selection_.destination.reset();
     session_.live();
-    notify("Returned to Live.");
+    notify(session_.liveSnapshot()->terminal ? "Returned to the end." : "Returned to Live.");
 }
 
 bool View::back()
@@ -220,7 +220,8 @@ bool View::back()
     } else if (dialog_) {
         shell_.cancelOverwrite();
         closeConfirmation();
-    } else if (graphicsOpen_) showGraphics(false);
+    } else if (shownOutcome_) hideRunOutcome(true);
+    else if (graphicsOpen_) showGraphics(false);
     else if (shell_.screen() == Screen::load) shell_.show(Screen::title);
     else if (shell_.screen() == Screen::save) shell_.show(Screen::game);
     else if (shell_.screen() == Screen::title) return false;
@@ -248,6 +249,9 @@ bool View::key(SDL_Event event)
         if (dialog_) {
             auto& other = element(focus == &element("dialog-back") ? "dialog-confirm" : "dialog-back");
             other.Focus(true);
+        } else if (shownOutcome_) {
+            element(!outcomeProjected_ && focus == &element("outcome-browse") ?
+                "outcome-new" : "outcome-browse").Focus(true);
         } else if (shell_.screen() == Screen::save) {
             Rml::ElementList controls;
             element("shell-panel").QuerySelectorAll(controls, "button");
@@ -292,7 +296,7 @@ bool View::key(SDL_Event event)
             keyDown_ = 0;
         }
     }
-    if (!down || dialog_) return true;
+    if (!down || dialog_ || shownOutcome_) return true;
     if (keySettlement(key, focus)) return true;
     if (focus == &element("map")) {
         if (key == SDLK_LEFT || key == SDLK_RIGHT || key == SDLK_UP || key == SDLK_DOWN) navigateMap(key);
@@ -337,7 +341,8 @@ bool View::input(SDL_Event event)
 
 void View::hoverMap(SDL_FPoint point)
 {
-    auto next = drag_ == Drag::map && !moved_ ? pressedRegion_ : drag_ == Drag::none ? hit(point).value_or("") : "";
+    auto next = shownOutcome_ ? "" :
+        drag_ == Drag::map && !moved_ ? pressedRegion_ : drag_ == Drag::none ? hit(point).value_or("") : "";
     if (next == hoveredRegion_) return;
     hoveredRegion_ = std::move(next);
     markersDirty_ = true;
@@ -346,7 +351,7 @@ void View::hoverMap(SDL_FPoint point)
 void View::refreshMapCursor()
 {
     SDL_Cursor* next = nullptr;
-    if (!touch_ && !dialog_ && !lifeOpen_ && shell_.screen() == Screen::game) {
+    if (!touch_ && !dialog_ && !shownOutcome_ && !lifeOpen_ && shell_.screen() == Screen::game) {
         if (drag_ == Drag::map && moved_) next = mapPan_.get();
         else if (!hoveredRegion_.empty()) next = mapHand_.get();
     }
@@ -357,7 +362,7 @@ void View::refreshMapCursor()
 
 void View::pointer(const SDL_Event& event)
 {
-    const bool game = shell_.screen() == Screen::game;
+    const bool game = shell_.screen() == Screen::game && !shownOutcome_;
     if (event.type == SDL_EVENT_MOUSE_MOTION) {
         pointer_ = {event.motion.x, event.motion.y};
         hoveredAt_ = SDL_GetTicks();
@@ -405,6 +410,7 @@ void View::pointer(const SDL_Event& event)
             if (game && (!dialog_ || confirmation_ == Confirmation::reform) &&
                 contains(plot(), pointer_) && !session_.opening() && !session_.busy() && session_.browseThrough()) {
                 if (dialog_) closeConfirmation();
+                session_.setPlayback(0);
                 element("plot").Focus();
                 drag_ = Drag::graph;
                 if (const auto* marker = eventAt(pointer_)) graphPin_ = marker->second;
@@ -430,7 +436,7 @@ void View::pointer(const SDL_Event& event)
                     if (game && lifeOpen_ && contains(bounds("life-inspector"), pointer_)) drag_ = Drag::lifePanel;
                     if (game && lifeOpen_ && life_.shop && !lifeRoute_ && contains(bounds("life-chart"), pointer_))
                         drag_ = Drag::lifeOffers;
-                    if (!game && contains(bounds("shell-panel"), pointer_)) drag_ = Drag::shell;
+                    if (shell_.screen() != Screen::game && contains(bounds("shell-panel"), pointer_)) drag_ = Drag::shell;
                 }
                 if (const auto slot = game && !lifeOpen_ ? cardAt(pointer_) : std::nullopt;
                     !dialog_ && slot && snapshot && !selection_.destination && canStage(*snapshot, site) &&
@@ -625,6 +631,11 @@ void View::activate(Rml::Element& control)
     const auto op = control.GetAttribute<Rml::String>("data-op", "");
     const auto id = control.GetAttribute<Rml::String>("data-id", "");
     if (dialog_ && op != "back" && op != "confirm") return;
+    if (shownOutcome_ && op != "run-browse" && op != "run-new" && op != "back" && op != "confirm") return;
+    if (op.starts_with("run-")) {
+        activateRun(op, id);
+        return;
+    }
     if (op == "graphics") showGraphics(!graphicsOpen_);
     else if (op.starts_with("graphics-")) {
         struct Setting { std::string_view op; const char* label; bool MapGraphics::*value; };
@@ -694,6 +705,18 @@ void View::activate(Rml::Element& control)
         closeConfirmation();
         if (confirmation_ == Confirmation::overwrite) shell_.confirmOverwrite();
         else if (confirmation_ == Confirmation::title) shell_.returnToTitle();
+        else if (confirmation_ == Confirmation::advanceRun) {
+            if (confirmedAdvance_ && session_.advanceLive(*confirmedAdvance_)) {
+                pendingAction_ = "run-advance";
+                pendingGeneration_ = session_.generation();
+            } else notify("The Live advance is no longer available.", true);
+            confirmedAdvance_.reset();
+        } else if (confirmation_ == Confirmation::newRun) {
+            if (const auto* live = session_.liveSnapshot(); live && live->outcome) {
+                hideRunOutcome();
+                shell_.start("");
+            }
+        }
         else if (confirmation_ == Confirmation::life) {
             if (lifeConfirm_) submitLife(*lifeConfirm_);
             lifeConfirm_.reset();

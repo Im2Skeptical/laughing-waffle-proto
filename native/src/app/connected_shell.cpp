@@ -45,7 +45,7 @@ void Shell::open(const Launch& launch)
 {
     selection_.select({});
     session_.open(launch);
-    savedActionCount_.reset();
+    savedFrontier_.reset();
     loadingNativeSave_ = launch.nativeSave;
     ++runRevision_;
     show(Screen::game);
@@ -55,7 +55,7 @@ void Shell::update()
 {
     session_.update();
     if (loadingNativeSave_ && session_.liveSnapshot()) {
-        savedActionCount_ = session_.actionCount();
+        savedFrontier_ = std::pair{session_.liveSnapshot()->second, session_.actionCount()};
         loadingNativeSave_ = false;
     }
     if (screen_ == Screen::game && !session_.liveSnapshot() && !session_.error().empty()) {
@@ -121,14 +121,15 @@ void Shell::continueGame()
 
 bool Shell::hasUnsavedProgress() const
 {
-    return session_.liveSnapshot() && savedActionCount_ != session_.actionCount();
+    const auto* live = session_.liveSnapshot();
+    return live && savedFrontier_ != std::pair{live->second, session_.actionCount()};
 }
 
 bool Shell::save(Slot slot)
 {
     try {
         const bool written = session_.save(slots_, slot);
-        if (written) savedActionCount_ = session_.actionCount();
+        if (written) savedFrontier_ = std::pair{session_.liveSnapshot()->second, session_.actionCount()};
         else message("Wait for the current decision to finish before saving.", true);
         return written;
     } catch (const std::exception& error) {

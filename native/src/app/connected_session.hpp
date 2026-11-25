@@ -35,8 +35,17 @@ public:
     SettlementReading settlement(const Region& region, SettlementTab tab,
         std::optional<std::size_t> slot) const;
     bool reorder(std::string_view region, std::size_t from, std::size_t to);
+    std::optional<Second> advanceTarget() const;
+    bool advanceLive(Second confirmed);
     bool scrub(Second second);
     void live();
+    bool followForecast();
+    bool setPlayback(int rate);
+    void updatePlayback(double elapsed);
+    bool followingForecast() const { return followingForecast_; }
+    int playbackRate() const { return playbackRate_; }
+    std::optional<RunOutcome> projectedOutcome() const { return projectedOutcome_; }
+    Second bestSurvivalYear() const { return bestSurvivalYear_; }
 
     const Snapshot* displayed() const { return preview_ ? &*preview_ : liveSnapshot(); }
     const Snapshot* liveSnapshot() const { return run_ ? &run_->snapshot : nullptr; }
@@ -65,6 +74,8 @@ public:
     std::vector<double> benchmarkReconstruction(std::span<const Second> targets);
     // Test-only reads. The preview digest is from the same state that fed the view.
     std::uint64_t displayedDigest() const;
+    std::uint64_t liveDigest() const;
+    std::string journalDigest() const;
     std::uint64_t replayDigest(Second second) const;
     sim::RuntimeState replayStateForTest(Second second) const;
     std::size_t actionCount() const { return run_->journal.entries().size(); }
@@ -81,8 +92,9 @@ private:
         std::optional<Second> divergence;
     };
 
-    void transact(std::vector<sim::Action> actions, bool resolve = false);
+    void transact(std::vector<sim::Action> actions, bool resolve = false, std::optional<Second> target = {});
     void readChart(const timegraph::Coverage& coverage);
+    bool requestPreview(Second second, bool allowComparison);
 
     timegraph::Forecast forecast_;
     std::future<std::shared_ptr<const Run>> job_;
@@ -93,6 +105,11 @@ private:
     std::optional<sim::RuntimeState> previewState_;
     std::optional<Snapshot> preview_;
     Chart chart_, previousChart_;
+    std::optional<RunOutcome> projectedOutcome_;
+    Second bestSurvivalYear_{};
+    double playbackSecond_{};
+    int playbackRate_{};
+    bool followingForecast_{};
     std::array<timegraph::SummaryHeader, 64> headers_;
     std::vector<timegraph::SiteSummary> sites_;
     std::string error_;

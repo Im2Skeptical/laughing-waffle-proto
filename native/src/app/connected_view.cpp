@@ -151,6 +151,7 @@ void View::refreshShell()
         map_.reset();
         crests_.reset();
         resetGraph();
+        resetRun();
         setLifeOpen(false);
         refreshMarkers(nullptr);
         hoveredRegion_.clear();
@@ -486,13 +487,11 @@ void View::refresh()
             element("timegraph").SetClass("preview", previewing_);
             element("live").SetClass("on", !previewing_);
             element("live").SetClass("primary", previewing_);
-            element("live").SetInnerRML(previewing_ ? "Back to Live" : "Live");
         }
         selectedRegion_ = selection_.region;
         selectedCard_ = selection_.card;
         staged_ = selection_.destination;
-        const auto clock = snapshot ? "Year " + number(snapshot->year) + "  ·  " +
-            number(snapshot->prestige) + " Prestige" : "";
+        const auto clock = snapshot ? number(snapshot->prestige) + " Prestige" : "";
         if (clock != currentClock_) {
             currentClock_ = clock;
             bindings_.DirtyVariable("clock");
@@ -529,6 +528,13 @@ void View::refresh()
 void View::prepareFrame()
 {
     now_ = SDL_GetTicks();
+    if (runFrameAt_ && shell_.screen() == Screen::game && !dialog_ && !shownOutcome_ &&
+        (session_.playbackRate() || session_.followingForecast())) {
+        const auto requested = session_.requested();
+        session_.updatePlayback(static_cast<double>(std::min<Uint64>(now_ - runFrameAt_, 100)) / 1000.);
+        if (session_.requested() != requested && session_.requested()) focusSecond(*session_.requested());
+    }
+    runFrameAt_ = now_;
     refresh();
     // Give a pending restore the rest of the frame's preparatory work to
     // finish. Update the seek labels only after this poll, so a ready snapshot
@@ -543,6 +549,7 @@ void View::prepareFrame()
         if (shell_.screen() != Screen::title && shell_.screen() != Screen::load) {
             refreshSettlementTime();
             refreshGraph(loadingVisible_);
+            refreshRun();
             refreshReadout();
         }
         refreshHelp();
@@ -585,7 +592,7 @@ void View::drawFrame()
     context_.Render();
     SDL_SetRenderDrawBlendMode(renderer_, SDL_BLENDMODE_NONE);
     SDL_SetRenderClipRect(renderer_, nullptr);
-    if (screen == Screen::game) drawGraph();
+    if (screen == Screen::game && !shownOutcome_) drawGraph();
 }
 
 }

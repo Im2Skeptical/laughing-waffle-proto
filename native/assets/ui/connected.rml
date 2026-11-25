@@ -11,10 +11,29 @@
   <h1 id="screen-title">Regional Map</h1>
   <div id="header-controls">
     <div id="clock">{{clock}}</div>
+    <button id="run-advance" class="button primary" data-op="run-advance"
+      data-help="Commit time from Live before appointing a Vassal.">Advance Live</button>
     <button id="motion" class="toggle" data-op="motion" data-help="Reduce camera and interface motion.">Motion On</button>
     <button id="life-toggle" class="tab" data-op="life-toggle" data-help="Open the Vassal Life Map.">Life Map</button>
     <button id="save-game" class="button" data-op="save" data-help="Save the current run to a manual slot.">Save</button>
     <button id="title-game" class="button" data-op="title" data-help="Return to the title screen.">Title</button>
+  </div>
+</div>
+<div id="run-strip" role="group" aria-label="Civilization survival and viewed time">
+  <div class="run-reading" id="run-calendar"><div id="run-year"></div><div id="run-season" class="quiet"></div></div>
+  <div class="run-reading" id="run-tenures"><div id="run-tenure-count"></div><div id="run-best" class="quiet"></div></div>
+  <button class="run-reading" id="run-outcome" data-op="run-outcome" aria-haspopup="dialog">
+    <span id="run-cause"></span><span id="run-loss-year" class="quiet"></span>
+  </button>
+  <div class="run-reading" id="run-mode"><div id="run-viewed"></div><div id="run-live-time" class="quiet"></div></div>
+  <div class="run-reading" id="run-range"><div id="run-bounds"></div><div id="run-transport-state" class="quiet"></div></div>
+  <div id="run-controls" role="group" aria-label="Read-only time playback">
+    <button id="run-rewind-fast" class="toggle" data-op="run-speed" data-id="-256" aria-label="Rewind at 256 times speed" data-help="Fast rewind through the timeline.">−256×</button>
+    <button id="run-rewind" class="toggle" data-op="run-speed" data-id="-1" aria-label="Rewind at normal speed" data-help="Rewind one game second per second.">−1×</button>
+    <button id="run-hold" class="toggle" data-op="run-speed" data-id="0" data-help="Hold the viewed second.">Hold</button>
+    <button id="run-forward" class="toggle" data-op="run-speed" data-id="1" aria-label="Play at normal speed" data-help="Play one game second per second.">+1×</button>
+    <button id="run-forward-fast" class="toggle" data-op="run-speed" data-id="256" aria-label="Play at 256 times speed" data-help="Fast forward through the timeline.">+256×</button>
+    <button id="run-follow" class="toggle" data-op="run-follow" data-help="Follow the latest available forecast second.">Follow</button>
   </div>
 </div>
 <div id="map" role="group" aria-label="Regional map" data-help="Select a region. Drag to pan, or use the arrow keys to select a settlement.">
@@ -62,6 +81,19 @@
 </div>
 </div>
 <div id="shell" class="shell-overlay"><div id="shell-panel"></div></div>
+<div id="outcome-overlay">
+  <div id="outcome-dialog" class="dialog" role="dialog" aria-modal="true" aria-labelledby="outcome-title">
+    <div id="outcome-year" class="gold"></div>
+    <h2 id="outcome-title"></h2>
+    <h3 id="outcome-cause"></h3>
+    <p id="outcome-copy"></p>
+    <p id="outcome-guidance" class="quiet"></p>
+    <div id="outcome-actions">
+      <button id="outcome-browse" class="button" data-op="run-browse">Browse timeline</button>
+      <button id="outcome-new" class="button primary" data-op="run-new">New Game</button>
+    </div>
+  </div>
+</div>
 <div id="modal-dimmer"></div>
 <div id="reform-dialog" class="dialog" role="dialog" aria-labelledby="dialog-title">
   <h2 id="dialog-title">Confirm Practice Reform</h2>

@@ -81,6 +81,7 @@ set(WAFFLE_CONNECTED_SOURCES
 	src/app/connected_crest_art.cpp
 	src/app/connected_crests.cpp
 	src/app/connected_graph.cpp
+	src/app/connected_run_view.cpp
 	src/app/connected_life_view.cpp
 	src/app/connected_map.cpp
 	src/app/connected_map_art.cpp
