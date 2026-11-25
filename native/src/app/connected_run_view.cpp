@@ -1,6 +1,8 @@
 #include "connected_view.hpp"
 #include "connected_markup.hpp"
 
+#include <RmlUi/Core/ElementText.h>
+
 #include <algorithm>
 
 namespace waffle::connected {
@@ -103,7 +105,7 @@ void View::refreshRun()
     const char* mode = key.preview ? (key.previous ? "Old forecast" :
         viewed->second <= live->second ? "History" : "Forecast") : live->terminal ? "Run ended" : "Live";
     const std::string boundary = live->terminal ? "End " : "Live ";
-    const std::array<std::pair<const char*, std::string>, 10> labels{{
+    std::array<std::pair<const char*, std::string>, 10> labels{{
         {"run-year", "Year " + markup::number(viewed->year)},
         {"run-season", viewed->season},
         {"run-tenure-count", "Tenures " + std::to_string(left) + "/10"},
@@ -119,8 +121,12 @@ void View::refreshRun()
             key.rate < 0 ? "Rewinding" : "Bounds"}
     }};
     for (std::size_t i = 0; i < labels.size(); ++i) {
-        const auto& [id, value] = labels[i];
-        if (runLabels_[i] != value) element(id).SetInnerRML(markup::escape(runLabels_[i] = value));
+        auto& [id, value] = labels[i];
+        if (runLabels_[i] == value) continue;
+        auto& node = element(id);
+        if (auto* child = node.GetChild(0)) static_cast<Rml::ElementText*>(child)->SetText(value);
+        else node.SetInnerRML(markup::escape(value));
+        runLabels_[i] = std::move(value);
     }
 
     auto& outcome = element("run-outcome");
