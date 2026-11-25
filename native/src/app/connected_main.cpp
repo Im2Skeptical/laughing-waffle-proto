@@ -330,6 +330,14 @@ void benchmark(SDL_Renderer* renderer, SdlRmlRenderer& bridge, View& view, Sessi
 #endif
     const auto reconstructed = session.benchmarkReconstruction(targets);
     for (std::size_t i = 0; i < restoreRender.size(); ++i) restoreRender[i] += reconstructed[i];
+    // Time cached map submission separately, with the forecast and timed scrubs complete.
+    std::vector<double> mapDraw;
+    mapDraw.reserve(240);
+    view.measureMapDraw();
+    for (int i = 0; i < 240; ++i) {
+        present();
+        mapDraw.push_back(view.mapDrawMs());
+    }
     const auto backend = SDL_GetRendererName(renderer);
     const Value result(Value::Object{
         {"startup_first_present_ms", Value(startup)}, {"startup_interactive_ms", Value(ready)},
@@ -344,6 +352,9 @@ void benchmark(SDL_Renderer* renderer, SdlRmlRenderer& bridge, View& view, Sessi
         {"scrubs_started_during_forecast", Value(static_cast<double>(loadedVisible.size()))},
         {"summary_batches", Value(static_cast<double>(summaries.size()))},
         {"frame_ms", stats(frames)}, {"summary_transfer_ms", stats(summaries)},
+        {"terrain_bake_ms", Value(view.terrainBakeMs())}, {"steady_map_draw_ms", stats(mapDraw)},
+        {"terrain_upload_ms", Value(view.terrainUploadMs())},
+        {"map_texture_bytes", Value(static_cast<double>(view.mapTextureBytes()))},
         {"graph_decimation_ms", stats(decimations)},
         {"render_present_ms", stats(renders)}, {"isolated_reconstruction_ms", stats(reconstructed)},
         {"reconstruction_plus_render_ms", stats(restoreRender)},
@@ -463,7 +474,7 @@ int run(const Options& options)
         const auto frame = [&](const char* capture) {
             const std::string_view label = capture ? capture : "";
             if (options.record && label == "04-reform-staged") recordActive = true;
-            if (capture && !options.capture.empty() && std::string_view(capture) != "06-forecast-running") {
+            if (capture && !options.capture.empty() && label != "06-forecast-running" && !label.starts_with("n04k-live-")) {
                 // Settle decorative motion before capturing the named state.
                 for (int frame = 0; frame < 18; ++frame) {
                     session.update();

@@ -2,55 +2,105 @@
 
 #include <algorithm>
 #include <cmath>
+#include <chrono>
+#include <iterator>
 
 namespace waffle::connected {
 namespace {
 
-constexpr SDL_FColor ground{.09f, .145f, .15f, 1};
-constexpr SDL_FColor seam{.14f, .14f, .11f, 1};
+constexpr SDL_FColor seam{.13f, .12f, .085f, 1};
 constexpr SDL_FColor gold{1, .82f, .48f, 1};
-constexpr int terrainWidth = 880, terrainHeight = 550;
-constexpr std::array<SDL_FColor, 4> factions{{
-    {.69f, .78f, .46f, 1}, {.81f, .56f, .34f, 1}, {.53f, .60f, .55f, 1}, {.82f, .40f, .35f, 1}}};
-constexpr std::array<SDL_FColor, 7> biomes{{
-    {.47f, .49f, .28f, 1}, {.43f, .41f, .38f, 1}, {.25f, .37f, .26f, 1}, {.22f, .40f, .43f, 1},
-    {.54f, .48f, .31f, 1}, {.32f, .39f, .32f, 1}, {.36f, .37f, .31f, 1}}};
+constexpr SDL_FColor ivory{1, .94f, .77f, 1};
+constexpr std::array<std::array<float, 3>, 4> factions{{
+    {.69f, .78f, .46f}, {.81f, .56f, .34f}, {.60f, .63f, .55f}, {.87f, .40f, .35f}}};
+constexpr float transitionMs = 265.f;
 
-SDL_FColor mix(SDL_FColor a, SDL_FColor b, float t)
+SDL_FColor withAlpha(SDL_FColor colour, float alpha)
 {
-    return {std::lerp(a.r, b.r, t), std::lerp(a.g, b.g, t), std::lerp(a.b, b.b, t), 1};
+    colour.a = alpha;
+    return colour;
 }
 
-float grain(std::size_t region, std::size_t ordinal)
+SDL_FPoint between(SDL_FPoint a, SDL_FPoint b, float t)
 {
-    // Stable ink placement from topology indices. Presentation never draws game RNG.
-    auto bits = static_cast<std::uint32_t>(region * 16987u + ordinal * 11147u);
-    bits = (bits ^ (bits >> 16)) * 0x45d9f3bu;
-    bits = (bits ^ (bits >> 16)) * 0x45d9f3bu;
-    return static_cast<float>((bits ^ (bits >> 16)) & 255u) / 255.f;
+    return {std::lerp(a.x, b.x, t), std::lerp(a.y, b.y, t)};
 }
 
-Point lerp(Point a, Point b, double fraction)
+bool sameArea(SDL_FRect a, SDL_FRect b)
 {
-    return {std::lerp(a[0], b[0], fraction), std::lerp(a[1], b[1], fraction)};
+    return a.x == b.x && a.y == b.y && a.w == b.w && a.h == b.h;
 }
 
+}
+
+void RegionalMap::prepare(std::shared_ptr<const MapGeography> geography, const Snapshot& opening)
+{
+    if (!geography || geography == geography_) return;
+    if (pendingTerrain_.valid()) {
+        if (pendingTerrain_.wait_for(std::chrono::seconds(0)) != std::future_status::ready) return;
+        pendingTerrain_.get(); // This world was replaced before its bake finished.
+    }
+    geography_ = std::move(geography);
+    baked_.reset();
+    invalidateTerrain();
+    pendingTerrain_ = std::async(std::launch::async, [art = art_, geography = geography_, opening] {
+        return bakeMapTerrain(*art, *geography, opening);
+    });
+}
+
+void RegionalMap::prepareTextures(SDL_Renderer* renderer, SDL_FRect area)
+{
+    if (!baked_ && pendingTerrain_.valid() &&
+        pendingTerrain_.wait_for(std::chrono::seconds(0)) == std::future_status::ready) {
+        baked_ = pendingTerrain_.get();
+        dirty_ = true;
+    }
+    if (!baked_) return;
+    // Hysteresis keeps a wheel ease from repeatedly changing texture levels.
+    const auto score = area.w * camera_.zoom;
+    const bool compact = score < (compact_ ? 475.f : 415.f);
+    if (terrain_ && towns_ && compact == compact_) return;
+    const auto start = SDL_GetTicksNS();
+    const auto upload = [&](const MapPixels& image) {
+        auto* texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA32, SDL_TEXTUREACCESS_STATIC,
+            image.width, image.height);
+        if (!texture) throw std::runtime_error(SDL_GetError());
+        if (!SDL_UpdateTexture(texture, nullptr, image.rgba.data(), image.width * 4)) {
+            SDL_DestroyTexture(texture);
+            throw std::runtime_error(SDL_GetError());
+        }
+        SDL_SetTextureScaleMode(texture, SDL_SCALEMODE_LINEAR);
+        SDL_SetTextureBlendMode(texture, SDL_BLENDMODE_BLEND);
+        return texture;
+    };
+    const auto& pixels = compact ? baked_->compact : baked_->full;
+    terrain_.reset(upload(pixels));
+    if (!towns_) towns_.reset(upload(art_->towns.pixels));
+    compact_ = compact;
+    textureBytes_ = pixels.rgba.size() + art_->towns.pixels.rgba.size();
+    uploadMs_ = static_cast<double>(SDL_GetTicksNS() - start) / 1e6;
+    dirty_ = true;
 }
 
 void RegionalMap::reset()
 {
     camera_ = target_ = {};
-    facets_.clear();
-    engravings_.clear();
     borders_.clear();
-    invalidateTerrain();
+    ink_.clear();
+    roads_.clear();
+    changedAt_.reset();
+    revision_.reset();
+    wasLive_ = false;
+    dirty_ = true;
     revealedAt_ = 0;
+    invalidateTerrain();
 }
 
 void RegionalMap::invalidateTerrain()
 {
     terrain_.reset();
-    triedTexture_ = false;
+    towns_.reset();
+    textureBytes_ = 0;
 }
 
 void RegionalMap::overview() { target_ = {}; }
@@ -129,170 +179,436 @@ SDL_FPoint RegionalMap::project(Point point, SDL_FRect area) const
         area.y + area.h * (.46f + static_cast<float>(point[1] - .5) * camera_.zoom * .84f + camera_.y)};
 }
 
-void RegionalMap::cache(const Snapshot& snapshot, const std::vector<RegionShape>& shapes)
+std::optional<RegionalMap::Hit> RegionalMap::hit(SDL_FPoint point, SDL_FRect area, const Snapshot& snapshot,
+    const std::vector<RegionShape>& shapes) const
 {
+    const auto targetRadius = std::clamp(area.h * .064f, 12.f, 20.f);
+    float closest = targetRadius * targetRadius;
+    std::optional<Hit> settlement;
+    if (!SDL_PointInRectFloat(&point, &area)) return {};
     for (std::size_t i = 0; i < shapes.size(); ++i) {
-        const auto& shape = shapes[i];
-        const auto biome = snapshot.regions[i].biome;
-        const auto outline = shape.outline.size();
-        // Preserve the full coast in the terrain texture. Province overlays
-        // use a screen-sized outline so zooming and scrubbing stay cheap.
-        auto& border = borders_.emplace_back();
-        for (const auto& point : shape.outline) {
-            if (border.empty() || std::hypot(point[0] - border.back()[0], point[1] - border.back()[1]) > .009)
-                border.push_back(point);
-        }
-        if (border.size() < 3) border = shape.outline;
-        for (std::size_t j = 0; j < outline; ++j) {
-            const auto a = shape.outline[j], b = shape.outline[(j + 1) % outline];
-            const auto ridge = lerp(shape.label, lerp(a, b, .5), .47);
-            const auto shade = static_cast<float>((ridge[0] - shape.label[0]) - (ridge[1] - shape.label[1])) * .45f;
-            facets_.push_back({{shape.label, a, ridge}, .08f + shade, i});
-            facets_.push_back({{shape.label, ridge, b}, .06f + shade, i});
-            facets_.push_back({{ridge, a, b}, shade, i});
-            if (j % 7 != 0) continue;
-            for (std::size_t mark = 0; mark < 2; ++mark) {
-                const auto n = j * 11 + mark * 3;
-                const auto p = lerp(shape.label, lerp(a, b, .2 + .6 * grain(i, n)), .30 + .48 * grain(i, n + 1));
-                const auto ink = mix(biomes.at(biome), seam, .32f);
-                const double s = .003 + .004 * grain(i, n + 2);
-                if (biome == 1 || biome == 2) {
-                    const auto rise = biome == 1 ? 1.55 : 1.15;
-                    engravings_.push_back({{p[0] - s, p[1] + s * .5}, {p[0], p[1] - s * rise}, ink});
-                    engravings_.push_back({{p[0], p[1] - s * rise}, {p[0] + s, p[1] + s * .5}, ink});
-                    if (biome == 2) engravings_.push_back({p, {p[0], p[1] + s}, ink});
-                } else {
-                    const auto slope = biome == 0 ? s * .5 : biome == 5 ? s * .18 : 0.;
-                    engravings_.push_back({{p[0] - s, p[1] + slope}, {p[0] + s, p[1] - slope}, ink});
-                }
-            }
+        if (!snapshot.regions[i].hasSite && !snapshot.regions[i].occupied) continue;
+        const auto anchor = project(shapes[i].label, area);
+        const auto dx = point.x - anchor.x, dy = point.y - anchor.y;
+        const auto distance = dx * dx + dy * dy;
+        if (distance <= closest) {
+            closest = distance;
+            settlement = Hit{i, true};
         }
     }
+    if (settlement) return settlement;
+
+    const Point local{
+        .5 + ((point.x - area.x) / area.w - .5f - camera_.x) / (camera_.zoom * .94f),
+        .5 + ((point.y - area.y) / area.h - .46f - camera_.y) / (camera_.zoom * .84f)};
+    for (std::size_t i = 0; i < shapes.size(); ++i) {
+        const auto& polygon = shapes[i].outline;
+        if (polygon.size() < 3) continue;
+        bool inside = false;
+        auto a = polygon.back();
+        for (const auto& b : polygon) {
+            if ((a[1] > local[1]) != (b[1] > local[1]) &&
+                local[0] < (b[0] - a[0]) * (local[1] - a[1]) / (b[1] - a[1]) + a[0])
+                inside = !inside;
+            a = b;
+        }
+        if (inside) return Hit{i, false};
+    }
+    return {};
+}
+
+RegionalMap::Territory RegionalMap::blend(const Territory& from, const Territory& to, float t)
+{
+    return {{std::lerp(from.colour[0], to.colour[0], t), std::lerp(from.colour[1], to.colour[1], t),
+                std::lerp(from.colour[2], to.colour[2], t)},
+        std::lerp(from.control, to.control, t), std::lerp(from.scale, to.scale, t),
+        std::lerp(from.presence, to.presence, t), std::lerp(from.creep, to.creep, t), std::lerp(from.market, to.market, t)};
+}
+
+float RegionalMap::progress(Uint64 now) const
+{
+    if (!changedAt_) return 1.f;
+    const auto remaining = 1.f - std::clamp(static_cast<float>(now - *changedAt_) / transitionMs, 0.f, 1.f);
+    return 1.f - remaining * remaining * remaining;
+}
+
+void RegionalMap::updateInk(const Snapshot& snapshot, Display display)
+{
+    // Preview requests cancel motion immediately, including the frames while a
+    // new restore is being prepared. Returning to Live also snaps to its state.
+    if (changedAt_ && (display.reduced || !display.live || progress(display.now) >= 1.f)) {
+        changedAt_.reset();
+        dirty_ = true;
+    }
+    const bool adjacentLiveViews = wasLive_ && display.live;
+    wasLive_ = display.live;
+    if (revision_ == display.revision) return;
+    revision_ = display.revision;
+    dirty_ |= capital_ != snapshot.capital;
+    capital_ = snapshot.capital;
+
+    incoming_.clear();
+    for (const auto& region : snapshot.regions) {
+        const bool creep = region.occupied;
+        const auto footprint = 4.3f + .24f * static_cast<float>(std::sqrt(std::clamp(region.population, 0., 300.)));
+        incoming_.push_back({factions[static_cast<std::size_t>(region.holder)],
+            region.holder == Holder::neutral ? 0.f : creep ? .19f : .135f, footprint,
+            region.hasSite || creep ? 1.f : 0.f, creep ? 1.f : 0.f, region.holder == Holder::neutral ? 1.f : 0.f});
+    }
+    incomingRoads_.clear();
+    for (auto [a, b] : snapshot.roads) incomingRoads_.emplace_back(std::min(a, b), std::max(a, b));
+    std::ranges::sort(incomingRoads_);
+    incomingRoads_.erase(std::unique(incomingRoads_.begin(), incomingRoads_.end()), incomingRoads_.end());
+
+    const bool advanced = snapshot.second > second_;
+    second_ = snapshot.second;
+    if (incoming_ == ink_ && incomingRoads_ == roads_) return;
+    if (advanced && adjacentLiveViews && !display.reduced && ink_.size() == incoming_.size()) {
+        const auto at = progress(display.now);
+        if (changedAt_) {
+            for (std::size_t i = 0; i < ink_.size(); ++i) from_[i] = blend(from_[i], ink_[i], at);
+        } else from_ = ink_;
+
+        std::vector<RoadInk> next;
+        next.reserve(roads_.size() + incomingRoads_.size() + roadInk_.size());
+        if (changedAt_) {
+            for (const auto& road : roadInk_)
+                next.push_back({road.edge, std::lerp(road.from, road.to, at), 0.f});
+        } else {
+            for (const auto& road : roads_) next.push_back({road, 1.f, 0.f});
+        }
+        for (const auto& road : incomingRoads_) {
+            const auto it = std::ranges::lower_bound(next, road, {}, &RoadInk::edge);
+            if (it != next.end() && it->edge == road) it->to = 1.f;
+            else next.insert(it, {road, 0.f, 1.f});
+        }
+        std::erase_if(next, [](const auto& road) { return road.from == 0.f && road.to == 0.f; });
+        roadInk_ = std::move(next);
+        changedAt_ = display.now;
+    } else changedAt_.reset();
+    ink_.swap(incoming_);
+    roads_.swap(incomingRoads_);
+    dirty_ = true;
 }
 
 void RegionalMap::triangle(SDL_FPoint a, SDL_FPoint b, SDL_FPoint c, SDL_FColor ink)
 {
-    mesh_.push_back({a, ink, {}});
-    mesh_.push_back({b, ink, {}});
-    mesh_.push_back({c, ink, {}});
+    triangle(a, b, c, ink, ink, ink);
+}
+
+void RegionalMap::triangle(SDL_FPoint a, SDL_FPoint b, SDL_FPoint c, SDL_FColor ca, SDL_FColor cb, SDL_FColor cc)
+{
+    mesh_.push_back({a, ca, {}});
+    mesh_.push_back({b, cb, {}});
+    mesh_.push_back({c, cc, {}});
 }
 
 void RegionalMap::stroke(SDL_FPoint a, SDL_FPoint b, float width, SDL_FColor ink)
 {
-    const auto magnitude = std::hypot(b.x - a.x, b.y - a.y);
-    if (magnitude < .01f) return;
-    const auto nx = (b.y - a.y) * width * .5f / magnitude;
-    const auto ny = (a.x - b.x) * width * .5f / magnitude;
+    const float dx = b.x - a.x, dy = b.y - a.y;
+    const auto square = dx * dx + dy * dy;
+    if (square < .0001f) return;
+    const auto radius = width * .5f / std::sqrt(square);
+    const auto nx = dy * radius, ny = -dx * radius;
     const SDL_FPoint al{a.x + nx, a.y + ny}, ar{a.x - nx, a.y - ny};
     const SDL_FPoint bl{b.x + nx, b.y + ny}, br{b.x - nx, b.y - ny};
     triangle(al, ar, bl, ink);
     triangle(ar, br, bl, ink);
 }
 
-void RegionalMap::terrainMesh(const Snapshot& snapshot, SDL_FRect area, bool camera)
+void RegionalMap::settlement(SDL_FPoint p, float size, const Territory& territory, bool capital,
+    bool selected, bool hovered, bool pressed)
 {
-    const auto at = [&](Point p) {
-        return camera ? project(p, area) :
-            SDL_FPoint{area.w * (.5f + static_cast<float>(p[0] - .5) * .94f),
-                       area.h * (.46f + static_cast<float>(p[1] - .5) * .84f)};
-    };
-    mesh_.clear();
-    for (const auto& facet : facets_) {
-        const auto biome = biomes.at(snapshot.regions[facet.region].biome);
-        const auto colour = mix(biome, facet.shade > 0 ? gold : seam, std::abs(facet.shade));
-        triangle(at(facet.points[0]), at(facet.points[1]), at(facet.points[2]), colour);
+    const auto alpha = territory.presence;
+    const auto halo = selected || hovered || pressed;
+    const float scale = .7f + .3f * alpha;
+    size *= scale;
+    if (halo) {
+        const float r = size + (pressed ? 5.f : 4.f);
+        const SDL_FPoint ring[]{{p.x, p.y - r}, {p.x + r, p.y}, {p.x, p.y + r}, {p.x - r, p.y}};
+        for (int i = 0; i < 4; ++i) {
+            stroke(ring[i], ring[(i + 1) % 4], 3.8f, withAlpha(seam, alpha));
+            stroke(ring[i], ring[(i + 1) % 4], selected || pressed ? 1.9f : 1.15f,
+                withAlpha(pressed || hovered ? ivory : gold, alpha));
+        }
     }
-    for (const auto& mark : engravings_) stroke(at(mark.a), at(mark.b), 1.25f, mark.ink);
+    const auto at = [&](float x, float y) { return SDL_FPoint{p.x + x * size, p.y + y * size}; };
+    if (capital) {
+        const auto bannerInk = withAlpha(gold, alpha * (1.f - territory.creep));
+        stroke(at(-.1f, -.7f), at(-.1f, -1.51f), 1.5f, bannerInk);
+        triangle(at(-.1f, -1.50f), at(.66f, -1.31f), at(-.1f, -1.12f), bannerInk);
+    }
+    if (baked_) return;
+    const SDL_FColor banner{territory.colour[0], territory.colour[1], territory.colour[2], alpha};
+    const auto dark = withAlpha(seam, alpha);
+    if (territory.creep < 1.f) {
+        const auto town = 1.f - territory.creep;
+        stroke(at(-.88f, .12f), at(.88f, .12f), size * .88f, withAlpha(dark, alpha * town));
+        triangle(at(-.94f, .12f), at(-.1f, -.87f), at(.78f, .12f), withAlpha(banner, alpha * town));
+        stroke(at(-.89f, .38f), at(.89f, .38f), size * .34f, withAlpha(banner, alpha * town));
+        stroke(at(-.12f, .2f), at(-.12f, .52f), size * .27f, withAlpha(dark, alpha * town));
+        const auto wing = std::clamp(size - 5.15f, 0.f, 1.f);
+        if (wing > 0.f) {
+            triangle(at(.36f, .11f), at(.73f, -.5f), at(1.05f, .11f), withAlpha(banner, alpha * town * wing));
+        }
+    }
+    if (territory.creep > 0.f) {
+        const auto threat = alpha * territory.creep;
+        triangle(at(-.9f, -.25f), at(-.5f, -.9f), at(0, .75f), withAlpha(banner, threat));
+        triangle(at(.9f, -.25f), at(.5f, -.9f), at(0, .75f), withAlpha(banner, threat));
+        stroke(at(-.46f, -.12f), at(.46f, -.12f), size * .44f, withAlpha(banner, threat));
+        stroke(at(-.40f, -.07f), at(-.16f, -.07f), 1.6f, withAlpha(dark, threat));
+        stroke(at(.16f, -.07f), at(.40f, -.07f), 1.6f, withAlpha(dark, threat));
+    }
 }
 
-void RegionalMap::bakeTerrain(SDL_Renderer* renderer, const Snapshot& snapshot)
+void RegionalMap::buildings(SDL_FRect area, std::size_t index, Point anchor,
+    const Territory& territory)
 {
-    triedTexture_ = true;
-    terrain_.reset(SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET,
-        terrainWidth, terrainHeight));
-    if (!terrain_) return;
-    auto* previous = SDL_GetRenderTarget(renderer);
-    if (!SDL_SetRenderTarget(renderer, terrain_.get())) {
-        terrain_.reset();
-        return;
+    if (!baked_) return;
+    const auto& plan = baked_->sites[index];
+    const auto& atlas = art_->towns.pixels;
+    const auto quad = [&](const MapRect& frame, SDL_FPoint lo, SDL_FPoint hi, float alpha) {
+        const auto u = static_cast<float>(frame.x) / atlas.width, v = static_cast<float>(frame.y) / atlas.height;
+        const auto ur = static_cast<float>(frame.x + frame.w) / atlas.width;
+        const auto vb = static_cast<float>(frame.y + frame.h) / atlas.height;
+        const auto ink = SDL_FColor{1, 1, 1, alpha};
+        const SDL_Vertex a{lo, ink, {u, v}}, b{{hi.x, lo.y}, ink, {ur, v}},
+            c{{lo.x, hi.y}, ink, {u, vb}}, d{hi, ink, {ur, vb}};
+        buildings_.insert(buildings_.end(), {a, b, c, c, b, d});
+    };
+    if (territory.creep < 1.f && !plan.buildings.empty()) {
+        const auto alpha = territory.presence * (1.f - territory.creep);
+        for (const auto& piece : plan.buildings) {
+            const auto size = .86 + territory.scale * .020; // Live growth preserves the seeded town plan.
+            const auto lo = project({piece.at[0] - piece.width * size * .5, piece.at[1] - piece.height * size}, area);
+            const auto hi = project({piece.at[0] + piece.width * size * .5, piece.at[1]}, area);
+            if (piece.frame == piece.market) quad(piece.frame, lo, hi, alpha);
+            else {
+                if (territory.market < 1.f) quad(piece.frame, lo, hi, alpha * (1.f - territory.market));
+                if (territory.market > 0.f) quad(piece.market, lo, hi, alpha * territory.market);
+            }
+        }
     }
-    SDL_SetRenderDrawColorFloat(renderer, ground.r, ground.g, ground.b, 1);
-    SDL_RenderClear(renderer);
-    terrainMesh(snapshot, {0, 0, terrainWidth, terrainHeight}, false);
-    SDL_RenderGeometry(renderer, nullptr, mesh_.data(), static_cast<int>(mesh_.size()), nullptr, 0);
-    SDL_SetRenderTarget(renderer, previous);
-    SDL_SetTextureBlendMode(terrain_.get(), SDL_BLENDMODE_BLEND);
-    SDL_SetTextureScaleMode(terrain_.get(), SDL_SCALEMODE_LINEAR);
+    if (territory.creep > 0.f) {
+        const auto& frame = art_->towns.frame(camera_.zoom < 1.55f ? "monster/2" : camera_.zoom < 2.6f ? "monster/1" : "monster/0");
+        const auto radius = std::max(plan.radiusX, .017);
+        const auto height = std::max(plan.radiusY, .031);
+        quad(frame, project({anchor[0] - radius, anchor[1] - height}, area),
+            project({anchor[0] + radius, anchor[1] + height * .35}, area), territory.creep * territory.presence);
+    }
+}
+
+void RegionalMap::buildOverlay(SDL_FRect area, const Snapshot& snapshot, const std::vector<RegionShape>& shapes,
+    std::string_view selected, std::string_view hovered, bool pressed, float t)
+{
+    mesh_.clear();
+    occupation_.clear();
+    buildings_.clear();
+    const auto at = [&](Point p) { return project(p, area); };
+    const auto paint = [&](std::size_t i) { return changedAt_ ? blend(from_[i], ink_[i], t) : ink_[i]; };
+    for (std::size_t i = 0; i < shapes.size(); ++i) {
+        const auto region = paint(i);
+        const auto& id = snapshot.regions[i].id;
+        const auto& border = borders_[i];
+        const auto centre = at(shapes[i].label);
+        const bool hot = id == hovered, chosen = id == selected;
+        const SDL_FColor faction{region.colour[0], region.colour[1], region.colour[2], 1};
+        const auto tint = chosen || hot ? withAlpha(gold, hot && pressed ? .30f : chosen ? .18f : .11f)
+                                        : withAlpha(faction, region.control * .45f);
+        if (baked_ && region.creep > 0.f) {
+            const auto vertex = [&](Point p) {
+                return SDL_Vertex{at(p), {1, 1, 1, region.creep},
+                    {static_cast<float>((p[0] - baked_->min[0]) / (baked_->max[0] - baked_->min[0])),
+                    .5f + .5f * static_cast<float>((p[1] - baked_->min[1]) / (baked_->max[1] - baked_->min[1]))}};
+            };
+            const auto hub = vertex(shapes[i].label);
+            auto previous = vertex(shapes[i].outline.back());
+            for (const auto& point : shapes[i].outline) {
+                const auto next = vertex(point);
+                occupation_.insert(occupation_.end(), {hub, previous, next});
+                previous = next;
+            }
+        }
+        auto a = at(border.back());
+        for (const auto& point : border) {
+            const auto b = at(point);
+            if (tint.a > 0.f) triangle(centre, a, b, tint);
+            a = b;
+        }
+        if (baked_ && region.presence > 0.f && region.creep < 1.f) {
+            constexpr std::array<SDL_FColor, 7> works{{{.55f, .47f, .33f, 1}, {.47f, .40f, .36f, 1},
+                {.53f, .50f, .41f, 1}, {.55f, .47f, .33f, 1}, {.48f, .49f, .41f, 1},
+                {.38f, .34f, .37f, 1}, {.55f, .47f, .33f, 1}}};
+            const auto& site = baked_->sites[i];
+            const auto footing = works[snapshot.regions[i].biome];
+            const auto inner = withAlpha(footing, region.presence * (1.f - region.creep) * .27f);
+            const auto outer = withAlpha(footing, 0);
+            const auto hub = shapes[i].label;
+            constexpr Point ring[]{{1, 0}, {.71, .71}, {0, 1}, {-.71, .71}, {-1, 0}, {-.71, -.71}, {0, -1}, {.71, -.71}};
+            const auto edge = [&](Point p) { return at({hub[0] + p[0] * site.radiusX, hub[1] + p[1] * site.radiusY}); };
+            auto prev = edge(ring[7]);
+            for (const auto p : ring) {
+                const auto next = edge(p);
+                triangle(centre, prev, next, inner, outer, outer);
+                prev = next;
+            }
+        }
+    }
+    for (std::size_t i = 0; i < shapes.size(); ++i) {
+        const auto region = paint(i);
+        const auto& border = borders_[i];
+        const SDL_FColor faction{region.colour[0], region.colour[1], region.colour[2], .67f};
+        auto a = at(border.back());
+        for (const auto& point : border) {
+            const auto b = at(point);
+            stroke(a, b, 1.1f, faction);
+            a = b;
+        }
+    }
+    const auto drawRoad = [&](Road road, float amount) {
+        if (amount <= 0) return;
+        const auto segment = [&](SDL_FPoint a, SDL_FPoint b, MapTerrain::Surface surface, MapTerrain::Surface previous) {
+            if (surface == MapTerrain::Surface::sea || surface == MapTerrain::Surface::pool) {
+                stroke(a, between(a, b, .60f), 1.20f, {.68f, .77f, .66f, amount * .76f});
+            } else {
+                const bool bridge = surface == MapTerrain::Surface::river;
+                stroke(a, b, bridge ? 4.5f : 2.7f, withAlpha(seam, amount * .85f));
+                stroke(a, b, bridge ? 2.35f : 1.30f, {.76f, .65f, .48f, amount});
+            }
+            if (previous != surface && (previous == MapTerrain::Surface::sea || surface == MapTerrain::Surface::sea))
+                stroke({a.x, a.y - 2}, {a.x, a.y + 2}, 2.8f, {.80f, .68f, .48f, amount});
+        };
+        if (baked_) {
+            const auto it = baked_->roads.find(road);
+            if (it != baked_->roads.end()) {
+                const auto& path = it->second;
+                const auto through = amount * static_cast<float>(path.size() - 1);
+                auto a = at(path.front().at);
+                for (std::size_t j = 1; j < path.size() && j - 1 < through; ++j) {
+                    const auto b = at(path[j].at);
+                    segment(a, between(a, b, std::min(1.f, through - static_cast<float>(j - 1))),
+                        path[j].surface, path[j - 1].surface);
+                    a = b;
+                }
+                return;
+            }
+        }
+        const auto from = baked_ ? baked_->sites[road.first].entrance : shapes[road.first].label;
+        const auto to = baked_ ? baked_->sites[road.second].entrance : shapes[road.second].label;
+        auto a = at(from);
+        auto previous = MapTerrain::Surface::ground;
+        for (int step = 1; step <= 16; ++step) {
+            const auto t = std::min(amount, step / 16.f);
+            const Point p{std::lerp(from[0], to[0], t), std::lerp(from[1], to[1], t)};
+            const auto b = at(p);
+            const auto surface = baked_ ? baked_->surfaceAt(baked_->pixel(p)) : MapTerrain::Surface::ground;
+            segment(a, b, surface, previous);
+            if (t == amount) break;
+            previous = surface;
+            a = b;
+        }
+    };
+    if (changedAt_) {
+        for (const auto& road : roadInk_) drawRoad(road.edge, std::lerp(road.from, road.to, t));
+    } else {
+        for (const auto& road : roads_) drawRoad(road, 1.f);
+    }
+    const auto drawHighlight = [&](std::size_t i, bool chosen) {
+        const auto& border = borders_[i];
+        const auto hot = snapshot.regions[i].id == hovered;
+        auto a = at(border.back());
+        for (const auto& point : border) {
+            const auto b = at(point);
+            stroke(a, b, 4.5f, seam);
+            stroke(a, b, hot && pressed ? 3.f : chosen ? 2.35f : 1.45f, chosen && !(hot && pressed) ? gold : ivory);
+            a = b;
+        }
+    };
+    for (std::size_t i = 0; i < shapes.size(); ++i)
+        if (snapshot.regions[i].id == hovered && hovered != selected) drawHighlight(i, false);
+    for (std::size_t i = 0; i < shapes.size(); ++i)
+        if (snapshot.regions[i].id == selected) drawHighlight(i, true);
+    for (std::size_t i = 0; i < shapes.size(); ++i) {
+        const auto region = paint(i);
+        if (region.presence <= 0.f) continue;
+        const auto& id = snapshot.regions[i].id;
+        const bool capital = id == snapshot.capital, hot = id == hovered;
+        const auto anchor = shapes[i].label;
+        const auto p = at(anchor);
+        if (baked_) {
+            const auto& site = baked_->sites[i];
+            const float alpha = region.presence * (1.f - region.creep);
+            if (alpha > 0 && !site.buildings.empty()) {
+                const auto court = at(site.court);
+                stroke(p, court, 3.5f, {.48f, .39f, .26f, .48f * alpha});
+                stroke(court, at(site.entrance), 2.5f, {.59f, .50f, .34f, .62f * alpha});
+            }
+            buildings(area, i, anchor, region);
+        }
+        if (!baked_ || hot || id == selected || capital)
+            settlement(p, region.scale + (capital ? 1.1f : 0.f), region, capital,
+                id == selected, hot, hot && pressed);
+    }
 }
 
 void RegionalMap::draw(SDL_Renderer* renderer, SDL_FRect area, const Snapshot& snapshot,
-                       const std::vector<RegionShape>& shapes, std::string_view selected,
-                       std::string_view hovered, bool pressed, Uint64 now, bool reduced)
+    const std::vector<RegionShape>& shapes, std::string_view selected, std::string_view hovered, bool pressed, Display display)
 {
-    if (facets_.empty()) cache(snapshot, shapes);
-    if (!triedTexture_) bakeTerrain(renderer, snapshot);
+    if (shapes.empty() || area.w <= 0 || area.h <= 0) return;
+    if (borders_.empty()) {
+        for (const auto& shape : shapes) {
+            auto& border = borders_.emplace_back();
+            for (const auto& point : shape.outline) {
+                if (border.empty()) {
+                    border.push_back(point);
+                    continue;
+                }
+                const auto dx = point[0] - border.back()[0], dy = point[1] - border.back()[1];
+                if (dx * dx + dy * dy > .009 * .009) border.push_back(point);
+            }
+            if (border.size() < 3) border = shape.outline;
+        }
+    }
+    prepareTextures(renderer, area);
+    updateInk(snapshot, display);
+    if (!display.live || display.reduced) revealedAt_ = 0;
+    const auto elapsed = std::clamp(static_cast<float>(display.now - revealedAt_) / 300.f, 0.f, 1.f);
+    const auto reveal = !revealedAt_ ? 1.f : 1 - (1 - elapsed) * (1 - elapsed);
     const SDL_Rect clip{static_cast<int>(area.x), static_cast<int>(area.y), static_cast<int>(area.w), static_cast<int>(area.h)};
     SDL_SetRenderClipRect(renderer, &clip);
-    SDL_SetRenderDrawColorFloat(renderer, ground.r, ground.g, ground.b, 1);
+    SDL_SetRenderDrawColorFloat(renderer, sea_.r, sea_.g, sea_.b, 1);
     SDL_RenderFillRect(renderer, &area);
-    const auto elapsed = std::min(1.f, static_cast<float>(now - revealedAt_) / 300.f);
-    const auto reveal = reduced || !revealedAt_ ? 1.f : 1 - (1 - elapsed) * (1 - elapsed);
-    if (terrain_) {
-        const SDL_FRect destination{area.x + area.w * (.5f + camera_.x - .5f * camera_.zoom),
-            area.y + area.h * (.46f + camera_.y - .46f * camera_.zoom), area.w * camera_.zoom, area.h * camera_.zoom};
-        SDL_SetTextureAlphaModFloat(terrain_.get(), reveal);
-        SDL_RenderTexture(renderer, terrain_.get(), nullptr, &destination);
-    } else {
-        terrainMesh(snapshot, area, true);
-        SDL_RenderGeometry(renderer, nullptr, mesh_.data(), static_cast<int>(mesh_.size()), nullptr, 0);
-    }
-    const auto ink = [reveal](SDL_FColor colour) { colour.a *= reveal; return colour; };
-    const auto at = [&](Point p) { return project(p, area); };
-    mesh_.clear();
-    for (std::size_t i = 0; i < shapes.size(); ++i) {
-        const auto& shape = shapes[i];
-        const auto& region = snapshot.regions[i];
-        const auto faction = factions[static_cast<std::size_t>(region.holder)];
-        const auto& border = borders_[i];
-        SDL_FColor tint = region.id == hovered || region.id == selected ? gold : faction;
-        tint.a = region.id == hovered && pressed ? .25f : region.id == selected ? .16f :
-            region.id == hovered ? .13f : region.holder == Holder::neutral ? 0.f : .10f;
-        if (tint.a > 0) {
-            const auto centre = at(shape.label);
-            for (std::size_t j = 0; j < border.size(); ++j)
-                triangle(centre, at(border[j]), at(border[(j + 1) % border.size()]), ink(tint));
-        }
-        for (std::size_t j = 0; j < border.size(); ++j)
-            stroke(at(border[j]), at(border[(j + 1) % border.size()]), 1.4f, ink(mix(faction, seam, .26f)));
-    }
-    for (const auto& [i, j] : snapshot.roads) {
-        const auto a = at(shapes[i].label), b = at(shapes[j].label);
-        stroke(a, b, 3.f, ink(seam));
-        stroke(a, b, 1.f, ink({.80f, .68f, .44f, 1}));
-    }
-    for (std::size_t i = 0; i < shapes.size(); ++i) {
-        const auto& region = snapshot.regions[i];
-        const auto& shape = shapes[i];
-        if (region.id == selected || region.id == hovered) {
-            const auto& border = borders_[i];
-            for (std::size_t j = 0; j < border.size(); ++j) {
-                const auto a = at(border[j]), b = at(border[(j + 1) % border.size()]);
-                stroke(a, b, 3.5f, ink(seam));
-                stroke(a, b, region.id == selected ? 2.f : 1.25f, ink(gold));
-            }
-        }
-        if (!region.hasSite) continue;
-        const auto p = at(shape.label);
-        const auto size = region.id == snapshot.capital ? 7.f : 5.f;
-        const auto faction = factions[static_cast<std::size_t>(region.holder)];
-        stroke({p.x - size, p.y + 1}, {p.x + size, p.y + 1}, size, ink(seam));
-        triangle({p.x - size, p.y}, {p.x, p.y - size}, {p.x + size, p.y}, ink(faction));
-        stroke({p.x - size, p.y + 2}, {p.x + size, p.y + 2}, 3.f, ink(faction));
-        if (region.id == snapshot.capital)
-            stroke({p.x, p.y - size}, {p.x, p.y - size - 5}, 2.f, ink(gold));
-    }
     SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
-    SDL_RenderGeometry(renderer, nullptr, mesh_.data(), static_cast<int>(mesh_.size()), nullptr, 0);
+    if (terrain_) {
+        const auto origin = project(baked_->min, area), end = project(baked_->max, area);
+        const SDL_FRect destination{origin.x, origin.y, end.x - origin.x, end.y - origin.y};
+        const auto& pixels = compact_ ? baked_->compact : baked_->full;
+        const SDL_FRect source{0, 0, static_cast<float>(pixels.width), pixels.height * .5f};
+        SDL_SetTextureAlphaModFloat(terrain_.get(), reveal);
+        SDL_RenderTexture(renderer, terrain_.get(), &source, &destination);
+    }
+    if (dirty_ || changedAt_ || !sameArea(area, drawnArea_) || camera_ != drawnCamera_ ||
+        selected_ != selected || hovered_ != hovered || pressed_ != pressed) {
+        buildOverlay(area, snapshot, shapes, selected, hovered, pressed, progress(display.now));
+        selected_ = selected;
+        hovered_ = hovered;
+        pressed_ = pressed;
+        drawnArea_ = area;
+        drawnCamera_ = camera_;
+        dirty_ = false;
+    }
+    if (terrain_ && !occupation_.empty())
+        SDL_RenderGeometry(renderer, terrain_.get(), occupation_.data(), static_cast<int>(occupation_.size()), nullptr, 0);
+    const auto* vertices = &mesh_;
+    if (reveal < 1.f) {
+        faded_ = mesh_;
+        for (auto& vertex : faded_) vertex.color.a *= reveal;
+        vertices = &faded_;
+    }
+    SDL_RenderGeometry(renderer, nullptr, vertices->data(), static_cast<int>(vertices->size()), nullptr, 0);
+    if (towns_ && !buildings_.empty())
+        SDL_RenderGeometry(renderer, towns_.get(), buildings_.data(), static_cast<int>(buildings_.size()), nullptr, 0);
     SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_NONE);
     SDL_SetRenderClipRect(renderer, nullptr);
 }
