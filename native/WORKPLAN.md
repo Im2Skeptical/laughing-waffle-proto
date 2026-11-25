@@ -4191,6 +4191,131 @@ stages the same WebP images, and Pixel memory and frame timing remain untested.
 The runner and raw JSON are `artifacts/n04k/run-paired.ps1` and
 `artifacts/n04k/paired-illustrated/`.
 
+### N04l - Atlas fidelity and atmosphere
+
+The native terrain worker joins painted relief by silhouette overlap, with
+directional ridges and retries along the path when a piece fails to join.
+Building bounds, town courts and approaches reserve dry terrain before
+scenery placement. Atlas contact templates soften biome transitions. Bank
+profiles follow the coast and river margins, and charcoal scenery scatters
+among the distant ridges. Bone relief appears on exposed Creep edges and
+fades with Live control changes. The browser captures still show differences
+in the interiors, wetlands, city plans and road routes.
+
+Terrain blends between five prefiltered levels from full size through 1/16.
+Town sprites filter within each artwork frame, and the authored landmark
+levels cover low, middle and high zoom. The stationary camera draws one
+cached terrain blend. During zoom the renderer uses the active terrain pair.
+Minimize and background release the terrain, sprite, water and sky textures
+for re-upload on return.
+
+Open **Graphics** beside **Motion** to switch Fog, Clouds, Cloud shadows,
+Wisps and Water animation. All five start enabled. A switch applies on the
+next draw, including at a held second. The cloud banks use the approved
+browser paintings and share the absolute weather phase with the fog,
+wisps and shadows. Water uses the ocean palette ramps and underlying drift
+field. Disabling water selects the static zero-second atlas. Reduced Motion
+sets the ambient phase to zero and snaps regional changes.
+
+Ordinary weather samples run on a worker, with at most one sample in flight
+and at least 34 ms between presentations. The weather can settle behind a
+rapid scrub, while every requested restore draws the authoritative terrain,
+settlement and road state as soon as that snapshot is available. The native
+weather compositor uses a coarser lattice than the browser. The controls and
+samples live in the view throughout the app session. GameState v53, RNG,
+save formats, replay and forecasts are unchanged.
+
+#### Verification
+
+Run from the worktree root after linking the toolchain junction.
+
+```powershell
+. native/tools/env.ps1
+node native/reference/trace.mjs
+foreach ($preset in 'optimized', 'optimized-clang') {
+    Push-Location native
+    cmake --preset $preset
+    cmake --build --preset $preset
+    ctest --preset $preset --output-on-failure
+    Pop-Location
+    $game = "native/build/$preset/waffle_native_game.exe"
+    $parity = "native/build/$preset/src/sim/waffle_parity.exe"
+    & $game --smoke --seed 42
+    & $game --settlement-smoke --seed 42 --size 1120 640
+    & $game --settlement-smoke --seed 42 --size 640 360
+    & $game --interaction-smoke --seed 42 --size 1120 640
+    & $game --interaction-smoke --seed 42 --size 640 360
+    node native/reference/step-windows.mjs $parity
+    node native/reference/replay-windows.mjs $parity
+}
+node scripts/regional-presentation-browser-probe.mjs 42 --windowed
+```
+
+The interaction smoke switches each setting during a paused scrub, verifies
+the 30 Hz ceiling, compares reduced-motion and all-off water, and checks
+pixel-exact restoration after toggling, rewinding and re-uploading the
+textures. It compares the restored simulation digest with replay.
+Both Windows presets passed 54 CTests, the explicit seed-42 smoke and
+both settlement and interaction layouts. Each parity run matched 153 step
+comparisons across 30 windows and 252 checkpoints from 34 replay journals.
+The browser probe passed, including exact camera restoration.
+
+The seed-42 matched comparisons are `artifacts/n04l/comparison-1120x640.png`
+and `artifacts/n04l/comparison-640x360.png`. Full native screenshots are in
+`before-*` and `final-composite/optimized/<size>/interaction/` under the same
+folder. The browser reference uses the same opening and framing. The larger probe uses
+its own camera and a natural-world fixture at viewed second 300.
+
+#### Performance
+
+The N04k control is the MSVC build of `93e5e0ca`. Use
+`--bench 2400 <json> --long-benchmark` with and without `--no-map-effects`
+on the candidate. The latter switch applies only to the benchmark.
+The harness waits for the atlas before timing the loaded scrubs and reports
+the cold bake separately. Earlier runs could begin a scrub while the larger
+candidate atlas was still baking and include its first texture upload in the
+timed frames.
+
+Windows x64, i9-10900K, RTX 3080, Direct3D 11, MSVC `optimized`, vsync off.
+Seven alternating control/off/on runs per mode at 1120 × 640 and three
+alternating off/on runs per mode at 640 × 360 reached forecast second 32,192.
+The table gives medians of per-run percentiles. Time is in milliseconds.
+Texture payload counts resident SDL map textures at the held camera.
+
+| Window and build | Frame p50 / p95 / p99 | Held map draw p50 / p95 / p99 | Worker bake | Upload | Texture MiB |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| 1120 × 640 control | 2.004 / 2.382 / 2.823 | 0.047 / 0.065 / 0.089 | 236.40 | 2.27 | 8.89 |
+| 1120 × 640 off | 2.172 / 2.589 / 2.825 | 0.054 / 0.080 / 0.107 | 535.11 | 1.34 | 3.05 |
+| 1120 × 640 on | 2.089 / 2.414 / 2.605 | 0.052 / 0.071 / 0.115 | 551.10 | 1.43 | 3.18 |
+| 640 × 360 off | 2.055 / 2.458 / 2.856 | 0.051 / 0.070 / 0.093 | 548.30 | 0.97 | 1.49 |
+| 640 × 360 on | 2.128 / 2.704 / 3.073 | 0.054 / 0.095 / 0.142 | 542.48 | 1.06 | 1.62 |
+
+With effects off, the median paired frame p99 delta was −0.285 ms against
+a 0.364 ms control spread, measured as the median absolute difference between
+successive controls. Every all-on run stayed below 4 ms at p99, with maxima of
+3.468 ms at 1120 × 640 and 3.477 ms at 640 × 360. During loaded scrubs, map
+submission p99 was 0.303 ms off and 0.405 ms on at 1120 × 640.
+
+Loaded scrub-to-present p50 / p95 / p99 at 1120 × 640 was
+2.011 / 2.468 / 2.823 ms on the control, 2.172 / 2.589 / 2.825 ms off
+and 2.092 / 2.414 / 2.605 ms on. The median paired p50 increased by
+0.146 ms off and 0.069 ms on. The median paired p95 and p99 stayed within
+control spread or improved. Loaded scrubs took at most two harness frames
+on the control and with effects off, and one frame with effects on.
+
+The runner and 27 JSON reports are `artifacts/n04l/run-paired.ps1` and
+`artifacts/n04l/paired-warm/`. Diagnostic samples that started during the
+cold bake are in `artifacts/n04l/profile/`. `npm run verify` passed.
+
+**Cross-runtime handoff.** Sampling decorations on a worker keeps the cost
+off the native late-restore path. Carry the switch values, map identity and
+viewed time together for each job so pause, rewind and device restoration
+use coherent samples. Reuse the [native and browser map probes](../src/views/world-map/README.md)
+to assess the effect of scheduling changes. A Pixel 6 Pro run should scope
+the weather raster to a padded viewport first, then measure coarse
+surfaces, cloud sampling at lower resolution, and fewer resident artwork
+levels if memory or frame cost calls for it.
+
 ## N05 - Iteration and installed profiles (pending N04)
 
 Finish development, performance and full-art installed profiles sharing the same
