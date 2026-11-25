@@ -46,7 +46,7 @@ private:
     std::string message_, seedInput_;
     Screen screen_ = Screen::title;
     std::uint64_t revision_{}, runRevision_{};
-    std::optional<std::size_t> savedActionCount_;
+    std::optional<std::pair<Second, std::size_t>> savedFrontier_;
     bool loadingNativeSave_{}, messageError_{};
 };
 

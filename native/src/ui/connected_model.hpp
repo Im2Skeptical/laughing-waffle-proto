@@ -9,6 +9,8 @@
 #include <utility>
 #include <vector>
 
+namespace waffle::sim::browser { enum class RunEndReason; }
+
 namespace waffle::connected {
 
 using Second = std::uint64_t;
@@ -61,10 +63,20 @@ struct Choice {
     std::string id, label;
 };
 
+struct RunOutcome {
+    sim::browser::RunEndReason reason;
+    Second second{}, year{};
+    friend bool operator==(const RunOutcome&, const RunOutcome&) = default;
+};
+
 struct Snapshot {
     Second second{};
     double year{}, prestige{};
     bool terminal{};
+    std::optional<RunOutcome> outcome;
+    Second bestSurvivalYear{};
+    int tenuresRemaining{};
+    std::string season;
     std::string capital, vassalRegion, shop;
     std::optional<Second> shopSeconds;
     std::vector<Choice> choices;

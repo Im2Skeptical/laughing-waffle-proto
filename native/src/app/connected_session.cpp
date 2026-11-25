@@ -1,5 +1,6 @@
 #include "connected_session.hpp"
 
+#include "core/sha256.hpp"
 #include "sdl_asset_file.hpp"
 #include "sim/content/compiled_content.hpp"
 #include "sim/world/generate.hpp"
@@ -9,6 +10,7 @@
 
 #include <algorithm>
 #include <atomic>
+#include <cctype>
 #include <cmath>
 
 namespace waffle::connected {
@@ -187,6 +189,19 @@ Snapshot snapshot(const RuntimeState& state, bool live)
     result.prestige = state.hot.civilization.prestige.value_or(0);
     result.capital = state.name(state.hot.civilization.capitalRegionId);
     result.terminal = state.hot.runStatus && state.hot.runStatus->complete;
+    if (result.terminal) {
+        const auto& status = *state.hot.runStatus;
+        result.outcome = RunOutcome{status.reason, static_cast<Second>(status.tSec), static_cast<Second>(status.year)};
+    }
+    result.tenuresRemaining = static_cast<int>(state.hot.civilization.vassalLineage.tenuresRemaining);
+    result.bestSurvivalYear = static_cast<Second>(
+        cold(state, state.hot.persistentKnowledge).maxObservedCivilizationSurvivalYear.value_or(0));
+    const auto seasons = state.tables.view(state.hot.seasons);
+    if (const auto index = state.hot.currentSeasonIndex; index >= 0 && index < static_cast<double>(seasons.size())) {
+        result.season = state.name(seasons[static_cast<std::size_t>(index)]);
+        if (!result.season.empty())
+            result.season.front() = static_cast<char>(std::toupper(static_cast<unsigned char>(result.season.front())));
+    }
     const auto regions = state.tables.view(state.hot.world.regions);
     std::vector<timegraph::SiteSummary> summaries(regions.size());
     timegraph::summarize(state, summaries);
@@ -245,6 +260,8 @@ void Session::open(const Launch& launch)
     live();
     chart_ = {};
     previousChart_ = {};
+    projectedOutcome_.reset();
+    bestSurvivalYear_ = 0;
     error_.clear();
     opening_ = true;
     job_ = std::async(std::launch::async, [this, launch, previous = std::move(previous)] {
@@ -307,6 +324,7 @@ void Session::resume()
     run_ = std::move(run);
     chart_ = {};
     previousChart_ = {};
+    projectedOutcome_.reset();
 }
 
 void Session::close()
@@ -315,6 +333,8 @@ void Session::close()
     run_.reset();
     chart_ = {};
     previousChart_ = {};
+    projectedOutcome_.reset();
+    bestSurvivalYear_ = 0;
     suspended_ = false;
     opening_ = true;
     error_.clear();
@@ -327,11 +347,11 @@ bool Session::save(const SaveSlots& slots, Slot slot) const
     return true;
 }
 
-void Session::transact(std::vector<sim::Action> actions, bool resolve)
+void Session::transact(std::vector<sim::Action> actions, bool resolve, std::optional<Second> target)
 {
     error_.clear();
-    job_ = std::async(std::launch::async, [this, previous = run_, retain = chart_.through,
-                                           actions = std::move(actions), resolve] {
+    job_ = std::async(std::launch::async, [this, previous = run_, retain = chart_.through, projected = projectedOutcome_,
+                                           actions = std::move(actions), resolve, target] {
         auto live = std::make_shared<RuntimeState>(*previous->live);
         auto journal = previous->journal.to_json().as_array();
         for (const auto& command : actions) {
@@ -342,7 +362,7 @@ void Session::transact(std::vector<sim::Action> actions, bool resolve)
         }
         auto run = std::make_shared<Run>();
         run->journal = sim::ActionJournal::from_json(Value(std::move(journal)));
-        std::optional<Second> advance;
+        auto advance = target;
         if (resolve) {
             const auto* actor = currentVassal(*live);
             if (actor && actor->lifeMap.pendingResolution)
@@ -360,16 +380,23 @@ void Session::transact(std::vector<sim::Action> actions, bool resolve)
         run->geography = previous->geography;
         run->horizon = previous->horizon;
         run->snapshot = snapshot(*run->live, true);
-        run->divergence = previous->snapshot.second;
+        // Waiting for time without a decision preserves the forecast's branch.
+        // An already computed terminal timeline remains usable immediately.
+        if (target && projected && run->snapshot.outcome == projected) {
+            run->generation = previous->generation;
+            return std::shared_ptr<const Run>(std::move(run));
+        }
+        if (!target) run->divergence = previous->snapshot.second;
         run->generation = forecast_.start(*run->base, run->journal, run->snapshot.second + run->horizon,
-            timegraph::BoundaryActions::pending, retain && *retain > *run->divergence ? retain : std::nullopt);
+            timegraph::BoundaryActions::pending, run->divergence && retain && *retain > *run->divergence
+                ? retain : std::nullopt);
         return std::shared_ptr<const Run>(std::move(run));
     });
 }
 
 bool Session::submit(const LifeCommand& command)
 {
-    if (!run_ || busy() || opening_ || previewing() || suspended_) return false;
+    if (!run_ || run_->snapshot.terminal || busy() || opening_ || previewing() || suspended_) return false;
     if (command.advance) {
         if (!currentVassal(*run_->live) || !currentVassal(*run_->live)->lifeMap.pendingResolution) return false;
         transact({}, true);
@@ -433,15 +460,40 @@ bool Session::reorder(std::string_view regionId, std::size_t from, std::size_t t
     return true;
 }
 
+std::optional<Second> Session::advanceTarget() const
+{
+    if (!run_ || run_->snapshot.terminal || busy() || opening_ || previewing() || suspended_ ||
+        currentVassal(*run_->live) || chart_.through <= run_->snapshot.second) return {};
+    if (projectedOutcome_) return projectedOutcome_->second;
+    const auto live = run_->snapshot.second;
+    const auto year = calendarSteps().back();
+    return std::min(live + year - live % year, *chart_.through);
+}
+
+bool Session::advanceLive(Second confirmed)
+{
+    const auto available = advanceTarget();
+    if (!available || confirmed <= run_->snapshot.second || confirmed > *available ||
+        confirmed > *chart_.through) return false;
+    transact({}, false, confirmed);
+    return true;
+}
+
 void Session::update()
 {
     if (suspended_) return;
     if (ready(job_)) {
         try {
             auto next = job_.get();
-            previousChart_ = next->divergence && chart_.through && *chart_.through > *next->divergence
-                ? std::move(chart_) : Chart{};
-            chart_ = {};
+            const bool sameTimeline = run_ && next->generation == run_->generation;
+            if (!sameTimeline) {
+                previousChart_ = !next->snapshot.terminal && next->divergence && chart_.through &&
+                    *chart_.through > *next->divergence ? std::move(chart_) : Chart{};
+                chart_ = {};
+                projectedOutcome_.reset();
+            } else previousChart_ = {};
+            bestSurvivalYear_ = std::max(bestSurvivalYear_, next->snapshot.bestSurvivalYear);
+            if (const auto& end = next->snapshot.outcome) bestSurvivalYear_ = std::max(bestSurvivalYear_, end->year);
             run_ = std::move(next);
             live();
         } catch (const std::exception& failure) {
@@ -507,8 +559,15 @@ void Session::readChart(const timegraph::Coverage& info)
     for (int page = 0; page < 8 && next <= *info.publishedThrough; ++page) {
         const auto count = forecast_.readSummaries(info.generation, next, headers_, sites_);
         if (!count) break;
-        for (std::size_t i = 0; i < count; ++i)
-            chart_.append(headers_[i], std::span(sites_).subspan(i * info.regions, info.regions));
+        for (std::size_t i = 0; i < count; ++i) {
+            const auto& header = headers_[i];
+            chart_.append(header, std::span(sites_).subspan(i * info.regions, info.regions));
+            if (header.terminal) {
+                projectedOutcome_ = RunOutcome{*header.terminal, static_cast<Second>(header.lossSecond),
+                    static_cast<Second>(header.lossYear)};
+                bestSurvivalYear_ = std::max(bestSurvivalYear_, projectedOutcome_->year);
+            }
+        }
         next += count;
     }
 }
@@ -547,9 +606,16 @@ std::array<Second, 4> Session::calendarSteps() const
 
 bool Session::scrub(Second second)
 {
+    followingForecast_ = false;
+    playbackRate_ = 0;
+    return requestPreview(second, true);
+}
+
+bool Session::requestPreview(Second second, bool allowComparison)
+{
     if (!run_ || opening_ || busy() || suspended_ || !browseThrough()) return false;
     auto id = generation();
-    if (previousChart_.through > chart_.through && divergence() && second >= *divergence() &&
+    if (allowComparison && previousChart_.through > chart_.through && divergence() && second >= *divergence() &&
         (!chart_.through || second > *chart_.through)) {
         second = std::min(second, *previousChart_.through);
         id = previousChart_.generation;
@@ -566,6 +632,8 @@ bool Session::scrub(Second second)
 
 void Session::live()
 {
+    followingForecast_ = false;
+    playbackRate_ = 0;
     requested_.reset();
     restore_ = {};
     preview_.reset();
@@ -573,9 +641,55 @@ void Session::live()
     ++viewRevision_;
 }
 
+bool Session::followForecast()
+{
+    if (!run_ || run_->snapshot.terminal || opening_ || busy() || suspended_ ||
+        chart_.through <= run_->snapshot.second) return false;
+    playbackRate_ = 0;
+    followingForecast_ = true;
+    requestPreview(*chart_.through, false);
+    return true;
+}
+
+bool Session::setPlayback(int rate)
+{
+    if (!run_ || opening_ || busy() || suspended_ || !browseThrough()) return false;
+    followingForecast_ = false;
+    playbackRate_ = rate;
+    playbackSecond_ = static_cast<double>(requested_.value_or(displayed()->second));
+    if (rate) requestPreview(static_cast<Second>(playbackSecond_), true);
+    return true;
+}
+
+void Session::updatePlayback(double elapsed)
+{
+    if (followingForecast_ && chart_.through) {
+        if (!restore_.valid()) requestPreview(*chart_.through, false);
+    } else if (playbackRate_) {
+        const auto through = browseThrough();
+        if (!through) { playbackRate_ = 0; return; }
+        const auto first = static_cast<double>(chart_.start);
+        const auto last = static_cast<double>(*through);
+        playbackSecond_ = std::clamp(playbackSecond_ + playbackRate_ * elapsed, first, last);
+        // Give each restore a chance to present even if the transport clock
+        // advances multiple seconds while the worker is occupied.
+        if (restore_.valid()) return;
+        requestPreview(static_cast<Second>(playbackSecond_), true);
+        if ((playbackRate_ < 0 && playbackSecond_ == first) || (playbackRate_ > 0 && playbackSecond_ == last))
+            playbackRate_ = 0;
+    }
+}
+
 std::uint64_t Session::displayedDigest() const
 {
     return sim::state_digest(previewState_ ? *previewState_ : *run_->live);
+}
+
+std::uint64_t Session::liveDigest() const { return sim::state_digest(*run_->live); }
+
+std::string Session::journalDigest() const
+{
+    return core::sha256_text(core::json::stringify(run_->journal.to_json()));
 }
 
 std::uint64_t Session::replayDigest(Second second) const
