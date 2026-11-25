@@ -154,6 +154,9 @@ struct InteractionProbe {
 
     void shell(Session& session, const SaveSlots& store);
     void forecast(Session& session);
+    void mapInteraction(Session& session);
+    void mapTransition(Session& session);
+    void mapScrub(Session& session);
 
     void reform(Session& session, Selection& selection)
     {
@@ -217,6 +220,164 @@ struct InteractionProbe {
         require(!view.dialog_ && session.busy(), "Keyboard confirmation did not submit the Practice Reform");
     }
 };
+
+namespace {
+
+std::vector<std::uint8_t> atlasPixels(SDL_Renderer* renderer, SDL_FRect area)
+{
+    const SDL_Rect crop{static_cast<int>(area.x), static_cast<int>(area.y), static_cast<int>(area.w),
+        static_cast<int>(area.h)};
+    const std::unique_ptr<SDL_Surface, decltype(&SDL_DestroySurface)> raw(
+        SDL_RenderReadPixels(renderer, &crop), SDL_DestroySurface);
+    require(raw != nullptr, "Could not read the atlas for pixel comparison");
+    const std::unique_ptr<SDL_Surface, decltype(&SDL_DestroySurface)> pixels(
+        SDL_ConvertSurface(raw.get(), SDL_PIXELFORMAT_RGBA32), SDL_DestroySurface);
+    require(pixels != nullptr, "Could not normalize the atlas pixels");
+    std::vector<std::uint8_t> result;
+    const auto* data = static_cast<const std::uint8_t*>(pixels->pixels);
+    for (int y = 0; y < pixels->h; ++y)
+        result.insert(result.end(), data + y * pixels->pitch, data + y * pixels->pitch + pixels->w * 4);
+    return result;
+}
+
+}
+
+void InteractionProbe::mapInteraction(Session& session)
+{
+    const auto& snapshot = *session.displayed();
+    const auto& shapes = session.shapes();
+    const auto area = view.bounds("map");
+    const auto capital = std::ranges::find(snapshot.regions, snapshot.capital, &Region::id);
+    require(capital != snapshot.regions.end(), "Map smoke has no capital");
+    const auto at = view.map_.project(shapes[capital - snapshot.regions.begin()].label, area);
+    pointer(SDL_EVENT_MOUSE_MOTION, at);
+    present(nullptr);
+    require(view.hoveredRegion_ == capital->id && control("#markers").GetChild(
+        static_cast<int>(capital - snapshot.regions.begin()))->IsClassSet("hovered"),
+        "Mouse did not highlight the capital and its label");
+    pointer(SDL_EVENT_MOUSE_BUTTON_DOWN, at);
+    require(view.pressedRegion_ == capital->id && view.selection_.region.empty(),
+        "Mouse press did not hold the settlement before committing");
+    present("n04k-map-pressed");
+    pointer(SDL_EVENT_MOUSE_BUTTON_UP, at);
+    present("n04k-map-selected");
+    require(view.selection_.region == capital->id && control("#markers").GetChild(
+        static_cast<int>(capital - snapshot.regions.begin()))->IsClassSet("selected"),
+        "Mouse release did not select the capital");
+    view.selection_.select({});
+    view.map_.overview();
+    view.map_.animate(SDL_GetTicks(), true);
+    present(nullptr);
+
+    // Use a point inside a province but beyond the settlement glyph's target.
+    std::optional<SDL_FPoint> field;
+    for (float y = area.y + 9; y < area.y + area.h - 9 && !field; y += 5) {
+        for (float x = area.x + 9; x < area.x + area.w - 9; x += 5) {
+            const auto target = view.map_.hit({x, y}, area, snapshot, shapes);
+            if (target && !target->settlement && snapshot.regions[target->region].id != capital->id &&
+                view.hit({x, y}) == snapshot.regions[target->region].id) {
+                field = SDL_FPoint{x, y};
+                break;
+            }
+        }
+    }
+    require(field.has_value(), "Map smoke has no exposed province to touch");
+    const auto id = view.hit(*field);
+    finger(SDL_EVENT_FINGER_DOWN, 1, *field);
+    require(view.hoveredRegion_ == *id && view.pressedRegion_ == *id && view.selection_.region.empty(),
+        "Touch did not give immediate province press feedback");
+    SDL_Delay(460);
+    present(nullptr);
+    require(view.longPress_ && !view.currentHelp_.empty(), "Province hold did not expose map help");
+    finger(SDL_EVENT_FINGER_UP, 1, *field);
+    require(view.selection_.region.empty() && view.hoveredRegion_.empty(), "Map help hold selected a province");
+    finger(SDL_EVENT_FINGER_DOWN, 1, *field);
+    finger(SDL_EVENT_FINGER_UP, 1, *field);
+    require(view.selection_.region == *id && view.hoveredRegion_.empty(), "Touch tap did not select a province");
+    view.selection_.select({});
+    view.map_.reset();
+    view.markersDirty_ = true;
+    present(nullptr);
+}
+
+void InteractionProbe::mapTransition(Session& session)
+{
+    const auto& exact = *session.displayed();
+    auto advanced = exact;
+    ++advanced.second;
+    require(advanced.regions.size() > 3 && !advanced.roads.empty(), "Map motion fixture is incomplete");
+    advanced.regions[0].holder = Holder::monster;
+    advanced.regions[0].occupied = true;
+    advanced.regions[1].population = 275.;
+    advanced.regions[1].hasSite = true;
+    advanced.regions[2].hasSite = false;
+    advanced.regions[2].holder = Holder::neutral;
+    advanced.roads.erase(advanced.roads.begin());
+    const auto newRoad = [](auto edge) { return edge == std::pair<std::size_t, std::size_t>{0, 2} ||
+        edge == std::pair<std::size_t, std::size_t>{2, 0}; };
+    if (std::ranges::none_of(advanced.roads, newRoad)) advanced.roads.emplace_back(0, 2);
+
+    RegionalMap map(view.map_.art_);
+    const auto area = view.bounds("map");
+    map.prepare(session.mapGeography(), exact);
+    waitFor(session, [&] { return map.terrainReady(); }, [&](const char*) {
+        map.draw(view.renderer_, area, exact, session.shapes(), {}, {}, false, {1000, 1, false, true});
+    });
+    const auto crown = std::ranges::find(exact.regions, CrownRank::capital, &Region::crown);
+    require(crown != exact.regions.end(), "Opening map has no Crown art identity");
+    const auto& crownPlan = map.baked_->sites[static_cast<std::size_t>(crown - exact.regions.begin())];
+    require(crownPlan.buildings.size() > 3 && !map.baked_->roads.empty(), "Illustrated city or roads were not planned");
+    if (area.w < 415.f) require(map.compact_, "Compact map uploaded the full terrain level");
+    const auto draw = [&](const Snapshot& state, RegionalMap::Display display) {
+        SDL_SetRenderClipRect(view.renderer_, nullptr);
+        SDL_RenderClear(view.renderer_);
+        map.draw(view.renderer_, area, state, session.shapes(), {}, {}, false, display);
+        return atlasPixels(view.renderer_, area);
+    };
+    const auto initial = draw(exact, {1000, 1, false, true});
+    require(draw(advanced, {1010, 2, false, true}) == initial && map.transitioning(),
+        "Live map did not retain its starting ink on the first transition frame");
+    const auto midway = draw(advanced, {1080, 2, false, true});
+    const auto restored = draw(advanced, {1090, 2, false, false});
+    require(!map.transitioning() && midway != initial && midway != restored && restored != initial,
+        "Map did not ease in Live and snap on entering a scrub");
+    require(draw(advanced, {1100, 3, true, false}) == restored, "Reduced motion changed exact preview ink");
+    require(draw(exact, {1110, 4, true, false}) == initial, "Reverse preview did not render the exact prior map");
+    map.invalidateTerrain();
+    require(!map.terrainReady() && map.textureBytes() == 0, "Backgrounding retained atlas textures");
+    require(draw(exact, {1120, 4, true, false}) == initial, "Terrain release and bake changed the resumed map");
+    require(draw(exact, {1130, 5, true, true}) == initial &&
+        draw(advanced, {1140, 6, true, true}) == restored && !map.transitioning(),
+        "Reduced motion eased a Live state change");
+    present(nullptr);
+}
+
+void InteractionProbe::mapScrub(Session& session)
+{
+    const auto live = session.liveSnapshot()->second;
+    const auto through = *session.chart().through;
+    for (const bool reduce : {false, true}) {
+        if (reduced() != reduce) click("#motion");
+        const auto target = std::min(live + (reduce ? 91 : 57), through);
+        scrub(live + 2, SDL_EVENT_FINGER_DOWN);
+        scrub(target, SDL_EVENT_FINGER_MOTION);
+        waitFor(session, [&] { return session.previewReady(); }, present);
+        require(view.drag_ == View::Drag::graph && session.displayed()->second == target &&
+            session.displayedDigest() == session.replayDigest(target), "Dragging did not restore the requested exact map");
+        require(!view.map_.transitioning(), "First restored frame still had Live map easing");
+        // Compare the first rendered restore with a forced snap at the same camera/second.
+        const auto area = view.bounds("map");
+        view.drawFrame();
+        const auto first = atlasPixels(view.renderer_, area);
+        view.reduced_ = !reduce;
+        view.drawFrame();
+        require(atlasPixels(view.renderer_, area) == first, "First scrub frame depends on Motion");
+        view.reduced_ = reduce;
+        scrub(target, SDL_EVENT_FINGER_UP);
+        click("#live");
+    }
+    click("#motion");
+}
 
 void InteractionProbe::forecast(Session& session)
 {
@@ -339,11 +500,14 @@ void smoke(Session& session, Selection& selection, const SmokeFrame& frame, View
     const auto openingSecond = session.displayed()->second;
     const auto openingActions = session.actionCount();
     require(session.displayedDigest() == session.replayDigest(openingSecond), "Opening differs from authoritative replay");
+    if (view) waitFor(session, [&] { return view->terrainReady(); }, frame);
     if (frame) frame("01-regional-map");
     if (frame) {
         if (view) {
             InteractionProbe probe{*view, frame};
             probe.touchCamera();
+            probe.mapInteraction(session);
+            probe.mapTransition(session);
             probe.selectCapital(session, selection);
         }
         else selection.select(session.displayed()->capital);
@@ -380,6 +544,16 @@ void smoke(Session& session, Selection& selection, const SmokeFrame& frame, View
         selection.destination.reset();
         selection.card.reset();
     }
+    if (view) {
+        waitFor(session, [&] { return !session.busy(); }, frame);
+        require(view->liveMapTransitioning(), "Committed time did not start a Live map transition");
+        for (const auto* shot : {"n04k-live-00", "n04k-live-01", "n04k-live-02", "n04k-live-03"}) {
+            frame(shot);
+            SDL_Delay(58);
+        }
+        SDL_Delay(55);
+        frame("n04k-live-04");
+    }
     if (frame) {
         waitFor(session, [&] {
             const auto coverage = session.coverage();
@@ -400,7 +574,11 @@ void smoke(Session& session, Selection& selection, const SmokeFrame& frame, View
     require(liveSecond == before + *duration, "Live time differs from Practice quote");
     require(session.previousChart().through && session.divergence() == before,
         "Practice action did not retain the revealed predecessor and edit second");
-    if (view) InteractionProbe{*view, frame}.forecast(session);
+    if (view) {
+        InteractionProbe probe{*view, frame};
+        probe.forecast(session);
+        probe.mapScrub(session);
+    }
     const auto liveDigest = session.displayedDigest();
     require(*session.chart().through >= liveSecond + 2, "Forecast stopped before a second can be scrubbed");
     const auto target = std::min(liveSecond + 79, *session.chart().through);

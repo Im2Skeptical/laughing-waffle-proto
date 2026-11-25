@@ -3962,6 +3962,110 @@ every published instant for readout and restoration while its wide draw
 visits a bounded number of bands. The Windows frame and memory measurements
 describe this runtime and the recorded seed-1 workload.
 
+### N04k - Living regional map
+
+The atlas reads the approved browser WebP sheets directly. It uses the same
+generated regional definition and art seed, 2-texel world coordinates, ground
+atlas rolls, bank profiles and biome artwork. A background worker prepares
+the natural and occupied terrain layers, water and hinterland, and caches
+settlement compositions and road routes. Village and market sprites share
+their biome placements. Crown cities retain their opening province or capital
+architecture through capture. Viewed occupancy selects the scorched terrain
+and monster landmark immediately on a scrub. Compact overview uses a
+half-resolution terrain level, and zoom uploads the fine level. Minimize and
+background release the SDL textures, which upload again from the CPU bake.
+
+Live advances blend ownership ink and settlement size and visibility over
+265 ms. Roads grow or contract and occupied terrain blends with the natural
+biome. Starting a scrub cancels map easing. The first frame after a restore
+draws the exact requested map, and returning to Live snaps to the frontier.
+The Motion toggle removes the transitions. Region outlines and settlement
+diamonds distinguish hover, press and selection. The mouse uses a hand over
+targets and a move cursor during pan. On touch, a tap selects and a hold reads
+the name, control and population. State, RNG draw order, save schema, forecast
+worker and replay stay as in `fd7d581b`.
+
+#### Browser reference and follow-ups
+
+The [browser atlas](../src/views/world-map/README.md) and
+[approved Crown art](../docs/crown-modular-art-iteration.md) supply the art and
+visual reference. The native raster is visually comparable at the same seed,
+with the geography, material decisions and centre anchors shared. It samples
+island land directly, uses a coarser routing grid and builds the landscape
+from a subset of the browser placement passes. The exact browser relief joins,
+city foundation exclusions, terrain transition profiles, distant scenery
+scatter, and full LOD chain still need porting. The browser probe supplies a
+reference capture for these comparisons.
+
+Static water is present. Animated water, clouds, shadows, fog and wisps, and
+their view-local graphics switches with a 30 fps cap, remain follow-ups.
+The native atlas shows region and settlement identity, ownership, capitals,
+Creep and roads. Hover and touch help add the current residents. The browser
+crest still adds worker counts, active and potential Prestige, allegiance,
+the normal and Force-adjusted holding thresholds, Force, Unrest years, and
+Monster Strength. Stock coverage icons and transfer packets are also absent.
+
+#### Verification
+
+```powershell
+. native/tools/env.ps1
+foreach ($preset in 'optimized', 'optimized-clang') {
+    Push-Location native
+    cmake --preset $preset
+    cmake --build --preset $preset
+    ctest --preset $preset --output-on-failure
+    Pop-Location
+    $game = "native/build/$preset/waffle_native_game.exe"
+    $parity = "native/build/$preset/src/sim/waffle_parity.exe"
+    & $game --smoke --seed 42
+    node native/reference/step-windows.mjs $parity
+    node native/reference/replay-windows.mjs $parity
+}
+node scripts/regional-presentation-browser-probe.mjs 42 --windowed
+```
+
+The existing connected interaction smoke exercises mouse and finger input at
+1120 ? 640 and 640 ? 360. It checks hover, press, selection and touch help,
+Crown city and road plans, compact LOD selection and texture release.
+It compares the first restored map pixels with Motion on and off and verifies
+identical atlas pixels after uploading the terrain again.
+
+Both Windows presets passed all 52 CTests and the explicit seed-42 smoke.
+Step parity matched 153 comparisons across 30 windows with zero masks.
+Replay matched 252 browser checkpoints across 34 journals in three replay
+modes, with 55 rejected actions leaving state unchanged. The browser probe
+passed the seed-42 illustrated terrain and camera checks.
+
+Use `--seed 42 --size <width> <height> --capture <folder>` with the control and
+candidate games to capture each native size. The opening atlas is
+`01-regional-map.png`. The candidate also captures `n04k-map-pressed.png`,
+`n04k-map-selected.png` and the five-frame Practice Reform transition
+`n04k-live-00.png` through `n04k-live-04.png`. The before/after folders and the
+seed-42 browser image are under `artifacts/n04k/`.
+
+#### Performance
+
+Windows x64, i9-10900K, RTX 3080, Direct3D 11, MSVC `optimized`, vsync off.
+Seven alternating `--bench 2400 <json> --long-benchmark` pairs compared the
+1120 × 640 candidate with an unmodified build of `fd7d581b`. Each published to
+second 32,192. The median frame p99 dropped from 2.494 to 2.313 ms and the
+candidate was faster in six of seven pairs. All loaded scrubs reached present
+within two harness frames. Three further candidate runs used 640 × 360.
+
+| Window | Worker bake | Texture upload | Steady map draw p50 / p95 / p99 | Map texture payload |
+| --- | ---: | ---: | ---: | ---: |
+| 1120 × 640 | 234.39 ms | 2.35 ms | 0.049 / 0.068 / 0.095 ms | 8.89 MiB |
+| 640 × 360 | 234.54 ms | 0.99 ms | 0.051 / 0.092 / 0.130 ms | 2.66 MiB |
+
+The table reports medians across runs. Bake time covers CPU raster and layout
+work after atlas decode. Upload and draw are main-thread SDL submission time.
+Texture payload counts the uploaded terrain level and building atlas at
+four bytes per pixel. It excludes the prepared CPU levels, driver storage and
+the rest of the app's textures. These are Windows results. The Android package
+stages the same WebP images, and Pixel memory and frame timing remain untested.
+The runner and raw JSON are `artifacts/n04k/run-paired.ps1` and
+`artifacts/n04k/paired-illustrated/`.
+
 ## N05 - Iteration and installed profiles (pending N04)
 
 Finish development, performance and full-art installed profiles sharing the same
