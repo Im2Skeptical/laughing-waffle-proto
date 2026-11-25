@@ -39,11 +39,13 @@ const Value& field(const Value& value, std::string_view key)
 
 auto geometry(const RuntimeState& state)
 {
-    auto shapes = std::make_shared<std::vector<RegionShape>>();
+    auto geography = std::make_shared<MapGeography>();
     const auto seed = sim::generated_regional_seed(state.topology->definition_id());
     if (!seed) throw std::invalid_argument("The connected game requires a generated regional world");
     sim::RegionalOutlines outlines;
-    const auto world = sim::generate_regional_world(*seed, &outlines);
+    sim::RegionalEdgeInks edgeInk;
+    geography->seed = *seed;
+    const auto world = sim::generate_regional_world(*seed, &outlines, &edgeInk, &geography->oceanSides);
     Point min{1e9, 1e9}, max{-1e9, -1e9};
     for (const auto& outline : outlines) {
         for (const auto& point : outline) {
@@ -56,14 +58,25 @@ auto geometry(const RuntimeState& state)
     const auto normalize = [&](Point point) -> Point {
         return {(point[0] - min[0]) / (max[0] - min[0]), (point[1] - min[1]) / (max[1] - min[1])};
     };
+    geography->min = min;
+    geography->max = max;
     for (const auto& row : state.tables.view(state.hot.world.regions)) {
         const auto it = std::ranges::find(world.regions, state.name(row.id), &sim::RegionalWorld::Region::id);
         if (it == world.regions.end()) throw std::invalid_argument("Unknown map region");
-        auto& outline = outlines[static_cast<std::size_t>(it - world.regions.begin())];
+        const auto ordinal = static_cast<std::size_t>(it - world.regions.begin());
+        auto& outline = outlines[ordinal];
         for (auto& point : outline) point = normalize(point);
-        shapes->push_back({normalize(it->labelPoint), std::move(outline)});
+        auto& shape = geography->shapes.emplace_back(RegionShape{normalize(it->labelPoint), std::move(outline), {}});
+        for (auto& edge : edgeInk[ordinal]) {
+            using Kind = sim::RegionalEdgeInk::Kind;
+            const auto feature = edge.kind == Kind::river ? RegionShape::Feature::river :
+                edge.kind == Kind::ridge ? RegionShape::Feature::ridge : edge.kind == Kind::exterior ?
+                RegionShape::Feature::exterior : RegionShape::Feature::frontier;
+            for (auto& point : edge.points) point = normalize(point);
+            shape.ink.push_back({feature, std::move(edge.points), edge.neighbor, edge.worldSide});
+        }
     }
-    return shapes;
+    return geography;
 }
 
 Card card(const RuntimeState& state, Index<PracticeSlot> index)
@@ -182,8 +195,9 @@ Snapshot snapshot(const RuntimeState& state, bool live)
         region.id = state.name(source.id);
         region.name = state.topology->region_name(source.id);
         region.biome = static_cast<std::uint8_t>(state.topology->biome(source.id));
+        region.occupied = source.monster && !source.monster->cleared.value_or(false);
         if (source.controller == state.practiceVocabulary.player) region.holder = Holder::player;
-        else if (source.monster && !source.monster->cleared.value_or(false)) region.holder = Holder::monster;
+        else if (region.occupied) region.holder = Holder::monster;
         else if (state.hot.civilization.remnant && source.controller == state.hot.civilization.remnant->faction)
             region.holder = Holder::crown;
         const auto& data = summaries[result.regions.size()];
@@ -196,6 +210,11 @@ Snapshot snapshot(const RuntimeState& state, bool live)
         auto& region = result.regions.at(site.regionId.value);
         region.hasSite = true;
         region.settlement = cold(state, site.name);
+        if (state.hot.civilization.remnant) {
+            if (region.id == state.name(state.hot.civilization.remnant->capitalRegionId))
+                region.crown = CrownRank::capital;
+            else if (region.settlement == "Remnant Province") region.crown = CrownRank::province;
+        }
         region.detailed = !site.neutral;
         if (!region.detailed) continue;
         const auto& board = site.detailedState.practiceSlots.slots;
@@ -249,7 +268,7 @@ void Session::open(const Launch& launch)
         run->base = std::make_shared<RuntimeState>(std::move(data.base));
         run->live = std::make_shared<RuntimeState>(std::move(data.live));
         run->journal = std::move(data.journal);
-        run->shapes = geometry(*run->live);
+        run->geography = geometry(*run->live);
         run->snapshot = snapshot(*run->live, true);
         run->horizon = launch.horizon;
         run->generation = forecast_.start(*run->base, run->journal, run->snapshot.second + run->horizon);
@@ -331,7 +350,7 @@ void Session::transact(std::vector<sim::Action> actions, bool resolve)
         }
         run->live = std::move(live);
         run->base = previous->base;
-        run->shapes = previous->shapes;
+        run->geography = previous->geography;
         run->horizon = previous->horizon;
         run->snapshot = snapshot(*run->live, true);
         run->divergence = previous->snapshot.second;

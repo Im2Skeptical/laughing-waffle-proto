@@ -13,8 +13,22 @@ using Second = std::uint64_t;
 using Point = std::array<double, 2>;
 
 struct RegionShape {
+    enum class Feature { frontier, exterior, river, ridge };
+    struct InkLine {
+        Feature feature;
+        std::vector<Point> points;
+        int neighbor{-1}, worldSide{-1};
+    };
     Point label{};
     std::vector<Point> outline;
+    std::vector<InkLine> ink;
+};
+
+struct MapGeography {
+    std::uint32_t seed{};
+    Point min{}, max{};
+    std::array<bool, 4> oceanSides{};
+    std::vector<RegionShape> shapes;
 };
 
 struct Card {
@@ -25,14 +39,16 @@ struct Card {
 };
 
 enum class Holder { player, crown, neutral, monster };
+enum class CrownRank { none, province, capital };
 
 struct Region {
     std::string id, name, settlement;
     Holder holder{Holder::neutral};
+    CrownRank crown{CrownRank::none};
     std::uint8_t biome{};
     double population{}, food{}, currency{};
     std::array<Card, 5> cards;
-    bool hasSite{}, detailed{};
+    bool hasSite{}, detailed{}, occupied{};
 };
 
 enum class Decision { chooseVassal, commission, enterShop, specialty, reorder, advance };
