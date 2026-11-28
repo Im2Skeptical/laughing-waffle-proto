@@ -50,6 +50,27 @@ Local instructions for agents working in this repo.
   in `ai/sim.md` and `ai/ui.md`. Historical decision records live in
   `ai/history/` and are not descriptions of unfinished work.
 
+## Working with Cam
+- Delegation: default workers are `gpt-6.2-sol`. For a complex task, or when
+  a sol worker underdelivers, you may use `gpt-6.2-astra` (Codex,
+  `reasoningEffort: high`). Give it bounded, well-specified work (profiling,
+  a hard design or port). It drifts on long tasks, so audit its output:
+  re-run build, tests and parity yourself and read the key code paths.
+- No GitHub issues. Don't file issues or ask whether to. Fix browser bugs a
+  port or analysis finds in a new top-level sol thread, in a worktree from
+  `origin/main`, through the normal PR workflow. The PR is the record. Track
+  native work in `native/WORKPLAN.md`.
+- Native: performance outranks exact JS parity. See
+  [native priorities](native/ARCHITECTURE.md#priorities).
+- Native UX latitude: the browser is a rules, layout and content reference,
+  not a reference for interaction quality. Design real game interactions:
+  hover/pressed/disabled/focus states, feedback, transitions. Improve visuals
+  drawn in code (map shapes, charts, panels, frames, effects) in the game's
+  tone ([aesthetic guidance](docs/aesthetic-ux-design.md)). Don't invent
+  rules. Don't replace illustrated art: port the terrain-kit atlas, the
+  `images/dark-fantasy/map-generation-prototype/` pipeline, Crown city art
+  and crests.
+
 ## Core constraints (non-negotiable)
 - Determinism: no `Math.random()`; all randomness must go through `state.rng`.
 - Serialization: `GameState` must stay JSON-serializable (no classes/functions/Maps/Sets).
@@ -115,5 +136,4 @@ even when the current session's skill catalogue has not refreshed.
 
 ## Issue tracker
 
-Issues and specs live in GitHub Issues using the `gh` CLI. See
-`docs/agents/issue-tracker.md`.
+Not used; see Working with Cam. PRs and `native/WORKPLAN.md` are the record.

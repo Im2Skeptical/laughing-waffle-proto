@@ -2,8 +2,23 @@
 
 ## Handoff
 
+- **Paused 26 Nov 2026** at main v1.1.85 (`4e5bb119`). Don't resume or
+  integrate until Cam says so. Wave-4 branches from `4e5bb119`, not merged:
+  - N04q Vassal decision and succession: `t3/vassal-succession-sequence`
+    @ `90ab4710`. Reported complete: 58 CTests, smoke, benchmarks in spread.
+  - N04r Research and card consequences: `t3/research-card-consequences`
+    @ `d667d0d1`. Paired benchmark and `npm run verify` still open.
+  - N04s Time inspection controls: `t3/native-time-inspection-controls`
+    @ `2702125d`. The final move of the wheel art to the SDL atlas was only
+    build-checked, and frame times exceeded the control spread. Re-benchmark
+    it, and check captures, including after a render-device reset.
+  - On resume: review each branch, merge in order, run the full verify
+    matrix and a quiet benchmark, then bump to the next version.
+
 - **Resumed 25 Nov 2026.** Cam benched the browser performance backport and the
   laptop worker setup (the laptop keeps sleeping). Native app work continues.
+  - If the laptop setup resumes, check `%LOCALAPPDATA%\Programs\portable`
+    first, because the cancelled portable install may be partial.
   - On `main`, direct to main with history kept:
     - v1.1.82–1.1.84: N04j settlement inspection, N04k living map, N04m
       settlement crests and map readouts, N04l atlas fidelity and atmosphere,
@@ -318,10 +333,9 @@
   bootstrap renderer is SDL3's default 2D renderer, not RmlUi's SDL_GPU/SDL_GL3 samples.
 
 Use `pending`, `ready`, `active`, `blocked`, `done` for item status. Split an oversized item
-into bounded tasks with their own completion criteria. Before implementation
-begins, create/link its GitHub issue following the repository issue workflow;
-use that issue for detailed scope and discussion, and this file for resumable
-status and evidence. Keep one active owner per item.
+into bounded tasks with their own completion criteria. Record scope, resumable
+status and evidence here; the item's PR carries the change discussion. Keep one
+active owner per item.
 
 ## N01 - Reproducible native bootstrap (done)
 

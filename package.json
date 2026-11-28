@@ -1,6 +1,6 @@
 {
   "name": "laughing-waffle-proto",
-  "version": "1.1.85",
+  "version": "1.1.86",
   "description": "Sparse prototype fork for Civilization Survivor core-system rework",
   "type": "module",
   "main": "index.html",
